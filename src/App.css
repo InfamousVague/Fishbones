@@ -1,0 +1,55 @@
+@import "@mattmattmattmatt/base/site/styles/tokens.css";
+
+/* Base kit already provides color tokens + glass styling. We just lay out
+   the three regions: sidebar / tab bar + content split. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  color: var(--color-text, #e6e6e6);
+  background: var(--color-bg, #0e1116);
+}
+
+.kata-app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100vh;
+}
+
+.kata-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kata-lesson {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* When a lesson has an exercise, the bottom half is the workbench. */
+.kata-workbench {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 320px;
+  max-height: 45%;
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+}
+
+.kata-empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted, rgba(230, 230, 230, 0.55));
+  font-size: 14px;
+}
