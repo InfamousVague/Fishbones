@@ -1,4 +1,8 @@
 import { useState } from "react";
+import { Icon } from "@base/primitives/icon";
+import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
+import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
+import "@base/primitives/icon/icon.css";
 import type { Course, Chapter, Lesson } from "../../data/types";
 import "./Sidebar.css";
 
@@ -85,7 +89,14 @@ function CourseGroup({
         className={`kata__nav-item kata__course-title ${isActiveCourse ? "kata__nav-item--active" : ""}`}
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="kata__course-caret">{expanded ? "▾" : "▸"}</span>
+        <span className="kata__course-caret" aria-hidden>
+          <Icon
+            icon={expanded ? chevronDown : chevronRight}
+            size="sm"
+            color="currentColor"
+            weight="bold"
+          />
+        </span>
         <span className="kata__course-name">{course.title}</span>
         <span className="kata__course-progress">
           {doneLessons}/{totalLessons}

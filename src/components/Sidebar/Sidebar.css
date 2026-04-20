@@ -82,11 +82,28 @@
   letter-spacing: 0.1px;
 }
 
+/* Circular chevron button next to course titles. White-ish outline ring,
+   icon inherits currentColor from the nav-item (dim → primary on hover). */
 .kata__course-caret {
-  font-size: 10px;
-  width: 12px;
-  opacity: 0.55;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: var(--color-text-primary);
   flex-shrink: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.kata__course-title:hover .kata__course-caret {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.kata__nav-item--active .kata__course-caret {
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .kata__course-name {
