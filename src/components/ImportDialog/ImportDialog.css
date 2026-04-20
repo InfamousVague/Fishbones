@@ -183,6 +183,14 @@
   white-space: nowrap;
 }
 
+.kata-import-running-waiting {
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+}
+
 .kata-import-spinner {
   width: 14px;
   height: 14px;

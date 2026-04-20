@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { textToCourse } from "../../ingest/pdfParser";
@@ -31,6 +31,8 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
   const [runningDetail, setRunningDetail] = useState("");
   const [events, setEvents] = useState<IngestEvent[]>([]);
   const [stats, setStats] = useState<PipelineStats | null>(null);
+  const [lastEventAt, setLastEventAt] = useState<number | null>(null);
+  const [, tick] = useState(0);
   const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -86,6 +88,7 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
               next.push(ev);
               return next;
             });
+            setLastEventAt(ev.timestamp);
           },
           onStats: (s) => setStats(s),
         });
@@ -125,6 +128,20 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
   function cancelRun() {
     abortRef.current?.abort();
   }
+
+  // Force a re-render every second while running so the "waiting" subtext
+  // below the progress line counts up even when no events fire (Opus on a
+  // big chapter can go 60s without any return).
+  useEffect(() => {
+    if (step !== "running") return;
+    const id = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [step]);
+
+  const waitingSeconds =
+    step === "running" && lastEventAt
+      ? Math.max(0, Math.floor((Date.now() - lastEventAt) / 1000))
+      : 0;
 
   async function commitSave() {
     if (!previewCourse) return;
@@ -239,6 +256,11 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
                   </div>
                   {runningDetail && (
                     <div className="kata-import-running-detail">{runningDetail}</div>
+                  )}
+                  {waitingSeconds >= 3 && (
+                    <div className="kata-import-running-waiting">
+                      waiting {waitingSeconds}s on Claude…
+                    </div>
                   )}
                 </div>
               </div>

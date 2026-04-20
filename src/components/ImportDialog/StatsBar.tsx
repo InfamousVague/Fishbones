@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { PipelineStats } from "../../ingest/pipeline";
 import "./StatsBar.css";
 
@@ -9,11 +10,24 @@ interface Props {
 /// chapters, lessons (by kind), tokens, cost. Null-stats render a dim
 /// skeleton so the layout doesn't jump once the first event lands.
 export default function StatsBar({ stats }: Props) {
+  // Elapsed is derived from stats.startedAt and needs to tick independently
+  // of pipeline events — Opus can happily think for 60s without firing
+  // anything, and a frozen clock reads as a hung app. A 500ms interval
+  // keeps the elapsed cell moving while the rest of the numbers wait on
+  // the next API return.
+  const [, force] = useState(0);
+  useEffect(() => {
+    if (!stats) return;
+    const id = setInterval(() => force((n) => n + 1), 500);
+    return () => clearInterval(id);
+  }, [stats?.startedAt]);
+
+  const elapsedMs = stats ? Date.now() - stats.startedAt : 0;
   const tokens = stats ? stats.inputTokens + stats.outputTokens : 0;
 
   return (
     <div className="kata-stats">
-      <Cell label="elapsed" value={stats ? formatElapsed(stats.elapsedMs) : "–"} />
+      <Cell label="elapsed" value={stats ? formatElapsed(elapsedMs) : "–"} />
       <Cell
         label="chapters"
         value={stats ? `${stats.chaptersDone}/${stats.totalChapters || "?"}` : "–"}
