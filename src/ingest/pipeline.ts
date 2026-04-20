@@ -39,19 +39,76 @@ export interface PipelineOptions {
   title: string;
   author?: string;
   language: LanguageId;
+  /** High-level stage label for the main progress line. */
   onProgress: (stage: string, detail?: string) => void;
+  /** Optional fine-grained event stream for the verbose log panel. */
+  onEvent?: (event: IngestEvent) => void;
+  /**
+   * When aborted, the pipeline throws at the next cancel checkpoint (between
+   * stages / API calls). The per-stage cache means the user can re-run and
+   * pick up right where they stopped.
+   */
+  signal?: AbortSignal;
+}
+
+export interface IngestEvent {
+  timestamp: number;
+  level: "info" | "warn" | "error" | "cache";
+  stage: "extract" | "clean" | "outline" | "generate" | "validate" | "retry" | "save" | "meta";
+  chapter?: number;
+  lesson?: string;
+  message: string;
+}
+
+export class IngestAborted extends Error {
+  constructor() {
+    super("ingest aborted by user");
+    this.name = "IngestAborted";
+  }
 }
 
 export async function runPipeline(opts: PipelineOptions): Promise<Course> {
-  const { pdfPath, bookId, title, author, language, onProgress } = opts;
+  const { pdfPath, bookId, title, author, language, onProgress, onEvent, signal } = opts;
+
+  // Local helpers that know about the abort signal + event sink.
+  const emit = (e: Omit<IngestEvent, "timestamp">) => {
+    onEvent?.({ ...e, timestamp: Date.now() });
+  };
+  const checkAbort = () => {
+    if (signal?.aborted) throw new IngestAborted();
+  };
+  const timedInvoke = async <T,>(
+    cmd: string,
+    args: Record<string, unknown>,
+    label: string,
+    ctx: { stage: IngestEvent["stage"]; chapter?: number; lesson?: string },
+  ): Promise<T> => {
+    checkAbort();
+    emit({ level: "info", ...ctx, message: `→ ${label}` });
+    const t0 = Date.now();
+    const result = await invoke<T>(cmd, args);
+    emit({
+      level: "info",
+      ...ctx,
+      message: `✓ ${label} (${Date.now() - t0}ms)`,
+    });
+    checkAbort();
+    return result;
+  };
+
+  emit({ level: "info", stage: "meta", message: `book=${bookId} lang=${language}` });
 
   // ---- Stage 0: extract raw text -----------------------------------------
   onProgress("Extracting text from PDF…");
   let rawText = await cacheRead(bookId, "raw.txt");
-  if (!rawText) {
-    const res = await invoke<{ text: string; error: string | null }>(
+  if (rawText) {
+    emit({ level: "cache", stage: "extract", message: "hit — skipping pdftotext" });
+  } else {
+    const res = await timedInvoke<{ text: string; error: string | null }>(
       "extract_pdf_text",
       { path: pdfPath },
+      "pdftotext",
+      { stage: "extract" },
     );
     if (res.error) throw new Error(res.error);
     rawText = res.text;
@@ -62,6 +119,7 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
   const rawChapters = splitChaptersIntoRaw(rawText);
   if (rawChapters.length === 0) throw new Error("No chapters detected in PDF.");
   onProgress(`Found ${rawChapters.length} chapter(s).`);
+  emit({ level: "info", stage: "meta", message: `detected ${rawChapters.length} chapters` });
 
   const cleaned: Array<{ title: string; markdown: string }> = [];
   for (let i = 0; i < rawChapters.length; i++) {
@@ -72,11 +130,20 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
       ch.title,
     );
     let md = await cacheRead(bookId, cacheKey);
-    if (!md) {
-      md = await invoke<string>("clean_code", {
-        chapterTitle: ch.title,
-        rawText: ch.body,
+    if (md) {
+      emit({
+        level: "cache",
+        stage: "clean",
+        chapter: i + 1,
+        message: `hit — skip clean for "${ch.title}"`,
       });
+    } else {
+      md = await timedInvoke<string>(
+        "clean_code",
+        { chapterTitle: ch.title, rawText: ch.body },
+        `clean_code ${ch.title}`,
+        { stage: "clean", chapter: i + 1 },
+      );
       await cacheWrite(bookId, cacheKey, md);
     }
     cleaned.push({ title: ch.title, markdown: md });
@@ -92,15 +159,33 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
       ch.title,
     );
     let raw = await cacheRead(bookId, cacheKey);
-    if (!raw) {
-      raw = await invoke<string>("outline_chapter", {
-        chapterTitle: ch.title,
-        cleanedMarkdown: ch.markdown,
-        language,
+    if (raw) {
+      emit({
+        level: "cache",
+        stage: "outline",
+        chapter: i + 1,
+        message: `hit — skip outline for "${ch.title}"`,
       });
+    } else {
+      raw = await timedInvoke<string>(
+        "outline_chapter",
+        {
+          chapterTitle: ch.title,
+          cleanedMarkdown: ch.markdown,
+          language,
+        },
+        `outline_chapter ${ch.title}`,
+        { stage: "outline", chapter: i + 1 },
+      );
       await cacheWrite(bookId, cacheKey, raw);
     }
     const stubs = parseJson<LessonStub[]>(raw, `outline of ${ch.title}`);
+    emit({
+      level: "info",
+      stage: "outline",
+      chapter: i + 1,
+      message: `planned ${stubs.length} lessons (${stubs.map((s) => s.kind).join(", ")})`,
+    });
     outlines.push({ title: ch.title, stubs });
   }
 
@@ -141,13 +226,18 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
 
       // Inline helper closes over the stable locals we need to re-call the LLM.
       async function regenerateLesson(): Promise<Lesson> {
-        const raw = await invoke<string>("generate_lesson", {
-          chapterTitle: ch.title,
-          cleanedMarkdown: cleaned[ci].markdown,
-          language,
-          stub: JSON.stringify(stub),
-          priorSolution: priorSolution ?? null,
-        });
+        const raw = await timedInvoke<string>(
+          "generate_lesson",
+          {
+            chapterTitle: ch.title,
+            cleanedMarkdown: cleaned[ci].markdown,
+            language,
+            stub: JSON.stringify(stub),
+            priorSolution: priorSolution ?? null,
+          },
+          `generate_lesson ${stub.id} (${stub.kind})`,
+          { stage: "generate", chapter: ci + 1, lesson: stub.id },
+        );
         const parsed = parseJson<Lesson>(raw, `lesson ${stub.id}`);
         // Only cache the raw text AFTER we're sure it parses.
         await cacheWrite(bookId, cacheKey, raw);
@@ -163,12 +253,21 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
             chapterIndex: ci,
             stubId: stub.id,
             onProgress,
+            emit,
+            checkAbort,
           },
         );
         lesson = validated;
         if (lesson.kind === "exercise") priorSolution = lesson.solution;
       }
 
+      emit({
+        level: "info",
+        stage: "generate",
+        chapter: ci + 1,
+        lesson: stub.id,
+        message: `✓ lesson "${lesson.title}" (${lesson.kind})`,
+      });
       lessons.push(lesson);
     }
 
@@ -197,11 +296,14 @@ async function validateExerciseWithRetry(
     chapterIndex: number;
     stubId: string;
     onProgress: PipelineOptions["onProgress"];
+    emit: (e: Omit<IngestEvent, "timestamp">) => void;
+    checkAbort: () => void;
   },
 ): Promise<Lesson> {
   let current = lesson;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    ctx.checkAbort();
     ctx.onProgress(
       `Validating exercise (attempt ${attempt + 1}/${MAX_RETRIES + 1})`,
       current.title,
@@ -209,15 +311,36 @@ async function validateExerciseWithRetry(
 
     const failure = await validateOnce(current);
     if (!failure) {
-      return current; // passes both gates
+      ctx.emit({
+        level: "info",
+        stage: "validate",
+        chapter: ctx.chapterIndex + 1,
+        lesson: ctx.stubId,
+        message: `✓ validated "${current.title}"`,
+      });
+      return current;
     }
 
+    ctx.emit({
+      level: "warn",
+      stage: "validate",
+      chapter: ctx.chapterIndex + 1,
+      lesson: ctx.stubId,
+      message: `fail attempt ${attempt + 1}: ${failure}`,
+    });
+
     if (attempt === MAX_RETRIES) {
-      // Strike out — demote to a reading lesson with the example inline.
       ctx.onProgress(
         `⚠️  Exercise couldn't be validated, demoting to reading`,
         current.title,
       );
+      ctx.emit({
+        level: "error",
+        stage: "validate",
+        chapter: ctx.chapterIndex + 1,
+        lesson: ctx.stubId,
+        message: `demoted to reading after ${MAX_RETRIES} failures`,
+      });
       return demoteToReading(current, failure);
     }
 
@@ -226,9 +349,24 @@ async function validateExerciseWithRetry(
     const retryKey = `lessons/chapter-${pad(ctx.chapterIndex + 1)}/${slug(
       ctx.stubId,
     )}.retry-${attempt + 1}.json`;
+    ctx.emit({
+      level: "info",
+      stage: "retry",
+      chapter: ctx.chapterIndex + 1,
+      lesson: ctx.stubId,
+      message: `→ retry_exercise attempt ${attempt + 1}`,
+    });
+    const t0 = Date.now();
     const rawFixed = await invoke<string>("retry_exercise", {
       originalLesson: JSON.stringify(current),
       failureReason: failure,
+    });
+    ctx.emit({
+      level: "info",
+      stage: "retry",
+      chapter: ctx.chapterIndex + 1,
+      lesson: ctx.stubId,
+      message: `✓ retry returned (${Date.now() - t0}ms)`,
     });
     current = parseJson<ExerciseLesson>(rawFixed, `${current.id} retry ${attempt + 1}`);
     await cacheWrite(ctx.bookId, retryKey, rawFixed);

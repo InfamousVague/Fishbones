@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { textToCourse } from "../../ingest/pdfParser";
-import { runPipeline } from "../../ingest/pipeline";
+import { runPipeline, IngestAborted, type IngestEvent } from "../../ingest/pipeline";
 import CoursePreview from "./CoursePreview";
 import type { Course, LanguageId } from "../../data/types";
 import "./ImportDialog.css";
@@ -25,10 +25,13 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
   const [courseId, setCourseId] = useState("");
   const [language, setLanguage] = useState<LanguageId>("javascript");
   const [useAi, setUseAi] = useState(true);
+  const [verbose, setVerbose] = useState(false);
   const [runningLabel, setRunningLabel] = useState("");
   const [runningDetail, setRunningDetail] = useState("");
+  const [events, setEvents] = useState<IngestEvent[]>([]);
   const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   async function pickFile() {
     setError(null);
@@ -53,6 +56,9 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
     setStep("running");
     setError(null);
     setPreviewCourse(null);
+    setEvents([]);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const finalId = courseId || slug(title);
 
@@ -65,9 +71,18 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
           title,
           author: author || undefined,
           language,
+          signal: controller.signal,
           onProgress: (stage, detail) => {
             setRunningLabel(stage);
             setRunningDetail(detail ?? "");
+          },
+          onEvent: (ev) => {
+            setEvents((prev) => {
+              // Cap at 500 entries so long runs don't balloon memory.
+              const next = prev.length >= 500 ? prev.slice(-499) : prev.slice();
+              next.push(ev);
+              return next;
+            });
           },
         });
       } else {
@@ -89,9 +104,22 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
       setPreviewCourse(course);
       setStep("preview");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setStep("meta");
+      if (e instanceof IngestAborted) {
+        // Clean abort — go back to the metadata step without surfacing an
+        // error. Cache kept everything up to the last completed stage, so
+        // hitting Import again picks right back up.
+        setStep("meta");
+      } else {
+        setError(e instanceof Error ? e.message : String(e));
+        setStep("meta");
+      }
+    } finally {
+      abortRef.current = null;
     }
+  }
+
+  function cancelRun() {
+    abortRef.current?.abort();
   }
 
   async function commitSave() {
@@ -196,13 +224,37 @@ export default function ImportDialog({ onDismiss, onImported }: Props) {
           )}
 
           {step === "running" && (
-            <div className="kata-import-running-panel">
-              <div className="kata-import-spinner" />
-              <div className="kata-import-running-body">
-                <div className="kata-import-running-stage">{runningLabel || "Working…"}</div>
-                {runningDetail && <div className="kata-import-running-detail">{runningDetail}</div>}
+            <>
+              <div className="kata-import-running-panel">
+                <div className="kata-import-spinner" />
+                <div className="kata-import-running-body">
+                  <div className="kata-import-running-stage">
+                    {runningLabel || "Working…"}
+                  </div>
+                  {runningDetail && (
+                    <div className="kata-import-running-detail">{runningDetail}</div>
+                  )}
+                </div>
               </div>
-            </div>
+
+              <div className="kata-import-running-controls">
+                <label className="kata-import-verbose-toggle">
+                  <input
+                    type="checkbox"
+                    checked={verbose}
+                    onChange={(e) => setVerbose(e.target.checked)}
+                  />
+                  <span>Verbose log</span>
+                </label>
+                <button className="kata-import-secondary" onClick={cancelRun}>
+                  Cancel
+                </button>
+              </div>
+
+              {verbose && (
+                <EventLog events={events} />
+              )}
+            </>
           )}
 
           {error && <div className="kata-import-error">{error}</div>}
@@ -218,6 +270,34 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="kata-import-label">{label}</span>
       {children}
     </label>
+  );
+}
+
+function EventLog({ events }: { events: IngestEvent[] }) {
+  // Auto-scroll to bottom when new events arrive.
+  const ref = useRef<HTMLDivElement | null>(null);
+  if (ref.current) {
+    ref.current.scrollTop = ref.current.scrollHeight;
+  }
+  return (
+    <div ref={ref} className="kata-import-log">
+      {events.length === 0 ? (
+        <div className="kata-import-log-empty">waiting for pipeline events…</div>
+      ) : (
+        events.map((e, i) => (
+          <div key={i} className={`kata-import-log-line kata-import-log-line--${e.level}`}>
+            <span className="kata-import-log-stage">{e.stage}</span>
+            {e.chapter !== undefined && (
+              <span className="kata-import-log-loc">ch{e.chapter}</span>
+            )}
+            {e.lesson && (
+              <span className="kata-import-log-loc">{e.lesson}</span>
+            )}
+            <span className="kata-import-log-msg">{e.message}</span>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
 
