@@ -139,7 +139,7 @@ test("returns an int", _type)
     id: "rust-taste",
     title: "A Taste of Rust",
     author: "Kata Team",
-    description: "Syntax and ownership concepts from the Rust Book, condensed.",
+    description: "Syntax and ownership from the Rust Book, condensed. Code runs via play.rust-lang.org.",
     language: "rust",
     chapters: [
       {
@@ -161,6 +161,50 @@ fn main() {
     println!("{}", s);
 } // s is dropped here
 \`\`\`
+`,
+          },
+          {
+            id: "rust-add",
+            kind: "exercise",
+            title: "Your first Rust function",
+            language: "rust",
+            body: `# Your first Rust function
+
+Implement \`add\` so that \`add(2, 3)\` returns \`5\`.
+
+The first run takes a few seconds because we're compiling on the Rust
+Playground servers. Subsequent runs are faster.`,
+            starter: `pub fn add(a: i32, b: i32) -> i32 {
+    // your code here
+    0
+}
+
+fn main() {
+    println!("add(2, 3) = {}", add(2, 3));
+}
+`,
+            solution: `pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn main() {
+    println!("add(2, 3) = {}", add(2, 3));
+}
+`,
+            tests: `#[test]
+fn adds_two_positive_numbers() {
+    assert_eq!(add(2, 3), 5);
+}
+
+#[test]
+fn adds_with_a_negative() {
+    assert_eq!(add(-1, 10), 9);
+}
+
+#[test]
+fn is_commutative() {
+    assert_eq!(add(4, 7), add(7, 4));
+}
 `,
           },
         ],
