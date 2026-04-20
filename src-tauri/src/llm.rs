@@ -22,11 +22,13 @@ const ANTHROPIC_VERSION: &str = "2023-06-01";
 // Model is now picked per-user in Settings (anthropic_model) and read fresh
 // on each call. Default set in settings::Settings::default is sonnet-4-5.
 //
-// Sonnet 4.5 supports up to 64k output tokens. 16k comfortably holds a full
-// exercise lesson (prose + starter + solution + tests) with room to spare;
-// if we hit this ceiling we bump it again. Under-sizing leads to truncated
-// JSON and unparseable responses, so we err on the high side.
-const MAX_TOKENS: u32 = 16384;
+// Sonnet 4.5 supports up to 64k output tokens. 32k comfortably holds:
+//   - any single exercise lesson (prose + starter + solution + tests)
+//   - a full chapter's worth of clean_code repair (the Flanagan JS Async
+//     chapter needed ~22k out tokens; 16k was too tight)
+// We err on the high side because Anthropic only charges for tokens actually
+// produced — raising the cap has no cost, only the ceiling.
+const MAX_TOKENS: u32 = 32768;
 
 #[derive(Debug, Serialize)]
 struct AnthropicRequest<'a> {
