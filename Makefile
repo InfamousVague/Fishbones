@@ -104,7 +104,7 @@ release:
 	sed -i '' "s/\"version\": \"$$CURRENT\"/\"version\": \"$$NEW\"/" src-tauri/tauri.conf.json; \
 	sed -i '' "s/^version = \"$$CURRENT\"/version = \"$$NEW\"/" src-tauri/Cargo.toml; \
 	git add src-tauri/tauri.conf.json src-tauri/Cargo.toml; \
-	git commit -S -m "Fishbones v$$NEW"; \
+	git commit -m "Fishbones v$$NEW"; \
 	git tag -a "v$$NEW" -m "Fishbones v$$NEW"; \
 	git push origin HEAD; \
 	git push origin "v$$NEW"; \
