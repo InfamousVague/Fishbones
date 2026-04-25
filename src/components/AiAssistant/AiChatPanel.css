@@ -1,0 +1,509 @@
+/* Floating AI assistant panel. Sits above the floating button (no
+   overlap), styled to match the rest of the Fishbones surface
+   vocabulary — same `--color-bg-secondary` + `--color-border-default`
+   the sidebar uses, same 12px outer radius, same border. */
+
+.fishbones-ai-panel {
+  position: fixed;
+  /* The character button is 64px tall + 22px from the bottom edge.
+     We sit above it with a 24px breathing gap so the panel has a
+     visible separation from the click target instead of feeling
+     stuck onto it. */
+  bottom: calc(64px + 22px + 24px);
+  right: 22px;
+  /* Use both `top` AND `bottom` to give the panel a *definite*
+     height (capped by the viewport on small screens). Without a
+     definite height the flex column's `flex: 1` body can't compute
+     a real overflow target — the scrollbar appears in DOM but the
+     wheel doesn't have a constrained surface to scroll, which is
+     exactly the "I can't scroll the history" symptom. We also set
+     a `height` floor so the panel doesn't collapse to its content
+     when there are only one or two messages. */
+  top: max(14px, calc(100vh - 64px - 22px - 24px - min(620px, 80vh)));
+  height: min(620px, calc(100vh - 64px - 22px - 24px - 14px));
+  width: 380px;
+  max-width: calc(100vw - 28px);
+  z-index: 91;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Slide up from below the button when opening. */
+  transform: translateY(8px) scale(0.98);
+  transform-origin: bottom right;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.25, 1),
+    opacity 0.18s ease-out;
+}
+
+.fishbones-ai-panel.is-open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---- Header ---------------------------------------------------- */
+
+.fishbones-ai-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-default);
+  /* No background bump — the panel-level background reads through.
+     Matches the sidebar header / lesson reader feel. */
+}
+
+.fishbones-ai-panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  color: var(--color-text-primary);
+}
+
+.fishbones-ai-panel-logo {
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: url("/fishbones.png") no-repeat center / contain;
+  mask: url("/fishbones.png") no-repeat center / contain;
+  color: var(--color-text-secondary);
+}
+
+.fishbones-ai-panel-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fishbones-ai-panel-reset {
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border-default);
+  padding: 4px 10px;
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.fishbones-ai-panel-reset:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-tertiary);
+}
+
+.fishbones-ai-panel-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fishbones-ai-panel-close {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md, 6px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fishbones-ai-panel-close:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* ---- Context chip ---------------------------------------------- */
+
+.fishbones-ai-panel-context {
+  padding: 6px 14px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-default);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fishbones-ai-panel-context-label {
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}
+
+.fishbones-ai-panel-context-value {
+  color: var(--color-text-secondary);
+}
+
+/* ---- Body: scrollable message list ----------------------------- */
+
+.fishbones-ai-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---- Empty-state hint card ------------------------------------- */
+
+.fishbones-ai-panel-empty {
+  padding: 18px 14px;
+  border: 1px dashed var(--color-border-default);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.fishbones-ai-panel-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.fishbones-ai-panel-empty-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.fishbones-ai-panel-empty-chip {
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 6px);
+  font-size: 12px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.fishbones-ai-panel-empty-chip:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-tertiary);
+}
+
+/* ---- Setup banner (probe failed) ------------------------------- */
+
+.fishbones-ai-panel-setup {
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--color-border-default);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.fishbones-ai-panel-setup-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.fishbones-ai-panel-setup p {
+  margin: 6px 0;
+}
+
+.fishbones-ai-panel-setup-cmd {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md, 6px);
+  padding: 8px 10px;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  margin: 4px 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.fishbones-ai-panel-setup-note {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-ai-panel-setup-err {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.fishbones-ai-panel-setup-retry {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fishbones-ai-panel-setup-retry:hover {
+  background: var(--color-bg-tertiary);
+}
+
+/* Primary action button — used for Install / Start / Download. */
+.fishbones-ai-panel-setup-primary {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.12s, transform 0.12s;
+}
+
+.fishbones-ai-panel-setup-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.fishbones-ai-panel-setup-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Captured stdout/stderr tail from the last setup action. */
+.fishbones-ai-panel-setup-log {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 6px);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 11px;
+  line-height: 1.4;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.fishbones-ai-panel-setup-log.is-ok {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+}
+
+.fishbones-ai-panel-setup-log.is-fail {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+/* ---- Message bubbles ------------------------------------------- */
+
+/* User bubble: filled card variant, right-aligned. */
+.fishbones-ai-bubble--user.card {
+  align-self: flex-end;
+  max-width: 86%;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  /* Override base Card's `overflow: hidden`. With it on, long
+     content (especially code blocks with internal overflow-x:auto)
+     fights the bubble's natural growth + the parent body's scroll
+     — the bubble appears to "swallow" content instead of expanding,
+     and wheel events on the bubble fail to bubble out to the
+     scrollable history. `visible` lets the bubble expand naturally
+     so all scrolling happens at the message-history level. */
+  overflow: visible;
+}
+
+/* Assistant bubble: outlined card, left-aligned. */
+.fishbones-ai-bubble--assistant.card {
+  align-self: flex-start;
+  max-width: 100%;
+  background: var(--color-bg-primary);
+  overflow: visible; /* Same reason as the user bubble above. */
+}
+
+/* System bubble: rare; shown small + dim if it leaks through. */
+.fishbones-ai-bubble--system.card {
+  align-self: center;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-ai-bubble-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.fishbones-ai-bubble-stream {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.fishbones-ai-bubble-caret {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--color-text-tertiary);
+  vertical-align: text-bottom;
+  animation: fishbones-ai-caret-blink 1s steps(2) infinite;
+}
+
+@keyframes fishbones-ai-caret-blink {
+  to { opacity: 0; }
+}
+
+.fishbones-ai-bubble-markdown {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+/* Code blocks share the LessonReader markdown pipeline, which wraps
+   each fence in `.fishbones-code-block` (with its own border + 8px
+   radius) and inserts an "Ask Fishbones" `?` badge. Inside an AI
+   bubble both are redundant: the inner `<pre>` would get its own
+   border too, producing the double-nested look; the badge would
+   ask the AI to discuss its own answer. We flatten the wrapper to
+   a single bordered surface and hide the badge. */
+.fishbones-ai-bubble-markdown .fishbones-code-block {
+  margin: 6px 0;
+  border-radius: var(--radius-md, 6px);
+}
+
+.fishbones-ai-bubble-markdown .fishbones-code-block-ask {
+  display: none;
+}
+
+.fishbones-ai-bubble-markdown pre {
+  font-size: 12px;
+  padding: 8px 10px;
+  margin: 0;
+  background: var(--color-bg-secondary);
+  border: none;
+  border-radius: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.fishbones-ai-bubble-markdown code {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.92em;
+}
+
+.fishbones-ai-bubble-markdown p {
+  margin: 0 0 8px;
+}
+
+.fishbones-ai-bubble-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.fishbones-ai-bubble-markdown ul,
+.fishbones-ai-bubble-markdown ol {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+}
+
+/* ---- Error tray ------------------------------------------------ */
+
+.fishbones-ai-panel-error {
+  padding: 10px 12px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md, 8px);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ---- Composer -------------------------------------------------- */
+
+.fishbones-ai-panel-composer {
+  display: flex;
+  gap: 8px;
+  padding: 16px 10px 10px;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.fishbones-ai-panel-input {
+  flex: 1;
+  /* No vertical drag — the JS auto-grow on input handles sizing as
+     the user types. Resize handle would just fight the auto-fit. */
+  resize: none;
+  /* One line of 13px text + 1.4 line-height + 8px top/bottom
+     padding ≈ 34px. Cap at 200px so a long pasted prompt scrolls
+     internally instead of pushing the message list off screen. */
+  min-height: 34px;
+  max-height: 200px;
+  padding: 8px 10px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md, 6px);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  /* Hide the scrollbar until the textarea has actually grown past
+     max-height — keeps the single-line resting state clean. */
+  overflow-y: auto;
+}
+
+.fishbones-ai-panel-input:focus {
+  outline: none;
+  border-color: var(--color-border-strong);
+}
+
+.fishbones-ai-panel-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fishbones-ai-panel-send {
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  border-radius: var(--radius-md, 6px);
+  font: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.fishbones-ai-panel-send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

@@ -69,7 +69,12 @@ interface ChallengePayload {
 /// pack can sample across them without the LLM repeating itself. Round-
 /// robin assignment in the generator means topic coverage stays balanced
 /// regardless of total count.
-const TOPICS: Record<LanguageId, string[]> = {
+/// Partial on purpose — not every LanguageId is a valid challenge-pack
+/// target. "web" and "threejs" are multi-file meta-languages that don't
+/// fit the single-function kata shape, so we omit them. `planBuckets`
+/// falls back to the JavaScript topic list when a language isn't in
+/// this map.
+const TOPICS: Partial<Record<LanguageId, string[]>> = {
   rust: [
     "strings",
     "arrays and slices",
@@ -165,7 +170,11 @@ function planBuckets(
   const easyCount = Math.ceil(count * 0.4);
   const mediumCount = Math.ceil(count * 0.4);
   const hardCount = count - easyCount - mediumCount;
-  const topics = TOPICS[language] ?? TOPICS.javascript;
+  // TOPICS is Partial<Record<LanguageId, …>> since not every language
+  // has a kata bucket defined. Fall through JS → a last-resort stub so
+  // the function is never left with `undefined`.
+  const topics =
+    TOPICS[language] ?? TOPICS.javascript ?? ["strings", "arrays", "logic"];
 
   const buckets: Array<{ difficulty: Difficulty; topic: string }> = [];
   const push = (d: Difficulty, n: number) => {
@@ -374,7 +383,7 @@ export async function generateChallengePack(
         stage: "save",
         chapter: chNum,
         lesson: lessonId,
-        message: `✓ added "${parsed.title}" (${difficulty}, ${topic})`,
+        message: `done: added "${parsed.title}" (${difficulty}, ${topic})`,
       });
       pushStats();
     } catch (e) {

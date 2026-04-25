@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Icon } from "@base/primitives/icon";
+import { check } from "@base/primitives/icon/icons/check";
+import "@base/primitives/icon/icon.css";
 import type { QuizLesson, QuizQuestion } from "../../data/types";
 import { normalizeAnswer } from "../../data/types";
 import "./QuizView.css";
@@ -81,11 +84,33 @@ function QuestionCard({
   state: QuestionState;
   onResult: (status: "correct" | "wrong") => void;
 }) {
+  // "Ask Fishbones" badge — fires the same `fishbones:ask-ai` event
+  // the lesson reader's code-block badges use, with `kind: "quiz"`
+  // so the AiAssistant builds a hint-not-answer prompt for the
+  // local LLM.
+  function askAi() {
+    window.dispatchEvent(
+      new CustomEvent("fishbones:ask-ai", {
+        detail: { kind: "quiz", prompt: question.prompt },
+      }),
+    );
+  }
   return (
     <div className={`fishbones-quiz-card fishbones-quiz-card--${state.status}`}>
       <div className="fishbones-quiz-num">{index + 1}</div>
       <div className="fishbones-quiz-q-body">
-        <div className="fishbones-quiz-prompt">{question.prompt}</div>
+        <div className="fishbones-quiz-prompt-row">
+          <div className="fishbones-quiz-prompt">{question.prompt}</div>
+          <button
+            type="button"
+            className="fishbones-quiz-ask"
+            onClick={askAi}
+            title="Discuss this question with the local assistant"
+            aria-label="Ask Fishbones for a hint"
+          >
+            ?
+          </button>
+        </div>
         {question.kind === "mcq" ? (
           <McqAnswer question={question} state={state} onResult={onResult} />
         ) : (
@@ -179,7 +204,11 @@ function ShortAnswer({
         onClick={submit}
         disabled={committed || !value.trim()}
       >
-        {committed ? "✓" : "check"}
+        {committed ? (
+          <Icon icon={check} size="xs" color="currentColor" />
+        ) : (
+          "check"
+        )}
       </button>
     </div>
   );

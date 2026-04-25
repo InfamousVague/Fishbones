@@ -7,12 +7,20 @@
 //!   - `progress_db` — SQLite-backed lesson-completion store.
 //!   - (future) `run_cargo_local`, `course_fs`.
 
+mod ai_chat;
 mod courses;
+mod docs_crawl;
+mod epub_ingest;
+mod image_gen;
 mod ingest;
 mod ingest_cache;
 mod llm;
+mod mobile_dev;
+mod native_runners;
+mod preview_server;
 mod progress_db;
 mod settings;
+mod toolchain;
 
 use std::io::Write;
 use std::process::Command;
@@ -106,14 +114,25 @@ pub fn run() {
             progress_db::mark_completion,
             progress_db::clear_completions,
             courses::list_courses,
+            courses::list_courses_summary,
             courses::load_course,
             courses::save_course,
             courses::delete_course,
             courses::export_course,
             courses::import_course,
             ingest::extract_pdf_text,
+            ingest::extract_pdf_cover,
+            ingest::extract_source_text,
+            ingest::extract_source_cover,
+            ingest::import_course_cover,
+            ingest::load_course_cover,
             ingest::stat_file,
             ingest::extract_pdf_images,
+            docs_crawl::crawl_docs_site,
+            docs_crawl::extract_docs_nav,
+            image_gen::generate_cover_art,
+            toolchain::probe_language_toolchain,
+            toolchain::install_language_toolchain,
             settings::load_settings,
             settings::save_settings,
             llm::structure_with_llm,
@@ -121,6 +140,8 @@ pub fn run() {
             llm::outline_chapter,
             llm::generate_lesson,
             llm::generate_challenge,
+            llm::generate_lesson_from_docs_page,
+            llm::generate_chapter_capstone,
             llm::enrich_lesson,
             llm::detect_book_meta,
             llm::retry_exercise,
@@ -128,6 +149,21 @@ pub fn run() {
             ingest_cache::cache_read,
             ingest_cache::cache_write,
             ingest_cache::cache_clear,
+            preview_server::serve_web_preview,
+            mobile_dev::open_in_ios_sim,
+            mobile_dev::probe_expo_server,
+            native_runners::run_c,
+            native_runners::run_cpp,
+            native_runners::run_java,
+            native_runners::run_kotlin,
+            native_runners::run_csharp,
+            native_runners::run_asm,
+            ai_chat::ai_chat_probe,
+            ai_chat::ai_chat_stream,
+            ai_chat::ai_chat_install_status,
+            ai_chat::ai_chat_install_ollama,
+            ai_chat::ai_chat_start_ollama,
+            ai_chat::ai_chat_pull_model,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

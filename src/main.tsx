@@ -23,3 +23,21 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     {isPopped ? <PoppedWorkbench /> : <App />}
   </React.StrictMode>,
 );
+
+// Hand off from the inline index.html preloader to React's in-app
+// bootloader. `is-booted` fades the preloader out via the CSS rule in
+// index.html; App's `.fishbones__bootloader` overlay (driven by
+// `coursesLoaded`) takes over until the course list resolves. We try
+// `requestAnimationFrame` first so the swap lands after React's first
+// paint, but fall back to a plain microtask — rAF is throttled to zero
+// in hidden tabs (preview server, background windows) and we don't want
+// the preloader stranded in that case.
+function handoffFromPreloader() {
+  document.body.classList.add("is-booted");
+}
+requestAnimationFrame(handoffFromPreloader);
+// Defensive fallback in case rAF is throttled (hidden tab) — microtask
+// + setTimeout cover both "tab visible but RAF paused" and "React still
+// parsing" windows. classList.add is idempotent.
+queueMicrotask(handoffFromPreloader);
+setTimeout(handoffFromPreloader, 0);

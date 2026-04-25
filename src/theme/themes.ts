@@ -18,7 +18,13 @@ export type ThemeName =
   | "catppuccin-latte"
   | "catppuccin-frappe"
   | "catppuccin-macchiato"
-  | "catppuccin-mocha";
+  | "catppuccin-mocha"
+  | "tokyo-night"
+  | "rose-pine"
+  | "ubuntu-dark"
+  | "absent-contrast"
+  | "vesper"
+  | "word";
 
 export interface ThemeMeta {
   id: ThemeName;
@@ -95,6 +101,42 @@ export const THEMES: ThemeMeta[] = [
     id: "catppuccin-mocha",
     label: "Catppuccin Mocha",
     description: "Soothing pastel pink-and-lavender on deep indigo.",
+    monacoTheme: "vs-dark",
+  },
+  {
+    id: "tokyo-night",
+    label: "Tokyo Night",
+    description: "Deep midnight blue with electric purple + cyan accents.",
+    monacoTheme: "vs-dark",
+  },
+  {
+    id: "rose-pine",
+    label: "Rosé Pine",
+    description: "Soft natural palette — rose, gold, foam — on muted plum.",
+    monacoTheme: "vs-dark",
+  },
+  {
+    id: "ubuntu-dark",
+    label: "Ubuntu Dark",
+    description: "Ubuntu aubergine base with the signature warm orange accent.",
+    monacoTheme: "vs-dark",
+  },
+  {
+    id: "absent-contrast",
+    label: "Absent Contrast",
+    description: "Daylerees Rainglow — cool teal accents on slate; sage green for support tokens.",
+    monacoTheme: "vs-dark",
+  },
+  {
+    id: "vesper",
+    label: "Vesper",
+    description: "Rauno Freiberg's monochrome dark — warm peach accents and mint strings on near-black.",
+    monacoTheme: "vs-dark",
+  },
+  {
+    id: "word",
+    label: "Word",
+    description: "Microsoft Word 5.5 for DOS — deep blue document on gray chrome, magenta keywords + cyan constants.",
     monacoTheme: "vs-dark",
   },
 ];

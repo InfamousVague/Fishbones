@@ -17,7 +17,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
 .fishbones-coursesettings-header {
@@ -159,6 +158,22 @@
   max-width: 360px;
 }
 
+/* Inline error beneath a row-hint — used by the "Fetch cover artwork"
+   flow to surface pdftoppm install or decode failures without leaving
+   the modal. Amber-outline rather than red so it reads as "heads up"
+   not "critical failure". */
+.fishbones-coursesettings-row-error {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(217, 168, 0, 0.08);
+  border: 1px solid rgba(217, 168, 0, 0.35);
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #e8c46b;
+  max-width: 360px;
+}
+
 .fishbones-coursesettings-btn {
   flex-shrink: 0;
   padding: 7px 14px;
@@ -172,6 +187,39 @@
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* Language picker row — a compact select paired with the Save button.
+   Stacked so the Save button sits directly under the dropdown at narrow
+   widths, side-by-side at the full modal width. */
+.fishbones-coursesettings-lang-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  align-items: stretch;
+  min-width: 160px;
+}
+
+.fishbones-coursesettings-lang-select {
+  padding: 7px 10px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 7px;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.fishbones-coursesettings-lang-select:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.fishbones-coursesettings-lang-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .fishbones-coursesettings-btn:hover:not(:disabled) {

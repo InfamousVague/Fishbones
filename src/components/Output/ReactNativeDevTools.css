@@ -1,0 +1,175 @@
+/* React-Native-specific dev tools block. Sits below the preview URL
+   card in OutputPane when `result.previewKind === "reactnative"`.
+   Two columns by default (Sim + QR on left, Expo Go on right), collapses
+   to a stack at narrow widths so the playground stays usable when the
+   workbench split has the output column compact. */
+.fishbones-rndev {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+}
+
+.fishbones-rndev-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-rndev-label {
+  display: inline-block;
+}
+
+.fishbones-rndev-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .fishbones-rndev-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fishbones-rndev-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+}
+
+.fishbones-rndev-card-titlerow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fishbones-rndev-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.05px;
+}
+
+.fishbones-rndev-card-hint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  line-height: 1.5;
+}
+
+.fishbones-rndev-qrwrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #0b0b10;
+  border-radius: 6px;
+}
+
+.fishbones-rndev-qr {
+  display: block;
+  width: 180px;
+  height: 180px;
+  max-width: 100%;
+  image-rendering: pixelated;
+}
+
+.fishbones-rndev-qr-placeholder {
+  width: 180px;
+  height: 180px;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+
+.fishbones-rndev-url {
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  word-break: break-all;
+  user-select: all;
+}
+
+.fishbones-rndev-btn,
+.fishbones-rndev-probebtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+
+.fishbones-rndev-btn {
+  align-self: flex-start;
+}
+
+.fishbones-rndev-btn:hover,
+.fishbones-rndev-probebtn:hover:not([disabled]) {
+  background: var(--color-bg-secondary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.fishbones-rndev-probebtn[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fishbones-rndev-msg {
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.fishbones-rndev-msg--ok {
+  background: rgba(124, 217, 124, 0.08);
+  color: #b7e6b7;
+  border: 1px solid rgba(124, 217, 124, 0.25);
+}
+
+.fishbones-rndev-msg--err {
+  background: rgba(239, 111, 111, 0.08);
+  color: #f3b0b0;
+  border: 1px solid rgba(239, 111, 111, 0.3);
+}
+
+.fishbones-rndev-steps {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.fishbones-rndev-steps li {
+  margin: 3px 0;
+}
+
+.fishbones-rndev-code {
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  color: var(--color-text-primary);
+}

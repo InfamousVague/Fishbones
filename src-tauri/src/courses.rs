@@ -226,6 +226,49 @@ pub fn load_course(app: tauri::AppHandle, course_id: String) -> Result<CourseJso
     read_course_json(&course_json).map_err(|e| e.to_string())
 }
 
+/// Return EVERY course's JSON in one shot, but with the heavy per-lesson
+/// bodies stripped out: `starter`, `solution`, `tests`, `files`,
+/// `solutionFiles`, and prose/markdown/content fields are removed.
+/// Chapter + lesson titles, ids, difficulty, topic, and kind are kept —
+/// which is everything the library, sidebar, and progress UI need to
+/// render.
+///
+/// Why this exists: a full library load used to fire N parallel
+/// `load_course` IPCs, each shipping megabytes of JSON across the
+/// bridge and deserialising on the webview's main thread. For a
+/// realistic library (~24 courses, ~12 MB of JSON) the app sat hung
+/// for 1-3 seconds on every launch. Stripping bodies cuts the payload
+/// by ~75% and collapses N IPCs into 1. Lesson bodies are fetched
+/// on-demand through the existing `load_course` when the learner
+/// actually opens a lesson.
+#[tauri::command]
+pub fn list_courses_summary(app: tauri::AppHandle) -> Result<Vec<CourseJson>, String> {
+    let dir = courses_dir(&app).map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    let read = match fs::read_dir(&dir) {
+        Ok(r) => r,
+        Err(_) => return Ok(out),
+    };
+    for entry in read.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let course_json = path.join("course.json");
+        if !course_json.exists() {
+            continue;
+        }
+        match read_course_json(&course_json) {
+            Ok(mut v) => {
+                strip_lesson_bodies(&mut v);
+                out.push(v);
+            }
+            Err(_) => continue,
+        }
+    }
+    Ok(out)
+}
+
 /// Write a course's full JSON to disk. Used by the frontend's seeder to
 /// materialize built-in courses into the app data dir on first run, and
 /// (later) by the ingest importer.
@@ -287,6 +330,45 @@ pub fn import_course(app: tauri::AppHandle, archive_path: String) -> Result<Stri
 fn read_course_json(path: &Path) -> anyhow::Result<CourseJson> {
     let bytes = fs::read(path)?;
     Ok(serde_json::from_slice(&bytes)?)
+}
+
+/// Mutate a course JSON in place to drop every per-lesson field that
+/// carries a big code/prose payload. Used by `list_courses_summary`
+/// to shrink the initial-load IPC from ~12 MB down to ~3 MB on a
+/// typical library. If a future schema adds another heavy field,
+/// add it here — silent-keeping it would resurrect the slow startup
+/// the summary command was designed to prevent.
+fn strip_lesson_bodies(course: &mut CourseJson) {
+    const HEAVY_FIELDS: &[&str] = &[
+        // Exercise lesson body (code challenges)
+        "starter",
+        "solution",
+        "tests",
+        "files",
+        "solutionFiles",
+        // Reading-lesson prose — same field can appear under a few
+        // names historically; drop them all defensively.
+        "prose",
+        "content",
+        "body",
+        "markdown",
+    ];
+    let Some(chapters) = course.get_mut("chapters").and_then(|c| c.as_array_mut()) else {
+        return;
+    };
+    for chapter in chapters.iter_mut() {
+        let Some(lessons) = chapter.get_mut("lessons").and_then(|l| l.as_array_mut()) else {
+            continue;
+        };
+        for lesson in lessons.iter_mut() {
+            let Some(obj) = lesson.as_object_mut() else {
+                continue;
+            };
+            for field in HEAVY_FIELDS {
+                obj.remove(*field);
+            }
+        }
+    }
 }
 
 fn str_field(v: &CourseJson, key: &str) -> String {

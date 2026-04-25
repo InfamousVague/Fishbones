@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Icon } from "@base/primitives/icon";
+import { check as checkIcon } from "@base/primitives/icon/icons/check";
+import "@base/primitives/icon/icon.css";
 import type { Course, Lesson } from "../../data/types";
 import LessonReader from "../Lesson/LessonReader";
 import "./CoursePreview.css";
@@ -130,7 +133,11 @@ function LessonPreview({ lesson }: { lesson: Lesson }) {
                         className={j === q.correctIndex ? "is-correct" : ""}
                       >
                         {String.fromCharCode(65 + j)}. {opt}
-                        {j === q.correctIndex && " ✓"}
+                        {j === q.correctIndex && (
+                          <span className="fishbones-preview-q-correct-mark" aria-label="correct">
+                            <Icon icon={checkIcon} size="xs" color="currentColor" />
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>

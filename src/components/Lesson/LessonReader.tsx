@@ -25,7 +25,23 @@ interface Props {
   /// Used to park the Prev/Next nav at the bottom of reading + exercise
   /// lessons so it participates in the same scroll surface as the prose.
   footer?: ReactNode;
+  /// Kick off a single-lesson retry when the learner clicks the inline
+  /// "Retry this exercise" button on a demoted lesson. Optional — if
+  /// not provided, the button just doesn't render. Parent wires to
+  /// `useIngestRun.startRetryLesson`.
+  onRetryLesson?: (lessonId: string) => void;
 }
+
+/// Regex that detects the italic demotion note the ingest pipeline
+/// appends to lessons it gave up trying to generate as exercises.
+/// We use the presence of this note to render a "Retry this exercise"
+/// button inline at the top of the body and — more importantly — to
+/// strip the note from the rendered prose so the retry CTA stands in
+/// for it instead of competing with it.
+const DEMOTED_NOTE_RE =
+  /\*\(This exercise was demoted to a reading lesson after[^)]*\)\*/gi;
+const DEMOTED_REASON_RE =
+  /\(This exercise was demoted to a reading lesson after 3 validation failures:\s*(.*?)\)/i;
 
 /// Words-per-minute used for the "time to read" estimate. 225 is a
 /// common middle-of-the-road number for skim-to-careful technical
@@ -37,13 +53,28 @@ const READING_WPM = 225;
 /// body, with fenced code blocks highlighted by Shiki. Also drives the
 /// progress bar, objectives card, inline-sandbox hydration, popover
 /// overlays, and glossary side panel.
-export default function LessonReader({ lesson, footer }: Props) {
+export default function LessonReader({
+  lesson,
+  footer,
+  onRetryLesson,
+}: Props) {
   const [html, setHtml] = useState<string>("");
+
+  // Detect demoted-exercise state so we can render the inline retry CTA.
+  // The note appears in the body for every lesson the pipeline demoted;
+  // we also extract the validation-failure reason to show in the
+  // button's tooltip for context.
+  const demotedReason = useMemo(() => {
+    const body = lesson.body ?? "";
+    const m = DEMOTED_REASON_RE.exec(body);
+    if (!m) return null;
+    return m[1].trim();
+  }, [lesson.body]);
 
   // Reading metrics derived from the lesson body. Excludes code block
   // contents since they're not "reading time" in the same sense.
   const readingMinutes = useMemo(
-    () => estimateReadingMinutes(lesson.body),
+    () => estimateReadingMinutes(lesson.body ?? ""),
     [lesson.body],
   );
 
@@ -62,15 +93,28 @@ export default function LessonReader({ lesson, footer }: Props) {
   // Render markdown → HTML. Rerun on lesson change OR enrichment change
   // (enrichment may land after the body is rendered if the user kicks
   // off an enrich pass while the lesson is open).
+  //
+  // For demoted lessons we strip the italic pipeline-note from the
+  // prose before rendering — the inline retry CTA replaces it. Leaving
+  // the note in would just duplicate context the button already
+  // communicates.
   useEffect(() => {
     let cancelled = false;
-    renderMarkdown(lesson.body, { enrichment }).then((rendered) => {
+    let source = demotedReason
+      ? (lesson.body ?? "").replace(DEMOTED_NOTE_RE, "").trim()
+      : (lesson.body ?? "");
+    // Strip a leading `# Title` that duplicates lesson.title — we render
+    // the title as a dedicated header above the body. Match is tolerant
+    // of minor casing / trailing-whitespace drift, not strict string
+    // equality, because generator passes occasionally normalise titles.
+    source = stripLeadingTitleHeading(source, lesson.title);
+    renderMarkdown(source, { enrichment }).then((rendered) => {
       if (!cancelled) setHtml(rendered);
     });
     return () => {
       cancelled = true;
     };
-  }, [lesson.body, enrichment]);
+  }, [lesson.body, enrichment, demotedReason, lesson.title]);
 
   // --- Scroll progress tracking ---------------------------------------
 
@@ -277,12 +321,41 @@ export default function LessonReader({ lesson, footer }: Props) {
       if (target && !related) scheduleHide();
     };
 
+    // 3) "Ask Fishbones" badges on code blocks. Click → fire a
+    //    `fishbones:ask-ai` custom event up to the AiAssistant root
+    //    listener. We use event delegation on the container so the
+    //    handler count stays at 1 regardless of how many code blocks
+    //    are in the prose. The badge carries the snippet as a
+    //    base64-encoded data attribute (set by the markdown pipeline).
+    const onAskClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement | null)?.closest?.(
+        ".fishbones-code-block-ask",
+      ) as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const code = decodeB64(target.dataset.fishbonesAskCode ?? "");
+      const lang = target.dataset.fishbonesAskLang ?? "";
+      window.dispatchEvent(
+        new CustomEvent("fishbones:ask-ai", {
+          detail: {
+            kind: "code",
+            language: lang,
+            code,
+            lessonTitle: lesson.title,
+          },
+        }),
+      );
+    };
+
     container.addEventListener("mouseover", onOver);
     container.addEventListener("mouseout", onOut);
+    container.addEventListener("click", onAskClick);
 
     return () => {
       container.removeEventListener("mouseover", onOver);
       container.removeEventListener("mouseout", onOut);
+      container.removeEventListener("click", onAskClick);
       // Unmount the sandbox React roots in a microtask so we don't
       // trigger React's "unmount during render" warning when this effect
       // runs alongside a parent render.
@@ -297,7 +370,7 @@ export default function LessonReader({ lesson, footer }: Props) {
         }
       });
     };
-  }, [html, symbolMap, termMap, primaryLang, cancelHide, scheduleHide]);
+  }, [html, symbolMap, termMap, primaryLang, cancelHide, scheduleHide, lesson.title]);
 
   // Dismiss when the lesson changes so a stale popover doesn't flash
   // on the new lesson's prose while the hover state settles.
@@ -365,6 +438,12 @@ export default function LessonReader({ lesson, footer }: Props) {
 
       <div className="fishbones-reader-scroll" ref={scrollRef}>
         <div className="fishbones-reader-inner">
+          {/* Lesson title rendered above everything else so the learner
+              always knows where they are — markdown bodies often repeat
+              it as an h1 too, which we strip during render to avoid
+              duplication. */}
+          <h1 className="fishbones-reader-title">{lesson.title}</h1>
+
           {/* Top chip row: time-to-read + optional glossary toggle. Both
               live in the same row so the eye catches the meta info
               without eating much vertical space. */}
@@ -394,6 +473,45 @@ export default function LessonReader({ lesson, footer }: Props) {
               </button>
             )}
           </div>
+
+          {/* Demoted-exercise retry CTA. Only renders when the ingest
+              pipeline gave up trying to generate this as an exercise
+              (3 validation failures → demoted to a reading lesson) AND
+              the parent passed an `onRetryLesson` handler. Replaces
+              the italic demotion note that used to live in the body —
+              we strip that out during render to avoid duplication. */}
+          {demotedReason && onRetryLesson && (
+            <div className="fishbones-reader-retry" role="note">
+              <div className="fishbones-reader-retry-head">
+                <span className="fishbones-reader-retry-label">
+                  Exercise needs another pass
+                </span>
+              </div>
+              <div className="fishbones-reader-retry-body">
+                The generator couldn't build a working exercise for this
+                lesson on the first run — it failed validation 3 times
+                and demoted the lesson to a reading. Hit retry to run
+                just this one lesson again with the latest prompt.
+              </div>
+              <div className="fishbones-reader-retry-reason" title={demotedReason}>
+                <span className="fishbones-reader-retry-reason-label">
+                  First failure
+                </span>
+                <span className="fishbones-reader-retry-reason-text">
+                  {demotedReason.length > 160
+                    ? demotedReason.slice(0, 160) + "…"
+                    : demotedReason}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="fishbones-reader-retry-btn"
+                onClick={() => onRetryLesson(lesson.id)}
+              >
+                Retry this exercise
+              </button>
+            </div>
+          )}
 
           {/* Objectives — shown only when the generator supplied them. */}
           {objectives && objectives.length > 0 && (
@@ -456,6 +574,22 @@ export default function LessonReader({ lesson, footer }: Props) {
       />
     </section>
   );
+}
+
+/// Drop the first `# Title` line from a markdown body when it matches the
+/// lesson's title, so the dedicated title header above the body doesn't
+/// double up with a duplicate h1 at the top of the prose. Tolerates
+/// leading whitespace and case drift — generator passes sometimes
+/// normalise the title after the body has been written.
+function stripLeadingTitleHeading(body: string, title: string): string {
+  if (!body) return body;
+  const match = /^\s*#\s+(.+?)\s*$/m.exec(body);
+  if (!match) return body;
+  if (match.index !== body.search(/\S/)) return body; // not the first non-whitespace line
+  const heading = match[1].trim().toLowerCase();
+  const lessonTitle = title.trim().toLowerCase();
+  if (heading !== lessonTitle) return body;
+  return body.slice(match.index + match[0].length).replace(/^\s*\n/, "");
 }
 
 /// Cheap reading-time estimate. Strips fenced code blocks from the word

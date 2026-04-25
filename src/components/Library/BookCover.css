@@ -1,0 +1,217 @@
+/* Shelf-mode library book card. 2:3 paperback aspect ratio, cover
+   image fills the frame, title fades in from a dark gradient along
+   the bottom. Hover nudges the card up for physicality. */
+
+.fishbones-book {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.15s ease;
+}
+
+.fishbones-book:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-strong);
+}
+
+.fishbones-book:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+/* Cover image — absolute full-fill so aspect-ratio wrapper clips to the
+   2:3 frame regardless of the image's native dimensions. */
+.fishbones-book-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  user-select: none;
+}
+
+/* Gradient that fades from transparent (top) to dark (bottom) so the
+   title stays legible over photographic / bright covers. Covers only
+   the bottom 40% of the card so the cover art is otherwise unobscured. */
+.fishbones-book-shadow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.88) 0%,
+    rgba(0, 0, 0, 0.6) 35%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.fishbones-book-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px 14px;
+  color: #fff;
+}
+
+.fishbones-book-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.fishbones-book-author {
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- Fallback tile (no extracted cover) ----
+
+   Tinted per-language so a shelf of cover-less books still reads as
+   a colorful set. Each tile puts the language glyph big and the title
+   underneath, like a minimalist book jacket designed from scratch. */
+
+.fishbones-book-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 16px 16px;
+  color: #fff;
+}
+
+.fishbones-book-fallback-lang {
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.fishbones-book-fallback-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #fff;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fishbones-book-fallback-author {
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Language tints for the fallback tile. Muted, book-jacket-adjacent
+   palette — NOT the syntax-highlight colors, which would clash with
+   cover images when mixed on the shelf. */
+.fishbones-book--lang-javascript.fishbones-book--no-cover,
+.fishbones-book--lang-typescript.fishbones-book--no-cover {
+  background: linear-gradient(145deg, #4e432a, #262013);
+}
+.fishbones-book--lang-python.fishbones-book--no-cover {
+  background: linear-gradient(145deg, #1f3b5a, #101d2d);
+}
+.fishbones-book--lang-rust.fishbones-book--no-cover {
+  background: linear-gradient(145deg, #6b2f1e, #2d140c);
+}
+.fishbones-book--lang-swift.fishbones-book--no-cover {
+  background: linear-gradient(145deg, #6b2b2b, #2d1212);
+}
+.fishbones-book--lang-go.fishbones-book--no-cover {
+  background: linear-gradient(145deg, #204f5e, #0e2630);
+}
+
+/* ---- Bottom progress strip ---- */
+.fishbones-book-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.fishbones-book-progress-fill {
+  height: 100%;
+  background: #fff;
+  opacity: 0.92;
+  transition: width 0.3s ease;
+}
+
+/* Respect reduced-motion — kill the hover lift animation. */
+@media (prefers-reduced-motion: reduce) {
+  .fishbones-book,
+  .fishbones-book:hover {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---- Loading state ----
+
+   While the course's full body is still hydrating, dim the cover/fallback
+   art and float a small Fishbones spinner in the center so the learner
+   knows that book is still finishing its load. */
+.fishbones-book--loading .fishbones-book-cover,
+.fishbones-book--loading .fishbones-book-fallback {
+  filter: brightness(0.45) saturate(0.7);
+  transition: filter 0.25s ease;
+}
+
+.fishbones-book-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  color: #fff;
+  pointer-events: none;
+  animation: fishbones-book-loading-fade 0.2s ease-out both;
+}
+
+@keyframes fishbones-book-loading-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Hover lift is disorienting on a loading card — the book shouldn't feel
+   interactive until it's fully there. */
+.fishbones-book--loading:hover {
+  transform: none;
+}

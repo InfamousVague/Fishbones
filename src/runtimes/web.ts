@@ -1,11 +1,13 @@
-import type { WorkbenchFile } from "../data/types";
+import { invoke } from "@tauri-apps/api/core";
+import type { WorkbenchAsset, WorkbenchFile } from "../data/types";
 import type { RunResult, LogLine, TestResult } from "./types";
 
-/// Web runtime — assembles an HTML document from the user's files and hands
-/// the raw HTML string back to OutputPane, which drops it into a sandboxed
-/// iframe. Console output inside the iframe is captured via postMessage and
-/// streamed back into the normal logs list; visual output (the rendered
-/// page) is displayed in an iframe preview panel.
+/// Web runtime — assembles an HTML document from the user's files and
+/// ships it to the Tauri-side preview server, returning a URL the user
+/// can open in a real browser. The hidden test-harness iframe is
+/// untouched: tests still run inside the Tauri window so we can read
+/// their results back; only the visible preview moved out to the
+/// browser, where the user gets DevTools + real origin semantics.
 ///
 /// Assembly rules:
 ///   - If there's an `index.html` (or any .html file), it's the spine.
@@ -28,7 +30,7 @@ const CONSOLE_SHIM = `
   const post = (level, args) => {
     try {
       parentWin.postMessage({
-        __kata: true,
+        __fishbones: true,
         level,
         text: args.map(a => {
           if (a == null) return String(a);
@@ -61,14 +63,23 @@ const CONSOLE_SHIM = `
 export async function runWeb(
   files: WorkbenchFile[],
   testCode?: string,
+  assets?: WorkbenchAsset[],
 ): Promise<RunResult> {
   const started = Date.now();
 
+  // Pre-rewrite file contents so any `/assets/<name>` reference in
+  // HTML / CSS / JS resolves to an inline data-URL pointing at the
+  // base64 payload. Cheap and iframe-sandbox-safe (no blob: URLs means
+  // no cross-origin gymnastics, and the rewritten HTML is a self-
+  // contained document). Skipped entirely when no assets are present.
+  const workingFiles =
+    assets && assets.length > 0 ? rewriteAssetUrls(files, assets) : files;
+
   // Pick the spine: first .html file, or a synthesized empty doc if there
   // isn't one. Authors who only supply JS + CSS still get a visible canvas.
-  const htmlFile = files.find((f) => f.language === "html");
-  const cssFiles = files.filter((f) => f.language === "css");
-  const jsFiles = files.filter((f) => f.language === "javascript");
+  const htmlFile = workingFiles.find((f) => f.language === "html");
+  const cssFiles = workingFiles.filter((f) => f.language === "css");
+  const jsFiles = workingFiles.filter((f) => f.language === "javascript");
 
   const styleBlock = cssFiles
     .map((f) => `<style data-fishbones-src="${escapeAttr(f.name)}">\n${f.content}\n</style>`)
@@ -124,39 +135,54 @@ ${scriptBlock}
     ? await runTestsInHiddenIframe(doc, testCode)
     : null;
 
+  // Push the assembled document to the Tauri-side preview server. On
+  // the web-dev build (no Tauri host) the invoke rejects — that's fine,
+  // we just skip the URL and the OutputPane falls back to showing logs
+  // only. Don't surface that as a user-visible error.
+  let previewUrl: string | undefined;
+  try {
+    const handle = await invoke<{ url: string }>("serve_web_preview", {
+      html: doc,
+    });
+    previewUrl = handle.url;
+  } catch {
+    previewUrl = undefined;
+  }
+
   const logs: LogLine[] = testResults?.logs ?? [];
   return {
     logs,
     tests: testResults?.tests,
     error: testResults?.error,
-    html: doc,
+    previewUrl,
+    previewKind: previewUrl ? "web" : undefined,
     durationMs: Date.now() - started,
   };
 }
 
 /// Jest-compatible harness injected into the test iframe. Captures test
-/// results into `__kata_test_results` and posts them via postMessage once
+/// results into `__fishbones_test_results` and posts them via postMessage once
 /// the test script has executed.
 const TEST_HARNESS = `
 <script>
 (function(){
-  window.__kata_test_results = [];
+  window.__fishbones_test_results = [];
   window.test = function(name, fn) {
     try {
       var r = fn();
       if (r && typeof r.then === "function") {
         // Async tests: punt for V1 — users who need async can await inline.
-        window.__kata_test_results.push({
+        window.__fishbones_test_results.push({
           name: name,
           passed: false,
           error: "Async test bodies are not supported in the web runtime yet. await your promise inside the test.",
         });
         return;
       }
-      window.__kata_test_results.push({ name: name, passed: true });
+      window.__fishbones_test_results.push({ name: name, passed: true });
     } catch (e) {
       var stack = (e && e.stack) ? e.stack.split("\\n").slice(0, 4).join("\\n") : "";
-      window.__kata_test_results.push({
+      window.__fishbones_test_results.push({
         name: name,
         passed: false,
         error: (e && e.message ? e.message : String(e)) + (stack ? "\\n" + stack : ""),
@@ -231,7 +257,7 @@ function runTestsInHiddenIframe(
 try {
 ${testCode}
 } catch (e) {
-  window.__kata_test_results.push({
+  window.__fishbones_test_results.push({
     name: "<test file>",
     passed: false,
     error: (e && e.message) ? e.message : String(e),
@@ -239,7 +265,7 @@ ${testCode}
 }
 // Defer the post so any microtasks inside tests settle first.
 setTimeout(function(){
-  window.parent.postMessage({ __kata_tests: true, results: window.__kata_test_results || [] }, "*");
+  window.parent.postMessage({ __fishbones_tests: true, results: window.__fishbones_test_results || [] }, "*");
 }, 0);
 </script>
 `;
@@ -261,21 +287,21 @@ setTimeout(function(){
     const logs: LogLine[] = [];
     const onMessage = (ev: MessageEvent) => {
       const d = ev.data as {
-        __kata?: boolean;
-        __kata_tests?: boolean;
+        __fishbones?: boolean;
+        __fishbones_tests?: boolean;
         level?: string;
         text?: string;
         results?: TestResult[];
       };
       if (!d) return;
-      if (d.__kata) {
+      if (d.__fishbones) {
         const level = (["log", "info", "warn", "error"].includes(d.level ?? "")
           ? d.level
           : "log") as LogLine["level"];
         logs.push({ level, text: d.text ?? "" });
         return;
       }
-      if (d.__kata_tests) {
+      if (d.__fishbones_tests) {
         cleanup();
         resolve({ logs, tests: d.results ?? [] });
       }
@@ -310,4 +336,45 @@ function escapeAttr(s: string): string {
 /// JS one? Any HTML or CSS file in the set flips it into web mode.
 export function isWebLesson(files: WorkbenchFile[]): boolean {
   return files.some((f) => f.language === "html" || f.language === "css");
+}
+
+/// Rewrite every `/assets/<name>` reference in the workbench files to
+/// an inline `data:` URL backed by the base64 payload. The iframe
+/// srcDoc is self-contained afterwards — no blob URLs, no cross-origin
+/// requests, nothing that needs a running HTTP server. Fine for tens
+/// of MBs total; past that the srcDoc starts to feel sluggish on large
+/// GLB loads — a future improvement is to switch to blob URLs behind
+/// a size threshold.
+function rewriteAssetUrls(
+  files: WorkbenchFile[],
+  assets: WorkbenchAsset[],
+): WorkbenchFile[] {
+  // Map each asset name to a full `data:<mime>;base64,<payload>` URL
+  // once, up front, so we don't reconstruct it per-file.
+  const urlByName = new Map<string, string>();
+  for (const a of assets) {
+    if (!a.name) continue;
+    urlByName.set(a.name, `data:${a.mimeType || "application/octet-stream"};base64,${a.base64}`);
+  }
+  if (urlByName.size === 0) return files;
+
+  // Rewrite any `/assets/<name>` — with or without surrounding quotes.
+  // Matches `.../assets/foo.png`, `"/assets/foo.png"`, `url(/assets/…)`,
+  // etc. The named capture is the asset filename segment (no slashes)
+  // so nested paths like `/assets/textures/wood.png` also resolve.
+  const re = /\/assets\/([A-Za-z0-9._\-]+(?:\.[A-Za-z0-9]+)?)/g;
+  return files.map((f) => {
+    // Skip binary-ish file languages we can't meaningfully scan.
+    if (!["html", "css", "javascript", "typescript", "json", "plaintext"].includes(f.language)) {
+      return f;
+    }
+    let changed = false;
+    const rewritten = f.content.replace(re, (full, name: string) => {
+      const url = urlByName.get(name);
+      if (!url) return full;
+      changed = true;
+      return url;
+    });
+    return changed ? { ...f, content: rewritten } : f;
+  });
 }

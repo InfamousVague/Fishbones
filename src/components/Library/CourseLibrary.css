@@ -19,20 +19,37 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* Inline variant — used as the right-pane content when no course tab is
-   open. Fills the available space, no centering / backdrop / drop shadow.
-   Still rounded + bordered so it reads as "a panel" inside the lesson
-   column's outer margin. */
+   open. Flows flat on the app surface (no card chrome: no background,
+   border, radius, or outer margin) so the header and book shelf align
+   with the app's edges the way the lesson reader does. The modal
+   variant above still gets the card treatment for its dialog role. */
 .fishbones-library-panel--inline {
   width: auto;
   max-height: none;
   height: 100%;
   flex: 1;
-  box-shadow: none;
-  margin: 10px 10px 10px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Inline variant trims the card's inner padding — the header, controls,
+   and body were spaced as if floating inside a card, but on the flat app
+   surface that extra inset reads as dead space. Keep a slim 12px gutter
+   so the content doesn't sit flush against the pane edge, but much less
+   than the card variant's 22px. */
+.fishbones-library-panel--inline .fishbones-library-header,
+.fishbones-library-panel--inline .fishbones-library-controls {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.fishbones-library-panel--inline .fishbones-library-body {
+  padding: 16px 12px 24px;
 }
 
 .fishbones-library-header {
@@ -68,34 +85,95 @@
   gap: 10px;
 }
 
-.fishbones-library-import {
-  padding: 8px 14px;
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
-  border: 0;
+/* Import group: one "Import" label on the left anchors the action, then
+   a segmented button cluster on the right lists the sources (PDF / Bulk
+   PDFs / Archive). Beats repeating "Import from…" on three buttons — the
+   label explains the action once and each segment says only WHAT is being
+   imported. The first segment (PDF) is the default / filled treatment
+   because AI-ingesting a book is the 95% path. */
+.fishbones-library-import-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fishbones-library-import-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-library-import-segmented {
+  display: inline-flex;
+  background: transparent;
+  border: 1px solid var(--color-border-default);
   border-radius: 7px;
+  overflow: hidden;
+}
+
+.fishbones-library-import-seg {
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 0;
+  border-left: 1px solid var(--color-border-default);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.fishbones-library-import:hover {
-  opacity: 0.9;
+/* First segment has no left border — the outer group border already owns
+   the edge. Same trick keeps segments visually butted together. */
+.fishbones-library-import-seg:first-child {
+  border-left: 0;
 }
 
-/* Secondary variant — used for "Import archive…" next to the primary PDF
-   import button. Low-chrome so the PDF path reads as the default. */
-.fishbones-library-import--secondary {
+.fishbones-library-import-seg:hover {
+  background: var(--color-bg-tertiary);
+}
+
+/* Primary segment — the AI PDF import path, our 95% case. Filled
+   treatment so the learner's eye lands on it first; hovering still
+   dips opacity so the interaction feels the same as the other
+   segments. */
+.fishbones-library-import-seg--primary {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+/* "Export all" button — sits next to the Import cluster and matches
+   its segmented-button weight but with a secondary (outline) treatment
+   so the primary action in the row stays "Import → Book". Disabled
+   when the library is empty. */
+.fishbones-library-bulk-export {
+  padding: 7px 14px;
   background: transparent;
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.fishbones-library-import--secondary:hover {
+.fishbones-library-bulk-export:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.2);
-  opacity: 1;
+}
+
+.fishbones-library-bulk-export:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fishbones-library-import-seg--primary:hover {
+  background: var(--color-text-primary);
+  opacity: 0.9;
 }
 
 .fishbones-library-close {
@@ -219,12 +297,83 @@
   min-height: 0;
   overflow-y: auto;
   padding: 20px 22px 26px;
+  position: relative;
+}
+
+/* Cover-prefetch gate. Sits on top of the grid/shelf until every
+   cover IPC has settled so the library paints fully-populated
+   instead of card-by-card. Subtle backdrop tint (not a hard black
+   overlay) so the layout underneath shimmers into view. */
+.fishbones-library-prefetch-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-bg-primary) 72%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+  animation: fishbones-library-prefetch-fade-in 0.12s ease-out both;
+}
+
+@keyframes fishbones-library-prefetch-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .fishbones-library-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
+}
+
+/* Shelf layout — tall book covers at 2:3 aspect. Smaller min-width
+   than the grid so more books fit per row (we're showing less per-book
+   info than the info-dense card). Gap includes a little vertical
+   breathing room so the shelf reads as ROWS not a continuous wall. */
+.fishbones-library-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 22px 16px;
+}
+
+/* View-mode segmented control — sits to the right of the sort dropdown.
+   Two pills, active state inverted. Mirrors the existing pill patterns
+   elsewhere in the app so it reads as standard chrome. */
+.fishbones-library-viewmode {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+.fishbones-library-viewmode-btn {
+  padding: 5px 10px;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fishbones-library-viewmode-btn + .fishbones-library-viewmode-btn {
+  border-left: 1px solid var(--color-border-default);
+}
+
+.fishbones-library-viewmode-btn:hover:not(.fishbones-library-viewmode-btn--active) {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.fishbones-library-viewmode-btn--active {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
 }
 
 /* Course cards. The main clickable area (button) holds metadata; a small
@@ -241,7 +390,7 @@
 }
 
 .fishbones-library-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--color-border-strong);
 }
 
 .fishbones-library-card-main {
@@ -380,7 +529,8 @@
 
 .fishbones-library-card-action:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-strong);
 }
 
 .fishbones-library-card-action--danger:hover {

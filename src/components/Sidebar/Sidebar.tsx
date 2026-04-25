@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
@@ -7,16 +7,14 @@ import { code as codeIcon } from "@base/primitives/icon/icons/code";
 import { helpCircle } from "@base/primitives/icon/icons/help-circle";
 import { libraryBig } from "@base/primitives/icon/icons/library-big";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
-import { filePlus } from "@base/primitives/icon/icons/file-plus";
-import { files as filesIcon } from "@base/primitives/icon/icons/files";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
-import { userRound } from "@base/primitives/icon/icons/user-round";
 import { terminal as terminalIcon } from "@base/primitives/icon/icons/terminal";
 import { swords } from "@base/primitives/icon/icons/swords";
 import "@base/primitives/icon/icon.css";
 import type { Course, Chapter, Lesson, LanguageId } from "../../data/types";
 import { isChallengePack } from "../../data/types";
+import { useCourseCover } from "../../hooks/useCourseCover";
 import "./Sidebar.css";
 
 /// Display name for a language id. Used by the "Rust challenges" style
@@ -36,6 +34,26 @@ function languageLabel(lang: LanguageId): string {
       return "Swift";
     case "go":
       return "Go";
+    case "web":
+      return "Web";
+    case "threejs":
+      return "Three.js";
+    case "react":
+      return "React";
+    case "reactnative":
+      return "React Native";
+    case "c":
+      return "C";
+    case "cpp":
+      return "C++";
+    case "java":
+      return "Java";
+    case "kotlin":
+      return "Kotlin";
+    case "csharp":
+      return "C#";
+    case "assembly":
+      return "Assembly";
   }
 }
 
@@ -59,25 +77,28 @@ interface Props {
   activeCourseId?: string;
   activeLessonId?: string;
   completed: Set<string>;
+  /// Per-course "last opened" timestamps keyed by course id. Used ONLY
+  /// by the sidebar-header carousel to sort recent-first — the course
+  /// tree itself doesn't care about timestamps. Empty map is fine
+  /// (carousel falls back to course array order).
+  recents?: Record<string, number>;
   onSelectLesson: (courseId: string, lessonId: string) => void;
+  /// Jump to a course via the header carousel — parent resolves the
+  /// "resume at" lesson (last-open tab or first lesson) and hands that
+  /// through. Separate from onSelectLesson so the carousel's click
+  /// behavior is explicit rather than guessing a lesson id here.
+  onSelectCourse?: (courseId: string) => void;
   /// Opens the course library modal.
   onLibrary: () => void;
-  /// Opens the import-from-PDF wizard directly.
-  onImport: () => void;
-  /// Opens the multi-PDF bulk import wizard — lets the learner queue
-  /// several books for unattended overnight processing.
-  onBulkImport?: () => void;
   onSettings: () => void;
-  /// Profile route. When active, the `activeView === "profile"` flag lights
-  /// up the chip so the learner has a clear anchor while they're looking
-  /// at their stats page.
-  onProfile?: () => void;
   /// Playground route — free-form coding sandbox, jsfiddle-style.
   onPlayground?: () => void;
   /// Which main-pane destination is currently showing. Used ONLY to draw
   /// an active state on the matching icon chip; clicking a chip calls
   /// its callback and lets the parent manage the state transition.
-  activeView?: "courses" | "profile" | "playground";
+  /// "profile" stays a valid destination even though it's no longer in
+  /// the sidebar — the top-bar streak pill's "View profile" CTA sets it.
+  activeView?: "courses" | "profile" | "playground" | "library";
   onExportCourse?: (courseId: string, courseTitle: string) => void;
   onDeleteCourse?: (courseId: string, courseTitle: string) => void;
   onCourseSettings?: (courseId: string) => void;
@@ -91,12 +112,11 @@ export default function Sidebar({
   activeCourseId,
   activeLessonId,
   completed,
+  recents = {},
   onSelectLesson,
+  onSelectCourse,
   onLibrary,
-  onImport,
-  onBulkImport,
   onSettings,
-  onProfile,
   onPlayground,
   activeView = "courses",
   onExportCourse,
@@ -138,38 +158,57 @@ export default function Sidebar({
           chip does. Routes (Profile / Playground) show an active state
           when their view is open; one-shot actions (Library / Import /
           Settings) stay neutral. */}
+      {/* Sidebar nav is now a thin trio: Library (which owns all the
+          import flows — PDF + bulk PDF + .fishbones archive), the
+          Playground route, and Settings. Profile lives on the top-bar
+          streak pill alongside level/XP so it's adjacent to the data
+          it belongs with, not hiding in the left rail. */}
+      {/* Recent-courses carousel lives at the very top of the sidebar —
+          it's the first thing the learner's eye hits when switching
+          contexts. Horizontally scrollable row of cover thumbnails,
+          newest-activity first. Hidden when there's 0 or 1 course
+          (nothing to switch between). Clicking a thumbnail jumps to
+          the course — the parent resolves which lesson to resume. */}
+      {onSelectCourse && (
+        <CourseCarousel
+          courses={courses}
+          recents={recents}
+          completed={completed}
+          onSelectCourse={onSelectCourse}
+          onContextMenu={
+            onExportCourse || onDeleteCourse || onCourseSettings
+              ? (course, e) => {
+                  e.preventDefault();
+                  setMenu({
+                    courseId: course.id,
+                    courseTitle: course.title,
+                    x: e.clientX,
+                    y: e.clientY,
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
+
+      {/* Primary nav sits BELOW the carousel. Rationale: the carousel
+          is the frequent-action (switch course); the nav is the
+          occasional-action (import, settings, playground). Putting the
+          frequent one first matches how the learner actually uses the
+          sidebar. */}
       <div className="fishbones__sidebar-nav">
         <SidebarNavItem
           icon={libraryBig}
           label="Library"
           onClick={onLibrary}
+          active={activeView === "library"}
         />
-        <SidebarNavItem
-          icon={filePlus}
-          label="Import from PDF"
-          onClick={onImport}
-        />
-        {onBulkImport && (
-          <SidebarNavItem
-            icon={filesIcon}
-            label="Bulk import"
-            onClick={onBulkImport}
-          />
-        )}
         {onPlayground && (
           <SidebarNavItem
             icon={terminalIcon}
             label="Playground"
             onClick={onPlayground}
             active={activeView === "playground"}
-          />
-        )}
-        {onProfile && (
-          <SidebarNavItem
-            icon={userRound}
-            label="Profile"
-            onClick={onProfile}
-            active={activeView === "profile"}
           />
         )}
         <SidebarNavItem
@@ -443,6 +482,301 @@ function CourseGroup({
       )}
     </div>
   );
+}
+
+/// FLIP animation constants. Must stay in sync with
+/// `.fishbones__carousel-item` width (74) and `.fishbones__carousel-scroll`
+/// gap (10) in Sidebar.css. We hardcode rather than measuring at runtime
+/// because the values are stable and per-render DOM reads are wasted work.
+const CAROUSEL_CARD_WIDTH_PX = 74;
+const CAROUSEL_CARD_GAP_PX = 10;
+const CAROUSEL_CARD_STEP_PX = CAROUSEL_CARD_WIDTH_PX + CAROUSEL_CARD_GAP_PX;
+const CAROUSEL_SLIDE_MS = 350;
+
+/// Horizontal-scrolling thumbnail row in the sidebar header. Ordered by
+/// last-opened timestamp (see `useRecentCourses`) so the course the
+/// learner was just in lands at the left edge — regardless of whether
+/// they completed a lesson in it. Courses with no open-timestamp fall
+/// to the right in their natural array order. Hidden when there are
+/// < 2 courses — switching is pointless.
+///
+/// Reorder behaviour uses FLIP animation: when a click bumps a book to
+/// the front, the user sees the book GLIDE from its old slot to slot 0
+/// rather than teleporting. Neighbours also slide down by one to fill
+/// the hole. Feels like a real reshuffle instead of a jarring jump.
+function CourseCarousel({
+  courses,
+  recents,
+  completed,
+  onSelectCourse,
+  onContextMenu,
+}: {
+  courses: Course[];
+  recents: Record<string, number>;
+  /// Lesson completion set (keys: `${courseId}:${lessonId}`). Used to
+  /// draw a per-cover progress strip so the carousel gives at-a-glance
+  /// "how far am I in each book" signal.
+  completed: Set<string>;
+  onSelectCourse: (courseId: string) => void;
+  onContextMenu?: (course: Course, e: React.MouseEvent) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  /// Each course's index at the END of the previous render. We compare
+  /// against the current sort to figure out which cards moved and by
+  /// how many slots — that delta drives the invert-translate step of
+  /// the FLIP animation.
+  const prevIndicesRef = useRef<Map<string, number>>(new Map());
+
+  const sorted = useMemo(() => {
+    // Bucket courses: ones with a recents entry (known activity time)
+    // vs ones without. Within the "known" bucket, recent-first. The
+    // unknown bucket keeps the original array order (library's
+    // newest-imported-first convention) at the end.
+    const withRecents = courses
+      .filter((c) => recents[c.id] !== undefined)
+      .sort((a, b) => (recents[b.id] ?? 0) - (recents[a.id] ?? 0));
+    const withoutRecents = courses.filter((c) => recents[c.id] === undefined);
+    return [...withRecents, ...withoutRecents];
+  }, [courses, recents]);
+
+  useLayoutEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+
+    // Build the new index map fresh each render so we can compare to
+    // the stashed previous map. Using a Map (not a Record) because
+    // forEach over entries is cleaner and reads better in the loops
+    // below.
+    const newIndices = new Map<string, number>();
+    sorted.forEach((c, i) => newIndices.set(c.id, i));
+
+    const prev = prevIndicesRef.current;
+    prevIndicesRef.current = newIndices;
+
+    // First render: nothing to animate from. Also skips the case where
+    // the carousel mounted with < 2 courses and is only now crossing
+    // the threshold — we'd rather the row appear in place than have
+    // a multi-card cascade of slides on first show.
+    if (prev.size === 0) return;
+
+    // Invert step: any card whose index changed gets an inline
+    // translateX that puts it BACK at its old visual position. We
+    // collect them into an array so the subsequent play step doesn't
+    // have to re-query the DOM.
+    const animating: HTMLElement[] = [];
+    for (const [id, newIdx] of newIndices) {
+      const prevIdx = prev.get(id);
+      if (prevIdx === undefined || prevIdx === newIdx) continue;
+      const el = scrollEl.querySelector<HTMLElement>(
+        `[data-course-id="${CSS.escape(id)}"]`,
+      );
+      if (!el) continue;
+      const deltaX = (prevIdx - newIdx) * CAROUSEL_CARD_STEP_PX;
+      el.style.transition = "none";
+      el.style.transform = `translateX(${deltaX}px)`;
+      animating.push(el);
+    }
+
+    if (animating.length === 0) return;
+
+    // Force a synchronous layout so the browser commits the invert
+    // transforms before we queue the play. Without this, some browsers
+    // will batch the two style changes and skip straight to identity.
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    scrollEl.offsetWidth;
+
+    // Play step: on the next frame, enable the transition and clear
+    // the inline transform so each card animates from its old position
+    // (invert) back to identity (its new slot).
+    const rafId = requestAnimationFrame(() => {
+      for (const el of animating) {
+        el.style.transition = `transform ${CAROUSEL_SLIDE_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1)`;
+        el.style.transform = "";
+      }
+    });
+
+    // Once the slide finishes, release the inline `transition` so the
+    // base CSS transition (0.18s on hover scale) takes over again.
+    // Small buffer on the timeout so we don't cut off the last frame.
+    const cleanupId = window.setTimeout(() => {
+      for (const el of animating) {
+        el.style.transition = "";
+      }
+    }, CAROUSEL_SLIDE_MS + 50);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.clearTimeout(cleanupId);
+    };
+  }, [sorted]);
+
+  if (sorted.length < 2) return null;
+
+  return (
+    <div className="fishbones__carousel" aria-label="Recent courses">
+      <div className="fishbones__carousel-scroll" ref={scrollRef}>
+        {sorted.map((c) => (
+          <CarouselItem
+            key={c.id}
+            course={c}
+            progress={courseProgress(c, completed)}
+            onClick={() => onSelectCourse(c.id)}
+            onContextMenu={
+              onContextMenu ? (e) => onContextMenu(c, e) : undefined
+            }
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/// Single cover thumbnail in the carousel. Shows the extracted cover if
+/// one exists; otherwise a language-tinted mini-tile with the short
+/// language code. Same cover-loading path as BookCover — the hook
+/// dedupes repeat requests across mounts.
+function CarouselItem({
+  course,
+  progress,
+  onClick,
+  onContextMenu,
+}: {
+  course: Course;
+  /// Fraction 0..1 of completed lessons. Drives the bottom progress
+  /// strip over the cover. Also surfaces in the tooltip so hovering a
+  /// thumbnail gives a concrete "x of y" number.
+  progress: { pct: number; done: number; total: number };
+  onClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
+}) {
+  const coverUrl = useCourseCover(course.id, course.coverFetchedAt);
+  const hasCover = !!coverUrl;
+  const { pct, done, total } = progress;
+  const pctLabel =
+    total === 0
+      ? ""
+      : pct === 1
+      ? " · complete"
+      : pct === 0
+      ? " · not started"
+      : ` · ${done}/${total} lessons`;
+
+  return (
+    <button
+      type="button"
+      data-course-id={course.id}
+      className={`fishbones__carousel-item fishbones__carousel-item--lang-${course.language} ${
+        hasCover ? "" : "fishbones__carousel-item--no-cover"
+      }`}
+      onClick={onClick}
+      onContextMenu={onContextMenu}
+      title={`${course.title}${pctLabel}`}
+      aria-label={`Open ${course.title}${pctLabel}`}
+    >
+      {hasCover ? (
+        <img
+          className="fishbones__carousel-cover"
+          src={coverUrl}
+          alt=""
+          loading="lazy"
+          draggable={false}
+        />
+      ) : (
+        <span className="fishbones__carousel-glyph" aria-hidden>
+          {carouselGlyph(course.language)}
+        </span>
+      )}
+      {/* Title + author overlay with a dark gradient, matching the
+          library shelf's BookCover treatment so carousel thumbs read
+          as miniaturized versions of the same card. Only shown when
+          there's a cover — fallback tiles already surface the title
+          via the language-tinted block itself. */}
+      {hasCover && (
+        <>
+          <span className="fishbones__carousel-shadow" aria-hidden />
+          <span className="fishbones__carousel-label">
+            <span className="fishbones__carousel-label-title">{course.title}</span>
+            {course.author && (
+              <span className="fishbones__carousel-label-author">
+                {course.author}
+              </span>
+            )}
+          </span>
+        </>
+      )}
+      {/* Progress strip along the bottom edge of the cover. Shown for
+          every course (even 0%) so the carousel reads as a consistent
+          row of status bars — uniform height keeps the cover row from
+          jumping when the learner's first completion lands. */}
+      {total > 0 && (
+        <span className="fishbones__carousel-progress" aria-hidden>
+          <span
+            className="fishbones__carousel-progress-fill"
+            style={{ width: `${Math.round(pct * 100)}%` }}
+          />
+        </span>
+      )}
+    </button>
+  );
+}
+
+/// Compute the 0..1 progress fraction for a course given the completion
+/// set the sidebar already has in scope. Keyed by `${courseId}:${lessonId}`
+/// so it mirrors the shape used everywhere else (useProgress, library,
+/// profile view).
+function courseProgress(
+  course: Course,
+  completed: Set<string>,
+): { pct: number; done: number; total: number } {
+  let total = 0;
+  let done = 0;
+  for (const ch of course.chapters) {
+    for (const l of ch.lessons) {
+      total += 1;
+      if (completed.has(`${course.id}:${l.id}`)) done += 1;
+    }
+  }
+  return { pct: total > 0 ? done / total : 0, done, total };
+}
+
+/// Short language tag for the carousel fallback tile. Same list as
+/// BookCover.tsx's langGlyph — kept local here so the sidebar doesn't
+/// import internals from the library folder.
+function carouselGlyph(lang: LanguageId): string {
+  switch (lang) {
+    case "javascript":
+      return "JS";
+    case "typescript":
+      return "TS";
+    case "python":
+      return "PY";
+    case "rust":
+      return "RS";
+    case "swift":
+      return "SW";
+    case "go":
+      return "GO";
+    case "web":
+      return "WEB";
+    case "threejs":
+      return "3D";
+    case "react":
+      return "RX";
+    case "reactnative":
+      return "RN";
+    case "c":
+      return "C";
+    case "cpp":
+      return "C++";
+    case "java":
+      return "JV";
+    case "kotlin":
+      return "KT";
+    case "csharp":
+      return "C#";
+    case "assembly":
+      return "ASM";
+  }
 }
 
 /// Vertical nav-list row at the top of the sidebar. Icon + label, full

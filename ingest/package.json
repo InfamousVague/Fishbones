@@ -1,9 +1,9 @@
 {
-  "name": "kata-ingest",
+  "name": "fishbones-ingest",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "LLM-assisted book → Kata course pipeline",
+  "description": "LLM-assisted book → Fishbones course pipeline",
   "scripts": {
     "ingest": "tsx cli.ts",
     "debug": "tsx debug-lesson.ts"

@@ -1,5 +1,9 @@
 import { useState } from "react";
 import Editor, { loader } from "@monaco-editor/react";
+import { Icon } from "@base/primitives/icon";
+import { arrowLeft } from "@base/primitives/icon/icons/arrow-left";
+import { arrowRight } from "@base/primitives/icon/icons/arrow-right";
+import "@base/primitives/icon/icon.css";
 import type { FileLanguage, LanguageId, WorkbenchFile } from "../../data/types";
 import { useActiveTheme } from "../../theme/useActiveTheme";
 import { MONACO_THEME_BY_APP_THEME, registerMonacoThemes } from "../../theme/monaco-themes";
@@ -101,6 +105,17 @@ const MONACO_LANGUAGES: Record<FileLanguage, string> = {
   rust: "rust",
   swift: "swift",
   go: "go",
+  c: "c",
+  cpp: "cpp",
+  java: "java",
+  kotlin: "kotlin",
+  csharp: "csharp",
+  // Monaco doesn't ship a generic `assembly` language — use its
+  // built-in `mips` colourer, which highlights mnemonics + registers
+  // well enough for most snippets. A proper arm64/x86_64 Monarch
+  // tokenizer would be nicer long-term; this keeps the pane from
+  // falling back to plain-text in the meantime.
+  assembly: "mips",
   html: "html",
   css: "css",
   json: "json",
@@ -281,7 +296,8 @@ export default function EditorPane({
               disabled={currentIdx === 0}
               aria-label="Previous hint"
             >
-              ← prev
+              <Icon icon={arrowLeft} size="xs" color="currentColor" />
+              prev
             </button>
             <div className="fishbones-editor-hints-pips" aria-hidden>
               {hints!.map((_, i) => (
@@ -305,7 +321,8 @@ export default function EditorPane({
                 currentIdx < revealed - 1 ? "Next hint" : "Unlock next hint"
               }
             >
-              {currentIdx < revealed - 1 ? "next →" : "reveal next →"}
+              {currentIdx < revealed - 1 ? "next" : "reveal next"}
+              <Icon icon={arrowRight} size="xs" color="currentColor" />
             </button>
           </div>
         </div>

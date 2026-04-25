@@ -163,13 +163,13 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
     ctx: { stage: IngestEvent["stage"]; chapter?: number; lesson?: string },
   ): Promise<T> => {
     checkAbort();
-    emit({ level: "info", ...ctx, message: `→ ${label}` });
+    emit({ level: "info", ...ctx, message: `start: ${label}` });
     const t0 = Date.now();
     const result = await invoke<T>(cmd, args);
     emit({
       level: "info",
       ...ctx,
-      message: `✓ ${label} (${Date.now() - t0}ms)`,
+      message: `done: ${label} (${Date.now() - t0}ms)`,
     });
     checkAbort();
     return result;
@@ -183,7 +183,7 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
     ctx: { stage: IngestEvent["stage"]; chapter?: number; lesson?: string },
   ): Promise<string> => {
     checkAbort();
-    emit({ level: "info", ...ctx, message: `→ ${label}` });
+    emit({ level: "info", ...ctx, message: `start: ${label}` });
     const resp = await invoke<LlmResponseTS>(cmd, args);
     stats.apiCalls += 1;
     stats.inputTokens += resp.input_tokens;
@@ -191,7 +191,7 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
     emit({
       level: "info",
       ...ctx,
-      message: `✓ ${label} (${resp.elapsed_ms}ms · ${resp.input_tokens} in / ${resp.output_tokens} out)`,
+      message: `done: ${label} (${resp.elapsed_ms}ms · ${resp.input_tokens} in / ${resp.output_tokens} out)`,
     });
     pushStats();
     checkAbort();
@@ -222,25 +222,30 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
     stats.cacheHits += 1;
     pushStats();
   } else {
-    // Report the PDF size up front so the user knows roughly how long to
-    // expect. Defensive — if stat_file fails or isn't registered yet we
-    // just skip the size line rather than failing the whole run.
+    // Report the source size up front so the user knows roughly how long
+    // to expect. Defensive — if stat_file fails or isn't registered yet
+    // we just skip the size line rather than failing the whole run.
+    const isEpub = /\.epub$/i.test(pdfPath);
+    const tool = isEpub ? "epub" : "pdftotext";
     try {
       const info = await invoke<{ bytes: number }>("stat_file", { path: pdfPath });
       emit({
         level: "info",
         stage: "extract",
-        message: `PDF size: ${formatBytes(info.bytes)} · running pdftotext…`,
+        message: `${isEpub ? "EPUB" : "PDF"} size: ${formatBytes(info.bytes)} · running ${tool}…`,
       });
-      onProgress("Reading PDF…", `${formatBytes(info.bytes)} · extracting text`);
+      onProgress(
+        `Reading ${isEpub ? "EPUB" : "PDF"}…`,
+        `${formatBytes(info.bytes)} · extracting text`,
+      );
     } catch {
-      emit({ level: "info", stage: "extract", message: "running pdftotext…" });
+      emit({ level: "info", stage: "extract", message: `running ${tool}…` });
     }
     const extractStart = Date.now();
     const res = await timedInvoke<{ text: string; error: string | null }>(
-      "extract_pdf_text",
+      "extract_source_text",
       { path: pdfPath },
-      "pdftotext",
+      tool,
       { stage: "extract" },
     );
     if (res.error) throw new Error(res.error);
@@ -255,10 +260,19 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
   }
 
   // ---- Stage 0.5: extract images (poppler pdfimages) -------------------
+  // PDF-only — EPUBs already reference their images relatively from the
+  // XHTML spine items, so a separate image-dump pass would just duplicate
+  // bytes we already have in the book file. Skip cleanly for epub sources.
   // Non-fatal — if pdfimages is missing or the PDF has no embedded images,
   // we just skip. Authors can still reference figure placeholders in the
   // cleaned markdown and re-run with poppler installed later.
-  try {
+  if (/\.epub$/i.test(pdfPath)) {
+    emit({
+      level: "info",
+      stage: "extract",
+      message: "skipping pdfimages — source is EPUB",
+    });
+  } else try {
     const res = await invoke<{
       images: string[];
       dir: string;
@@ -662,7 +676,7 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
         stage: "generate",
         chapter: ci + 1,
         lesson: stub.id,
-        message: `✓ lesson "${lesson.title}" (${lesson.kind})`,
+        message: `done: lesson "${lesson.title}" (${lesson.kind})`,
       });
       lessons.push(lesson);
       stats.lessonsDone += 1;
@@ -814,7 +828,7 @@ async function validateExerciseWithRetry(
         stage: "validate",
         chapter: ctx.chapterIndex + 1,
         lesson: ctx.stubId,
-        message: `✓ validated "${current.title}"`,
+        message: `done: validated "${current.title}"`,
       });
       return current;
     }
@@ -831,7 +845,7 @@ async function validateExerciseWithRetry(
 
     if (attempt === MAX_RETRIES) {
       ctx.onProgress(
-        `⚠️  Exercise couldn't be validated, demoting to reading`,
+        `warn: exercise couldn't be validated, demoting to reading`,
         current.title,
       );
       ctx.stats.demotedExercises += 1;

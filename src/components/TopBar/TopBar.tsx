@@ -4,6 +4,9 @@ import { flame } from "@base/primitives/icon/icons/flame";
 import { check } from "@base/primitives/icon/icons/check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { trophy } from "@base/primitives/icon/icons/trophy";
+import { x as xIcon } from "@base/primitives/icon/icons/x";
+import { panelLeftClose } from "@base/primitives/icon/icons/panel-left-close";
+import { panelLeftOpen } from "@base/primitives/icon/icons/panel-left-open";
 import "@base/primitives/icon/icon.css";
 import type { StreakAndXp } from "../../hooks/useStreakAndXp";
 import { ProgressRing } from "../Shared/ProgressRing";
@@ -36,6 +39,13 @@ interface Props {
   /// Called when the "View Profile" button at the bottom of the stats
   /// dropdown is clicked. Routes the main pane to the Profile view.
   onOpenProfile?: () => void;
+  /// Whether the sidebar is currently collapsed. Drives the toggle
+  /// button's icon so it always shows the *action* the click will
+  /// perform (show panel when collapsed, hide panel when expanded).
+  sidebarCollapsed?: boolean;
+  /// Toggles sidebar visibility. Also mapped to Cmd/Ctrl+\ at the app
+  /// level, but the button gives learners an obvious, discoverable path.
+  onToggleSidebar?: () => void;
 }
 
 /// Custom window top bar. The window is configured with
@@ -50,6 +60,8 @@ export default function TopBar({
   onClose,
   stats,
   onOpenProfile,
+  sidebarCollapsed = false,
+  onToggleSidebar,
 }: Props) {
   const showStats = !!stats && stats.lessonsCompleted > 0;
 
@@ -58,7 +70,33 @@ export default function TopBar({
       {/* Reserved space for macOS traffic lights (they overlay this area). */}
       <div className="fishbones__topbar-window-controls" data-tauri-drag-region />
 
+      {onToggleSidebar && (
+        <button
+          type="button"
+          className="fishbones__topbar-sidebar-toggle"
+          onClick={onToggleSidebar}
+          title={
+            sidebarCollapsed
+              ? "Show sidebar (⌘\\)"
+              : "Hide sidebar (⌘\\)"
+          }
+          aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+          aria-pressed={sidebarCollapsed}
+        >
+          <Icon
+            icon={sidebarCollapsed ? panelLeftOpen : panelLeftClose}
+            size="sm"
+            color="currentColor"
+          />
+        </button>
+      )}
+
       <div className="fishbones__topbar-tabs" data-tauri-drag-region>
+        {tabs.length > 0 && (
+          <span className="fishbones__topbar-tabs-label" aria-hidden>
+            Recents
+          </span>
+        )}
         {tabs.map((tab, i) => (
           <button
             key={tab.id}
@@ -75,7 +113,7 @@ export default function TopBar({
                 onClose(i);
               }}
             >
-              ×
+              <Icon icon={xIcon} size="xs" color="currentColor" />
             </span>
           </button>
         ))}

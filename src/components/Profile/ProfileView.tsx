@@ -29,6 +29,16 @@ const LANGUAGE_LABELS: Record<LanguageId, string> = {
   rust: "Rust",
   swift: "Swift",
   go: "Go",
+  web: "Web",
+  threejs: "Three.js",
+  react: "React",
+  reactnative: "React Native",
+  c: "C",
+  cpp: "C++",
+  java: "Java",
+  kotlin: "Kotlin",
+  csharp: "C#",
+  assembly: "Assembly",
 };
 
 const STAT_COLORS = {

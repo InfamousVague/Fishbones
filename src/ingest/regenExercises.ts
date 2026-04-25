@@ -241,7 +241,7 @@ export async function regenerateExercises(opts: RegenOptions): Promise<void> {
           stage: "save",
           chapter: chNum,
           lesson: stub.id,
-          message: `✓ regenerated "${parsed.title}" (${parsed.kind})`,
+          message: `done: regenerated "${parsed.title}" (${parsed.kind})`,
         });
         pushStats();
       } catch (e) {

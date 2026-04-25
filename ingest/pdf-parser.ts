@@ -31,7 +31,7 @@ export interface RawSection {
 }
 
 export async function parsePdf(path: string): Promise<RawChapter[]> {
-  const txtPath = joinPath(tmpdir(), `kata-ingest-${Date.now()}.txt`);
+  const txtPath = joinPath(tmpdir(), `fishbones-ingest-${Date.now()}.txt`);
   await mkdir(tmpdir(), { recursive: true });
 
   try {

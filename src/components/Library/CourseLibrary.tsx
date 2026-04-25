@@ -1,17 +1,46 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { libraryBig } from "@base/primitives/icon/icons/library-big";
 import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
+import BookCover from "./BookCover";
+import CourseContextMenu, { useCourseMenu } from "../Shared/CourseContextMenu";
+import FishbonesLoader from "../Shared/FishbonesLoader";
+import { prefetchCovers } from "../../hooks/useCourseCover";
 import "./CourseLibrary.css";
+
+/// Library display mode. `shelf` = tall 2:3 book-cover cards (the new
+/// default). `grid` = the information-dense card grid that was the
+/// original layout. User's choice persists in localStorage.
+type ViewMode = "shelf" | "grid";
+const VIEW_MODE_STORAGE_KEY = "fishbones:library-view-mode";
+
+function loadInitialViewMode(): ViewMode {
+  if (typeof localStorage === "undefined") return "shelf";
+  const stored = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+  return stored === "grid" ? "grid" : "shelf";
+}
 
 interface Props {
   courses: Course[];
   completed: Set<string>;
+  /// Course ids whose full body is still hydrating from disk. Covers for
+  /// these ids get a dimmed + spinner overlay. Optional — when omitted,
+  /// no covers show a loading state.
+  hydrating?: Set<string>;
   onDismiss: () => void;
   onOpen: (courseId: string) => void;
   /// Opens the PDF import wizard.
   onImport: () => void;
+  /// Opens the multi-PDF bulk import wizard — the learner can queue several
+  /// books at once for unattended processing. Optional — hidden when the
+  /// host app doesn't support bulk imports (e.g. web build).
+  onBulkImport?: () => void;
+  /// Opens the docs-site import dialog — crawl a documentation URL
+  /// and generate a course from its pages. Optional; hidden when not
+  /// wired by the host (keeps this component useful in tests / web
+  /// previews that don't have the Tauri crawl command available).
+  onDocsImport?: () => void;
   /// Opens a file picker for a previously-exported `.fishbones` (or legacy
   /// `.kata`) archive and unzips it into the courses dir. Optional — when omitted the button
   /// is hidden (e.g. in environments where the Tauri dialog plugin isn't
@@ -19,6 +48,15 @@ interface Props {
   onImportArchive?: () => void;
   onExport?: (courseId: string, courseTitle: string) => void;
   onDelete?: (courseId: string, courseTitle: string) => void;
+  /// Opens the per-course settings modal. When wired, right-clicking
+  /// any cover in the library (shelf or grid) surfaces a context menu
+  /// with Settings / Export / Delete mirroring the sidebar UX.
+  onSettings?: (courseId: string) => void;
+  /// Bulk-export every course in the library to a chosen directory.
+  /// When wired, renders an "Export all" button in the header next to
+  /// the Import cluster. Skipped when the host doesn't offer it (e.g.
+  /// the web-preview build with no filesystem access).
+  onBulkExport?: () => void;
   /// "modal" (default) — centered overlay with a dimmed backdrop; closed
   /// via the × button or clicking the backdrop.
   /// "inline" — renders inside the current container with no backdrop,
@@ -29,13 +67,31 @@ interface Props {
 
 type SortKey = "name" | "progress" | "lessons";
 
+// Every LanguageId we support. Each pill is hidden at render time when
+// there are zero courses for that language (see the `countByLang` filter
+// below), so this full list is safe to carry around even on a library
+// with just two or three languages — the user only sees pills for the
+// languages they actually have courses in, PLUS whatever's currently
+// selected as the active filter. Adding a new language elsewhere in the
+// app (e.g. extending `LanguageId` in `data/types.ts`) requires adding
+// it here too, otherwise its courses would silently become unfilterable.
 const LANG_PILLS: Array<{ id: "all" | LanguageId; label: string }> = [
   { id: "all", label: "All" },
   { id: "javascript", label: "JavaScript" },
   { id: "typescript", label: "TypeScript" },
   { id: "python", label: "Python" },
   { id: "rust", label: "Rust" },
+  { id: "go", label: "Go" },
   { id: "swift", label: "Swift" },
+  { id: "c", label: "C" },
+  { id: "cpp", label: "C++" },
+  { id: "java", label: "Java" },
+  { id: "kotlin", label: "Kotlin" },
+  { id: "csharp", label: "C#" },
+  { id: "assembly", label: "Assembly" },
+  { id: "web", label: "Web" },
+  { id: "threejs", label: "Three.js" },
+  { id: "reactnative", label: "React Native" },
 ];
 
 /// Browse-all-courses screen. Full-pane modal with language filter chips,
@@ -45,18 +101,56 @@ const LANG_PILLS: Array<{ id: "all" | LanguageId; label: string }> = [
 export default function CourseLibrary({
   courses,
   completed,
+  hydrating,
   onDismiss,
   onOpen,
   onImport,
+  onBulkImport,
+  onDocsImport,
   onImportArchive,
   onExport,
   onDelete,
+  onSettings,
+  onBulkExport,
   mode = "modal",
 }: Props) {
   const isInline = mode === "inline";
+  const ctxMenu = useCourseMenu();
   const [langFilter, setLangFilter] = useState<"all" | LanguageId>("all");
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [query, setQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>(loadInitialViewMode);
+  useEffect(() => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    }
+  }, [viewMode]);
+
+  // Prefetch every cover up front so the shelf paints fully-populated
+  // instead of filling in card-by-card as IntersectionObserver fires.
+  // Covers live behind a module-level cache keyed on
+  // `courseId:coverFetchedAt`, so repeat library opens are cache hits
+  // and we only block on the first visit (or after a course's cover
+  // changes via the settings flow). The gate stays shown until every
+  // IPC resolves — failures cache as `null` and still count, so a
+  // single missing cover doesn't strand the overlay.
+  const [coversReady, setCoversReady] = useState(() => courses.length === 0);
+  useEffect(() => {
+    if (courses.length === 0) {
+      setCoversReady(true);
+      return;
+    }
+    let cancelled = false;
+    setCoversReady(false);
+    void prefetchCovers(
+      courses.map((c) => ({ courseId: c.id, cacheBust: c.coverFetchedAt })),
+    ).then(() => {
+      if (!cancelled) setCoversReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [courses]);
 
   // Pre-compute per-course progress so sorting + display share one walk.
   const enriched = useMemo(() => {
@@ -126,18 +220,60 @@ export default function CourseLibrary({
             </span>
           </div>
           <div className="fishbones-library-header-actions">
-            {onImportArchive && (
+            {/* Single "Import" label + a segmented cluster of destinations.
+                Beats repeating "Import from PDF…", "Import archive…",
+                "Bulk import…" three times — the label answers "what do
+                these buttons do" once; each segment is just the NAME of
+                the thing being imported. */}
+            <div className="fishbones-library-import-group" role="group" aria-label="Import courses">
+              <span className="fishbones-library-import-label">Import</span>
+              <div className="fishbones-library-import-segmented">
+                <button
+                  className="fishbones-library-import-seg fishbones-library-import-seg--primary"
+                  onClick={onImport}
+                  title="Run the AI pipeline on a PDF or EPUB to generate a course"
+                >
+                  Book
+                </button>
+                {onBulkImport && (
+                  <button
+                    className="fishbones-library-import-seg"
+                    onClick={onBulkImport}
+                    title="Queue several books for unattended batch import"
+                  >
+                    Bulk books
+                  </button>
+                )}
+                {onDocsImport && (
+                  <button
+                    className="fishbones-library-import-seg"
+                    onClick={onDocsImport}
+                    title="Crawl a documentation website and generate a course from its pages"
+                  >
+                    Docs site
+                  </button>
+                )}
+                {onImportArchive && (
+                  <button
+                    className="fishbones-library-import-seg"
+                    onClick={onImportArchive}
+                    title="Import a previously-exported .fishbones archive (legacy .kata also supported)"
+                  >
+                    Archive
+                  </button>
+                )}
+              </div>
+            </div>
+            {onBulkExport && (
               <button
-                className="fishbones-library-import fishbones-library-import--secondary"
-                onClick={onImportArchive}
-                title="Import a previously-exported .fishbones course archive (legacy .kata also supported)"
+                className="fishbones-library-bulk-export"
+                onClick={onBulkExport}
+                disabled={filtered.length === 0 && courses.length === 0}
+                title="Export every course in the library as .fishbones archives to a folder of your choice"
               >
-                Import archive…
+                Export all
               </button>
             )}
-            <button className="fishbones-library-import" onClick={onImport}>
-              Import from PDF…
-            </button>
             {!isInline && (
               <button className="fishbones-library-close" onClick={onDismiss} aria-label="Close">
                 ×
@@ -191,11 +327,55 @@ export default function CourseLibrary({
                   <option value="lessons">Lesson count</option>
                 </select>
               </label>
+              {/* View-mode toggle: shelf (book covers) vs grid (dense
+                  info cards). Remembers the choice in localStorage. */}
+              <div
+                className="fishbones-library-viewmode"
+                role="tablist"
+                aria-label="View mode"
+              >
+                <button
+                  role="tab"
+                  type="button"
+                  aria-selected={viewMode === "shelf"}
+                  className={`fishbones-library-viewmode-btn ${
+                    viewMode === "shelf"
+                      ? "fishbones-library-viewmode-btn--active"
+                      : ""
+                  }`}
+                  onClick={() => setViewMode("shelf")}
+                  title="Shelf view — book covers"
+                >
+                  Shelf
+                </button>
+                <button
+                  role="tab"
+                  type="button"
+                  aria-selected={viewMode === "grid"}
+                  className={`fishbones-library-viewmode-btn ${
+                    viewMode === "grid"
+                      ? "fishbones-library-viewmode-btn--active"
+                      : ""
+                  }`}
+                  onClick={() => setViewMode("grid")}
+                  title="Grid view — info cards"
+                >
+                  Grid
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         <div className="fishbones-library-body">
+          {/* Full-body loader overlay shown until every cover has
+              prefetched. Fades out on `coversReady` so the populated
+              shelf isn't jarring when it pops in. */}
+          {!coversReady && (
+            <div className="fishbones-library-prefetch-overlay" aria-hidden>
+              <FishbonesLoader label="Loading covers" />
+            </div>
+          )}
           {courses.length === 0 ? (
             <div className="fishbones-library-empty">
               <div className="fishbones-library-empty-glyph" aria-hidden>
@@ -204,12 +384,13 @@ export default function CourseLibrary({
               <div className="fishbones-library-empty-title">No courses yet</div>
               <div className="fishbones-library-empty-blurb">
                 Import your first book to get started. Fishbones splits a PDF
-                into lessons and generates exercises with the Claude API, or
-                you can import a `.fishbones` course someone else shared.
+                or EPUB into lessons and generates exercises with the Claude
+                API, or you can import a `.fishbones` course someone else
+                shared.
               </div>
               <div className="fishbones-library-empty-actions">
                 <button className="fishbones-library-empty-primary" onClick={onImport}>
-                  Import from PDF…
+                  Import a book…
                 </button>
                 {onImportArchive && (
                   <button
@@ -227,6 +408,23 @@ export default function CourseLibrary({
               <div className="fishbones-library-empty-blurb">
                 Try clearing the filter or searching for a different title.
               </div>
+            </div>
+          ) : viewMode === "shelf" ? (
+            <div className="fishbones-library-shelf">
+              {filtered.map((e) => (
+                <BookCover
+                  key={e.course.id}
+                  course={e.course}
+                  progress={e.pct}
+                  loading={hydrating?.has(e.course.id)}
+                  onOpen={() => onOpen(e.course.id)}
+                  onContextMenu={
+                    onExport || onDelete || onSettings
+                      ? (ev) => ctxMenu.show(e.course, ev)
+                      : undefined
+                  }
+                />
+              ))}
             </div>
           ) : (
             <div className="fishbones-library-grid">
@@ -248,11 +446,23 @@ export default function CourseLibrary({
                       ? () => onDelete(e.course.id, e.course.title)
                       : undefined
                   }
+                  onContextMenu={
+                    onExport || onDelete || onSettings
+                      ? (ev) => ctxMenu.show(e.course, ev)
+                      : undefined
+                  }
                 />
               ))}
             </div>
           )}
         </div>
+        <CourseContextMenu
+          menu={ctxMenu.menu}
+          onDismiss={ctxMenu.close}
+          onSettings={onSettings}
+          onExport={onExport}
+          onDelete={onDelete}
+        />
     </div>
   );
 
@@ -274,6 +484,7 @@ function CourseCard({
   onOpen,
   onExport,
   onDelete,
+  onContextMenu,
 }: {
   course: Course;
   total: number;
@@ -282,6 +493,7 @@ function CourseCard({
   onOpen: () => void;
   onExport?: () => void;
   onDelete?: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }) {
   const chapters = course.chapters.length;
   const status =
@@ -292,7 +504,7 @@ function CourseCard({
       : `${Math.round(pct * 100)}%`;
 
   return (
-    <div className="fishbones-library-card">
+    <div className="fishbones-library-card" onContextMenu={onContextMenu}>
       <button className="fishbones-library-card-main" onClick={onOpen}>
         <div className="fishbones-library-card-header">
           <span className={`fishbones-library-lang fishbones-library-lang--${course.language}`}>
@@ -356,6 +568,18 @@ function langBadge(language: LanguageId): string {
       return "RS";
     case "swift":
       return "SW";
+    case "c":
+      return "C";
+    case "cpp":
+      return "C++";
+    case "java":
+      return "JV";
+    case "kotlin":
+      return "KT";
+    case "csharp":
+      return "C#";
+    case "assembly":
+      return "ASM";
     default:
       return String(language).slice(0, 2).toUpperCase();
   }

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { Icon } from "@base/primitives/icon";
+import { check as checkIcon } from "@base/primitives/icon/icons/check";
+import "@base/primitives/icon/icon.css";
 import { THEMES, applyTheme, loadTheme, type ThemeName } from "../../theme/themes";
 import "./SettingsDialog.css";
 
@@ -10,6 +13,7 @@ interface Props {
 interface Settings {
   anthropic_api_key: string | null;
   anthropic_model: string;
+  openai_api_key: string | null;
 }
 
 type SectionId = "ai" | "theme" | "data";
@@ -44,6 +48,7 @@ const MODEL_OPTIONS: Array<{ id: string; label: string; hint: string }> = [
 export default function SettingsDialog({ onDismiss }: Props) {
   const [section, setSection] = useState<SectionId>("ai");
   const [apiKey, setApiKey] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
   const [model, setModel] = useState<string>("claude-sonnet-4-5");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -62,6 +67,7 @@ export default function SettingsDialog({ onDismiss }: Props) {
     invoke<Settings>("load_settings")
       .then((s) => {
         setApiKey(s.anthropic_api_key ?? "");
+        setOpenaiKey(s.openai_api_key ?? "");
         if (s.anthropic_model) setModel(s.anthropic_model);
       })
       .catch(() => { /* not in tauri — ignore */ });
@@ -76,6 +82,7 @@ export default function SettingsDialog({ onDismiss }: Props) {
         settings: {
           anthropic_api_key: apiKey.trim() || null,
           anthropic_model: model,
+          openai_api_key: openaiKey.trim() || null,
         },
       });
       setSaved(true);
@@ -187,6 +194,39 @@ export default function SettingsDialog({ onDismiss }: Props) {
                     ))}
                   </div>
                 </label>
+
+                {/* Separate second provider for AI cover-art generation.
+                    Anthropic doesn't ship image generation, so we use
+                    OpenAI's gpt-image-1. Optional — without a key the
+                    cover-art button in Course Settings surfaces a
+                    friendly "add a key" message instead of crashing. */}
+                <h3 className="fishbones-settings-section fishbones-settings-section--sub">
+                  AI cover art
+                </h3>
+                <p className="fishbones-settings-blurb">
+                  Optional. When set, a <strong>Generate artwork with AI</strong>{" "}
+                  button appears in Course Settings → Appearance. Uses OpenAI's{" "}
+                  <code>gpt-image-1</code> model (~$0.04 per cover) with a fixed
+                  editorial style so every book in your library shares the same
+                  visual language.
+                </p>
+                <label className="fishbones-settings-field">
+                  <span className="fishbones-settings-label">OpenAI API key</span>
+                  <input
+                    type="password"
+                    className="fishbones-settings-input"
+                    value={openaiKey}
+                    onChange={(e) => setOpenaiKey(e.target.value)}
+                    placeholder="sk-..."
+                    spellCheck={false}
+                    autoComplete="off"
+                  />
+                </label>
+                <p className="fishbones-settings-note">
+                  Stored next to the Anthropic key in{" "}
+                  <code>&lt;app_data_dir&gt;/settings.json</code>. Only used for
+                  image requests to api.openai.com.
+                </p>
               </section>
             )}
 
@@ -286,7 +326,12 @@ export default function SettingsDialog({ onDismiss }: Props) {
             committable field; on other sections the Save button is hidden
             to avoid implying unsaved state. */}
         <div className="fishbones-settings-footer">
-          {saved && <span className="fishbones-settings-saved">✓ saved</span>}
+          {saved && (
+            <span className="fishbones-settings-saved">
+              <Icon icon={checkIcon} size="xs" color="currentColor" />
+              saved
+            </span>
+          )}
           {section === "ai" && (
             <button
               className="fishbones-settings-primary"

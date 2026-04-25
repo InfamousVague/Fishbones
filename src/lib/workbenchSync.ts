@@ -49,18 +49,33 @@ export function makeBus(courseId: string, lessonId: string): WorkbenchBus {
       listen(fn) {
         let unlisten: (() => void) | null = null;
         let disposed = false;
+        // Tauri's unlisten is async under the hood; if the event plugin's
+        // in-memory listener table has already dropped this handler (HMR
+        // teardown, double-unmount from an error-boundary cascade, etc.)
+        // it throws synchronously and the `async` wrapper surfaces that
+        // as an unhandled rejection. Swallow — nothing to clean up.
+        const safeUn = (un: () => void) => {
+          try {
+            const r = un() as unknown as Promise<void> | void;
+            if (r && typeof (r as Promise<void>).catch === "function") {
+              (r as Promise<void>).catch(() => {});
+            }
+          } catch {
+            /* stale listener registry */
+          }
+        };
         import("@tauri-apps/api/event").then(({ listen }) => {
           if (disposed) return;
           listen<{ msg: WorkbenchMsg; from: "main" | "popped" }>(eventName, (ev) => {
             fn(ev.payload.msg, ev.payload.from);
           }).then((un) => {
-            if (disposed) un();
+            if (disposed) safeUn(un);
             else unlisten = un;
           });
         });
         return () => {
           disposed = true;
-          unlisten?.();
+          if (unlisten) safeUn(unlisten);
         };
       },
       emit(msg, from) {

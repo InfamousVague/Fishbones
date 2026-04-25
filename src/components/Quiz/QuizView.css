@@ -85,6 +85,52 @@
   font-size: 14px;
   line-height: 1.5;
   color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Row that holds the prompt + the "ask AI" badge. Display:flex so
+   the badge sits at the top-right of the prompt regardless of
+   prompt length. */
+.fishbones-quiz-prompt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* `?` badge that opens the AI panel pre-loaded with a hint prompt
+   for this question. Small, subtle, becomes more visible on hover.
+   Same visual vocabulary as `.fishbones-code-block-ask` so users
+   recognize the affordance across prose + quizzes. */
+.fishbones-quiz-ask {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-tertiary);
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.12s,
+    border-color 0.12s,
+    background 0.12s,
+    transform 0.12s;
+}
+
+.fishbones-quiz-ask:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-tertiary);
+  transform: scale(1.08);
 }
 
 .fishbones-quiz-options {

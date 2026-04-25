@@ -1,5 +1,9 @@
 import MarkdownIt from "markdown-it";
 import { codeToHtml } from "shiki";
+import { info as infoIcon } from "@base/primitives/icon/icons/info";
+import { triangleAlert } from "@base/primitives/icon/icons/triangle-alert";
+import { lightbulb } from "@base/primitives/icon/icons/lightbulb";
+import { flaskConical } from "@base/primitives/icon/icons/flask-conical";
 import type {
   LessonEnrichment,
   GlossaryEntry,
@@ -153,9 +157,14 @@ function transformCallouts(src: string): {
     // links, etc. work inside callouts.
     const bodyHtml = md.render(bodyLines.join("\n"));
     stash.push({ kind, bodyHtml });
-    // Emit a sentinel that markdown-it will preserve as a paragraph.
+    // Emit a sentinel that markdown-it preserves as a literal paragraph.
+    // IMPORTANT: do NOT wrap the token in `__...__` — CommonMark parses
+    // that as bold emphasis (`<strong>FISHBONES_CALLOUT_0</strong>`), so
+    // the restore regex never matches and the literal token leaks visibly
+    // into the rendered HTML. Bare letters + digits + a single-letter
+    // boundary at each end survive markdown processing untouched.
     out.push("");
-    out.push(`__FISHBONES_CALLOUT_${stash.length - 1}__`);
+    out.push(`FISHBONESCALLOUTX${stash.length - 1}X`);
     out.push("");
   }
 
@@ -163,7 +172,7 @@ function transformCallouts(src: string): {
     md: out.join("\n"),
     restore: (html: string) => {
       return html.replace(
-        /<p>__FISHBONES_CALLOUT_(\d+)__<\/p>/g,
+        /<p>FISHBONESCALLOUTX(\d+)X<\/p>/g,
         (_m, n: string) => {
           const entry = stash[parseInt(n, 10)];
           if (!entry) return "";
@@ -183,16 +192,32 @@ const CALLOUT_LABELS: Record<CalloutKind, string> = {
   example: "Example",
 };
 
+/// Pre-built SVG strings matching the Icon primitive's output, inlined so the
+/// callout glyph survives every re-render of `<div dangerouslySetInnerHTML>`.
+/// Earlier attempts to hydrate a placeholder span from LessonReader were
+/// fragile: any enrichment/progress re-render could clobber the injected
+/// <svg>. Shipping the SVG in the initial HTML removes the race entirely.
+const CALLOUT_GLYPH_SVG: Record<CalloutKind, string> = {
+  note: wrapIconSvg(infoIcon),
+  warning: wrapIconSvg(triangleAlert),
+  tip: wrapIconSvg(lightbulb),
+  example: wrapIconSvg(flaskConical),
+};
+
+function wrapIconSvg(inner: string): string {
+  return (
+    `<svg class="icon icon--xs" viewBox="0 0 24 24" fill="none" ` +
+    `stroke="currentColor" stroke-width="2" stroke-linecap="round" ` +
+    `stroke-linejoin="round" aria-hidden="true">${inner}</svg>`
+  );
+}
+
 function renderCalloutBlock(kind: CalloutKind, bodyHtml: string): string {
   const label = CALLOUT_LABELS[kind];
-  // Icon is a simple glyph — LessonReader.css pairs it with a semantic
-  // color. We use pure-text glyphs to avoid pulling in the Icon SVG
-  // system at render time, which would complicate the async pipeline.
-  const glyph = kind === "warning" ? "!" : kind === "tip" ? "★" : kind === "example" ? "▶" : "i";
   return (
     `<div class="fishbones-callout fishbones-callout--${kind}">` +
     `<div class="fishbones-callout-head">` +
-    `<span class="fishbones-callout-glyph" aria-hidden="true">${glyph}</span>` +
+    `<span class="fishbones-callout-glyph" aria-hidden="true">${CALLOUT_GLYPH_SVG[kind]}</span>` +
     `<span class="fishbones-callout-label">${escapeHtml(label)}</span>` +
     `</div>` +
     `<div class="fishbones-callout-body">${bodyHtml}</div>` +
@@ -232,11 +257,20 @@ async function replaceCodeFencePlaceholders(html: string): Promise<string> {
 
 async function highlightCode(code: string, lang: string): Promise<string> {
   const trimmed = normalizeCodeBlock(code);
+  // The "Ask Fishbones" badge dispatches a `fishbones:ask-ai` custom
+  // event when clicked — the AiAssistant root listener picks it up,
+  // opens the panel, and sends a pre-formed prompt referencing this
+  // exact snippet. Source is base64-encoded so it survives HTML
+  // attribute quoting; the listener decodes once on activation.
+  const b64 = typeof btoa === "function"
+    ? btoa(unescape(encodeURIComponent(trimmed)))
+    : Buffer.from(trimmed, "utf-8").toString("base64");
+  const askBadge = `<button class="fishbones-code-block-ask" type="button" data-fishbones-ask-code="${escapeAttr(b64)}" data-fishbones-ask-lang="${escapeAttr(lang)}" title="Discuss this code with the local assistant" aria-label="Ask Fishbones about this code">?</button>`;
   try {
     const inner = await codeToHtml(trimmed, { lang, theme: SHIKI_THEME });
-    return `<div class="fishbones-code-block">${inner}</div>`;
+    return `<div class="fishbones-code-block">${askBadge}${inner}</div>`;
   } catch {
-    return `<pre class="fishbones-code-plain">${escapeHtml(trimmed)}</pre>`;
+    return `<div class="fishbones-code-block">${askBadge}<pre class="fishbones-code-plain">${escapeHtml(trimmed)}</pre></div>`;
   }
 }
 

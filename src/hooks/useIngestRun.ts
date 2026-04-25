@@ -16,6 +16,12 @@ import {
   type GenerateChallengePackOptions,
 } from "../ingest/generateChallengePack";
 import { enrichCourse, EnrichAborted } from "../ingest/enrichCourse";
+import { retryLesson, RetryAborted } from "../ingest/retryLesson";
+import {
+  ingestDocsSite,
+  DocsIngestAborted,
+  type DocsIngestOptions,
+} from "../ingest/ingestDocsSite";
 import type { LanguageId } from "../data/types";
 
 export type IngestStatus = "idle" | "running" | "success" | "error" | "aborted";
@@ -328,6 +334,81 @@ export function useIngestRun(opts: {
     [onCourseSaved],
   );
 
+  /// Doc-site ingest. Crawls a documentation URL, groups pages into
+  /// chapters by URL path, and generates a lesson per page via the
+  /// `generate_lesson_from_docs_page` LLM call. Same IngestRunState
+  /// shape as the PDF pipeline — FloatingIngestPanel renders it
+  /// identically.
+  const startDocsIngest = useCallback(
+    async (
+      args: Pick<
+        DocsIngestOptions,
+        | "bookId"
+        | "title"
+        | "language"
+        | "startUrl"
+        | "maxPages"
+        | "maxDepth"
+        | "requestDelayMs"
+        | "embedImages"
+        | "modelOverride"
+      >,
+    ) => {
+      if (abortRef.current) return;
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setRun({
+        status: "running",
+        bookId: args.bookId,
+        title: args.title,
+        stage: "Starting crawl…",
+        detail: args.startUrl,
+        events: [],
+        stats: null,
+        error: null,
+        startedAt: Date.now(),
+        finishedAt: null,
+      });
+      try {
+        await ingestDocsSite({
+          ...args,
+          signal: controller.signal,
+          onProgress: (stage, detail) =>
+            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+          onEvent: (ev) => {
+            lastEventAtRef.current = ev.timestamp;
+            setRun((r) => {
+              const next =
+                r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
+              next.push(ev);
+              return { ...r, events: next };
+            });
+            if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
+          },
+          onStats: (stats) => setRun((r) => ({ ...r, stats })),
+        });
+        setRun((r) => ({ ...r, status: "success", finishedAt: Date.now() }));
+        onCourseSaved?.();
+      } catch (e) {
+        if (e instanceof DocsIngestAborted) {
+          setRun((r) => ({ ...r, status: "aborted", finishedAt: Date.now() }));
+        } else {
+          const msg = e instanceof Error ? e.message : String(e);
+          setRun((r) => ({
+            ...r,
+            status: "error",
+            error: msg,
+            finishedAt: Date.now(),
+          }));
+          onCourseSaved?.();
+        }
+      } finally {
+        abortRef.current = null;
+      }
+    },
+    [onCourseSaved],
+  );
+
   /// Enrichment pass for an existing course — populates `objectives` +
   /// `enrichment` on every non-quiz lesson. Lighter than regen: only the
   /// reading-aid fields change, the body/starter/solution/tests are
@@ -504,7 +585,7 @@ export function useIngestRun(opts: {
                 timestamp: Date.now(),
                 level: "error",
                 stage: "meta",
-                message: `✗ ${item.title} failed: ${msg.slice(0, 200)}`,
+                message: `fail: ${item.title} — ${msg.slice(0, 200)}`,
               });
               return { ...r, events: next };
             });
@@ -545,13 +626,78 @@ export function useIngestRun(opts: {
     [onCourseSaved],
   );
 
+  /// Retry a single demoted lesson — drives the inline "Retry this
+  /// exercise" button in the reader. Reuses the same `IngestRunState`
+  /// shape so the FloatingIngestPanel shows progress, but the operation
+  /// is scoped to one lesson (one LLM call, one save) rather than a
+  /// whole chapter or course.
+  const startRetryLesson = useCallback(
+    async (bookId: string, lessonId: string, lessonTitle: string) => {
+      if (abortRef.current) return;
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setRun({
+        status: "running",
+        bookId,
+        title: `Retrying "${lessonTitle}"`,
+        stage: "Starting…",
+        detail: "",
+        events: [],
+        stats: null,
+        error: null,
+        startedAt: Date.now(),
+        finishedAt: null,
+      });
+      try {
+        await retryLesson({
+          bookId,
+          lessonId,
+          signal: controller.signal,
+          onProgress: (stage, detail) =>
+            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+          onEvent: (ev) => {
+            lastEventAtRef.current = ev.timestamp;
+            setRun((r) => {
+              const next =
+                r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
+              next.push(ev);
+              return { ...r, events: next };
+            });
+            if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
+          },
+          onStats: (stats) => setRun((r) => ({ ...r, stats })),
+        });
+        setRun((r) => ({ ...r, status: "success", finishedAt: Date.now() }));
+        onCourseSaved?.();
+      } catch (e) {
+        if (e instanceof RetryAborted) {
+          setRun((r) => ({ ...r, status: "aborted", finishedAt: Date.now() }));
+        } else {
+          const msg = e instanceof Error ? e.message : String(e);
+          setRun((r) => ({
+            ...r,
+            status: "error",
+            error: msg,
+            finishedAt: Date.now(),
+          }));
+          onCourseSaved?.();
+        }
+      } finally {
+        abortRef.current = null;
+      }
+    },
+    [onCourseSaved],
+  );
+
   return {
     run,
     start,
     startBulk,
     startRegenExercises,
     startGenerateChallengePack,
+    startDocsIngest,
     startEnrichCourse,
+    startRetryLesson,
     cancel,
     dismiss,
     lastEventAtRef,

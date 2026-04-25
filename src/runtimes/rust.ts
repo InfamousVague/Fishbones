@@ -51,6 +51,7 @@ export async function runRust(code: string, testCode?: string): Promise<RunResul
           ? `Rust Playground request failed: ${err.message}`
           : "Rust Playground request failed",
       durationMs: performance.now() - start,
+      testsExpected: isTest,
     };
   }
 
@@ -71,6 +72,7 @@ export async function runRust(code: string, testCode?: string): Promise<RunResul
       logs,
       error: extractCompileError(body.stderr) || "compilation failed",
       durationMs: performance.now() - start,
+      testsExpected: isTest,
     };
   }
 
@@ -78,6 +80,7 @@ export async function runRust(code: string, testCode?: string): Promise<RunResul
     logs,
     tests,
     durationMs: performance.now() - start,
+    testsExpected: isTest,
   };
 }
 

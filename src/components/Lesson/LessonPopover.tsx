@@ -1,5 +1,8 @@
 import { useCallback, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Icon } from "@base/primitives/icon";
+import { externalLink } from "@base/primitives/icon/icons/external-link";
+import "@base/primitives/icon/icon.css";
 import "./LessonPopover.css";
 
 export interface PopoverContent {
@@ -108,7 +111,10 @@ export default function LessonPopover({
           className="fishbones-popover-doclink"
           onClick={() => onOpenDoc(content.docUrl!)}
         >
-          View full docs →
+          View full docs
+          <span className="fishbones-popover-doclink-icon" aria-hidden>
+            <Icon icon={externalLink} size="xs" color="currentColor" />
+          </span>
         </button>
       )}
     </div>,

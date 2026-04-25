@@ -11,7 +11,17 @@ export type LanguageId =
   | "python"
   | "rust"
   | "swift"
-  | "go";
+  | "go"
+  | "web"
+  | "threejs"
+  | "react"
+  | "reactnative"
+  | "c"
+  | "cpp"
+  | "java"
+  | "kotlin"
+  | "csharp"
+  | "assembly";
 
 /// Difficulty tier for challenge-pack exercises. Courses' exercises don't
 /// set this — it's specific to the kata-style challenge packs that group
@@ -27,7 +37,29 @@ export type Difficulty = "easy" | "medium" | "hard";
 /// `fileLanguage` is broader than the lesson's primary `language` because
 /// individual files can be HTML or CSS even in a "javascript" lesson (web
 /// projects). The primary language is still what picks the runtime.
-export type FileLanguage = LanguageId | "html" | "css" | "json" | "plaintext";
+/// Monaco language id for a single file in a workbench. Kept separate
+/// from `LanguageId` (the lesson's PRIMARY language) because per-file
+/// languages are narrower — you never have a single file whose language
+/// is "web" or "threejs"; those are meta-languages that describe how
+/// the lesson as a whole is run. A file inside a `web` lesson has its
+/// own `"html"` / `"css"` / `"javascript"` language.
+export type FileLanguage =
+  | "javascript"
+  | "typescript"
+  | "python"
+  | "rust"
+  | "swift"
+  | "go"
+  | "c"
+  | "cpp"
+  | "java"
+  | "kotlin"
+  | "csharp"
+  | "assembly"
+  | "html"
+  | "css"
+  | "json"
+  | "plaintext";
 
 export interface WorkbenchFile {
   /// Filename including extension — used by the UI as the tab label and by
@@ -46,6 +78,25 @@ export interface WorkbenchFile {
   readOnly?: boolean;
 }
 
+/// Binary assets (images, textures, models, audio) that travel
+/// alongside a workbench's files. Lives outside `WorkbenchFile` because
+/// the content is base64-encoded — keeping files and assets in
+/// separate arrays lets the Monaco tab bar ignore the binaries and the
+/// runtime serve them via blob URLs / data URLs without parsing as
+/// text. Referenced from HTML / CSS / JS via `/assets/<name>` paths,
+/// which the web runtime rewrites at assembly time.
+export interface WorkbenchAsset {
+  /// Filename including extension (e.g. "hero.png", "ground.glb").
+  /// Lives under the virtual `/assets/` prefix at runtime.
+  name: string;
+  /// MIME type for the data URL wrapper. Inferred from the extension
+  /// at import time; stored so the runtime doesn't have to sniff.
+  mimeType: string;
+  /// Base64-encoded payload (no `data:` prefix). Kept as a string so
+  /// it survives JSON serialization of the course / playground state.
+  base64: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -61,6 +112,25 @@ export interface Course {
   /// tracking apply — the flag is purely a classification for the
   /// sidebar, library, and profile views.
   packType?: "course" | "challenges";
+  /// Epoch-ms timestamp of the most recent cover-artwork extraction.
+  /// When present, the Library + Sidebar render the PNG at
+  /// `<courses_dir>/<id>/cover.png` via the `load_course_cover` Tauri
+  /// command. Acts as a cache-buster: re-fetching a cover bumps this
+  /// value so the frontend invalidates its in-memory blob URL and
+  /// reloads. Missing = no cover extracted yet.
+  coverFetchedAt?: number;
+  /// Origin of this course's content. Missing OR "pdf" means a book
+  /// import (the original path); "docs" means the course was generated
+  /// by crawling a documentation website via `crawl_docs_site`. Drives
+  /// a small attribution badge in the Library and enables a future
+  /// "re-sync from source" action that a PDF-derived course can't
+  /// offer (the source might change).
+  sourceType?: "pdf" | "docs";
+  /// Starting URL of a doc-site crawl. Populated when `sourceType` is
+  /// "docs". Used to re-sync the course against the live site and to
+  /// link back to the original docs from the Library card's hover
+  /// tooltip. Absent for PDF imports.
+  sourceUrl?: string;
 }
 
 export interface Chapter {

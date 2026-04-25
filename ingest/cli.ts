@@ -1,4 +1,4 @@
-/// kata-ingest CLI — turn a book into a Kata course.
+/// fishbones-ingest CLI — turn a book into a Fishbones course.
 ///
 /// Usage:
 ///   ANTHROPIC_API_KEY=sk-... tsx cli.ts <input-book> --out <dir> --lang <rust|javascript|python|swift>
@@ -7,11 +7,11 @@
 ///   1. Parse the input (EPUB / PDF / Markdown) into an ordered list of
 ///      chapter bodies.
 ///   2. For each chapter, ask an LLM to structure it into lessons matching
-///      the Kata course format (types.ts). Reading-heavy sections become
+///      the Fishbones course format (types.ts). Reading-heavy sections become
 ///      `reading` lessons; "try this" passages become `exercise` lessons
 ///      with starter/solution/tests generated from the book's code samples.
 ///   3. Assemble a `course.json` and write it to <out>/<course-id>/.
-///   4. Optionally zip the folder as <out>/<course-id>.kata.
+///   4. Optionally zip the folder as <out>/<course-id>.fishbones.
 ///
 /// V1 of this CLI is a skeleton — it wires up the plumbing but the real
 /// LLM prompt-chain and per-format parsers (EPUB vs PDF vs MD) land when we
@@ -29,7 +29,7 @@ interface CliArgs {
   courseId?: string;
   title?: string;
   author?: string;
-  pack?: boolean; // also emit a .kata zip next to the folder
+  pack?: boolean; // also emit a .fishbones zip next to the folder
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -57,7 +57,7 @@ function parseArgs(argv: string[]): CliArgs {
 }
 
 function usage(msg: string): never {
-  console.error(`kata-ingest: ${msg}\n`);
+  console.error(`fishbones-ingest: ${msg}\n`);
   console.error("Usage: tsx cli.ts <input-book> --out <dir> --lang <lang>");
   console.error("       [--id <course-id>] [--title <t>] [--author <a>] [--pack]");
   process.exit(1);
@@ -113,8 +113,8 @@ async function main() {
   console.log(`[ingest] wrote ${courseDir}/course.json`);
 
   if (args.pack) {
-    await packKata(courseDir, joinPath(args.out, `${courseId}.kata`));
-    console.log(`[ingest] packed ${joinPath(args.out, `${courseId}.kata`)}`);
+    await packArchive(courseDir, joinPath(args.out, `${courseId}.fishbones`));
+    console.log(`[ingest] packed ${joinPath(args.out, `${courseId}.fishbones`)}`);
   }
 }
 
@@ -272,7 +272,7 @@ async function structureWithClaude(
 
 // ---- Packaging --------------------------------------------------------------
 
-async function packKata(courseDir: string, destination: string): Promise<void> {
+async function packArchive(courseDir: string, destination: string): Promise<void> {
   const JSZip = (await import("jszip")).default;
   const { readFile, readdir, stat } = await import("node:fs/promises");
   const zip = new JSZip();

@@ -253,7 +253,7 @@ export async function enrichCourse(opts: EnrichCourseOptions): Promise<void> {
           stage: "save",
           chapter: chNum,
           lesson: lesson.id,
-          message: `✓ enriched "${lesson.title}"`,
+          message: `done: enriched "${lesson.title}"`,
         });
         pushStats();
       } catch (e) {

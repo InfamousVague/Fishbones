@@ -12,6 +12,12 @@ const VALID_LANGUAGES: readonly LanguageId[] = [
   "rust",
   "swift",
   "go",
+  "c",
+  "cpp",
+  "java",
+  "kotlin",
+  "csharp",
+  "assembly",
 ];
 
 const META_EXCERPT_CHARS = 8000;
@@ -75,7 +81,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
     try {
       const picked = await open({
         multiple: true,
-        filters: [{ name: "Books", extensions: ["pdf"] }],
+        filters: [{ name: "Books", extensions: ["pdf", "epub"] }],
       });
       if (!picked) return;
       const paths = Array.isArray(picked) ? picked : [picked];
@@ -85,7 +91,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
       // immediately usable, then kick off detection in parallel so the
       // user doesn't wait serially.
       const seeded: QueueItem[] = paths.map((p) => {
-        const base = basename(p).replace(/\.pdf$/i, "");
+        const base = basename(p).replace(/\.(pdf|epub)$/i, "");
         return {
           pdfPath: p,
           filename: basename(p),
@@ -93,7 +99,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
           title: toTitle(base),
           author: "",
           courseId: slug(base),
-          language: "javascript",
+          language: guessLanguage(base) ?? "javascript",
         };
       });
       setItems(seeded);
@@ -127,7 +133,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
 
   async function detectOne(path: string): Promise<DetectedMeta> {
     const extracted = await invoke<{ text: string; error: string | null }>(
-      "extract_pdf_text",
+      "extract_source_text",
       { path },
     );
     if (extracted.error) throw new Error(extracted.error);
@@ -155,7 +161,11 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
         if (meta.author && !editedRef.current.has(editKey("author"))) {
           next.author = meta.author;
         }
-        if (meta.language && VALID_LANGUAGES.includes(meta.language)) {
+        if (
+          meta.language &&
+          VALID_LANGUAGES.includes(meta.language) &&
+          !editedRef.current.has(editKey("language"))
+        ) {
           next.language = meta.language;
         }
         return next;
@@ -171,6 +181,13 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
     editedRef.current.add(`${pdfPath}::${field}`);
     setItems((prev) =>
       prev.map((r) => (r.pdfPath === pdfPath ? { ...r, [field]: value } : r)),
+    );
+  }
+
+  function updateLanguage(pdfPath: string, language: LanguageId) {
+    editedRef.current.add(`${pdfPath}::language`);
+    setItems((prev) =>
+      prev.map((r) => (r.pdfPath === pdfPath ? { ...r, language } : r)),
     );
   }
 
@@ -191,6 +208,20 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
       author: r.author || undefined,
       language: r.language,
     }));
+    // Fire-and-forget cover extraction per book. Runs in parallel; each
+    // resolves independently, so slow ones don't hold up the queue.
+    // Failures are logged via the command's own error field and are
+    // non-fatal — the course just gets the fallback tile. Routes
+    // through `extract_source_cover` so EPUBs pull the manifest cover
+    // and PDFs still shell out to pdftoppm under one call site.
+    for (const item of opts) {
+      invoke("extract_source_cover", {
+        sourcePath: item.pdfPath,
+        courseId: item.bookId,
+      }).catch(() => {
+        /* non-fatal */
+      });
+    }
     onStartQueue(opts);
     onDismiss();
   }
@@ -205,7 +236,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
           <div>
             <div className="fishbones-bulk-kicker">Bulk import</div>
             <div className="fishbones-bulk-title">
-              Queue multiple PDFs
+              Queue multiple books
             </div>
           </div>
           <button
@@ -222,23 +253,23 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
           {items.length === 0 ? (
             <div className="fishbones-bulk-empty">
               <p className="fishbones-bulk-empty-blurb">
-                Pick one or more PDFs. We'll auto-detect the title, author,
-                and programming language for each, then queue them up for
-                unattended processing. Failures in one book don't halt the
-                queue — perfect for leaving it running overnight.
+                Pick one or more PDFs or EPUBs. We'll auto-detect the title,
+                author, and programming language for each, then queue them
+                up for unattended processing. Failures in one book don't
+                halt the queue — perfect for leaving it running overnight.
               </p>
               <button
                 type="button"
                 className="fishbones-bulk-primary"
                 onClick={pickFiles}
               >
-                Choose PDFs…
+                Choose books…
               </button>
             </div>
           ) : (
             <>
               <div className="fishbones-bulk-summary">
-                {items.length} PDF{items.length === 1 ? "" : "s"}{" "}
+                {items.length} book{items.length === 1 ? "" : "s"}{" "}
                 {detecting ? (
                   <span className="fishbones-bulk-summary-hint">
                     · detecting metadata…
@@ -318,9 +349,22 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
                       </label>
                       <label className="fishbones-bulk-row-field fishbones-bulk-row-field--narrow">
                         <span>Language</span>
-                        <span className="fishbones-bulk-row-langbadge">
-                          {r.language}
-                        </span>
+                        <select
+                          className="fishbones-bulk-row-input fishbones-bulk-row-langselect"
+                          value={r.language}
+                          onChange={(e) =>
+                            updateLanguage(
+                              r.pdfPath,
+                              e.target.value as LanguageId,
+                            )
+                          }
+                        >
+                          {VALID_LANGUAGES.map((l) => (
+                            <option key={l} value={l}>
+                              {l}
+                            </option>
+                          ))}
+                        </select>
                       </label>
                     </div>
                   </div>
@@ -413,4 +457,26 @@ function slug(s: string): string {
 
 function toTitle(s: string): string {
   return s.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/// Best-effort language guess from a filename. Runs before LLM detection so
+/// the row seeds with a plausible default (beats "javascript" for every
+/// non-JS book). The LLM result overrides this unless the user has already
+/// changed the dropdown. Order matters: longer / more specific patterns
+/// first so "typescript" wins over "script", "cpp" wins over "c".
+function guessLanguage(name: string): LanguageId | null {
+  const s = name.toLowerCase();
+  if (/\b(arm|x86|x64|risc[-_ ]?v|mips|6502|assembly|asm|instruction[-_ ]?set|computer[-_ ]?organization)\b/.test(s)) return "assembly";
+  if (/\btypescript\b|\bts\b/.test(s)) return "typescript";
+  if (/\bjavascript\b|\bjs\b|\bnode(?:\.js)?\b|\breact\b/.test(s)) return "javascript";
+  if (/\bpython\b/.test(s)) return "python";
+  if (/\brust\b/.test(s)) return "rust";
+  if (/\bswift\b/.test(s)) return "swift";
+  if (/\bgolang\b|\bgo\b/.test(s)) return "go";
+  if (/\bkotlin\b/.test(s)) return "kotlin";
+  if (/\bc\+\+\b|\bcpp\b/.test(s)) return "cpp";
+  if (/\bc#\b|\bcsharp\b|\bdotnet\b|\b\.net\b/.test(s)) return "csharp";
+  if (/\bjava\b/.test(s)) return "java";
+  if (/\bansi[-_ ]?c\b|\bc[-_ ]?programming\b|\blearn(?:ing)?[-_ ]?c\b/.test(s)) return "c";
+  return null;
 }

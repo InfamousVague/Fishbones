@@ -14,7 +14,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   animation: fishbones-floating-enter 0.22s ease-out;
 }
 
@@ -83,6 +82,9 @@
 }
 
 .fishbones-floating-substatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.4px;
@@ -137,10 +139,16 @@
 }
 
 .fishbones-floating-queue-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   color: #7cd97c;
 }
 
 .fishbones-floating-queue-fail {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   color: #ef6f6f;
 }
 
@@ -368,7 +376,6 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   animation: fishbones-floating-enter 0.2s ease-out;
 }
 

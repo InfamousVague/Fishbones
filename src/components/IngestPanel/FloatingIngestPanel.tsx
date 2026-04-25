@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import { Icon } from "@base/primitives/icon";
+import { check as checkIcon } from "@base/primitives/icon/icons/check";
+import { x as xIcon } from "@base/primitives/icon/icons/x";
+import "@base/primitives/icon/icon.css";
 import type { IngestRunState } from "../../hooks/useIngestRun";
 import StatsBar from "../ImportDialog/StatsBar";
 import "./FloatingIngestPanel.css";
@@ -93,8 +97,18 @@ export default function FloatingIngestPanel({
           <span className="fishbones-floating-title">{run.title || "Ingest"}</span>
           <span className="fishbones-floating-substatus">
             {run.status === "running" && "running"}
-            {run.status === "success" && "✓ complete"}
-            {run.status === "error" && "✗ failed"}
+            {run.status === "success" && (
+              <>
+                <Icon icon={checkIcon} size="xs" color="currentColor" />
+                <span>complete</span>
+              </>
+            )}
+            {run.status === "error" && (
+              <>
+                <Icon icon={xIcon} size="xs" color="currentColor" />
+                <span>failed</span>
+              </>
+            )}
             {run.status === "aborted" && "cancelled"}
           </span>
         </div>
@@ -108,12 +122,14 @@ export default function FloatingIngestPanel({
               <span className="fishbones-floating-queue-stats">
                 {run.queue.succeeded > 0 && (
                   <span className="fishbones-floating-queue-ok">
-                    {run.queue.succeeded}✓
+                    {run.queue.succeeded}
+                    <Icon icon={checkIcon} size="xs" color="currentColor" />
                   </span>
                 )}
                 {run.queue.failed > 0 && (
                   <span className="fishbones-floating-queue-fail">
-                    {run.queue.failed}✗
+                    {run.queue.failed}
+                    <Icon icon={xIcon} size="xs" color="currentColor" />
                   </span>
                 )}
               </span>

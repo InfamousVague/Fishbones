@@ -44,6 +44,18 @@
   margin: 0 auto;
 }
 
+/* Lesson title pinned above the meta row. Matches the scale of the body h1
+   it replaces so removing the duplicated markdown heading doesn't shrink
+   the visual anchor at the top of the page. */
+.fishbones-reader-title {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
 /* Meta row — time-to-read chip on the left, glossary toggle on the right. */
 .fishbones-reader-meta {
   display: flex;
@@ -113,6 +125,90 @@
   color: var(--color-bg-primary);
 }
 
+/* Retry-exercise card — shows on lessons the ingest pipeline demoted
+   after 3 validation failures. Amber accent (warn semantics) + a
+   primary CTA, distinct from the cyan "You'll learn" objectives box. */
+.fishbones-reader-retry {
+  margin: 0 0 20px;
+  padding: 14px 16px 12px;
+  background: rgba(232, 196, 107, 0.06);
+  border: 1px solid rgba(232, 196, 107, 0.3);
+  border-left: 3px solid #e8c46b;
+  border-radius: 6px;
+}
+
+.fishbones-reader-retry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.fishbones-reader-retry-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #e8c46b;
+}
+
+.fishbones-reader-retry-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+}
+
+.fishbones-reader-retry-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-reader-retry-reason-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #e8c46b;
+  font-size: 9.5px;
+  padding-top: 1px;
+}
+
+.fishbones-reader-retry-reason-text {
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  color: var(--color-text-secondary);
+  word-break: break-word;
+}
+
+.fishbones-reader-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #e8c46b;
+  color: #1a1408;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.fishbones-reader-retry-btn:hover {
+  opacity: 0.9;
+}
+
 /* Objectives card — small "You'll learn" box above the body. */
 .fishbones-reader-objectives {
   margin: 0 0 24px;
@@ -158,7 +254,6 @@
   display: flex;
   flex-direction: column;
   z-index: 60;
-  box-shadow: -10px 0 28px rgba(0, 0, 0, 0.32);
   animation: fishbones-glossary-enter 0.2s ease-out;
 }
 
@@ -248,12 +343,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  font-weight: 700;
-  font-size: 11px;
-  font-family: "SF Mono", ui-monospace, Menlo, monospace;
 }
 
 /* Four semantic colorings — concept-coded so each callout kind reads
@@ -354,10 +446,59 @@
 }
 
 .fishbones-code-block {
+  position: relative;
   margin: 16px 0;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--color-border-default);
+}
+
+/* `?` badge that opens the AI panel pre-loaded with a "walk me
+   through this" prompt for the snippet. Hidden until the block is
+   hovered so the badge doesn't compete with the code itself.
+   Same visual vocabulary as `.fishbones-quiz-ask` so the
+   "ask the local assistant" affordance reads consistently. */
+.fishbones-code-block-ask {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-tertiary);
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.94);
+  transition:
+    opacity 0.15s,
+    transform 0.15s,
+    color 0.12s,
+    border-color 0.12s,
+    background 0.12s;
+}
+
+.fishbones-code-block:hover .fishbones-code-block-ask,
+.fishbones-code-block-ask:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.fishbones-code-block-ask:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-tertiary);
+  transform: scale(1.08);
 }
 
 .fishbones-code-block pre,
@@ -386,6 +527,22 @@
 .fishbones-code-block code * {
   background: transparent !important;
   background-color: transparent !important;
+}
+
+/* Reset the inline-code chip treatment for the <code> element inside a
+   highlighted block. The `.fishbones-reader-body code` rule above gives
+   INLINE backticked code a 5px horizontal pad + rounded bg chip — which
+   is correct for `foo` in prose, but catastrophic for `<pre><code>…</code></pre>`:
+   the <code> element is display:inline by default, so the 5px padding
+   shifts the FIRST line 5 pixels to the right (one-space-looking indent)
+   while subsequent lines wrap past the padding and sit flush. Zeroing
+   padding + clearing the font override restores alignment across every
+   line. */
+.fishbones-code-block code {
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  color: inherit;
 }
 
 .fishbones-code-plain {

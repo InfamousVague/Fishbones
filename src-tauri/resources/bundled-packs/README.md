@@ -1,19 +1,20 @@
 # Bundled challenge packs
 
-`.kata` archives dropped in this directory ship inside the Tauri binary and
-are auto-imported on first launch for new installs. Existing installs
-pick them up the next time the app starts, unless the user has already
-imported a pack with the same course id (in which case we skip — the
-user's copy wins) OR has previously seeded-and-deleted it (in which case
-we also skip, so a removed pack doesn't resurrect itself).
+`.fishbones` archives (legacy `.kata` also accepted) dropped in this
+directory ship inside the Tauri binary and are auto-imported on first
+launch for new installs. Existing installs pick them up the next time
+the app starts, unless the user has already imported a pack with the
+same course id (in which case we skip — the user's copy wins) OR has
+previously seeded-and-deleted it (in which case we also skip, so a
+removed pack doesn't resurrect itself).
 
 ## How to bundle a new pack
 
-1. Open Kata.
+1. Open Fishbones.
 2. Profile → "Generate challenge pack…" → pick language / count / model → Generate.
 3. Wait for the floating panel to finish.
-4. Right-click the pack in the sidebar → Course settings… → Export… and save the `.kata` file.
-5. Move the `.kata` file into this directory.
+4. Right-click the pack in the sidebar → Course settings… → Export… and save the `.fishbones` file.
+5. Move the `.fishbones` file into this directory.
 6. Commit it alongside the Rust + frontend changes.
 7. Next `cargo tauri build` / `cargo tauri dev` includes it.
 
@@ -29,9 +30,9 @@ we also skip, so a removed pack doesn't resurrect itself).
 
 Call the file something descriptive:
 
-    rust-challenges-100.kata
-    typescript-challenges-100.kata
-    go-challenges-100.kata
+    rust-challenges-100.fishbones
+    typescript-challenges-100.fishbones
+    go-challenges-100.fishbones
 
 The seed routine reads the internal `course.json` to get the real id —
 filenames are for humans only.

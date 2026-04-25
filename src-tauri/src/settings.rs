@@ -17,6 +17,11 @@ pub struct Settings {
     /// string so we can try new models without a schema change. Default is
     /// the balanced choice; users can trade cost for quality in Settings.
     pub anthropic_model: String,
+    /// OpenAI API key — used for cover-art generation via `gpt-image-1`.
+    /// Separate from `anthropic_api_key` because Anthropic doesn't offer
+    /// image generation. None means "AI cover art is unavailable"; the
+    /// frontend hides / disables the button in that case.
+    pub openai_api_key: Option<String>,
 }
 
 impl Default for Settings {
@@ -24,6 +29,7 @@ impl Default for Settings {
         Self {
             anthropic_api_key: None,
             anthropic_model: "claude-sonnet-4-5".to_string(),
+            openai_api_key: None,
         }
     }
 }

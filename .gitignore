@@ -21,3 +21,5 @@ src-tauri/gen/
 
 # Misc
 *.log
+test-results/
+playwright-report/

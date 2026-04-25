@@ -44,6 +44,39 @@ button {
   margin-left: 10px;
 }
 
+/* Collapsed-sidebar mode: sidebar drops out of flow so the main pane
+   reclaims the full width. Toggle via Cmd/Ctrl+\ or the top-bar
+   button; state persists in localStorage. */
+.fishbones--sidebar-collapsed .fishbones__sidebar {
+  display: none;
+}
+
+/* Boot loader — full-app overlay shown until the initial courses list
+   resolves. The actual spinner is the shared FishbonesLoader component;
+   this just provides the fixed full-viewport backdrop + fade-out that
+   dismisses once `coursesLoaded` flips true. */
+.fishbones__bootloader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.fishbones__bootloader--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.fishbones--sidebar-collapsed .fishbones__main {
+  margin-left: 10px;
+}
+
 /* Lesson content pane. When a lesson has an exercise, reader sits on the left
    and the workbench (editor above, console below) sits on the right. Reading-
    only lessons fill the whole pane.
@@ -62,6 +95,33 @@ button {
 .fishbones__lesson .fishbones-reader {
   flex: 1;
   min-width: 0;
+}
+
+/* Wrapper around the missing-toolchain banner + Workbench on an
+   exercise lesson. We took the Workbench's old width / margin rules
+   and moved them here so the banner sits naturally above the
+   workbench card, still honouring the learner's width-drag handle
+   on its left edge. The inner Workbench becomes full-width of this
+   column (overridden below) so everything lines up. */
+.fishbones__lesson-workbench-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 48%;
+  min-width: 320px;
+  max-width: 75%;
+  margin-left: 10px;
+  min-height: 0;
+  gap: 10px;
+}
+
+.fishbones__lesson-workbench-wrap > .fishbones-workbench {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin-left: 0;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Quiz + reading-only long lessons: stack the reader and a scrollable body
@@ -135,7 +195,6 @@ button {
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -146,7 +205,8 @@ button {
 }
 
 .fishbones__workbench-popped-pill-icon {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
 

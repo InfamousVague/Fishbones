@@ -218,6 +218,9 @@
 }
 
 .fishbones-editor-hints-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 4px 10px;
   background: transparent;
   border: 1px solid var(--color-border-default);
@@ -278,7 +281,6 @@
   border: 1px solid var(--color-border-default);
   border-radius: 10px;
   padding: 18px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
 .fishbones-editor-modal-title {

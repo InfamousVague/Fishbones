@@ -1,3 +1,7 @@
+import { Icon } from "@base/primitives/icon";
+import { arrowLeft } from "@base/primitives/icon/icons/arrow-left";
+import { arrowRight } from "@base/primitives/icon/icons/arrow-right";
+import "@base/primitives/icon/icon.css";
 import "./LessonNav.css";
 
 interface NeighborLesson {
@@ -60,7 +64,7 @@ export default function LessonNav({ prev, next, onPrev, onNext, nextLabel }: Pro
         title={prev?.title}
       >
         <span className="fishbones-lesson-nav-arrow" aria-hidden>
-          ←
+          <Icon icon={arrowLeft} size="sm" color="currentColor" />
         </span>
         <span className="fishbones-lesson-nav-text">
           <span className="fishbones-lesson-nav-label">previous</span>
@@ -80,7 +84,7 @@ export default function LessonNav({ prev, next, onPrev, onNext, nextLabel }: Pro
           {next && <MiddleTitle text={next.title} />}
         </span>
         <span className="fishbones-lesson-nav-arrow" aria-hidden>
-          →
+          <Icon icon={arrowRight} size="sm" color="currentColor" />
         </span>
       </button>
     </nav>

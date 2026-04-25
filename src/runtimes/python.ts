@@ -44,6 +44,18 @@ function getWorker(): Promise<Worker> {
 
       // Register 'user' and 'kata_test' as importable modules so test code
       // can \`from user import add\` and \`from kata_test import test, expect\`.
+      //
+      // The worker is cached (module-level \`workerPromise\`), so we get
+      // RE-INVOKED across runs. Pyodide's \`registerJsModule\` doesn't
+      // cleanly overwrite a module that's already been imported — the
+      // previously-imported \`_katahost\` reference stays in
+      // \`sys.modules\` and in any closures that captured it. Without the
+      // unregister + sys.modules purge below, \`_katahost.pushTest\` on
+      // the second run still points at the first run's \`tests\` array,
+      // and the caller sees tests=0. Unregister and nuke the cache so
+      // the fresh registration wins.
+      try { self.pyodide.unregisterJsModule('_katahost'); } catch {}
+      self.pyodide.runPython("import sys\\nsys.modules.pop('_katahost', None)\\nsys.modules.pop('kata_test', None)");
       self.pyodide.registerJsModule('_katahost', {
         pushTest: (t) => {
           const plain = t.toJs ? t.toJs({ dict_converter: Object.fromEntries }) : t;
@@ -71,6 +83,7 @@ sys.modules['user'] = _user_mod
             logs,
             error: String(err && err.message ? err.message : err),
             durationMs: performance.now() - start,
+            testsExpected: !!testCode,
           }
         });
         return;
@@ -153,6 +166,7 @@ sys.modules['kata_test'] = kata_test
               tests,
               error: 'test file error: ' + String(err && err.message ? err.message : err),
               durationMs: performance.now() - start,
+              testsExpected: !!testCode,
             }
           });
           return;
@@ -161,7 +175,7 @@ sys.modules['kata_test'] = kata_test
 
       self.postMessage({
         id,
-        result: { logs, tests, durationMs: performance.now() - start },
+        result: { logs, tests, durationMs: performance.now() - start, testsExpected: !!testCode },
       });
     };
   `;
@@ -190,6 +204,7 @@ export async function runPython(code: string, testCode?: string): Promise<RunRes
         tests: [] as TestResult[],
         error: `execution timed out after ${TIMEOUT_MS}ms (Pyodide cold start can take several seconds on first run)`,
         durationMs: TIMEOUT_MS,
+        testsExpected: testCode !== undefined,
       });
     }, TIMEOUT_MS);
 

@@ -4,12 +4,18 @@
    The workbench is the only card in the lesson layout — the reader prose
    flows flat on the base surface; this panel visually groups the editor +
    output as a single "tool" and floats it against the prose with its own
-   border/radius/shadow. */
+   border/radius/shadow.
+   Width is owned by an inline `style="width: ...%"` set by the component
+   (see `workbenchPct`), so the user can drag the left edge to resize the
+   whole card. The 48% fallback below covers the first render before
+   state initializes. */
 .fishbones-workbench {
+  position: relative; /* anchor for the left-edge width handle */
   display: flex;
   flex-direction: column;
   width: 48%;
-  min-width: 380px;
+  min-width: 320px;
+  max-width: 75%;
   /* Only a left margin — the parent `.fishbones__lesson` supplies the top/bottom
      10px so our top/bottom edges line up with the sidebar card. Doubling
      the vertical margins made the workbench float lower than the sidebar
@@ -18,14 +24,21 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
   border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
+/* Panes are column-flex containers so the editor/output child fills
+   the pane's height via `flex: 1` below. We used to rely on
+   `align-items: stretch` (default) under row-flex, but that path left
+   the EditorPane collapsing to its intrinsic content height in some
+   browsers — the editor showed as a ~5px strip. Explicit column
+   direction + `flex: 1` makes the height math unambiguous. */
 .fishbones-workbench-pane {
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
+  flex-direction: column;
 }
 
 .fishbones-workbench-pane--editor {
@@ -49,6 +62,8 @@
   place-items: center;
   transition: background 0.15s ease;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .fishbones-workbench-divider:hover,
@@ -66,6 +81,82 @@
 .fishbones-workbench-divider:hover .fishbones-workbench-divider-grip,
 .fishbones-workbench-divider:active .fishbones-workbench-divider-grip {
   background: var(--color-text-tertiary);
+}
+
+/* Left-edge drag handle for resizing the whole workbench card's width.
+   Sits flush against the workbench's left border, 8px wide, full height,
+   absolutely positioned so it doesn't reflow the flex column inside.
+   Transparent until hover — we don't want a visible seam against the
+   reader prose, just a discoverable hit target. */
+.fishbones-workbench-width-handle {
+  position: absolute;
+  top: 0;
+  left: -4px; /* overlap the border so the hit target feels intuitive */
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 3;
+  background: transparent;
+  transition: background 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.fishbones-workbench-width-handle::after {
+  /* Thin vertical marker line that lights up on hover. Gives a visible
+     cue where the handle is without painting a seam across the card. */
+  content: "";
+  position: absolute;
+  top: 30%;
+  bottom: 30%;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.fishbones-workbench-width-handle:hover::after,
+.fishbones-workbench-width-handle:active::after {
+  background: var(--color-text-tertiary);
+}
+
+.fishbones-workbench-width-handle:hover,
+.fishbones-workbench-width-handle:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Light themes want a dark-on-light hover fill instead of the rgba-white
+   tint used in dark themes. */
+[data-theme="light"] .fishbones-workbench-width-handle:hover,
+[data-theme="light"] .fishbones-workbench-width-handle:active,
+[data-theme-name="default-light"] .fishbones-workbench-width-handle:hover,
+[data-theme-name="default-light"] .fishbones-workbench-width-handle:active,
+[data-theme-name="ayu-light"] .fishbones-workbench-width-handle:hover,
+[data-theme-name="ayu-light"] .fishbones-workbench-width-handle:active,
+[data-theme-name="catppuccin-latte"] .fishbones-workbench-width-handle:hover,
+[data-theme-name="catppuccin-latte"] .fishbones-workbench-width-handle:active {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Standalone (popped-out) mode: workbench fills the whole viewport, so
+   width resizing is meaningless. Hide the handle. */
+.fishbones-workbench--standalone .fishbones-workbench-width-handle {
+  display: none;
+}
+
+/* Fill-width mode: the workbench is the only card in its pane (e.g. the
+   Playground) so it stretches edge-to-edge. We drop the left margin +
+   max-width cap that make sense beside a reader, and remove min-width
+   so the card can shrink on narrow windows without clipping. The width
+   handle is hidden by the component itself (conditional render). */
+.fishbones-workbench--fill {
+  width: 100% !important; /* beats the inline style the non-fill branch sets */
+  min-width: 0;
+  max-width: 100%;
+  margin-left: 0;
 }
 
 /* When the workbench is rendered inside the popped-out window it occupies

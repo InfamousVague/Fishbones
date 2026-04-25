@@ -492,7 +492,7 @@ Given up to ~8000 characters from the beginning of the book (cover, title page, 
   { "title": "...", "author": "...", "language": "..." }
 
 Rules:
-- `language`: MUST be exactly one of: "javascript" | "typescript" | "python" | "rust" | "swift" | "go". Pick the one the book PRIMARILY teaches — for "JavaScript for Rubyists", return "javascript". If the code examples shown disagree with the title, pick whichever dominates the examples. If the book is clearly not about a programming language (math, general design, etc.), still pick the closest fit from the allowed set; fall back to "javascript" when truly nothing applies.
+- `language`: MUST be exactly one of: "javascript" | "typescript" | "python" | "rust" | "swift" | "go" | "c" | "cpp" | "java" | "kotlin" | "csharp" | "assembly". Pick the one the book PRIMARILY teaches — for "JavaScript for Rubyists", return "javascript". For books about CPU architecture, machine code, or instruction sets (ARM, x86, RISC-V, MIPS, 6502), return "assembly". For C++ use "cpp"; for C# use "csharp". If the code examples shown disagree with the title, pick whichever dominates the examples. If the book is clearly not about a programming language (general software design, math, etc.), still pick the closest fit from the allowed set; fall back to "javascript" when truly nothing applies.
 - `author`: the primary author(s) as they appear on the title page. Join multiple with " & " (e.g. "Alice Smith & Bob Jones"). Strip academic titles and suffixes ("Dr.", "PhD", "Ph.D.").
 - `title`: the book's main title. Drop subtitles and edition numbers. "JavaScript: The Definitive Guide, 7th Edition" → "JavaScript: The Definitive Guide". "Programming Rust, 2nd Edition: Fast, Safe Systems Development" → "Programming Rust".
 
@@ -560,11 +560,20 @@ TOPIC: focus the problem around the given topic. If the topic is "iterators", ev
 
 TEST HARNESS — STRONG RULES (non-negotiable):
   - Every test MUST contain at least one real assertion that exercises learner code with a specific input and checks a specific output/state.
-  - BANNED patterns:
+  - BANNED patterns (a static linter rejects packs that ship these):
       * Tests that just call the function and assert nothing ("trust the structure" — always passes).
       * Tests that only check the function's type signature or existence ("does it compile" — always passes once parsed).
+      * `let _ = fn(...)` in a Rust #[test] with no assert after — compile-only.
+      * `func kataTest_x() error { return nil }` (Go) that never branches to `return fmt.Errorf(...)` — always passes.
+      * Kotlin / Java / C / C++ / C# tests whose main() prints `KATA_TEST::name::PASS` as a literal without any conditional — always passes.
+      * A Go starter that returns a `nil` channel: reads from it block forever, the sandbox reports 0 tests parsed, and the runtime mis-interprets that as "pass". Give the starter a literal stub like `return make(chan int)` instead (still wrong behaviour, but produces real test failures rather than a deadlock).
       * For binary-crate outputs where stdout-capture is impractical (Rust main printing), REFORMULATE the challenge so the learner writes a function that RETURNS the value, and `main` just prints it. The tests then `assert_eq!` on the function's return — never on stdout.
-  - Provide ≥ 3 assertions covering: the normal case, an edge case (empty / zero / boundary), and an error / unusual case.
+  - EXACTLY ≥ 3 test cases is a FLOOR, not a target. Provide 4–6 cases covering:
+      1. Normal case — the expected everyday input.
+      2. Edge case — empty / zero / boundary / single-element / negative / unicode as applicable.
+      3. Error / unusual case — invalid input, type mismatch, overflow, or a case most learners forget.
+      4. (encouraged) A second normal-case variant with different data to catch hard-coded answers.
+  - Before returning, mentally run the STARTER through the tests. At least one test must produce a FAIL when the starter is evaluated — if every assertion happens to pass given the starter's stub output (e.g. tests all compare against `nil` / `""` / `0` which the starter also returns), REWRITE the tests so specific non-default values are required.
 
   Rust:
     Use standard Rust test syntax:
@@ -635,6 +644,259 @@ Return ONLY the JSON object. Begin with `{`, end with `}`. No markdown fences, n
         &prompt,
         model_override.as_deref(),
         &format!("generate_challenge[{}/{}/{}]", language, difficulty, topic),
+    )
+    .await
+}
+
+// ---- Docs-site lesson generation --------------------------------------------
+//
+// One page from a crawled doc site → one lesson. Different from
+// `generate_lesson` which assumes the input is a book chapter being split
+// into multiple lessons; here each PAGE is already a lesson-sized chunk
+// of content, and the desired kind (reading / exercise / quiz) is passed
+// in by the caller's heuristic (code-block count, page depth, etc.).
+
+/// `lesson_kind` must be one of "reading", "exercise", or "quiz" — the
+/// frontend picks via a simple heuristic (>= 2 code blocks ⇒ exercise,
+/// 0-1 ⇒ quiz, reference pages ⇒ reading).
+///
+/// When the crawl is sidebar-driven, the frontend passes neighbour
+/// context (`chapter_title`, previous/next lesson titles, position in
+/// chapter) so the generated lesson can reference what the learner just
+/// read and hint at what comes next. All four are optional — the BFS
+/// fallback path leaves them None and the prompt adapts.
+#[tauri::command]
+pub async fn generate_lesson_from_docs_page(
+    settings: State<'_, SettingsState>,
+    cancel: State<'_, IngestCancel>,
+    page_url: String,
+    page_title: String,
+    page_markdown: String,
+    language: String,
+    lesson_kind: String,
+    lesson_id: String,
+    chapter_title: Option<String>,
+    previous_lesson_title: Option<String>,
+    next_lesson_title: Option<String>,
+    chapter_position: Option<u32>,
+    chapter_total: Option<u32>,
+    model_override: Option<String>,
+) -> Result<LlmResponse, String> {
+    let system = r#"You turn ONE page from an online documentation site into ONE Codecademy-style lesson for the Fishbones learning app. The input is already lesson-sized — don't try to split it. The input is already cleaned markdown, but may still contain navigation fragments, edit-page links, or other chrome — filter these out silently.
+
+Given:
+  - a lesson kind (reading / exercise / quiz) — obey this strictly
+  - the target programming language
+  - the page's title + source URL (for attribution)
+  - the page's main-content markdown
+
+Return ONE JSON object. All lesson kinds use the SAME schema as `generate_lesson`, including the `objectives` + `enrichment` enrichment fields for non-quiz lessons (see fields definition below).
+
+READING lesson shape:
+  { "id": "<lesson_id>", "kind": "reading", "title": "...", "body": "markdown with preserved fenced code blocks", "objectives": [...], "enrichment": { "glossary": [...], "symbols": [...] } }
+
+  - REWRITE the docs page into lesson voice — "you will learn", "let's", second-person, teaching tone. Do NOT paste the source verbatim.
+  - Keep useful fenced code blocks from the source. Drop or trim reference tables that run more than ~15 rows; summarize with "see the full table on the source page" + a markdown link.
+  - Length: 200-600 words of prose. If the source is much longer, condense — the learner can always click through to the original.
+  - Attribution: at the END of `body`, add a small markdown note: `_Adapted from [Page Title](url)._`
+
+EXERCISE lesson shape:
+  {
+    "id": "<lesson_id>", "kind": "exercise", "title": "...",
+    "language": "...",
+    "body": "markdown prompt (what to build, 2-4 sentences, no boilerplate)",
+    "starter": "runnable starter with a `// TODO:` and a tiny scaffold",
+    "solution": "reference solution that passes every test",
+    "tests": "test code — see TEST HARNESS below",
+    "objectives": [...],
+    "enrichment": { "glossary": [...], "symbols": [...] }
+  }
+
+  - INVENT a small, focused practice task rooted in the page's concept. DO NOT just copy an example verbatim from the source — design a fresh exercise that tests understanding of the SAME idea.
+  - Scope: 5-20 lines of solution code. Single-concept, single-function when possible.
+  - If the page is too meta or environmental to turn into a code exercise (e.g. "installing Node"), DOWNGRADE to a quiz instead and use the quiz shape below.
+
+QUIZ lesson shape:
+  {
+    "id": "<lesson_id>", "kind": "quiz", "title": "...",
+    "body": "optional 1-2 sentence intro (may be empty string)",
+    "questions": [
+      { "kind": "mcq", "prompt": "...", "options": ["...", "...", "...", "..."], "correctIndex": 0, "explanation": "..." }
+    ]
+  }
+
+  - 3-6 questions, mix of mcq (4 options) and short (2-4 accepted answers).
+  - Every question targets a concept the source page TEACHES. Don't ask trivia the page doesn't cover.
+  - Explanations are 1 sentence, reinforcing WHY the answer is correct.
+
+SHARED RULES:
+  - objectives: 3-5 bullets starting with a verb ("Explain...", "Write...", "Identify..."), 8-14 words each.
+  - enrichment.glossary: every term-of-art the lesson introduces. 2-6 entries typical. Definitions ≤ 25 words.
+  - enrichment.symbols: every backticked identifier that maps to an official stdlib / built-in / language feature. Include canonical docUrl when known (MDN / doc.rust-lang.org / pkg.go.dev / docs.python.org / developer.apple.com). Never fabricate URLs.
+  - Use GitHub-style callouts (`> [!NOTE]`, `> [!WARNING]`, `> [!TIP]`, `> [!EXAMPLE]`) where they add value. 0-2 per lesson, max.
+  - Use `<language> playground` fences for short runnable demos. 0-2 per lesson.
+
+TEST HARNESS (for EXERCISE only) — pick per `language`:
+
+  JavaScript / TypeScript:
+    test("description", () => { ... })
+    expect(x).toBe(y) / toEqual(y) / toBeTruthy() / toBeFalsy() / toBeGreaterThan(n) / toBeLessThan(n) / toContain(item) / toBeCloseTo(v, digits)
+    expect(fn).toThrow()
+    Starter + solution MUST end with `module.exports = { ... }` listing every export.
+
+  Python:
+    Use `def test_name(): expect(x).to_be(y)`.
+    Learner code is exposed as the `user` module; tests do `from user import foo`.
+
+  Rust:
+    Raw #[test] fns. No JS idioms. If output is stdout-based, reformulate so the learner writes a function that RETURNS the value and main prints it.
+
+  Go:
+    Structured-stdout protocol — tests are a full Go `func main()` that calls `kataTest_<name>() error` helpers and prints
+      KATA_TEST::<name>::PASS
+      KATA_TEST::<name>::FAIL::<reason>
+    Do NOT use `testing.T`.
+
+  Swift:
+    Run-only — set `tests` to "".
+
+  Tests MUST contain ≥ 3 real assertions (normal case, edge case, error/unusual case). No "always passes" stubs.
+
+Return ONLY the JSON object. Begin with `{`, end with `}`. No markdown fences, no preamble."#;
+
+    // Neighbour context block — included in the prompt only when the
+    // frontend supplied it. Lets lessons reference what the learner
+    // just read ("Building on closures from the previous lesson…") and
+    // telegraph what's next, which makes the chapter flow like a book
+    // instead of a pile of independent readings.
+    let mut context_block = String::new();
+    if let Some(ref ch) = chapter_title {
+        context_block.push_str(&format!("Chapter: {}\n", ch));
+    }
+    if let (Some(pos), Some(total)) = (chapter_position, chapter_total) {
+        context_block.push_str(&format!(
+            "Position in chapter: lesson {} of {}\n",
+            pos + 1,
+            total
+        ));
+    }
+    if let Some(ref prev) = previous_lesson_title {
+        context_block.push_str(&format!("Previous lesson: {}\n", prev));
+    }
+    if let Some(ref next) = next_lesson_title {
+        context_block.push_str(&format!("Next lesson: {}\n", next));
+    }
+    if !context_block.is_empty() {
+        context_block.push_str(
+            "\nWhen the Previous lesson is known, WEAVE a short (1-sentence) callback into your opening so the lesson feels continuous — \"Now that you've seen X, let's...\". When the Next lesson is known, close the body with a subtle cliffhanger pointing forward. Don't be heavy-handed; one sentence each.\n",
+        );
+    }
+
+    let prompt = format!(
+        "Lesson kind: {lesson_kind}\nLanguage: {language}\nLesson id: {lesson_id}\nPage title: {page_title}\nSource URL: {page_url}\n{context_block}\n--- PAGE MARKDOWN ---\n{page_markdown}\n--- END PAGE MARKDOWN ---\n\nGenerate ONE lesson of the specified kind. Return ONLY the JSON."
+    );
+
+    call_llm(
+        &settings,
+        &cancel,
+        system,
+        &prompt,
+        model_override.as_deref(),
+        &format!("generate_lesson_from_docs_page[{}::{}]", lesson_kind, lesson_id),
+    )
+    .await
+}
+
+/// Generate a single capstone exercise for a chapter of reading
+/// lessons. Called AFTER all the readings in a chapter are generated —
+/// invents a coding task that exercises the chapter's core concepts so
+/// the docs-site course reads like a book ("read a few pages, then
+/// practice what you learned").
+///
+/// `lesson_summaries` is a JSON-encoded array of `{ title, body_snippet }`
+/// objects — the frontend assembles it from the already-generated
+/// readings' bodies, capped at ~500 chars per snippet so the prompt
+/// stays within a reasonable budget even for long chapters.
+#[tauri::command]
+pub async fn generate_chapter_capstone(
+    settings: State<'_, SettingsState>,
+    cancel: State<'_, IngestCancel>,
+    chapter_title: String,
+    language: String,
+    lesson_summaries: String,
+    lesson_id: String,
+    model_override: Option<String>,
+) -> Result<LlmResponse, String> {
+    let system = r#"You generate ONE capstone coding EXERCISE for a chapter of reading lessons in the Fishbones learning app. The learner has just read every lesson in the chapter; now they need to practice what they learned.
+
+Your job: invent a small, focused coding task that synthesizes the chapter's CORE concepts into a single practice problem. The exercise should feel like the natural "try it now" cap at the end of a book chapter.
+
+Return ONE JSON object matching the EXERCISE schema (same shape as `generate_lesson` / `generate_lesson_from_docs_page`):
+  {
+    "id": "<lesson_id>",
+    "kind": "exercise",
+    "title": "concrete verb phrase, ≤ 60 chars — what the learner will build",
+    "language": "<language>",
+    "body": "markdown prompt: 3-6 sentences explaining the task + 1-2 concrete examples of input/output. Lead with `> [!EXAMPLE]` showing what 'done' looks like when it's not obvious from the description.",
+    "starter": "runnable starter containing a function stub + `// TODO:` comments. MUST compile.",
+    "solution": "reference solution that passes every test",
+    "tests": "language-appropriate test code (see TEST HARNESS below)",
+    "hints": ["1-3 progressive hints. Optional — omit field if no natural hints."],
+    "objectives": ["3-5 bullets, imperative, 8-14 words each"],
+    "enrichment": {
+      "glossary": [{ "term": "...", "definition": "..." }],
+      "symbols":  [{ "pattern": "...", "signature": "...", "description": "...", "docUrl": "..." }]
+    }
+  }
+
+Multi-file variant — use ONLY when the language genuinely needs a split (Rust workspace / integration tests, web HTML+CSS+JS):
+  add `files: [{name,language,content}]` and `solutionFiles: [...]` alongside the legacy `starter`/`solution` flat strings.
+
+KEY RULES:
+  1. DO NOT copy an example verbatim from the chapter readings. Invent a FRESH problem that exercises the SAME concepts.
+  2. Scope: 10-30 lines of solution code. Designed to be solvable in 15-30 minutes by a learner who just read the chapter.
+  3. Concept coverage: pull from the chapter's MAIN ideas, not an obscure footnote. The exercise should feel like "the thing this chapter was really teaching".
+  4. Title: verb + noun, e.g. "Build a Rate Limiter", "Parse a Config File", "Render a Scene with Lights". Not "Exercise 1" or "Chapter Capstone".
+  5. If the chapter is too meta to turn into code (e.g. "How React Native Works" overview) — STILL attempt an exercise: design a SMALL task that requires the learner to APPLY the architectural knowledge (e.g. "identify which of these components re-renders when..." as a quiz-style exercise). Never return a "reading" or "quiz" — the schema above requires kind: "exercise".
+
+TEST HARNESS — pick per `language`:
+
+  JavaScript / TypeScript:
+    test("description", () => { ... })
+    expect(x).toBe(y) / toEqual(y) / toBeTruthy() / toBeFalsy() / toBeGreaterThan(n) / toBeLessThan(n) / toContain(item) / toBeCloseTo(v, digits)
+    expect(fn).toThrow()
+    Starter + solution MUST end with `module.exports = { ... }` listing every export.
+
+  Python:
+    `def test_name(): expect(x).to_be(y)`; learner code exposed as `user` module; tests do `from user import foo`.
+
+  Rust:
+    Raw #[test] fns. Reformulate stdout-printing tasks so the function RETURNS the value and `main` prints it. Never write a test that only checks compilation or calls without asserting — every test needs a real assertion.
+
+  Go:
+    Structured-stdout protocol — `func main()` iterates helper `kataTest_<name>() error` and prints
+      KATA_TEST::<name>::PASS
+      KATA_TEST::<name>::FAIL::<reason>
+    Never use `testing.T`.
+
+  Swift:
+    Run-only — set `tests` to "".
+
+  EVERY exercise MUST have ≥ 3 real assertions (normal case, edge case, error/unusual case).
+
+Return ONLY the JSON object. Begin with `{`, end with `}`. No markdown fences, no preamble."#;
+
+    let prompt = format!(
+        "Chapter title: {chapter_title}\nLanguage: {language}\nLesson id: {lesson_id}\n\n--- CHAPTER LESSONS ---\n{lesson_summaries}\n--- END CHAPTER LESSONS ---\n\nGenerate ONE capstone exercise that lets the learner practice the chapter's core concepts. Return ONLY the JSON."
+    );
+
+    call_llm(
+        &settings,
+        &cancel,
+        system,
+        &prompt,
+        model_override.as_deref(),
+        &format!("generate_chapter_capstone[{}::{}]", chapter_title, lesson_id),
     )
     .await
 }

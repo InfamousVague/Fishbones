@@ -1,0 +1,175 @@
+import { invoke } from "@tauri-apps/api/core";
+import type { LogLine, RunResult, TestResult } from "./types";
+
+/// Shared wrapper for the 6 shell-out runners in the Rust backend
+/// (C / C++ / Java / Kotlin / C# / Assembly). Each one returns the
+/// same `SubprocessResult` shape as `run_swift`, so the conversion to
+/// `RunResult` is identical — swift, these six, and any future
+/// native-toolchain language can all route through the same code path
+/// instead of copy-pasting 40 lines per language.
+
+interface RawResult {
+  stdout: string;
+  stderr: string;
+  success: boolean;
+  duration_ms: number;
+  launch_error: string | null;
+}
+
+/// Dispatch to a Rust subprocess runner and normalise its result.
+///
+/// `toolchainLabel` identifies the shell-out binary in user-facing
+/// error messages ("cc exited with a non-zero status") so the learner
+/// knows which toolchain is complaining. `language` is the canonical
+/// `LanguageId` string (`"java"`, `"kotlin"`, etc.) — we tag the
+/// RunResult with it when the Rust side reports a `launch_error`, so
+/// OutputPane can render the missing-toolchain banner with the right
+/// install recipe instead of a wall of red stderr.
+async function runNative(
+  command: string,
+  code: string,
+  toolchainLabel: string,
+  language: string,
+  testCode?: string,
+): Promise<RunResult> {
+  // Concatenate solution + tests when tests are present — challenge
+  // packs for C/C++/Java/Kotlin/C# ship a separate `tests` field that
+  // defines a main() emitting `KATA_TEST::name::PASS|FAIL` lines we
+  // parse below. The Rust backend doesn't know about that split; it
+  // just compiles whatever source blob we hand it.
+  const merged = testCode ? `${code}\n${testCode}\n` : code;
+  const raw = await invoke<RawResult>(command, { code: merged });
+
+  if (raw.launch_error) {
+    // Toolchain couldn't start (not on PATH, permission issue, or the
+    // macOS stub `java` that sends people to java.com). Surface the
+    // hint from the Rust side directly AND flag the language so
+    // OutputPane can render the MissingToolchainBanner inline —
+    // otherwise the learner sees "Unable to locate a Java Runtime"
+    // and has no install button to click.
+    return {
+      logs: [],
+      error: raw.launch_error,
+      durationMs: raw.duration_ms,
+      testsExpected: testCode !== undefined,
+      missingToolchainLanguage: language,
+    };
+  }
+
+  // `isLessonRun` distinguishes exercise lessons (which always pass a
+  // `testCode` — even if empty string for run-only convention) from
+  // pure playground runs (where testCode is undefined). Only lesson
+  // runs get a synthetic "passed" result on success, so the playground
+  // doesn't accidentally render pass pills for code that has no tests.
+  const isLessonRun = testCode !== undefined;
+
+  let tests: TestResult[] | undefined = undefined;
+  if (isLessonRun) {
+    // Parse KATA_TEST::name::PASS / FAIL lines. Non-empty testCode
+    // packs (C/C++/Java/Kotlin/C#) emit them; empty-testCode packs
+    // (assembly, swift) leave stdout clean and we synthesize below.
+    tests = parseKataTests(raw.stdout);
+    if (tests.length === 0) {
+      // Run-only convention: lesson with empty tests passes iff the
+      // program exited cleanly. Synthesize a single result so (a) the
+      // OutputPane renders a visible "passed" pill instead of a blank
+      // body, and (b) `isPassing()` correctly flips this to complete.
+      tests = raw.success
+        ? [{ name: "program exited cleanly", passed: true }]
+        : [
+            {
+              name: "program exited cleanly",
+              passed: false,
+              error:
+                raw.stderr.trim().slice(0, 500) ||
+                "non-zero exit — see logs",
+            },
+          ];
+    }
+  }
+
+  // Strip KATA_TEST lines from the visible log stream so the user
+  // sees only their own prints, not the test protocol.
+  const displayStdout = isLessonRun
+    ? raw.stdout
+        .split("\n")
+        .filter((l) => !/^KATA_TEST::/.test(l))
+        .join("\n")
+        .replace(/\n+$/, "")
+    : raw.stdout.replace(/\n+$/, "");
+
+  const logs: LogLine[] = [];
+  if (displayStdout) logs.push({ level: "log", text: displayStdout });
+  if (raw.stderr && !raw.success) {
+    // Non-zero exit usually means a compile-time or runtime error on
+    // stderr — fold it into the log stream as an "error" so it renders
+    // in the red tint in OutputPane.
+    logs.push({ level: "error", text: raw.stderr.trimEnd() });
+  } else if (raw.stderr) {
+    // Warnings or informational notes — compiler may emit these on a
+    // successful build (e.g. `-Wall` diagnostics on clean C). Render
+    // as warn so they're visible but don't scream failure.
+    logs.push({ level: "warn", text: raw.stderr.trimEnd() });
+  }
+
+  // When we have any captured output (stderr, stdout) the user gets the
+  // real diagnostic in the logs. A generic "<tool> exited with a non-zero
+  // status" summary line on TOP of that is just noise — prefer silence
+  // and let the actual compiler message speak for itself. Only show the
+  // summary when the logs AND tests are both empty (rare but possible:
+  // the toolchain crashed with no output).
+  const haveUsefulLogs = logs.length > 0;
+  const haveTests = tests && tests.length > 0;
+  return {
+    logs,
+    tests,
+    error: raw.success
+      ? undefined
+      : haveUsefulLogs || haveTests
+        ? undefined
+        : `${toolchainLabel} exited with a non-zero status (no output captured)`,
+    durationMs: raw.duration_ms,
+    testsExpected: isLessonRun,
+  };
+}
+
+/// Same KATA_TEST stdout protocol that `go.ts` and the test-suite
+/// runners parse. One line per test: `KATA_TEST::<name>::PASS` or
+/// `KATA_TEST::<name>::FAIL::<one-line reason>`.
+function parseKataTests(stdout: string): TestResult[] {
+  const results: TestResult[] = [];
+  for (const line of stdout.split("\n")) {
+    const m = /^KATA_TEST::([\w-]+)::(PASS|FAIL)(?:::(.*))?$/.exec(line);
+    if (!m) continue;
+    if (m[2] === "PASS") {
+      results.push({ name: m[1], passed: true });
+    } else {
+      results.push({ name: m[1], passed: false, error: m[3] || "test failed" });
+    }
+  }
+  return results;
+}
+
+export function runC(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_c", code, "cc", "c", testCode);
+}
+
+export function runCpp(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_cpp", code, "c++", "cpp", testCode);
+}
+
+export function runJava(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_java", code, "javac/java", "java", testCode);
+}
+
+export function runKotlin(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_kotlin", code, "kotlinc", "kotlin", testCode);
+}
+
+export function runCSharp(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_csharp", code, "dotnet script", "csharp", testCode);
+}
+
+export function runAssembly(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_asm", code, "as/ld", "assembly", testCode);
+}

@@ -1,0 +1,86 @@
+/* Shared Fishbones spinner. Pulsing fish-bone logo inside a rotating
+   ring — same visual the OutputPane "running…" state and App bootloader
+   were each duplicating before. The logo uses `mask-image` +
+   `background-color: currentColor` so it re-tints per theme without a
+   second asset. */
+.fishbones-loader {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--color-text-primary);
+}
+
+.fishbones-loader-stack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fishbones-loader--md .fishbones-loader-stack {
+  width: 88px;
+  height: 88px;
+}
+
+.fishbones-loader--sm .fishbones-loader-stack {
+  width: 40px;
+  height: 40px;
+}
+
+.fishbones-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-top-color: currentColor;
+  animation: fishbones-loader-spin 1.1s linear infinite;
+}
+
+.fishbones-loader--sm .fishbones-loader-ring {
+  border-width: 2px;
+}
+
+.fishbones-loader-logo {
+  background: currentColor;
+  -webkit-mask: url("/fishbones.png") no-repeat center / contain;
+  mask: url("/fishbones.png") no-repeat center / contain;
+  animation: fishbones-loader-pulse 1.8s ease-in-out infinite;
+}
+
+.fishbones-loader--md .fishbones-loader-logo {
+  width: 48px;
+  height: 48px;
+}
+
+.fishbones-loader--sm .fishbones-loader-logo {
+  width: 22px;
+  height: 22px;
+}
+
+.fishbones-loader-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+@keyframes fishbones-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fishbones-loader-pulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.94); }
+}
+
+/* Light-theme ring adjustment — the 0.12 white overlay above disappears
+   on a light background, so swap in a dark one. */
+[data-theme-name="default-light"] .fishbones-loader-ring,
+[data-theme-name="ayu-light"] .fishbones-loader-ring,
+[data-theme-name="catppuccin-latte"] .fishbones-loader-ring {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-top-color: currentColor;
+}

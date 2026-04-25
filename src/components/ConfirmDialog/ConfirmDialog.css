@@ -14,7 +14,6 @@
   border: 1px solid var(--color-border-default);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   animation: fishbones-confirm-enter 0.16s ease-out;
 }
 

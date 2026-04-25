@@ -21,7 +21,13 @@ export type MonacoThemeName =
   | "fishbones-catppuccin-latte"
   | "fishbones-catppuccin-frappe"
   | "fishbones-catppuccin-macchiato"
-  | "fishbones-catppuccin-mocha";
+  | "fishbones-catppuccin-mocha"
+  | "fishbones-tokyo-night"
+  | "fishbones-rose-pine"
+  | "fishbones-ubuntu-dark"
+  | "fishbones-absent-contrast"
+  | "fishbones-vesper"
+  | "fishbones-word";
 
 /// Map each app theme to the Monaco theme name we want the editor to load.
 /// The two defaults use Monaco's built-ins (no need to redefine). The custom
@@ -38,6 +44,12 @@ export const MONACO_THEME_BY_APP_THEME: Record<ThemeName, MonacoThemeName> = {
   "catppuccin-frappe": "fishbones-catppuccin-frappe",
   "catppuccin-macchiato": "fishbones-catppuccin-macchiato",
   "catppuccin-mocha": "fishbones-catppuccin-mocha",
+  "tokyo-night": "fishbones-tokyo-night",
+  "rose-pine": "fishbones-rose-pine",
+  "ubuntu-dark": "fishbones-ubuntu-dark",
+  "absent-contrast": "fishbones-absent-contrast",
+  vesper: "fishbones-vesper",
+  word: "fishbones-word",
 };
 
 // ---- Fishbones Dark ------------------------------------------------------------
@@ -46,7 +58,7 @@ export const MONACO_THEME_BY_APP_THEME: Record<ThemeName, MonacoThemeName> = {
 // for literals (strings / numbers / regex) so code is still scannable. Base
 // colors map 1:1 to tokens.css so the editor background is literally the
 // same hex as the app's `--color-bg-primary`.
-const KATA_DARK: editor.IStandaloneThemeData = {
+const FISHBONES_DARK: editor.IStandaloneThemeData = {
   base: "vs-dark",
   inherit: true,
   rules: [
@@ -100,7 +112,7 @@ const KATA_DARK: editor.IStandaloneThemeData = {
 // The default light variant. Same monochrome aesthetic inverted — near-black
 // primary on a white canvas with a warmer amber for literals (darkened so it
 // stays readable on light bg).
-const KATA_LIGHT: editor.IStandaloneThemeData = {
+const FISHBONES_LIGHT: editor.IStandaloneThemeData = {
   base: "vs",
   inherit: true,
   rules: [
@@ -618,11 +630,351 @@ const CATPPUCCIN_MACCHIATO: editor.IStandaloneThemeData = {
   },
 };
 
+// ---- Tokyo Night ---------------------------------------------------------
+// Ported from enkia.tokyo-night ("Storm" variant — the dimmer of the two
+// upstream darks). Storm-blue base #1a1b26, electric blue #7aa2f7 for
+// functions, purple #bb9af7 for keywords, green #9ece6a for strings,
+// dim slate #565f89 for comments.
+const TOKYO_NIGHT: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "comment", foreground: "565f89", fontStyle: "italic" },
+    { token: "keyword", foreground: "bb9af7" },
+    { token: "keyword.control", foreground: "bb9af7" },
+    { token: "string", foreground: "9ece6a" },
+    { token: "string.escape", foreground: "b4f9f8" },
+    { token: "number", foreground: "ff9e64" },
+    { token: "regexp", foreground: "b4f9f8" },
+    { token: "type", foreground: "2ac3de" },
+    { token: "type.identifier", foreground: "2ac3de" },
+    { token: "identifier", foreground: "c0caf5" },
+    { token: "delimiter", foreground: "89ddff" },
+    { token: "operator", foreground: "89ddff" },
+    { token: "tag", foreground: "f7768e" },
+    { token: "attribute.name", foreground: "9ece6a" },
+    { token: "attribute.value", foreground: "9ece6a" },
+    { token: "function", foreground: "7aa2f7" },
+    { token: "variable", foreground: "c0caf5" },
+    { token: "variable.parameter", foreground: "e0af68" },
+    { token: "constant", foreground: "ff9e64" },
+    { token: "constant.language", foreground: "ff9e64" },
+  ],
+  colors: {
+    "editor.background": "#1a1b26",
+    "editor.foreground": "#c0caf5",
+    "editor.lineHighlightBackground": "#16161e",
+    "editor.lineHighlightBorder": "#16161e",
+    "editor.selectionBackground": "#33467c80",
+    "editor.inactiveSelectionBackground": "#33467c40",
+    "editorCursor.foreground": "#c0caf5",
+    "editorLineNumber.foreground": "#3b4261",
+    "editorLineNumber.activeForeground": "#737aa2",
+    "editorIndentGuide.background": "#292e42",
+    "editorIndentGuide.activeBackground": "#3b4261",
+    "editorBracketMatch.background": "#33467c55",
+    "editorBracketMatch.border": "#7aa2f7",
+    "editorGutter.background": "#1a1b26",
+    "editorWidget.background": "#16161e",
+    "editorWidget.border": "#292e42",
+    "editorSuggestWidget.background": "#16161e",
+    "editorSuggestWidget.selectedBackground": "#292e42",
+    "scrollbarSlider.background": "#3b426140",
+    "scrollbarSlider.hoverBackground": "#3b426160",
+    "scrollbarSlider.activeBackground": "#3b426180",
+  },
+};
+
+// ---- Rosé Pine -----------------------------------------------------------
+// From mvllow.rose-pine. Named-color palette: love (#eb6f92, red-pink),
+// gold (#f6c177), rose (#ebbcba), pine (#31748f, dim teal), foam
+// (#9ccfd8), iris (#c4a7e7, soft purple). Comments use muted #6e6a86;
+// secondary text uses subtle #908caa.
+const ROSE_PINE: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "comment", foreground: "6e6a86", fontStyle: "italic" },
+    { token: "keyword", foreground: "31748f" },        // pine
+    { token: "keyword.control", foreground: "31748f" },
+    { token: "string", foreground: "f6c177" },          // gold
+    { token: "string.escape", foreground: "ebbcba" },   // rose
+    { token: "number", foreground: "ebbcba" },
+    { token: "regexp", foreground: "f6c177" },
+    { token: "type", foreground: "9ccfd8" },            // foam
+    { token: "type.identifier", foreground: "9ccfd8" },
+    { token: "identifier", foreground: "e0def4" },
+    { token: "delimiter", foreground: "908caa" },
+    { token: "operator", foreground: "31748f" },
+    { token: "tag", foreground: "eb6f92" },             // love
+    { token: "attribute.name", foreground: "9ccfd8" },
+    { token: "attribute.value", foreground: "f6c177" },
+    { token: "function", foreground: "ebbcba" },        // rose
+    { token: "variable", foreground: "e0def4" },
+    { token: "variable.parameter", foreground: "c4a7e7" }, // iris
+    { token: "constant", foreground: "ebbcba" },
+    { token: "constant.language", foreground: "eb6f92" },
+  ],
+  colors: {
+    "editor.background": "#191724",
+    "editor.foreground": "#e0def4",
+    "editor.lineHighlightBackground": "#1f1d2e",
+    "editor.lineHighlightBorder": "#1f1d2e",
+    "editor.selectionBackground": "#403d5266",
+    "editor.inactiveSelectionBackground": "#26233a",
+    "editorCursor.foreground": "#ebbcba",
+    "editorLineNumber.foreground": "#403d52",
+    "editorLineNumber.activeForeground": "#908caa",
+    "editorIndentGuide.background": "#26233a",
+    "editorIndentGuide.activeBackground": "#403d52",
+    "editorBracketMatch.background": "#403d5277",
+    "editorBracketMatch.border": "#ebbcba",
+    "editorGutter.background": "#191724",
+    "editorWidget.background": "#1f1d2e",
+    "editorWidget.border": "#26233a",
+    "editorSuggestWidget.background": "#1f1d2e",
+    "editorSuggestWidget.selectedBackground": "#26233a",
+    "scrollbarSlider.background": "#403d5240",
+    "scrollbarSlider.hoverBackground": "#403d5260",
+    "scrollbarSlider.activeBackground": "#403d5280",
+  },
+};
+
+// ---- Ubuntu Dark ---------------------------------------------------------
+// Approximates ThiagoLcioBittencourt.ubuntuvscode "Ubuntu Color VSCode
+// Dark Highlight". Aubergine background #2c001e is the canonical
+// Ubuntu desktop colour; orange #e95420 is the brand accent
+// (terminal prompts, focus rings). Token mapping is a "vs-dark
+// re-skin" — close enough that any language reads naturally without
+// a per-grammar tuning pass.
+const UBUNTU_DARK: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "comment", foreground: "9d8593", fontStyle: "italic" },
+    { token: "keyword", foreground: "e95420" },           // orange
+    { token: "keyword.control", foreground: "e95420" },
+    { token: "string", foreground: "87a556" },            // muted green
+    { token: "string.escape", foreground: "f7c37b" },
+    { token: "number", foreground: "f7c37b" },
+    { token: "regexp", foreground: "f7c37b" },
+    { token: "type", foreground: "5e9bd1" },
+    { token: "type.identifier", foreground: "5e9bd1" },
+    { token: "identifier", foreground: "f9f4f0" },
+    { token: "delimiter", foreground: "d4b3c8" },
+    { token: "operator", foreground: "e95420" },
+    { token: "tag", foreground: "e95420" },
+    { token: "attribute.name", foreground: "ad7fa8" },
+    { token: "attribute.value", foreground: "87a556" },
+    { token: "function", foreground: "f0c674" },
+    { token: "variable", foreground: "f9f4f0" },
+    { token: "variable.parameter", foreground: "ad7fa8" },
+    { token: "constant", foreground: "f7c37b" },
+    { token: "constant.language", foreground: "e95420" },
+  ],
+  colors: {
+    "editor.background": "#2c001e",
+    "editor.foreground": "#f9f4f0",
+    "editor.lineHighlightBackground": "#220016",
+    "editor.lineHighlightBorder": "#220016",
+    "editor.selectionBackground": "#5d2a4488",
+    "editor.inactiveSelectionBackground": "#5d2a4444",
+    "editorCursor.foreground": "#e95420",
+    "editorLineNumber.foreground": "#5d3a4d",
+    "editorLineNumber.activeForeground": "#d4b3c8",
+    "editorIndentGuide.background": "#3d0a2a",
+    "editorIndentGuide.activeBackground": "#5d3a4d",
+    "editorBracketMatch.background": "#5d2a4477",
+    "editorBracketMatch.border": "#e95420",
+    "editorGutter.background": "#2c001e",
+    "editorWidget.background": "#220016",
+    "editorWidget.border": "#3d0a2a",
+    "editorSuggestWidget.background": "#220016",
+    "editorSuggestWidget.selectedBackground": "#3d0a2a",
+    "scrollbarSlider.background": "#5d3a4d40",
+    "scrollbarSlider.hoverBackground": "#5d3a4d60",
+    "scrollbarSlider.activeBackground": "#5d3a4d80",
+  },
+};
+
+// ---- Absent Contrast (Daylerees Rainglow) --------------------------------
+// Sourced from the Rainglow VS Code extension at
+// github.com/rainglow/vscode/blob/master/themes/absent-contrast.json. Token
+// rules + workbench colours map straight from that JSON; what changes here
+// is the Monaco token-name shape (string / keyword / etc.) since Monaco
+// doesn't speak TextMate scopes natively. Signature: deep slate base
+// (#0e1114) with cool teal (#228a96) keywords, sage (#6ba77f) for class
+// + support tokens, and a soft mint (#addbbc) for strings.
+const ABSENT_CONTRAST: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "comment", foreground: "44515e", fontStyle: "italic" },
+    { token: "keyword", foreground: "228a96" },
+    { token: "keyword.control", foreground: "228a96" },
+    { token: "string", foreground: "addbbc" },
+    { token: "string.escape", foreground: "61bcc6" },
+    { token: "number", foreground: "61bcc6" },
+    { token: "regexp", foreground: "addbbc" },
+    { token: "type", foreground: "6ba77f" },
+    { token: "type.identifier", foreground: "6ba77f" },
+    { token: "identifier", foreground: "aeb9c4" },
+    { token: "delimiter", foreground: "aeb9c4" },
+    { token: "operator", foreground: "228a96" },
+    { token: "tag", foreground: "228a96" },
+    { token: "attribute.name", foreground: "6ba77f" },
+    { token: "attribute.value", foreground: "addbbc" },
+    { token: "function", foreground: "e6eaef" },
+    { token: "variable", foreground: "bed0e2" },
+    { token: "variable.parameter", foreground: "bed0e2" },
+    { token: "constant", foreground: "6ba77f" },
+    { token: "constant.language", foreground: "6ba77f" },
+  ],
+  colors: {
+    "editor.background": "#0e1114",
+    "editor.foreground": "#aeb9c4",
+    "editor.lineHighlightBackground": "#14191d",
+    "editor.lineHighlightBorder": "#14191d",
+    "editor.selectionBackground": "#228a9655",
+    "editor.inactiveSelectionBackground": "#228a9622",
+    "editorCursor.foreground": "#ffffff",
+    "editorLineNumber.foreground": "#384450",
+    "editorLineNumber.activeForeground": "#aeb9c4",
+    "editorIndentGuide.background": "#232a32",
+    "editorIndentGuide.activeBackground": "#384450",
+    "editorBracketMatch.background": "#228a9644",
+    "editorBracketMatch.border": "#6ba77f",
+    "editorGutter.background": "#0a0c0e",
+    "editorWidget.background": "#181e23",
+    "editorWidget.border": "#2d3741",
+    "editorSuggestWidget.background": "#181e23",
+    "editorSuggestWidget.selectedBackground": "#384450",
+    "scrollbarSlider.background": "#384450aa",
+    "scrollbarSlider.hoverBackground": "#228a9655",
+    "scrollbarSlider.activeBackground": "#228a96aa",
+  },
+};
+
+// ---- Vesper (raunofreiberg.vesper) ---------------------------------------
+// Sourced from github.com/raunofreiberg/vesper/blob/main/themes/
+// Vesper-dark-color-theme.json. Monochrome dark with a single warm peach
+// (#FFC799) accent for keywords/functions/numbers and a mint (#99FFE4)
+// for strings — Rauno's calling card. Body uses the JSON's #A0A0A0 mid-
+// gray as `text-secondary` and pure white for `text-primary` so titles
+// + active items still pop against the muted code-comment grey.
+const VESPER: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "comment", foreground: "8b8b8b", fontStyle: "italic" },
+    { token: "keyword", foreground: "a0a0a0" },
+    { token: "keyword.control", foreground: "a0a0a0" },
+    { token: "string", foreground: "99ffe4" },
+    { token: "string.escape", foreground: "a0a0a0" },
+    { token: "number", foreground: "ffc799" },
+    { token: "regexp", foreground: "a0a0a0" },
+    { token: "type", foreground: "ffc799" },
+    { token: "type.identifier", foreground: "ffc799" },
+    { token: "identifier", foreground: "ffffff" },
+    { token: "delimiter", foreground: "a0a0a0" },
+    { token: "operator", foreground: "a0a0a0" },
+    { token: "tag", foreground: "ffc799" },
+    { token: "attribute.name", foreground: "a0a0a0" },
+    { token: "attribute.value", foreground: "99ffe4" },
+    { token: "function", foreground: "ffc799" },
+    { token: "variable", foreground: "ffffff" },
+    { token: "variable.parameter", foreground: "ffffff" },
+    { token: "constant", foreground: "ffc799" },
+    { token: "constant.language", foreground: "ffc799" },
+  ],
+  colors: {
+    "editor.background": "#101010",
+    "editor.foreground": "#ffffff",
+    "editor.lineHighlightBackground": "#161616",
+    "editor.lineHighlightBorder": "#161616",
+    "editor.selectionBackground": "#ffffff25",
+    "editor.inactiveSelectionBackground": "#ffffff15",
+    "editorCursor.foreground": "#ffc799",
+    "editorLineNumber.foreground": "#505050",
+    "editorLineNumber.activeForeground": "#a0a0a0",
+    "editorIndentGuide.background": "#1c1c1c",
+    "editorIndentGuide.activeBackground": "#343434",
+    "editorBracketMatch.background": "#23232377",
+    "editorBracketMatch.border": "#ffc799",
+    "editorGutter.background": "#101010",
+    "editorWidget.background": "#161616",
+    "editorWidget.border": "#282828",
+    "editorSuggestWidget.background": "#161616",
+    "editorSuggestWidget.selectedBackground": "#232323",
+    "scrollbarSlider.background": "#34343480",
+    "scrollbarSlider.hoverBackground": "#343434",
+    "scrollbarSlider.activeBackground": "#ffc79966",
+  },
+};
+
+// ---- Word (coastermcgee.word-theme) --------------------------------------
+// Sourced from github.com/coastermcgee/vscode-word-theme/blob/master/themes/
+// word-color-theme.json. A loving recreation of Microsoft Word 5.5 for DOS:
+// deep blue document (#0000aa) for the editor, bright magenta (#ff55ff)
+// keywords, cyan (#55ffff) constants, yellow (#ffff55) function names.
+// Source paints app chrome in light gray (#aaaaaa) — we keep the editor
+// blue but lean into the loud accents on app surfaces too so the theme
+// reads as a single deliberate aesthetic instead of two halves.
+const WORD: editor.IStandaloneThemeData = {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "comment", foreground: "828282", fontStyle: "italic" },
+    { token: "keyword", foreground: "ff55ff" },
+    { token: "keyword.control", foreground: "ff55ff" },
+    { token: "string", foreground: "ffff55" },
+    { token: "string.escape", foreground: "55ff55" },
+    { token: "number", foreground: "55ffff" },
+    { token: "regexp", foreground: "55ff55" },
+    { token: "type", foreground: "ffff55" },
+    { token: "type.identifier", foreground: "ffff55" },
+    { token: "identifier", foreground: "ffffff" },
+    { token: "delimiter", foreground: "ffffff" },
+    { token: "operator", foreground: "ff55ff" },
+    { token: "tag", foreground: "ffff55" },
+    { token: "attribute.name", foreground: "ffff55" },
+    { token: "attribute.value", foreground: "55ffff" },
+    { token: "function", foreground: "ffff55" },
+    { token: "variable", foreground: "ffffff" },
+    { token: "variable.parameter", foreground: "ffffff" },
+    { token: "constant", foreground: "55ffff" },
+    { token: "constant.language", foreground: "55ffff" },
+  ],
+  colors: {
+    "editor.background": "#0000aa",
+    "editor.foreground": "#ffffff",
+    "editor.lineHighlightBackground": "#1a1ac0",
+    "editor.lineHighlightBorder": "#1a1ac0",
+    "editor.selectionBackground": "#aaaaaa",
+    "editor.inactiveSelectionBackground": "#5e5e5e",
+    "editorCursor.foreground": "#ffffff",
+    "editorLineNumber.foreground": "#7878d0",
+    "editorLineNumber.activeForeground": "#ffffff",
+    "editorIndentGuide.background": "#1a1ac0",
+    "editorIndentGuide.activeBackground": "#5555ff",
+    "editorBracketMatch.background": "#5555ff55",
+    "editorBracketMatch.border": "#ff55ff",
+    "editorGutter.background": "#0000aa",
+    "editorWidget.background": "#1a1ac0",
+    "editorWidget.border": "#5555ff",
+    "editorSuggestWidget.background": "#1a1ac0",
+    "editorSuggestWidget.selectedBackground": "#5555ff",
+    "scrollbarSlider.background": "#5555ff66",
+    "scrollbarSlider.hoverBackground": "#5555ff99",
+    "scrollbarSlider.activeBackground": "#ff55ff99",
+  },
+};
+
 /// Register every custom theme on a Monaco instance. Safe to call multiple
 /// times — `defineTheme` replaces by name.
 export function registerMonacoThemes(monaco: typeof import("monaco-editor")) {
-  monaco.editor.defineTheme("fishbones-dark", KATA_DARK);
-  monaco.editor.defineTheme("fishbones-light", KATA_LIGHT);
+  monaco.editor.defineTheme("fishbones-dark", FISHBONES_DARK);
+  monaco.editor.defineTheme("fishbones-light", FISHBONES_LIGHT);
   monaco.editor.defineTheme("fishbones-synthwave", SYNTHWAVE);
   monaco.editor.defineTheme("fishbones-claude-code-dark", CLAUDE_CODE_DARK);
   monaco.editor.defineTheme("fishbones-ayu-light", AYU_LIGHT);
@@ -632,4 +984,10 @@ export function registerMonacoThemes(monaco: typeof import("monaco-editor")) {
   monaco.editor.defineTheme("fishbones-catppuccin-frappe", CATPPUCCIN_FRAPPE);
   monaco.editor.defineTheme("fishbones-catppuccin-macchiato", CATPPUCCIN_MACCHIATO);
   monaco.editor.defineTheme("fishbones-catppuccin-mocha", CATPPUCCIN_MOCHA);
+  monaco.editor.defineTheme("fishbones-tokyo-night", TOKYO_NIGHT);
+  monaco.editor.defineTheme("fishbones-rose-pine", ROSE_PINE);
+  monaco.editor.defineTheme("fishbones-ubuntu-dark", UBUNTU_DARK);
+  monaco.editor.defineTheme("fishbones-absent-contrast", ABSENT_CONTRAST);
+  monaco.editor.defineTheme("fishbones-vesper", VESPER);
+  monaco.editor.defineTheme("fishbones-word", WORD);
 }

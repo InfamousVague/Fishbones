@@ -25,10 +25,41 @@ chrono = "0.4"
 anyhow = "1"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
 walkdir = "2"
-reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "stream"], default-features = false }
 parking_lot = "0.12"
 rand = "0.8"
 tokio = { version = "1", features = ["time", "sync", "macros"] }
+# Used by ai_chat's streaming NDJSON reader to pull bytes off the
+# reqwest response as Ollama emits them. `StreamExt::next()` keeps the
+# token-by-token pipeline simple compared to hand-rolling async reads.
+futures-util = { version = "0.3", default-features = false }
+base64 = "0.22"
+# HTML parsing + doc-site crawl. `scraper` gives us CSS-selector DOM
+# queries; `url` handles relative → absolute link resolution and
+# same-origin / same-path-prefix filtering; `html2md` converts the
+# extracted main-content HTML to markdown for the LLM pipeline.
+scraper = "0.19"
+url = "2"
+html2md = "0.2"
+# EPUB parsing for the import pipeline. `epub = "2"` reads the OPF
+# manifest, exposes spine order + resource map, and hands back per-
+# chapter XHTML which we re-use html2md to flatten into the same
+# plain-text stream `pdftotext` produces — that way the downstream
+# chapter splitter doesn't need a second code path.
+epub = "2"
+# Tiny synchronous HTTP server for the local web-preview service. The
+# playground shells out rendered HTML to this server so the user can open
+# it in a real browser — gives them DevTools + correct origin semantics
+# that a Tauri-embedded iframe can't offer. tiny_http is ~2k LoC and
+# pulls only `ascii`/`chunked_transfer` — deliberately minimal so we
+# don't link axum/hyper for a single GET handler.
+tiny_http = "0.12"
+# Image decode/re-encode for the "Import image as cover" UX. We accept
+# whatever the user picks (PNG/JPEG/WebP/GIF) and normalize to cover.png
+# so `load_course_cover` doesn't need to sniff format. Default features
+# are off — we don't need TIFF/BMP/HDR/etc., just the formats people
+# actually have cover images in.
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif"] }
 
 [profile.release]
 opt-level = 3

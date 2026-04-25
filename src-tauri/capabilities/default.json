@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/capability.json",
   "identifier": "default",
-  "description": "Default permissions for the Kata app",
+  "description": "Default permissions for the Fishbones app",
   "windows": ["main", "workbench-*"],
   "permissions": [
     "core:default",

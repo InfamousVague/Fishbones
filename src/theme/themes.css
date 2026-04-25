@@ -15,6 +15,7 @@
   --color-bg-secondary: #241b2f;
   --color-bg-tertiary: #342a40;
   --color-border-default: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.22);
   --color-text-primary: #f9f1ff;
   --color-text-secondary: #c9a5d8;
   --color-text-tertiary: #8c7a98;
@@ -51,6 +52,7 @@
   --color-bg-secondary: #1c1814;
   --color-bg-tertiary: #2a241c;
   --color-border-default: rgba(255, 245, 230, 0.07);
+  --color-border-strong: rgba(255, 245, 230, 0.22);
   --color-text-primary: #f5ebdc;
   --color-text-secondary: #c9b299;
   --color-text-tertiary: #8a7560;
@@ -93,6 +95,7 @@
   --color-bg-secondary: #191e2a;
   --color-bg-tertiary: #242a3a;
   --color-border-default: #2d3340;
+  --color-border-strong: #4a5568;
   --color-text-primary: #cbccc6;
   --color-text-secondary: #8a9199;
   --color-text-tertiary: #5c6773;
@@ -120,6 +123,7 @@
 [data-theme-name="ayu-mirage"] .fishbones-import-primary,
 [data-theme-name="ayu-mirage"] .fishbones-settings-primary,
 [data-theme-name="ayu-mirage"] .fishbones-library-import,
+[data-theme-name="ayu-mirage"] .fishbones-library-import-seg--primary,
 [data-theme-name="ayu-mirage"] .fishbones-welcome-primary,
 [data-theme-name="ayu-mirage"] .fishbones-library-pill--active {
   background: #ffa759;
@@ -137,6 +141,7 @@
   --color-bg-secondary: #181825; /* mantle */
   --color-bg-tertiary: #313244;  /* surface0 */
   --color-border-default: #313244;
+  --color-border-strong: #585b70;
   --color-text-primary: #cdd6f4; /* text */
   --color-text-secondary: #a6adc8; /* subtext0 */
   --color-text-tertiary: #7f849c; /* overlay1 */
@@ -164,6 +169,7 @@
 [data-theme-name="catppuccin-mocha"] .fishbones-import-primary,
 [data-theme-name="catppuccin-mocha"] .fishbones-settings-primary,
 [data-theme-name="catppuccin-mocha"] .fishbones-library-import,
+[data-theme-name="catppuccin-mocha"] .fishbones-library-import-seg--primary,
 [data-theme-name="catppuccin-mocha"] .fishbones-welcome-primary,
 [data-theme-name="catppuccin-mocha"] .fishbones-library-pill--active {
   background: #cba6f7;
@@ -177,6 +183,7 @@
   --color-bg-secondary: #fafafa;
   --color-bg-tertiary: #f0f0f0;
   --color-border-default: #e7ebed;
+  --color-border-strong: #a8b0b7;
   --color-text-primary: #5c6166;
   --color-text-secondary: #8a9199;
   --color-text-tertiary: #abb0b6;
@@ -204,6 +211,7 @@
 [data-theme-name="ayu-light"] .fishbones-import-primary,
 [data-theme-name="ayu-light"] .fishbones-settings-primary,
 [data-theme-name="ayu-light"] .fishbones-library-import,
+[data-theme-name="ayu-light"] .fishbones-library-import-seg--primary,
 [data-theme-name="ayu-light"] .fishbones-welcome-primary,
 [data-theme-name="ayu-light"] .fishbones-library-pill--active {
   background: #fa8d3e;
@@ -217,6 +225,7 @@
   --color-bg-secondary: #0d1017;
   --color-bg-tertiary: #151a22;
   --color-border-default: #1b212a;
+  --color-border-strong: #3a4454;
   --color-text-primary: #bfbdb6;
   --color-text-secondary: #787b80;
   --color-text-tertiary: #4d5566;
@@ -244,6 +253,7 @@
 [data-theme-name="ayu-dark"] .fishbones-import-primary,
 [data-theme-name="ayu-dark"] .fishbones-settings-primary,
 [data-theme-name="ayu-dark"] .fishbones-library-import,
+[data-theme-name="ayu-dark"] .fishbones-library-import-seg--primary,
 [data-theme-name="ayu-dark"] .fishbones-welcome-primary,
 [data-theme-name="ayu-dark"] .fishbones-library-pill--active {
   background: #ffb454;
@@ -257,6 +267,7 @@
   --color-bg-secondary: #e6e9ef;  /* mantle */
   --color-bg-tertiary: #ccd0da;   /* surface0 */
   --color-border-default: #ccd0da;
+  --color-border-strong: #8c8fa1;
   --color-text-primary: #4c4f69;  /* text */
   --color-text-secondary: #6c6f85; /* subtext0 */
   --color-text-tertiary: #9ca0b0; /* overlay0 */
@@ -284,6 +295,7 @@
 [data-theme-name="catppuccin-latte"] .fishbones-import-primary,
 [data-theme-name="catppuccin-latte"] .fishbones-settings-primary,
 [data-theme-name="catppuccin-latte"] .fishbones-library-import,
+[data-theme-name="catppuccin-latte"] .fishbones-library-import-seg--primary,
 [data-theme-name="catppuccin-latte"] .fishbones-welcome-primary,
 [data-theme-name="catppuccin-latte"] .fishbones-library-pill--active {
   background: #8839ef;
@@ -297,6 +309,7 @@
   --color-bg-secondary: #292c3c;
   --color-bg-tertiary: #414559;
   --color-border-default: #414559;
+  --color-border-strong: #737994;
   --color-text-primary: #c6d0f5;
   --color-text-secondary: #a5adce;
   --color-text-tertiary: #737994;
@@ -324,6 +337,7 @@
 [data-theme-name="catppuccin-frappe"] .fishbones-import-primary,
 [data-theme-name="catppuccin-frappe"] .fishbones-settings-primary,
 [data-theme-name="catppuccin-frappe"] .fishbones-library-import,
+[data-theme-name="catppuccin-frappe"] .fishbones-library-import-seg--primary,
 [data-theme-name="catppuccin-frappe"] .fishbones-welcome-primary,
 [data-theme-name="catppuccin-frappe"] .fishbones-library-pill--active {
   background: #ca9ee6;
@@ -337,6 +351,7 @@
   --color-bg-secondary: #1e2030;
   --color-bg-tertiary: #363a4f;
   --color-border-default: #363a4f;
+  --color-border-strong: #6e738d;
   --color-text-primary: #cad3f5;
   --color-text-secondary: #a5adcb;
   --color-text-tertiary: #6e738d;
@@ -364,10 +379,300 @@
 [data-theme-name="catppuccin-macchiato"] .fishbones-import-primary,
 [data-theme-name="catppuccin-macchiato"] .fishbones-settings-primary,
 [data-theme-name="catppuccin-macchiato"] .fishbones-library-import,
+[data-theme-name="catppuccin-macchiato"] .fishbones-library-import-seg--primary,
 [data-theme-name="catppuccin-macchiato"] .fishbones-welcome-primary,
 [data-theme-name="catppuccin-macchiato"] .fishbones-library-pill--active {
   background: #c6a0f6;
   color: #24273a;
   border-color: #c6a0f6;
+}
+
+/* ---- Tokyo Night -------------------------------------------------------- */
+/* From enkia.tokyo-night. Storm-blue base (#1a1b26) with electric blue
+   for functions (#7aa2f7), purple for keywords (#bb9af7), green for
+   strings (#9ece6a). Border uses the theme's editorGroup.border
+   #16161e lifted to #292e42 for surface visibility. */
+[data-theme-name="tokyo-night"] {
+  --color-bg-primary: #1a1b26;
+  --color-bg-secondary: #16161e;
+  --color-bg-tertiary: #292e42;
+  --color-border-default: rgba(192, 202, 245, 0.06);
+  --color-border-strong: rgba(192, 202, 245, 0.2);
+  --color-text-primary: #c0caf5;
+  --color-text-secondary: #a9b1d6;
+  --color-text-tertiary: #565f89;
+}
+
+[data-theme-name="tokyo-night"] .fishbones-editor-run,
+[data-theme-name="tokyo-night"] .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #7aa2f7 !important;
+  color: #1a1b26 !important;
+  border-color: #7aa2f7 !important;
+}
+
+[data-theme-name="tokyo-night"] .fishbones__lesson-status--done {
+  background: #9ece6a;
+  border-color: #9ece6a;
+  color: #1a1b26;
+}
+
+[data-theme-name="tokyo-night"] .fishbones__lesson-status--active {
+  border-color: #7dcfff;
+  box-shadow: 0 0 0 3px rgba(125, 207, 255, 0.18);
+  color: #7dcfff;
+}
+
+[data-theme-name="tokyo-night"] .fishbones-import-primary,
+[data-theme-name="tokyo-night"] .fishbones-settings-primary,
+[data-theme-name="tokyo-night"] .fishbones-library-import,
+[data-theme-name="tokyo-night"] .fishbones-library-import-seg--primary,
+[data-theme-name="tokyo-night"] .fishbones-welcome-primary,
+[data-theme-name="tokyo-night"] .fishbones-library-pill--active {
+  background: #7aa2f7;
+  color: #1a1b26;
+  border-color: #7aa2f7;
+}
+
+/* ---- Rosé Pine ---------------------------------------------------------- */
+/* From mvllow.rose-pine (the "main" variant — not Moon, not Dawn). The
+   palette is named: base (#191724) for primary surface, surface
+   (#1f1d2e) for slight elevations, overlay (#26233a) for popovers,
+   text (#e0def4), subtle (#908caa) for secondary, muted (#6e6a86)
+   for tertiary. Accent picks rose (#ebbcba) since the brand identity
+   is the soft pink. Status colors use love (#eb6f92) and pine
+   (#31748f) so done = pine green-blue, active = love red, in
+   keeping with the upstream theme's signal palette. */
+[data-theme-name="rose-pine"] {
+  --color-bg-primary: #191724;
+  --color-bg-secondary: #1f1d2e;
+  --color-bg-tertiary: #26233a;
+  --color-border-default: rgba(224, 222, 244, 0.06);
+  --color-border-strong: rgba(224, 222, 244, 0.2);
+  --color-text-primary: #e0def4;
+  --color-text-secondary: #908caa;
+  --color-text-tertiary: #6e6a86;
+}
+
+[data-theme-name="rose-pine"] .fishbones-editor-run,
+[data-theme-name="rose-pine"] .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #ebbcba !important;
+  color: #191724 !important;
+  border-color: #ebbcba !important;
+}
+
+[data-theme-name="rose-pine"] .fishbones__lesson-status--done {
+  background: #9ccfd8;  /* foam */
+  border-color: #9ccfd8;
+  color: #191724;
+}
+
+[data-theme-name="rose-pine"] .fishbones__lesson-status--active {
+  border-color: #eb6f92; /* love */
+  box-shadow: 0 0 0 3px rgba(235, 111, 146, 0.18);
+  color: #eb6f92;
+}
+
+[data-theme-name="rose-pine"] .fishbones-import-primary,
+[data-theme-name="rose-pine"] .fishbones-settings-primary,
+[data-theme-name="rose-pine"] .fishbones-library-import,
+[data-theme-name="rose-pine"] .fishbones-library-import-seg--primary,
+[data-theme-name="rose-pine"] .fishbones-welcome-primary,
+[data-theme-name="rose-pine"] .fishbones-library-pill--active {
+  background: #ebbcba;
+  color: #191724;
+  border-color: #ebbcba;
+}
+
+/* ---- Ubuntu Dark -------------------------------------------------------- */
+/* Approximates ThiagoLcioBittencourt.ubuntuvscode "Ubuntu Color VSCode
+   Dark Highlight" — the variant with the punchier highlight. Built on
+   Canonical's Ubuntu palette: aubergine #2c001e for the deepest
+   surface, warmer #3d0a2a for elevated, signature orange #e95420 as
+   the action accent. Text is the warm-tinted Ubuntu Sans-cream
+   #f9f4f0 to match the brand's typography colour. */
+[data-theme-name="ubuntu-dark"] {
+  --color-bg-primary: #2c001e;
+  --color-bg-secondary: #220016;
+  --color-bg-tertiary: #3d0a2a;
+  --color-border-default: rgba(249, 244, 240, 0.06);
+  --color-border-strong: rgba(249, 244, 240, 0.22);
+  --color-text-primary: #f9f4f0;
+  --color-text-secondary: #d4b3c8;
+  --color-text-tertiary: #876673;
+}
+
+[data-theme-name="ubuntu-dark"] .fishbones-editor-run,
+[data-theme-name="ubuntu-dark"] .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #e95420 !important;
+  color: #2c001e !important;
+  border-color: #e95420 !important;
+}
+
+[data-theme-name="ubuntu-dark"] .fishbones__lesson-status--done {
+  background: #87a556;
+  border-color: #87a556;
+  color: #2c001e;
+}
+
+[data-theme-name="ubuntu-dark"] .fishbones__lesson-status--active {
+  border-color: #e95420;
+  box-shadow: 0 0 0 3px rgba(233, 84, 32, 0.2);
+  color: #e95420;
+}
+
+[data-theme-name="ubuntu-dark"] .fishbones-import-primary,
+[data-theme-name="ubuntu-dark"] .fishbones-settings-primary,
+[data-theme-name="ubuntu-dark"] .fishbones-library-import,
+[data-theme-name="ubuntu-dark"] .fishbones-library-import-seg--primary,
+[data-theme-name="ubuntu-dark"] .fishbones-welcome-primary,
+[data-theme-name="ubuntu-dark"] .fishbones-library-pill--active {
+  background: #e95420;
+  color: #2c001e;
+  border-color: #e95420;
+}
+
+/* ---- Absent Contrast (Daylerees Rainglow) ------------------------------ */
+/* From github.com/rainglow/vscode/blob/master/themes/absent-contrast.json.
+   Cool slate base (#0e1114) with a teal primary (#228a96) and sage
+   secondary (#6ba77f). Body text is the JSON's `foreground` (#aeb9c4);
+   `--color-text-primary` lifts to #e6eaef so titles + active items pop
+   against the muted body. Borders use the theme's own `input.border`
+   (#2d3741) for default and `peekView.border`-adjacent (#384450) for
+   the hover-strong tier. */
+[data-theme-name="absent-contrast"] {
+  --color-bg-primary: #0e1114;
+  --color-bg-secondary: #181e23;
+  --color-bg-tertiary: #232a32;
+  --color-border-default: #2d3741;
+  --color-border-strong: #384450;
+  --color-text-primary: #e6eaef;
+  --color-text-secondary: #aeb9c4;
+  --color-text-tertiary: #62778c;
+}
+
+[data-theme-name="absent-contrast"] .fishbones-editor-run,
+[data-theme-name="absent-contrast"] .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #228a96 !important;
+  color: #0e1114 !important;
+  border-color: #228a96 !important;
+}
+
+[data-theme-name="absent-contrast"] .fishbones__lesson-status--done {
+  background: #6ba77f;
+  border-color: #6ba77f;
+  color: #0e1114;
+}
+
+[data-theme-name="absent-contrast"] .fishbones__lesson-status--active {
+  border-color: #228a96;
+  box-shadow: 0 0 0 3px rgba(34, 138, 150, 0.2);
+  color: #228a96;
+}
+
+[data-theme-name="absent-contrast"] .fishbones-import-primary,
+[data-theme-name="absent-contrast"] .fishbones-settings-primary,
+[data-theme-name="absent-contrast"] .fishbones-library-import,
+[data-theme-name="absent-contrast"] .fishbones-library-import-seg--primary,
+[data-theme-name="absent-contrast"] .fishbones-welcome-primary,
+[data-theme-name="absent-contrast"] .fishbones-library-pill--active {
+  background: #228a96;
+  color: #0e1114;
+  border-color: #228a96;
+}
+
+/* ---- Vesper (raunofreiberg.vesper) ------------------------------------- */
+/* From github.com/raunofreiberg/vesper. Monochrome dark — pure black-ish
+   base (#101010) with a single warm-peach (#FFC799) accent. Background
+   tiers map to the JSON's editor / tab.activeBackground / input.background
+   so panels feel like their VS Code source. Border-default uses the
+   list.activeSelectionBackground colour (#232323) and border-strong lifts
+   to scrollbarSlider.hoverBackground (#343434) for the hover tier. */
+[data-theme-name="vesper"] {
+  --color-bg-primary: #101010;
+  --color-bg-secondary: #161616;
+  --color-bg-tertiary: #1c1c1c;
+  --color-border-default: #232323;
+  --color-border-strong: #343434;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #7e7e7e;
+}
+
+[data-theme-name="vesper"] .fishbones-editor-run,
+[data-theme-name="vesper"] .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #ffc799 !important;
+  color: #000000 !important;
+  border-color: #ffc799 !important;
+}
+
+[data-theme-name="vesper"] .fishbones__lesson-status--done {
+  background: #99ffe4;
+  border-color: #99ffe4;
+  color: #101010;
+}
+
+[data-theme-name="vesper"] .fishbones__lesson-status--active {
+  border-color: #ffc799;
+  box-shadow: 0 0 0 3px rgba(255, 199, 153, 0.2);
+  color: #ffc799;
+}
+
+[data-theme-name="vesper"] .fishbones-import-primary,
+[data-theme-name="vesper"] .fishbones-settings-primary,
+[data-theme-name="vesper"] .fishbones-library-import,
+[data-theme-name="vesper"] .fishbones-library-import-seg--primary,
+[data-theme-name="vesper"] .fishbones-welcome-primary,
+[data-theme-name="vesper"] .fishbones-library-pill--active {
+  background: #ffc799;
+  color: #000000;
+  border-color: #ffc799;
+}
+
+/* ---- Word (coastermcgee.word-theme) ------------------------------------ */
+/* Microsoft Word 5.5 for DOS — the editor sits on a deep blue document
+   (#0000aa) and the chrome is light gray. We bias the app surfaces blue
+   too (slightly lifted from #0000aa) so the whole window reads as one
+   deliberate "Word document on a screen" aesthetic instead of mixing
+   blue editor with gray panels. Magenta (#ff55ff) keyword accent doubles
+   as the primary action colour; cyan (#55ffff) marks the "done" state. */
+[data-theme-name="word"] {
+  --color-bg-primary: #0000aa;
+  --color-bg-secondary: #1a1ac0;
+  --color-bg-tertiary: #2828d8;
+  --color-border-default: #5555ff;
+  --color-border-strong: #aaaaff;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d8d8ff;
+  --color-text-tertiary: #9999d4;
+}
+
+[data-theme-name="word"] .fishbones-editor-run,
+[data-theme-name="word"] .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #ff55ff !important;
+  color: #0000aa !important;
+  border-color: #ff55ff !important;
+}
+
+[data-theme-name="word"] .fishbones__lesson-status--done {
+  background: #55ffff;
+  border-color: #55ffff;
+  color: #0000aa;
+}
+
+[data-theme-name="word"] .fishbones__lesson-status--active {
+  border-color: #ff55ff;
+  box-shadow: 0 0 0 3px rgba(255, 85, 255, 0.2);
+  color: #ff55ff;
+}
+
+[data-theme-name="word"] .fishbones-import-primary,
+[data-theme-name="word"] .fishbones-settings-primary,
+[data-theme-name="word"] .fishbones-library-import,
+[data-theme-name="word"] .fishbones-library-import-seg--primary,
+[data-theme-name="word"] .fishbones-welcome-primary,
+[data-theme-name="word"] .fishbones-library-pill--active {
+  background: #ff55ff;
+  color: #0000aa;
+  border-color: #ff55ff;
 }
 

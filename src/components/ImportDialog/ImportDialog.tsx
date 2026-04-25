@@ -16,6 +16,12 @@ const VALID_LANGUAGES: readonly LanguageId[] = [
   "rust",
   "swift",
   "go",
+  "c",
+  "cpp",
+  "java",
+  "kotlin",
+  "csharp",
+  "assembly",
 ];
 
 /// How much of the extracted PDF text to send to the meta-detector. The
@@ -93,11 +99,11 @@ export default function ImportDialog({
     try {
       const picked = await open({
         multiple: false,
-        filters: [{ name: "Books", extensions: ["pdf"] }],
+        filters: [{ name: "Books", extensions: ["pdf", "epub"] }],
       });
       if (typeof picked !== "string") return;
       setPdfPath(picked);
-      const base = basename(picked).replace(/\.pdf$/i, "");
+      const base = basename(picked).replace(/\.(pdf|epub)$/i, "");
       // Filename-based defaults so the form never looks empty. These
       // get replaced by detection unless the learner types.
       titleEditedRef.current = false;
@@ -123,13 +129,13 @@ export default function ImportDialog({
     setDetectionError(null);
     try {
       const extracted = await invoke<{ text: string; error: string | null }>(
-        "extract_pdf_text",
+        "extract_source_text",
         { path },
       );
       if (extracted.error) throw new Error(extracted.error);
       const excerpt = (extracted.text ?? "").slice(0, META_EXCERPT_CHARS);
       if (!excerpt.trim()) {
-        throw new Error("no text extracted from PDF");
+        throw new Error("no text extracted from book");
       }
       const resp = await invoke<LlmResponseTS>("detect_book_meta", {
         excerpt,
@@ -172,6 +178,22 @@ export default function ImportDialog({
     setError(null);
     const finalId = courseId || slug(title);
 
+    // Fire-and-forget the cover extraction. It's independent of the
+    // ingest — we just need the course folder to exist by the time the
+    // command reaches Rust (`extract_source_cover` calls
+    // `create_dir_all` itself, so it's safe to run before the first
+    // `save_course`). Errors here are non-fatal: the import proceeds,
+    // just without a cover, and the user can always re-point via
+    // Course Settings. Routes through `extract_source_cover` so EPUB
+    // covers (bundled in the manifest) and PDF covers (rendered via
+    // pdftoppm) flow through one entry point.
+    invoke("extract_source_cover", {
+      sourcePath: pdfPath,
+      courseId: finalId,
+    }).catch(() => {
+      /* non-fatal */
+    });
+
     if (useAi) {
       // Hand off to the floating panel. The ingest runs detached; dialog
       // closes immediately so the learner can do other things.
@@ -191,7 +213,7 @@ export default function ImportDialog({
     setRunning(true);
     try {
       const res = await invoke<{ text: string; error: string | null }>(
-        "extract_pdf_text",
+        "extract_source_text",
         { path: pdfPath },
       );
       if (res.error) throw new Error(res.error);
@@ -201,6 +223,9 @@ export default function ImportDialog({
         author: author || undefined,
         language,
       });
+      // Bump coverFetchedAt so the library knows to look for the cover
+      // that extract_pdf_cover is (or will be) writing alongside.
+      course.coverFetchedAt = Date.now();
       await invoke("save_course", { courseId: finalId, body: course });
       onSavedCourse(finalId);
       onDismiss();
@@ -215,7 +240,7 @@ export default function ImportDialog({
     <div className="fishbones-import-backdrop" onClick={onDismiss}>
       <div className="fishbones-import-panel" onClick={(e) => e.stopPropagation()}>
         <div className="fishbones-import-header">
-          <span className="fishbones-import-title">Import course from PDF</span>
+          <span className="fishbones-import-title">Import course from book</span>
           <button className="fishbones-import-close" onClick={onDismiss}>×</button>
         </div>
 
@@ -223,20 +248,20 @@ export default function ImportDialog({
           {step === "pick" && (
             <>
               <p className="fishbones-import-blurb">
-                Pick a PDF. We'll extract the text, detect the book's title,
-                author, and programming language, and — if you've got an
-                Anthropic key in Settings — let Claude structure it into a
-                real Codecademy-style course with exercises and quizzes.
+                Pick a PDF or EPUB. We'll extract the text, detect the book's
+                title, author, and programming language, and — if you've got
+                an Anthropic key in Settings — let Claude structure it into
+                a real Codecademy-style course with exercises and quizzes.
               </p>
               <button className="fishbones-import-primary" onClick={pickFile}>
-                Choose PDF…
+                Choose book…
               </button>
             </>
           )}
 
           {step === "meta" && (
             <>
-              <Field label="PDF">
+              <Field label={/\.epub$/i.test(pdfPath ?? "") ? "EPUB" : "PDF"}>
                 <code className="fishbones-import-path">{pdfPath}</code>
               </Field>
 

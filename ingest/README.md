@@ -1,6 +1,6 @@
-# kata-ingest
+# fishbones-ingest
 
-Standalone CLI that turns a book into a Kata course folder.
+Standalone CLI that turns a book into a Fishbones course folder.
 
 ## Install
 
@@ -24,7 +24,7 @@ tsx cli.ts ~/Downloads/my-book.epub \
 
 Outputs:
 - `<out>/<course-id>/course.json` — the course folder
-- `<out>/<course-id>.kata` — the zipped archive (if `--pack` is set)
+- `<out>/<course-id>.fishbones` — the zipped archive (if `--pack` is set)
 
 Without `ANTHROPIC_API_KEY`, the CLI uses a deterministic fallback: one
 reading lesson per top-level heading. Useful for bootstrapping before

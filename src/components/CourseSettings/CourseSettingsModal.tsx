@@ -1,6 +1,32 @@
-import { useMemo } from "react";
-import type { Course } from "../../data/types";
+import { useMemo, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { Icon } from "@base/primitives/icon";
+import { x as xIcon } from "@base/primitives/icon/icons/x";
+import "@base/primitives/icon/icon.css";
+import type { Course, LanguageId } from "../../data/types";
 import "./CourseSettingsModal.css";
+
+/// Human-readable labels for every `LanguageId`. Rendered in the
+/// language-fix dropdown below; order matches the Playground's picker so
+/// learners see a consistent roster across the app.
+const LANGUAGE_OPTIONS: Array<{ id: LanguageId; label: string }> = [
+  { id: "javascript", label: "JavaScript" },
+  { id: "typescript", label: "TypeScript" },
+  { id: "python", label: "Python" },
+  { id: "rust", label: "Rust" },
+  { id: "go", label: "Go" },
+  { id: "swift", label: "Swift" },
+  { id: "c", label: "C" },
+  { id: "cpp", label: "C++" },
+  { id: "java", label: "Java" },
+  { id: "kotlin", label: "Kotlin" },
+  { id: "csharp", label: "C#" },
+  { id: "assembly", label: "Assembly" },
+  { id: "web", label: "Web (HTML + CSS + JS)" },
+  { id: "threejs", label: "Three.js" },
+  { id: "reactnative", label: "React Native" },
+];
 
 interface Props {
   course: Course;
@@ -9,7 +35,29 @@ interface Props {
   onDelete: () => void;
   onRegenerateExercises: () => void;
   onEnrichLessons: () => void;
+  /// Fires after a fresh cover PNG lands on disk. Parent uses it to
+  /// bump `course.coverFetchedAt` in the JSON so the library cache-
+  /// busts its in-memory blob URL and re-renders with the new art.
+  /// Optional — omit the row entirely when not provided.
+  onCoverRefreshed?: (coverFetchedAt: number) => void;
+  /// Persist a new `language` on the course. Fires when the user
+  /// picks from the "Course language" dropdown and clicks Save.
+  /// Parent handler re-loads the course JSON, sets the language,
+  /// writes back, and refreshes the in-memory course list. Optional
+  /// so this component stays usable in preview / test contexts.
+  onChangeLanguage?: (language: LanguageId) => Promise<void>;
 }
+
+interface CoverResult {
+  path: string;
+  fetched_at: number;
+  error: string | null;
+}
+
+/// Same shape as CoverResult — the AI generator's Tauri command was
+/// designed to be drop-in compatible so the UI handler paths can be
+/// interchangeable between PDF-source and AI-generated covers.
+type CoverGenResult = CoverResult;
 
 /// Per-course settings modal. Opened from the sidebar's right-click
 /// context menu via "Course settings…" — gathers all the
@@ -22,7 +70,127 @@ export default function CourseSettingsModal({
   onDelete,
   onRegenerateExercises,
   onEnrichLessons,
+  onCoverRefreshed,
+  onChangeLanguage,
 }: Props) {
+  // Cover fetch state — "fetching" while pdftoppm is shelling out,
+  // error string if the command failed. Cleared on success (the library
+  // re-renders with the new art via onCoverRefreshed).
+  const [coverFetching, setCoverFetching] = useState(false);
+  const [coverError, setCoverError] = useState<string | null>(null);
+  // Separate in-flight flag for the AI generator so the two actions
+  // don't stomp each other's "loading" state. Error is shared — only
+  // one can fail at a time.
+  const [coverGenerating, setCoverGenerating] = useState(false);
+
+  // Language-fix state. Staged until the user clicks Save so a rogue
+  // dropdown click doesn't rewrite the course JSON every keystroke.
+  const [pendingLanguage, setPendingLanguage] = useState<LanguageId>(
+    course.language,
+  );
+  const [savingLanguage, setSavingLanguage] = useState(false);
+  const [languageError, setLanguageError] = useState<string | null>(null);
+
+  async function commitLanguageChange() {
+    if (!onChangeLanguage) return;
+    if (pendingLanguage === course.language) return;
+    setLanguageError(null);
+    setSavingLanguage(true);
+    try {
+      await onChangeLanguage(pendingLanguage);
+    } catch (e) {
+      setLanguageError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingLanguage(false);
+    }
+  }
+
+  async function fetchCoverFromPdf() {
+    setCoverError(null);
+    try {
+      const picked = await openDialog({
+        multiple: false,
+        filters: [{ name: "Book", extensions: ["pdf", "epub"] }],
+      });
+      if (typeof picked !== "string") return; // user cancelled
+      setCoverFetching(true);
+      const result = await invoke<CoverResult>("extract_source_cover", {
+        sourcePath: picked,
+        courseId: course.id,
+      });
+      if (result.error) {
+        setCoverError(result.error);
+        return;
+      }
+      onCoverRefreshed?.(result.fetched_at);
+    } catch (e) {
+      setCoverError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCoverFetching(false);
+    }
+  }
+
+  /// Import a user-picked image as the cover. Rust decodes and
+  /// re-encodes as PNG so `load_course_cover` doesn't have to sniff
+  /// formats. Shares the same error slot + refresh hook as the other
+  /// cover flows.
+  async function importCoverImage() {
+    setCoverError(null);
+    try {
+      const picked = await openDialog({
+        multiple: false,
+        filters: [
+          { name: "Image", extensions: ["png", "jpg", "jpeg", "webp", "gif"] },
+        ],
+      });
+      if (typeof picked !== "string") return;
+      setCoverFetching(true);
+      const result = await invoke<CoverResult>("import_course_cover", {
+        imagePath: picked,
+        courseId: course.id,
+      });
+      if (result.error) {
+        setCoverError(result.error);
+        return;
+      }
+      onCoverRefreshed?.(result.fetched_at);
+    } catch (e) {
+      setCoverError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCoverFetching(false);
+    }
+  }
+
+  /// Generate a fresh cover using OpenAI's gpt-image-1. Shares the
+  /// coverError slot with `fetchCoverFromPdf` so the UI only renders one
+  /// error at a time. The heavy lifting (prompt construction, OpenAI
+  /// call, PNG decode + write, coverFetchedAt stamp) lives in the Rust
+  /// `generate_cover_art` command — we just dispatch + handle the
+  /// returned shape.
+  async function generateCoverWithAi() {
+    setCoverError(null);
+    setCoverGenerating(true);
+    try {
+      const result = await invoke<CoverGenResult>("generate_cover_art", {
+        params: {
+          course_id: course.id,
+          title: course.title,
+          author: course.author ?? null,
+          language: course.language,
+        },
+      });
+      if (result.error) {
+        setCoverError(result.error);
+        return;
+      }
+      onCoverRefreshed?.(result.fetched_at);
+    } catch (e) {
+      setCoverError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCoverGenerating(false);
+    }
+  }
+
   const stats = useMemo(() => {
     let lessons = 0;
     let exercises = 0;
@@ -77,7 +245,7 @@ export default function CourseSettingsModal({
             onClick={onDismiss}
             aria-label="Close"
           >
-            ×
+            <Icon icon={xIcon} size="xs" color="currentColor" />
           </button>
         </div>
 
@@ -133,6 +301,62 @@ export default function CourseSettingsModal({
             </div>
           </section>
 
+          {onChangeLanguage && (
+            <section>
+              <div className="fishbones-coursesettings-section">
+                Course language
+              </div>
+              <div className="fishbones-coursesettings-row">
+                <div className="fishbones-coursesettings-row-text">
+                  <div className="fishbones-coursesettings-row-label">
+                    Fix the course's language
+                  </div>
+                  <div className="fishbones-coursesettings-row-hint">
+                    Currently set to{" "}
+                    <code>{labelFor(course.language)}</code>. LLM-generated
+                    courses from docs sites sometimes land with the wrong
+                    language — switching here re-dispatches Run and the
+                    lesson view to the right runtime. Lesson-level
+                    <code>language</code> fields are left untouched; only
+                    the course's top-level tag changes.
+                  </div>
+                  {languageError && (
+                    <div className="fishbones-coursesettings-row-error">
+                      {languageError}
+                    </div>
+                  )}
+                </div>
+                <div className="fishbones-coursesettings-lang-controls">
+                  <select
+                    className="fishbones-coursesettings-lang-select"
+                    value={pendingLanguage}
+                    onChange={(e) =>
+                      setPendingLanguage(e.target.value as LanguageId)
+                    }
+                    disabled={savingLanguage}
+                    aria-label="Course language"
+                  >
+                    {LANGUAGE_OPTIONS.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="fishbones-coursesettings-btn fishbones-coursesettings-btn--primary"
+                    onClick={commitLanguageChange}
+                    disabled={
+                      savingLanguage || pendingLanguage === course.language
+                    }
+                  >
+                    {savingLanguage ? "Saving…" : "Save"}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           <section>
             <div className="fishbones-coursesettings-section">
               Reading experience
@@ -170,6 +394,82 @@ export default function CourseSettingsModal({
               </button>
             </div>
           </section>
+
+          {onCoverRefreshed && (
+            <section>
+              <div className="fishbones-coursesettings-section">Appearance</div>
+              <div className="fishbones-coursesettings-row">
+                <div className="fishbones-coursesettings-row-text">
+                  <div className="fishbones-coursesettings-row-label">
+                    Fetch cover artwork
+                  </div>
+                  <div className="fishbones-coursesettings-row-hint">
+                    Point Fishbones at a PDF or EPUB (the original book,
+                    or a single-page cover image saved as PDF) and we'll
+                    pull the cover art for the shelf. Useful when the
+                    original ingest didn't grab a cover, or if you want
+                    to re-extract from a higher-resolution source.
+                  </div>
+                </div>
+                <button
+                  className="fishbones-coursesettings-btn"
+                  onClick={fetchCoverFromPdf}
+                  disabled={coverFetching || coverGenerating}
+                  type="button"
+                >
+                  {coverFetching ? "Fetching…" : "Choose book…"}
+                </button>
+              </div>
+              <div className="fishbones-coursesettings-row">
+                <div className="fishbones-coursesettings-row-text">
+                  <div className="fishbones-coursesettings-row-label">
+                    Import image file
+                  </div>
+                  <div className="fishbones-coursesettings-row-hint">
+                    Use any PNG, JPEG, WebP, or GIF from disk as the cover.
+                    Best for custom art or when the PDF's first page isn't
+                    the cover you want.
+                  </div>
+                </div>
+                <button
+                  className="fishbones-coursesettings-btn"
+                  onClick={importCoverImage}
+                  disabled={coverFetching || coverGenerating}
+                  type="button"
+                >
+                  {coverFetching ? "Importing…" : "Choose image…"}
+                </button>
+              </div>
+              <div className="fishbones-coursesettings-row">
+                <div className="fishbones-coursesettings-row-text">
+                  <div className="fishbones-coursesettings-row-label">
+                    Generate artwork with AI
+                  </div>
+                  <div className="fishbones-coursesettings-row-hint">
+                    Ask <code>gpt-image-1</code> for a fresh cover in the
+                    library's shared editorial style — abstract geometric,
+                    no typography, cohesive across every book on the
+                    shelf. Takes 5–20 seconds and costs ~$0.04 per
+                    generation. Requires an OpenAI API key in{" "}
+                    <strong>Settings → AI</strong>.
+                  </div>
+                </div>
+                <button
+                  className="fishbones-coursesettings-btn fishbones-coursesettings-btn--primary"
+                  onClick={generateCoverWithAi}
+                  disabled={coverFetching || coverGenerating}
+                  type="button"
+                >
+                  {coverGenerating ? "Generating…" : "Generate"}
+                </button>
+              </div>
+              {coverError && (
+                <div className="fishbones-coursesettings-row-error">
+                  {coverError}
+                </div>
+              )}
+            </section>
+          )}
 
           <section>
             <div className="fishbones-coursesettings-section">Share</div>
@@ -220,4 +520,12 @@ export default function CourseSettingsModal({
       </div>
     </div>
   );
+}
+
+/// Fall back to the raw id when the language isn't in the roster so we
+/// never render `undefined` in the banner. A missing entry means the
+/// LanguageId grew and we forgot to update `LANGUAGE_OPTIONS` — the
+/// raw id tells the reader exactly what to add.
+function labelFor(id: LanguageId): string {
+  return LANGUAGE_OPTIONS.find((opt) => opt.id === id)?.label ?? id;
 }
