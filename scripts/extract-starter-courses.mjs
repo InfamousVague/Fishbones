@@ -58,6 +58,148 @@ function pickResizeImpl() {
   return "";
 }
 
+/// Per-language gradient palette for the synthetic-cover fallback.
+/// Mirrors `.fishbones-book--lang-*--no-cover` in BookCover.css so a
+/// generated JPEG looks visually consistent with the in-app
+/// language-tinted tiles. Tuple shape: `[topColor, bottomColor]`.
+/// Languages not in this map fall back to a neutral dark gradient.
+const LANG_GRADIENTS = {
+  javascript: ["#4e432a", "#262013"],
+  typescript: ["#3178c6", "#1a3d6e"],
+  python: ["#1f3b5a", "#101d2d"],
+  rust: ["#6b2f1e", "#2d140c"],
+  swift: ["#6b2b2b", "#2d1212"],
+  go: ["#204f5e", "#0e2630"],
+  bun: ["#3d3520", "#1d180c"],
+  svelte: ["#5c2a16", "#2a120a"],
+  solid: ["#1c4d6b", "#0e2535"],
+  htmx: ["#3a4252", "#1a1f29"],
+  astro: ["#3a2a4d", "#1a0f26"],
+  solidity: ["#3a3a3a", "#1a1a1a"],
+  reactnative: ["#1c4357", "#0e2330"],
+  react: ["#1c4357", "#0e2330"],
+  threejs: ["#2d2d2d", "#0c0c0c"],
+};
+
+const LANG_GLYPHS = {
+  javascript: "JS",
+  typescript: "TS",
+  python: "PY",
+  rust: "RS",
+  swift: "SW",
+  go: "GO",
+  bun: "BN",
+  svelte: "SV",
+  solid: "SO",
+  htmx: "HX",
+  astro: "AS",
+  solidity: "SL",
+  reactnative: "RN",
+  react: "RX",
+  threejs: "3D",
+  c: "C",
+  cpp: "C++",
+  java: "JV",
+  kotlin: "KT",
+  csharp: "C#",
+  assembly: "ASM",
+};
+
+/// Find a usable .ttf font path. ImageMagick on macOS can't load
+/// the system .ttc font collections by name; on Ubuntu it relies on
+/// fontconfig which may or may not be set up. Plain .ttf files
+/// always work, so we probe the standard locations and use the
+/// first one that exists. Returns null when nothing's available
+/// (caller skips synthesis in that case).
+let cachedFontPath = null;
+function pickFontPath() {
+  if (cachedFontPath !== null) return cachedFontPath || null;
+  const candidates = [
+    // macOS — SFNS is always present, ships with every install.
+    "/System/Library/Fonts/SFNS.ttf",
+    // Ubuntu / Debian — DejaVu is the apt-get default; Liberation
+    // ships with most server images via `fonts-liberation`.
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    // Fallback: Noto, often pulled in as a dependency.
+    "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
+    "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+  ];
+  for (const path of candidates) {
+    if (existsSync(path)) {
+      cachedFontPath = path;
+      return path;
+    }
+  }
+  cachedFontPath = "";
+  return null;
+}
+
+/// Synthesise a themed JPEG cover for a pack that doesn't ship its
+/// own cover.png. Renders a 320×480 (book-ratio) gradient using the
+/// language palette, with the language abbreviation big in the
+/// upper third and the course title wrapped below. Visual goal:
+/// consistent with the in-app `.fishbones-book--no-cover` fallback
+/// so the library shelf reads as one continuous design language —
+/// real cover artwork blends with synthetic tiles without an
+/// obvious style break.
+///
+/// Only ImageMagick supports the gradient + caption: composition we
+/// need; sips can't do it. So this only fires when magick / convert
+/// is available AND we can find a usable .ttf for the text — falls
+/// back to no cover otherwise.
+function synthesizeCover(language, title, dstJpg) {
+  const impl = pickResizeImpl();
+  if (impl !== "magick" && impl !== "convert") return false;
+  const fontPath = pickFontPath();
+  if (!fontPath) return false;
+  const [top, bottom] = LANG_GRADIENTS[language] ?? ["#2a2a2a", "#0c0c0c"];
+  const glyph = LANG_GLYPHS[language] ?? "·";
+  // Trim the title to fit a 2-3 line caption block. ImageMagick's
+  // caption: pseudo-image auto-wraps to fit a fixed width, but
+  // long titles can overflow vertically; cap at ~60 chars.
+  const trimmed = title.length > 60 ? title.slice(0, 57) + "…" : title;
+  try {
+    execFileSync(impl, [
+      "-size", "320x480",
+      // Top-bottom gradient with the language palette.
+      `gradient:${top}-${bottom}`,
+      // Glyph — big, upper third, soft white.
+      "-gravity", "north",
+      "-fill", "rgba(255,255,255,0.92)",
+      "-font", fontPath,
+      "-pointsize", "120",
+      "-annotate", "+0+90", glyph,
+      // Subtitle — language name in the gutter under the glyph.
+      "-pointsize", "16",
+      "-fill", "rgba(255,255,255,0.6)",
+      "-annotate", "+0+230", language.toUpperCase(),
+      // Title — wraps inside a 280×140 caption: pseudo-image, then
+      // composites onto the gradient at the lower section. Using
+      // caption: instead of -annotate gets us word wrapping for free.
+      "(", "-size", "280x140",
+      "-gravity", "center",
+      "-fill", "white",
+      "-font", fontPath,
+      "-pointsize", "22",
+      `caption:${trimmed}`, ")",
+      "-gravity", "south",
+      "-geometry", "+0+40",
+      "-composite",
+      // Drop EXIF + interlace + quality to match the resize step.
+      "-strip",
+      "-interlace", "Plane",
+      "-quality", "82",
+      dstJpg,
+    ], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function resizeCover(srcPng, dstJpg) {
   const impl = pickResizeImpl();
   if (!impl) return false;
@@ -143,10 +285,11 @@ const PACK_IDS = [
   "react-native",
   "interactive-web-development-with-three-js-and-a-frame",
 
-  // Smart-contract / web3
+  // Smart-contract / web3 / crypto
   "solidity-complete",
   "solana-programs",
   "viem-ethers",
+  "cryptography-fundamentals",
 
   // Languages-via-playground (no local toolchain needed)
   "learning-go",
@@ -208,23 +351,25 @@ async function main() {
       await writeFile(outFile, courseJson, "utf-8");
       const info = await stat(outFile);
 
-      // Cover art — resize to 480px JPEG q78 (~30-70KB) before
-      // shipping. The bundled originals are ~3-4MB each; without
-      // resize, 24 covers = ~85MB on the deploy. With resize:
-      // ~1MB total. See `resizeCover` for the cross-platform
-      // tooling fallbacks.
+      // Cover art — resize the bundled cover.png to 480px JPEG q78
+      // (~30-70KB). When the pack ships without a cover.png (newer
+      // packs that haven't had artwork generated yet), synthesise
+      // a themed gradient tile using the course's language so the
+      // library shelf still reads as a continuous design rather
+      // than a mix of real covers + missing-image squares.
       const coverPath = join(work, "cover.png");
+      const candidate = `${id}.jpg`;
+      const dst = join(OUT, candidate);
       let coverFile;
       if (existsSync(coverPath)) {
-        const candidate = `${id}.jpg`;
-        const dst = join(OUT, candidate);
         if (resizeCover(coverPath, dst)) {
           coverFile = candidate;
-        } else {
-          // No resizer available — skip the cover rather than
-          // ship the 4MB original. The library falls back to a
-          // language-tinted glyph when `cover` is absent.
         }
+      } else if (synthesizeCover(course.language || "javascript", course.title || id, dst)) {
+        coverFile = candidate;
+        console.log(
+          `  ↳ synthesised themed cover for ${id} (${course.language})`,
+        );
       }
 
       manifest.push({
