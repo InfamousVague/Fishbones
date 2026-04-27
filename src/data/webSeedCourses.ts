@@ -50,7 +50,15 @@ function starterUrl(path: string): string {
 /// `seedWebStarterCourses` re-runs when the persisted version differs
 /// from this constant. Without it, returning visitors with a previous
 /// seed in IndexedDB would never pick up new books or new covers.
-const SEED_VERSION = 2;
+///
+/// V2 → V3: cover artwork was promised in V2 but the CI runner that
+/// produced the V2 manifest didn't have ImageMagick, so the cover
+/// field shipped empty for every course. Visitors who seeded against
+/// that broken V2 manifest now have Course records with
+/// `coverFetchedAt: undefined`, and the library shows the
+/// language-tinted fallback instead of artwork. Bumping to V3 forces
+/// those records to refresh against the current (fixed) manifest.
+const SEED_VERSION = 3;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +
