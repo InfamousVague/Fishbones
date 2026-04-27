@@ -22,6 +22,22 @@ const target: "desktop" | "web" =
   process.env.FISHBONES_TARGET === "web" ? "web" : "desktop";
 const isWebBuild = target === "web";
 
+// Public base path for the web build — where the bundle's assets
+// expect to be served from. Different consumers want different
+// values:
+//   /fishbones/learn/  ← mattssoftware.com (legacy embed at that path)
+//   /learn/            ← fishbones.academy (the new product domain)
+//   /                  ← any other host that mounts the app at root
+//
+// Override at build time with FISHBONES_BASE; falls back to the
+// mattssoftware path for backward compatibility (existing
+// build:web invocations don't need to change).
+// @ts-expect-error process is a nodejs global
+const webBase = (process.env.FISHBONES_BASE || "/fishbones/learn/").replace(
+  /\/?$/,
+  "/",
+);
+
 // On the web build, every @tauri-apps/* import is aliased to a local
 // stub so the bundle compiles even though there's no Tauri runtime.
 // Each stub preserves the same export shape so type-checking works in
@@ -60,7 +76,7 @@ export default defineConfig(async () => ({
   // webview's root (`tauri://...`) so an empty base is correct
   // there. Vite's `import.meta.env.BASE_URL` reflects this and is
   // what `webSeedCourses.ts` uses to resolve `/starter-courses/*`.
-  base: isWebBuild ? "/fishbones/learn/" : "/",
+  base: isWebBuild ? webBase : "/",
   define: {
     // Compile-time platform marker. Read by src/lib/platform.ts.
     "import.meta.env.FISHBONES_TARGET": JSON.stringify(target),
