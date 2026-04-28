@@ -146,61 +146,87 @@ async function main() {
     let cardsForCourse = 0;
     let skipped = 0;
 
-    // Index all lessons by id so we can find afterLessonId fast.
-    const lessonLocations = new Map();
-    for (let ci = 0; ci < course.chapters.length; ci++) {
-      const ch = course.chapters[ci];
-      for (let li = 0; li < ch.lessons.length; li++) {
-        lessonLocations.set(ch.lessons[li].id, { ci, li });
+    // Build a list of lesson locations PER id (not a Map keyed by id —
+    // many courses reuse short ids like "e1" / "e2" across chapters).
+    // We consume locations in order: the first sidecar entry for
+    // afterLessonId="e1" lands after the FIRST e1, the second after
+    // the SECOND e1, etc. Without this, every same-id drill collides
+    // on the last-seen lesson and ends up either overwriting a
+    // previous insert or hitting the idempotency-skip path.
+    function buildLocations() {
+      const locs = new Map(); // id → array of { ci, li }
+      for (let ci = 0; ci < course.chapters.length; ci++) {
+        const ch = course.chapters[ci];
+        for (let li = 0; li < ch.lessons.length; li++) {
+          const id = ch.lessons[li].id;
+          if (!locs.has(id)) locs.set(id, []);
+          locs.get(id).push({ ci, li });
+        }
       }
+      return locs;
     }
+    let lessonLocations = buildLocations();
+    // Per-id consumption cursor — index into the list of locations
+    // we've already used. Reset on rebuild because a fresh location
+    // list reflects the post-insert state.
+    let consumed = new Map(); // id → next index to use
 
-    // Walk drills in REVERSE so insertions don't shift later indices.
-    // The sidecar typically lists drills in source-walk order, so
-    // reversing means "latest source lesson first" — when we splice
-    // in `lessonLocations[afterLessonId].li + 1`, indices stay
-    // accurate because we haven't touched anything earlier yet.
-    const ordered = [...sidecar.drills].reverse();
-
-    for (const entry of ordered) {
+    // Walk drills in source-order so each `e1` reference consumes
+    // the next-available `e1` chapter location. We rebuild the
+    // location index after every insert because a splice shifts
+    // every later li within that chapter.
+    for (const entry of sidecar.drills) {
       if (!entry || !entry.afterLessonId || !entry.drill) {
         skipped += 1;
         continue;
       }
-      const where = lessonLocations.get(entry.afterLessonId);
+      const candidates = lessonLocations.get(entry.afterLessonId);
+      const used = consumed.get(entry.afterLessonId) ?? 0;
+      const where = candidates?.[used];
       if (!where) {
         console.warn(
-          `  ⚠ ${sidecar.courseId}: afterLessonId="${entry.afterLessonId}" not found, skipping`,
+          `  ⚠ ${sidecar.courseId}: afterLessonId="${entry.afterLessonId}" exhausted (${candidates?.length ?? 0} matches consumed)`,
         );
         skipped += 1;
         continue;
       }
       const chapter = course.chapters[where.ci];
-      // Idempotency: skip if this drill (by id) already exists.
+      // Disambiguate the drill id by chapter so two same-source-id
+      // drills (e.g. two `e1__drill` from different chapters) don't
+      // collide on insertion. Suffix with a 4-char chapter slug.
+      const chapterSlug = (chapter.id || `c${where.ci}`)
+        .replace(/[^a-z0-9]/gi, "")
+        .slice(0, 6)
+        .toLowerCase();
+      const baseDrillId = entry.drill.id;
+      // If multiple chapters use the same source id, the drill id
+      // must include the chapter slug. Detect duplicates by checking
+      // the candidates list length.
+      if ((candidates?.length ?? 0) > 1) {
+        entry.drill.id = `${baseDrillId}__${chapterSlug}`;
+      }
+      // Idempotency — if a drill with this final id already exists
+      // anywhere in the chapter, skip.
       if (chapter.lessons.some((l) => l.id === entry.drill.id)) {
+        consumed.set(entry.afterLessonId, used + 1);
         skipped += 1;
         continue;
       }
-      // Pre-render every card's line (sequential; Shiki's
-      // initialization is cached so per-call cost is small).
+      // Pre-render each card's line via Shiki.
       for (const card of entry.drill.challenges ?? []) {
         if (!card.lineHtml) {
           card.lineHtml = await prerenderLine(card.line, entry.drill.language);
         }
       }
       chapter.lessons.splice(where.li + 1, 0, entry.drill);
-      // Update the index since we just inserted — every lesson at
-      // li+1 or later has shifted by one. Since we walk in reverse
-      // we technically don't need to update for earlier ones, but
-      // we DO need accurate locations for the still-pending entries
-      // that point at the SAME chapter.
-      lessonLocations.clear();
-      for (let ci = 0; ci < course.chapters.length; ci++) {
-        const ch = course.chapters[ci];
-        for (let li = 0; li < ch.lessons.length; li++) {
-          lessonLocations.set(ch.lessons[li].id, { ci, li });
-        }
-      }
+      consumed.set(entry.afterLessonId, used + 1);
+      // Rebuild locations because the splice shifted indices.
+      lessonLocations = buildLocations();
+      // The consumed cursor still points at "next" within the same
+      // id — but the list got rebuilt so we have to RE-FIND the
+      // already-used positions and skip them. Easiest: increment
+      // the cursor in the new list to match what we consumed before.
+      // (Already incremented above.)
       inserted += 1;
       cardsForCourse += entry.drill.challenges?.length ?? 0;
     }
