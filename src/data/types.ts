@@ -154,7 +154,8 @@ export type Lesson =
   | ExerciseLesson
   | MixedLesson
   | QuizLesson
-  | PuzzleLesson;
+  | PuzzleLesson
+  | ClozeLesson;
 
 interface LessonBase {
   id: string;
@@ -324,6 +325,10 @@ export function isPuzzle(lesson: Lesson): lesson is PuzzleLesson {
   return lesson.kind === "puzzle";
 }
 
+export function isCloze(lesson: Lesson): lesson is ClozeLesson {
+  return lesson.kind === "cloze";
+}
+
 /**
  * Block-arrangement puzzle. Mobile-first lesson kind: the learner re-orders
  * a shuffled set of code blocks into the canonical sequence by tapping
@@ -388,6 +393,69 @@ export interface PuzzleBlock {
   /// are still pickable from the pool but staging them counts as a wrong
   /// answer. Defaults to false; a missing flag = correct block.
   distractor?: boolean;
+}
+
+/**
+ * Cloze (fill-in-the-blank) lesson. The learner sees the canonical
+ * code WITH the right shape but key tokens replaced by tappable slots.
+ * Each slot offers ~3-4 options (the correct answer + sibling
+ * identifiers / similar-looking keywords / common mistakes); picking
+ * the right option for every slot completes the lesson.
+ *
+ * Why this exists alongside PuzzleLesson: arrangement puzzles work
+ * for "do you know the SHAPE of the solution" but a 50-line solution
+ * either becomes a 50-block puzzle (unreadable on phone) or gets
+ * chunked into wall-of-code blocks. Cloze lets us drill on specific
+ * tokens — function names, key keywords, the exact line that does
+ * the work — without forcing learners to re-derive the entire
+ * solution structure. Especially good for long solutions where the
+ * shape is already obvious from context.
+ *
+ * Generated automatically by `scripts/generate-puzzles.mjs` from
+ * existing exercise solutions, same idempotency rules as
+ * PuzzleLesson (`__cloze` id suffix, re-runs are no-ops). Authors
+ * can also hand-write them — the shape is small enough.
+ */
+export interface ClozeLesson extends LessonBase {
+  kind: "cloze";
+  language: LanguageId;
+  /**
+   * Canonical code with `__SLOT_<id>__` markers where the blanks go.
+   * The id matches a `ClozeSlot.id` below. Markers are surrounded by
+   * regular code so the renderer can pretty-print + syntax-highlight
+   * the surrounding context exactly as in the canonical solution —
+   * only the slot positions become interactive chips.
+   */
+  template: string;
+  /**
+   * Per-slot options + the correct answer. Slot ordering in the
+   * array doesn't have to match the order they appear in `template`;
+   * the UI walks the template top-to-bottom and matches by id.
+   */
+  slots: ClozeSlot[];
+  /**
+   * Optional intro narration shown above the code block. Falls back
+   * to "Fill in the blanks." when missing.
+   */
+  prompt?: string;
+}
+
+export interface ClozeSlot {
+  /// Stable id, referenced from `template` markers. Generated at
+  /// build time so retries on the same lesson don't regenerate ids
+  /// (which would let a determined learner memorise positions).
+  id: string;
+  /// The correct fill-in. Display as-is; matched by exact string
+  /// equality (so authors should pre-format spacing / quoting).
+  answer: string;
+  /// All choices the learner picks from — must contain `answer` plus
+  /// 2-4 distractors. The renderer shuffles at render time so two
+  /// retries don't show options in the same visual slot order.
+  options: string[];
+  /// Optional one-word category for the chip label ("identifier",
+  /// "keyword", "literal"). Purely cosmetic; the chip's empty-state
+  /// uses it as the placeholder ("pick keyword").
+  hint?: string;
 }
 
 /// Challenge packs and courses share the same shape — this is the single

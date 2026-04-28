@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { onOpenUrl, getCurrent as getCurrentDeepLinks } from "@tauri-apps/plugin-deep-link";
-import { Course, Lesson, isExerciseKind, isQuiz } from "./data/types";
+import { Course, Lesson, isCloze, isExerciseKind, isQuiz } from "./data/types";
 import { makeBus, openPoppedWorkbench, closePoppedWorkbench } from "./lib/workbenchSync";
 import { deriveSolutionFiles } from "./lib/workbenchFiles";
 import { Icon } from "@base/primitives/icon";
@@ -43,6 +43,11 @@ import GeneratePackDialog from "./components/ChallengePack/GeneratePackDialog";
 import { useIngestRun } from "./hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import QuizView from "./components/Quiz/QuizView";
+// Cloze (fill-in-the-blank) lessons render the same on phone + desktop
+// — a code block with inline tappable chips. Reusing MobileCloze
+// here keeps the chip rendering, option-pick sheet, and validation
+// flow in one place; only the parent layout differs by surface.
+import MobileCloze from "./mobile/MobileCloze";
 import AiAssistant from "./components/AiAssistant/AiAssistant";
 import MobileApp from "./mobile/MobileApp";
 import { InstallBanner } from "./components/InstallBanner/InstallBanner";
@@ -418,6 +423,15 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Hand off from index.html's inline preloader to our React loader.
+  // Runs in a layout-effect (post-DOM-mutate, pre-paint) so the inline
+  // preloader fades exactly when `.fishbones__bootloader` is on screen
+  // — no black gap on cold-start. Safe to run once; the safety
+  // timeout in main.tsx is a no-op if we got here first.
+  useLayoutEffect(() => {
+    document.body.classList.add("is-booted");
   }, []);
 
   /// Cmd+K (Ctrl+K) — global command palette toggle. Lives at the
@@ -804,6 +818,9 @@ export default function App() {
         onSignOut={isWeb ? undefined : () => {
           void cloud.signOut();
         }}
+        // Search trigger sits left of the stats chip; clicking it pops
+        // the same CommandPalette that Cmd/Ctrl+K already binds.
+        onOpenSearch={() => setPaletteOpen(true)}
       />
 
       <div className="fishbones__body">
@@ -1594,6 +1611,31 @@ function LessonView({
         <div className="fishbones__lesson-scroll">
           <LessonReader lesson={lesson} />
           <QuizView lesson={lesson} onComplete={onComplete} />
+          <div className="fishbones__lesson-nav-wrap">{nav}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Cloze lessons share the column layout with quizzes — prose on top,
+  // interactive code-with-chips below. We reuse MobileCloze for the
+  // chip rendering since the UX is fundamentally the same on phone and
+  // desktop (a code block with inline tappable slots); the only
+  // surface-specific decision is the option-picker presentation, which
+  // stays as a bottom sheet on both since it's compact and doesn't
+  // need the screen real estate a popover would.
+  if (isCloze(lesson)) {
+    return (
+      <div className="fishbones__lesson fishbones__lesson--column">
+        <div className="fishbones__lesson-scroll">
+          <LessonReader lesson={lesson} />
+          <MobileCloze
+            template={lesson.template}
+            slots={lesson.slots}
+            prompt={lesson.prompt}
+            onComplete={onComplete}
+            isCompleted={isCompleted}
+          />
           <div className="fishbones__lesson-nav-wrap">{nav}</div>
         </div>
       </div>

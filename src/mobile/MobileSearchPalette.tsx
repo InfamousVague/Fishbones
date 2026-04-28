@@ -173,7 +173,7 @@ export default function MobileSearchPalette({
             onClick={onClose}
             aria-label="Close search"
           >
-            <Icon icon={xIcon} size="md" color="currentColor" />
+            <Icon icon={xIcon} size="lg" color="currentColor" />
           </button>
         </header>
 

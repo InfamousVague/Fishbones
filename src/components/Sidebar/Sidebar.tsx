@@ -86,6 +86,13 @@ function iconForKind(kind: Lesson["kind"]) {
       return bookOpen;
     case "exercise":
     case "mixed":
+    case "puzzle":
+    case "cloze":
+      // Code-shaped lessons all get the terminal/code icon. Puzzle
+      // (arrangement) and cloze (fill-in) sit one notch above plain
+      // reading conceptually but the sidebar already has too many
+      // kind-specific tints — collapsing to the code icon keeps the
+      // tree visually scannable.
       return codeIcon;
     case "quiz":
       return helpCircle;

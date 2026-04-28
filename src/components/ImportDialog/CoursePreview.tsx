@@ -164,6 +164,8 @@ function LessonKindGlyph({ kind }: { kind: Lesson["kind"] }) {
     exercise: "●",
     mixed: "◐",
     quiz: "?",
+    puzzle: "▤",
+    cloze: "▦",
   };
   return <span className="fishbones-preview-lesson-glyph">{chars[kind] ?? "•"}</span>;
 }

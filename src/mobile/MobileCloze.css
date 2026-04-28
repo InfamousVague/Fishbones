@@ -1,0 +1,221 @@
+/* Cloze lesson — pre-formatted code with inline tappable chips
+   where the blanks are. The pre/code pair is sized + scrolled so
+   long lines don't get clipped on narrow phone screens. */
+
+.m-cloze {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.m-cloze__prompt {
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.m-cloze__code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13.5px;
+  line-height: 1.55;
+  background: var(--color-bg-elevated, #19191d);
+  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 14px 12px;
+  margin: 0;
+  /* Horizontal scroll for wide lines + preserved whitespace so
+     indentation reads correctly. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre;
+}
+
+.m-cloze__code code {
+  /* The pre is the scroll container; the code element holds the
+     actual flow. Drop browser defaults that conflict with our
+     style. */
+  display: inline;
+  font: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.m-cloze__text {
+  white-space: pre;
+  color: var(--color-text-secondary);
+}
+
+/* Inline tappable chip rendered where a slot lives. Sized so the
+   chip stays inline with surrounding code (no taller line-height
+   than a regular token) but the touch target is generous via
+   padding. */
+.m-cloze__chip {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 1px 8px;
+  margin: 0 1px;
+  background: var(--color-bg-secondary, #15151a);
+  border: 1.5px dashed var(--color-border-strong, rgba(255, 255, 255, 0.2));
+  border-radius: 6px;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  min-height: 22px;
+  /* `vertical-align: baseline` keeps the chip inline with the
+     surrounding monospace text — without it the chip would sit
+     slightly low on most fonts. */
+  vertical-align: baseline;
+}
+
+.m-cloze__chip--empty {
+  font-style: italic;
+  font-weight: 500;
+}
+
+.m-cloze__chip:active {
+  background: var(--color-bg-elevated);
+}
+
+/* Correct: solid border, accent color from the desktop sidebar's
+   "done" state so the visual vocabulary is consistent across
+   surfaces. */
+.m-cloze__chip--correct {
+  background: var(--color-text-primary);
+  border: 1.5px solid var(--color-text-primary);
+  border-style: solid;
+  color: var(--color-bg-primary);
+}
+
+/* Wrong: warm tint, dashed border preserved (still tappable to
+   change). */
+.m-cloze__chip--wrong {
+  background: rgba(220, 80, 60, 0.14);
+  border-color: rgba(220, 80, 60, 0.55);
+  border-style: solid;
+  color: rgba(255, 200, 190, 0.95);
+}
+
+/* Reveal: solid + slight glow once the lesson finishes. Only
+   correct chips get this — wrongs stay in their warning state. */
+.m-cloze__chip--revealed.m-cloze__chip--correct {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+.m-cloze__chip--missing {
+  border-color: rgba(220, 80, 60, 0.55);
+  color: rgba(220, 80, 60, 0.95);
+  font-style: italic;
+}
+
+.m-cloze__progress {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin: 0;
+  text-align: center;
+  font-feature-settings: "tnum";
+}
+
+/* ──────────── option sheet (matches MobileOutline pattern) ──────────── */
+
+.m-cloze-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  animation: m-cloze-fade 0.16s ease-out;
+}
+
+@keyframes m-cloze-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.m-cloze-sheet {
+  width: 100%;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-elevated, #19191d);
+  border-top: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 18px 18px 0 0;
+  padding: 8px 0 calc(env(safe-area-inset-bottom, 0) + 12px);
+  animation: m-cloze-slideup 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes m-cloze-slideup {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.m-cloze-sheet__grip {
+  width: 36px;
+  height: 4px;
+  margin: 6px auto 8px;
+  background: var(--color-border-strong, rgba(255, 255, 255, 0.18));
+  border-radius: 2px;
+}
+
+.m-cloze-sheet__head {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  padding: 6px 18px 10px;
+}
+
+.m-cloze-sheet__list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 12px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.m-cloze-sheet__opt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-text-primary);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.m-cloze-sheet__opt code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13.5px;
+  font-weight: 600;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  white-space: pre;
+}
+
+.m-cloze-sheet__opt:active {
+  background: var(--color-bg-elevated);
+}
+
+.m-cloze-sheet__opt--active {
+  border-color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+}

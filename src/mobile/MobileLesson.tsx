@@ -11,10 +11,11 @@
 
 import { useState } from "react";
 import type { Course, Lesson, PuzzleBlock } from "../data/types";
-import { isExerciseKind, isPuzzle, isQuiz } from "../data/types";
+import { isCloze, isExerciseKind, isPuzzle, isQuiz } from "../data/types";
 import MobileReader from "./MobileReader";
 import MobileQuiz from "./MobileQuiz";
 import MobilePuzzle from "./MobilePuzzle";
+import MobileCloze from "./MobileCloze";
 import MobileOutline from "./MobileOutline";
 import { Icon } from "@base/primitives/icon";
 import { chevronLeft } from "@base/primitives/icon/icons/chevron-left";
@@ -136,6 +137,15 @@ export default function MobileLesson({
           <MobilePuzzle
             blocks={lesson.blocks}
             solutionOrder={lesson.solutionOrder}
+            prompt={lesson.prompt}
+            onComplete={onComplete}
+            isCompleted={isCompleted}
+          />
+        )}
+        {isCloze(lesson) && (
+          <MobileCloze
+            template={lesson.template}
+            slots={lesson.slots}
             prompt={lesson.prompt}
             onComplete={onComplete}
             isCompleted={isCompleted}
