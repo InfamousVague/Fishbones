@@ -25,20 +25,23 @@
   color: var(--color-text-primary);
 }
 
+/* Compact 28px search affordance — see MobileLibrary.css `.m-lib__search`
+   for the rationale (search is secondary on mobile, the wordmark wins). */
 .m-prof__search {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   background: var(--color-bg-elevated, #19191d);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
   color: var(--color-text-secondary);
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.12s ease, color 0.12s ease;
+  margin-top: 6px;
 }
 
 .m-prof__search:active {
@@ -50,6 +53,42 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+}
+
+/* Stat cards fade-rise on mount with a tiny per-card delay so the
+   profile reads as composing itself rather than flashing in. The
+   level bar + section blocks below get a single later fade so
+   they don't fight the cards for attention. */
+.m-prof__stat,
+.m-prof__level,
+.m-prof__section {
+  opacity: 0;
+  transform: translateY(4px);
+  animation: m-prof-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.m-prof__stat:nth-child(1) { animation-delay: 0ms;   }
+.m-prof__stat:nth-child(2) { animation-delay: 35ms;  }
+.m-prof__stat:nth-child(3) { animation-delay: 70ms;  }
+.m-prof__stat:nth-child(4) { animation-delay: 105ms; }
+.m-prof__level             { animation-delay: 140ms; }
+.m-prof__section           { animation-delay: 180ms; }
+
+@keyframes m-prof-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-prof__stat,
+  .m-prof__level,
+  .m-prof__section {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .m-prof__stat {

@@ -9,10 +9,16 @@ import "./MobileQuiz.css";
 
 interface Props {
   lesson: QuizLesson;
-  onComplete: () => void;
+  /// Retained for prop-shape compatibility — see comment on the
+  /// component. The dispatch passes it; we don't fire it.
+  onComplete?: () => void;
 }
 
-export default function MobileQuiz({ lesson, onComplete }: Props) {
+// onComplete prop is retained on the type but no longer fired here —
+// the lesson's bottom Next nav owns "mark complete + advance" across
+// every kind, same as desktop's handleNext. Within-quiz nav (between
+// questions) stays local.
+export default function MobileQuiz({ lesson }: Props) {
   const [idx, setIdx] = useState(0);
   // Per-question state. Stored in a Map so the user can swipe back and
   // see what they answered without losing it.
@@ -30,11 +36,13 @@ export default function MobileQuiz({ lesson, onComplete }: Props) {
   };
 
   const next = () => {
-    if (isLast) {
-      onComplete();
-    } else {
-      setIdx(idx + 1);
-    }
+    // Within-quiz navigation only — we step through questions but
+    // never fire `onComplete` from the last "Finish" press. The
+    // lesson's bottom Next nav owns "mark complete + advance"
+    // across every kind, same as desktop's handleNext. The user
+    // sees their final answer's reveal + explanation and taps Next
+    // to leave the quiz.
+    if (!isLast) setIdx(idx + 1);
   };
 
   const back = () => {
@@ -98,14 +106,19 @@ export default function MobileQuiz({ lesson, onComplete }: Props) {
             Back
           </button>
         )}
-        <button
-          type="button"
-          className="m-quiz__btn m-quiz__btn--primary"
-          onClick={next}
-          disabled={!reveal}
-        >
-          {isLast ? "Finish" : "Next"}
-        </button>
+        {/* No "Finish" — on the last question, the within-quiz nav
+            disappears once revealed and the learner uses the
+            lesson-level Next at the bottom of the screen. */}
+        {!isLast && (
+          <button
+            type="button"
+            className="m-quiz__btn m-quiz__btn--primary"
+            onClick={next}
+            disabled={!reveal}
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );

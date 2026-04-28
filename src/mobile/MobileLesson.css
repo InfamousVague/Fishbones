@@ -1,5 +1,12 @@
 .m-lesson {
-  padding: 12px 16px 16px;
+  /* Bottom padding clears the floating pill nav so the lesson's
+     Prev/Next buttons sit ABOVE it instead of getting cropped.
+     Other tabs (Library, Profile) still scroll edge-to-edge —
+     this padding is local to the lesson scroll where the dispatch
+     row needs to stay reachable. Pill height ≈ 52px + 12px gap +
+     safe-area inset, so 92px total clears the top of the pill
+     comfortably. */
+  padding: 12px 16px calc(env(safe-area-inset-bottom, 0) + 92px);
 }
 
 .m-lesson__head {

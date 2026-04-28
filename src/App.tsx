@@ -1630,6 +1630,10 @@ function LessonView({
         <div className="fishbones__lesson-scroll">
           <LessonReader lesson={lesson} />
           <MobileCloze
+            // Remount on lesson change so picks / fired-flag don't
+            // leak the previous lesson's "correct" state — same fix
+            // as the mobile MobileLesson dispatch.
+            key={lesson.id}
             template={lesson.template}
             slots={lesson.slots}
             prompt={lesson.prompt}

@@ -102,3 +102,94 @@
   opacity: 0.85;
   transform: scale(0.98);
 }
+
+/* ──────────── load-in shimmer + stagger ──────────── */
+
+/* Skeleton shown while markdown renders. Three or four lines of
+   varying length echo a typical lesson-opener layout (heading +
+   couple paragraphs) so the post-load pop is minimal. The
+   shimmer band drifts left-to-right at 1.4s — slow enough to
+   read as "loading", fast enough not to feel sluggish. */
+.m-reader__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0;
+}
+
+.m-reader__skel-line {
+  display: block;
+  height: 14px;
+  width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-secondary) 0%,
+    var(--color-bg-elevated, #19191d) 50%,
+    var(--color-bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: m-reader-shimmer 1.4s ease-in-out infinite;
+}
+
+.m-reader__skel-line--head {
+  height: 22px;
+  width: 70%;
+}
+
+.m-reader__skel-line--short {
+  width: 80%;
+}
+
+@keyframes m-reader-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Per-child fade + rise once the rendered markdown lands. We
+   stagger the first 12 children so the most common openers
+   (heading + paragraph + code block) cascade in. Children past
+   index 12 share the last slot's delay — anything below the
+   fold isn't visible during the animation window anyway. The
+   chosen 28ms step is fast enough that the page feels
+   responsive but slow enough that the cascade reads as
+   intentional rather than glitchy. */
+.m-reader__prose--enter > * {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: m-reader-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.m-reader__prose--enter > *:nth-child(1)  { animation-delay: 0ms;   }
+.m-reader__prose--enter > *:nth-child(2)  { animation-delay: 28ms;  }
+.m-reader__prose--enter > *:nth-child(3)  { animation-delay: 56ms;  }
+.m-reader__prose--enter > *:nth-child(4)  { animation-delay: 84ms;  }
+.m-reader__prose--enter > *:nth-child(5)  { animation-delay: 112ms; }
+.m-reader__prose--enter > *:nth-child(6)  { animation-delay: 140ms; }
+.m-reader__prose--enter > *:nth-child(7)  { animation-delay: 168ms; }
+.m-reader__prose--enter > *:nth-child(8)  { animation-delay: 196ms; }
+.m-reader__prose--enter > *:nth-child(9)  { animation-delay: 224ms; }
+.m-reader__prose--enter > *:nth-child(10) { animation-delay: 252ms; }
+.m-reader__prose--enter > *:nth-child(11) { animation-delay: 280ms; }
+.m-reader__prose--enter > *:nth-child(n+12) { animation-delay: 308ms; }
+
+@keyframes m-reader-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect reduced-motion: pop into view with no movement, no
+   shimmer pulse — accessibility / vestibular comfort wins over
+   the polish flourish. */
+@media (prefers-reduced-motion: reduce) {
+  .m-reader__skel-line {
+    animation: none;
+  }
+  .m-reader__prose--enter > * {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

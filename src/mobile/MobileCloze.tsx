@@ -25,9 +25,11 @@ interface Props {
   /// Used to pre-fill every slot with its answer + show the celebrate
   /// state immediately, so a re-visit reads as "you nailed this".
   isCompleted?: boolean;
-  /// Fired the first time every slot is correctly filled. The parent
-  /// records completion + advances to the next lesson.
-  onComplete: () => void;
+  /// Retained for prop-shape compatibility with the dispatch but no
+  /// longer auto-fired — the lesson's bottom Next nav owns "mark
+  /// complete + advance" across every kind. Underscored to silence
+  /// the unused-prop lint without changing the public type.
+  onComplete?: () => void;
 }
 
 interface SlotPick {
@@ -43,7 +45,6 @@ export default function MobileCloze({
   slots,
   prompt,
   isCompleted,
-  onComplete,
 }: Props) {
   // Per-slot pick state. Pre-filled with the answer when the lesson
   // is already complete so a re-visit shows the solved state at a
@@ -83,10 +84,11 @@ export default function MobileCloze({
   // and {kind: 'slot', id} segments so the renderer is a flat map.
   const segments = useMemo(() => parseTemplate(template), [template]);
 
-  // Validate after each pick. We mark the lesson complete the first
-  // time every slot's `picked === answer`. After firing once we
-  // latch — re-picking won't double-fire. (Backstop against the
-  // parent forgetting to navigate away on completion.)
+  // Reveal celebration the first time every slot is correct. We
+  // intentionally do NOT call onComplete here — the lesson's bottom
+  // Next nav owns "mark complete + advance" across every kind. This
+  // effect only flips the visual reveal state so the chips brighten
+  // up and the learner sees they've nailed it.
   useEffect(() => {
     if (fired) return;
     if (slots.length === 0) return;
@@ -95,8 +97,7 @@ export default function MobileCloze({
     }
     setRevealed(true);
     setFired(true);
-    onComplete();
-  }, [picks, slots, onComplete, fired]);
+  }, [picks, slots, fired]);
 
   const filledCount = slots.filter(
     (s) => picks[s.id]?.picked === s.answer,

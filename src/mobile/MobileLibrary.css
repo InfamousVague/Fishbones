@@ -34,25 +34,30 @@
   margin: 0;
 }
 
-/* Search-trigger button — a 40px square pill matching the visual
-   weight of the bottom-tab-bar icons. Sits flush with the top of
-   the title row so a user reading top-to-bottom doesn't have to
-   look down to find search. Tapping it opens the global
+/* Search-trigger button — a compact 28px square sitting top-right of
+   the header. Smaller than the tab-bar icons on purpose: search is a
+   secondary action on mobile (the primary path is browsing the
+   library grid + filter pills), so it shouldn't compete with the
+   "Library" wordmark for visual weight. Tapping it opens the global
    MobileSearchPalette. */
 .m-lib__search {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   background: var(--color-bg-elevated, #19191d);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
   color: var(--color-text-secondary);
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.12s ease, color 0.12s ease;
+  /* Nudge it down so it visually centers against the title baseline
+     rather than the title's top. Header uses align-items: flex-start
+     so we adjust here instead of changing the whole row's alignment. */
+  margin-top: 6px;
 }
 
 .m-lib__search:active {
@@ -137,6 +142,39 @@
 
 .m-lib__cell {
   display: block;
+  /* Fade-rise on mount, staggered per cell so the grid composes
+     itself top-to-bottom rather than flashing in as one block. CSS
+     :nth-child handles the delay so we don't need a JS animation
+     orchestrator. Keeping the rise small (4px) and the curve quick
+     (0.32s) so scrolls don't fight the entrance. */
+  opacity: 0;
+  transform: translateY(4px);
+  animation: m-lib-cell-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.m-lib__cell:nth-child(1)  { animation-delay: 0ms;   }
+.m-lib__cell:nth-child(2)  { animation-delay: 30ms;  }
+.m-lib__cell:nth-child(3)  { animation-delay: 60ms;  }
+.m-lib__cell:nth-child(4)  { animation-delay: 90ms;  }
+.m-lib__cell:nth-child(5)  { animation-delay: 120ms; }
+.m-lib__cell:nth-child(6)  { animation-delay: 150ms; }
+.m-lib__cell:nth-child(7)  { animation-delay: 180ms; }
+.m-lib__cell:nth-child(8)  { animation-delay: 210ms; }
+.m-lib__cell:nth-child(n+9) { animation-delay: 240ms; }
+
+@keyframes m-lib-cell-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-lib__cell {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .m-lib__tile {

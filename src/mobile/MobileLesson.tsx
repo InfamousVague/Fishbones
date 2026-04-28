@@ -129,12 +129,25 @@ export default function MobileLesson({
 
       <h1 className="m-lesson__title">{lesson.title}</h1>
 
+      {/*
+        Each interactive sub-component takes `key={lesson.id}` so React
+        remounts it when the parent navigates to a new lesson — without
+        this, useState-driven local state (staged blocks, picked chips,
+        check-result flag) leaks across lesson boundaries and the next
+        lesson opens already showing the previous lesson's "correct"
+        state. Reading + Quiz already self-contain their state per
+        lesson, but the puzzle / cloze / synthesised-exercise paths
+        were holding stale data that read as "auto-complete the moment
+        you arrive". Keying off lesson.id costs nothing on first
+        render and fixes the leak.
+      */}
       <div className="m-lesson__body">
         {isQuiz(lesson) && (
-          <MobileQuiz lesson={lesson} onComplete={onComplete} />
+          <MobileQuiz key={lesson.id} lesson={lesson} onComplete={onComplete} />
         )}
         {isPuzzle(lesson) && (
           <MobilePuzzle
+            key={lesson.id}
             blocks={lesson.blocks}
             solutionOrder={lesson.solutionOrder}
             prompt={lesson.prompt}
@@ -144,6 +157,7 @@ export default function MobileLesson({
         )}
         {isCloze(lesson) && (
           <MobileCloze
+            key={lesson.id}
             template={lesson.template}
             slots={lesson.slots}
             prompt={lesson.prompt}
@@ -156,6 +170,7 @@ export default function MobileLesson({
             const { blocks, solutionOrder } = blocksFromSolution(lesson.solution);
             return (
               <MobilePuzzle
+                key={lesson.id}
                 blocks={blocks}
                 solutionOrder={solutionOrder}
                 prompt={lesson.body}
@@ -166,7 +181,7 @@ export default function MobileLesson({
           })()
         )}
         {lesson.kind === "reading" && (
-          <MobileReader body={lesson.body} onContinue={onComplete} />
+          <MobileReader key={lesson.id} body={lesson.body} onContinue={onComplete} />
         )}
       </div>
 
@@ -181,10 +196,20 @@ export default function MobileLesson({
             <Icon icon={chevronLeft} size="base" />
             <span>Previous</span>
           </button>
+          {/*
+            Next behaves like the desktop's `handleNext`: if the lesson
+            isn't yet complete, this is the "I'm done — mark it and
+            advance" action; if it's already complete, it's a plain
+            navigation step. `onComplete` already does both
+            markCompleted + goNext on mobile, so the wiring collapses
+            to a single onClick. No more inline "mark complete" /
+            "next lesson" buttons inside puzzle / cloze / reader —
+            this row owns advancement across every kind.
+          */}
           <button
             type="button"
             className="m-lesson__nav-btn m-lesson__nav-btn--next"
-            onClick={onNext}
+            onClick={isCompleted ? onNext : onComplete}
             disabled={!onNext}
           >
             <span>Next</span>

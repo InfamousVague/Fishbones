@@ -17,8 +17,12 @@ interface Props {
   blocks: PuzzleBlock[];
   solutionOrder: string[];
   prompt?: string;
-  onComplete: () => void;
-  isCompleted: boolean;
+  /// Optional now — the lesson's bottom Next nav owns "mark complete
+  /// + advance". MobilePuzzle just validates the staged order.
+  onComplete?: () => void;
+  /// Same as above; unused locally but kept on the prop shape so
+  /// the dispatch can pass it without a per-kind branch.
+  isCompleted?: boolean;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -34,8 +38,6 @@ export default function MobilePuzzle({
   blocks,
   solutionOrder,
   prompt,
-  onComplete,
-  isCompleted,
 }: Props) {
   // Shuffle once per mount — re-mounting (e.g. via reset) re-shuffles.
   const initialPool = useMemo(() => shuffle(blocks), [blocks]);
@@ -63,7 +65,10 @@ export default function MobilePuzzle({
       ids.length === solutionOrder.length &&
       ids.every((id, i) => id === solutionOrder[i]);
     setChecked(matches ? "correct" : "wrong");
-    if (matches) onComplete();
+    // Don't fire onComplete here — the lesson dispatch's bottom Next
+    // owns "mark complete + advance" now (same model as desktop's
+    // handleNext). This action only validates; the user reads the
+    // "Correct." feedback and taps Next when they're ready.
   };
 
   const reset = () => {
@@ -135,6 +140,11 @@ export default function MobilePuzzle({
       )}
 
       <div className="m-puzzle__actions">
+        {/* No more "Next lesson" inline button — once the puzzle reads
+            "Correct." the user taps the lesson's bottom Next to mark
+            complete + advance. We keep Reset visible after a wrong
+            check so the learner can re-stage; we hide it after
+            correct because there's nothing to redo. */}
         {checked !== "correct" && (
           <button
             type="button"
@@ -145,7 +155,7 @@ export default function MobilePuzzle({
             Reset
           </button>
         )}
-        {checked !== "correct" ? (
+        {checked !== "correct" && (
           <button
             type="button"
             className="m-puzzle__btn m-puzzle__btn--primary"
@@ -153,14 +163,6 @@ export default function MobilePuzzle({
             disabled={stage.length === 0}
           >
             Check
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="m-puzzle__btn m-puzzle__btn--primary"
-            onClick={onComplete}
-          >
-            {isCompleted ? "Continue" : "Next lesson"}
           </button>
         )}
       </div>
