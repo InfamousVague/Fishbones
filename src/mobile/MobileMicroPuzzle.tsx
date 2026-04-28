@@ -43,6 +43,12 @@ interface Props {
   /// + advances to the next lesson — same auto-advance feel as
   /// quizzes finishing on a correct answer.
   onComplete?: () => void;
+  /// Fired when a card is solved (correct=true). The Practice tab
+  /// wires this to `usePracticeHistory.log` for spaced-repetition
+  /// scheduling. Lesson-context renderings leave it unset and no
+  /// schedule state is recorded — drilling within a course doesn't
+  /// pollute the Practice deck's "due" math.
+  onAttempt?: (cardId: string, correct: boolean) => void;
 }
 
 const SLOT_RE = /__SLOT_([A-Za-z0-9_-]+)__/g;
@@ -73,6 +79,7 @@ export default function MobileMicroPuzzle({
   prompt,
   isCompleted,
   onComplete,
+  onAttempt,
 }: Props) {
   // The deck walks one card at a time. `step` is the active index;
   // it advances on solve (with a brief celebration) or on tap of the
@@ -108,6 +115,7 @@ export default function MobileMicroPuzzle({
         index={step}
         total={challenges.length}
         isCompleted={isCompleted}
+        onAttempt={onAttempt}
         onSolved={() => {
           if (last) {
             // Last card just landed. Fire the lesson's
@@ -211,6 +219,7 @@ function Card({
   total,
   isCompleted,
   onSolved,
+  onAttempt,
 }: {
   card: MicroPuzzleCard;
   language: LanguageId;
@@ -218,6 +227,7 @@ function Card({
   total: number;
   isCompleted?: boolean;
   onSolved: () => void;
+  onAttempt?: (cardId: string, correct: boolean) => void;
 }) {
   // Build the wordbank pool from the card's blanks. Strategy:
   //   - One tile per blank for the answer (so the pool always
@@ -313,8 +323,13 @@ function Card({
     if (!allCorrect) return;
     if (fired.current) return;
     fired.current = true;
+    // Log to spaced-repetition history BEFORE firing onSolved so
+    // the next Daily-deck computation sees the fresh hit. Skipped
+    // on revisits where `fired.current` was pre-set (no real
+    // attempt happened).
+    if (onAttempt) onAttempt(card.id, true);
     onSolved();
-  }, [allCorrect, onSolved]);
+  }, [allCorrect, onSolved, onAttempt, card.id]);
 
   const usedTileIdxs = useMemo<Set<number>>(() => {
     const out = new Set<number>();

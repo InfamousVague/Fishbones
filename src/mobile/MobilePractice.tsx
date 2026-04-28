@@ -1,25 +1,33 @@
-/// Mobile Practice tab. A spaced-repetition-ish drill surface that
-/// pulls random `MicroPuzzleCard`s from every course the learner has
-/// touched, filtered by language. Think codecademy "review" — quick
-/// hits across the topics you've actually started, not a full course
-/// re-read.
+/// Mobile Practice tab — a HUB, not a flat card stack.
 ///
-/// The deck is built fresh on each tab open: we walk every course's
-/// lessons, collect cards from `MicroPuzzleLesson` entries, and
-/// shuffle. The user can:
-///   - Pick a language pill at the top (defaults to "all covered")
-///   - Tap "Shuffle" to draw a new deck of ~15 cards
-///   - Solve cards one at a time; auto-scroll to the next on correct
+/// Two screens, one component:
 ///
-/// "Covered" = the user has at least one completion in that language's
-/// courses. New learners see all available languages until their
-/// completion history kicks in. The bar isn't strict — it's a sane
-/// default that prioritises practice over discovery.
+///   1. Hub. The default surface. A featured "Mixed practice" hero
+///      card on top (drills from every language the learner has
+///      touched), then a grid of per-language tiles below ("Practice
+///      Python", "Practice Rust", …). Each tile shows the language's
+///      icon, name, and total drill count. Tapping a tile drills into
+///      mode #2.
 ///
-/// Reuses the existing `MicroPuzzleCard` rendering by constructing a
-/// synthetic stack and passing it into `MobileMicroPuzzle`. The cards
-/// retain their original `language` so highlighting picks the right
-/// Shiki grammar per row, even when the deck mixes languages.
+///   2. Deck. The actual card stack for the chosen mode. Has a back
+///      arrow to return to the hub, the mode title, a shuffle button,
+///      and the `MultiLangDeck` render that segments by language so
+///      Shiki picks the right grammar per row.
+///
+/// Why split the surface this way: the previous flat-list design
+/// dropped the learner straight into a randomised deck with a horizontal
+/// language pill bar — fine if you want to grind, but it didn't
+/// communicate "you can practice JUST Python", and the pill row
+/// hid behind a horizontal scroll past 4-5 languages. The hub layout
+/// surfaces every option as a first-class tappable area, and the
+/// deck-mode header keeps the back path obvious.
+///
+/// Card pool building (collect every `MicroPuzzleCard` from every
+/// course's `MicroPuzzleLesson`s, attach the source language + course
+/// title for highlighting + breadcrumbs) is unchanged from the old
+/// version — only the surface that picks a sub-pool is new. Stats /
+/// XP / completion records aren't touched here; this is a drill
+/// surface, not a progression one.
 
 import { useEffect, useMemo, useState } from "react";
 import type {
@@ -32,26 +40,42 @@ import { isMicroPuzzle } from "../data/types";
 import { Icon } from "@base/primitives/icon";
 import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
 import { shuffle as shuffleIcon } from "@base/primitives/icon/icons/shuffle";
+import { sparkles } from "@base/primitives/icon/icons/sparkles";
+import { sun } from "@base/primitives/icon/icons/sun";
+import { chevronLeft } from "@base/primitives/icon/icons/chevron-left";
+import LanguageChip from "../components/LanguageChip/LanguageChip";
 import MobileMicroPuzzle from "./MobileMicroPuzzle";
+import { usePracticeHistory } from "../hooks/usePracticeHistory";
 import "./MobilePractice.css";
 
 interface Props {
   courses: Course[];
   /// Completion set keyed `${courseId}:${lessonId}` (same shape the
-  /// rest of the mobile UI uses). Drives "covered" language detection.
+  /// rest of the mobile UI uses). Drives "covered" language detection
+  /// for the Mixed-practice card's "languages you've touched" copy.
   completed: Set<string>;
 }
 
 /// One card in the practice deck. Carries the source language so the
-/// renderer picks the right Shiki grammar — without this, a Python
-/// drill would highlight as JS if the deck happens to be primarily JS.
+/// renderer picks the right Shiki grammar per row, plus the source
+/// course title for a small breadcrumb above each card.
 interface DeckCard {
   card: MicroPuzzleCard;
   language: LanguageId;
-  /// Course title, shown as a tiny badge above the card so the
-  /// learner sees where this drill came from.
   courseTitle: string;
 }
+
+/// What the hub picked.
+///   - `mixed` rolls every covered language together (or every
+///     language with cards if no completions yet).
+///   - `daily` builds a curated 15-card session from the
+///     spaced-repetition state — due cards, then concept gaps, then
+///     reinforcement. The Daily tile only appears once the learner
+///     has any practice history at all.
+///   - A `LanguageId` filters to that one language's cards only.
+type Mode =
+  | { kind: "hub" }
+  | { kind: "deck"; filter: "mixed" | "daily" | LanguageId; title: string };
 
 const DECK_SIZE = 15;
 
@@ -84,8 +108,11 @@ function labelFor(id: LanguageId): string {
 }
 
 export default function MobilePractice({ courses, completed }: Props) {
-  // Every micropuzzle card across every course, with its source
-  // language attached so the renderer can highlight per row.
+  // Per-device practice history (localStorage-backed). Drives the
+  // Daily session's deck building and lets us record attempt
+  // outcomes for spaced-repetition scheduling.
+  const practiceHistory = usePracticeHistory();
+  // -------- card pool (unchanged from the previous design) -----------
   const allCards = useMemo<DeckCard[]>(() => {
     const out: DeckCard[] = [];
     for (const c of courses) {
@@ -97,11 +124,7 @@ export default function MobilePractice({ courses, completed }: Props) {
             // Skip degenerate zero-blank "context" cards — they don't
             // exercise anything in practice mode.
             if (!card.blanks || card.blanks.length === 0) continue;
-            out.push({
-              card,
-              language: mp.language,
-              courseTitle: c.title,
-            });
+            out.push({ card, language: mp.language, courseTitle: c.title });
           }
         }
       }
@@ -109,9 +132,26 @@ export default function MobilePractice({ courses, completed }: Props) {
     return out;
   }, [courses]);
 
+  // Per-language pool for the hub tiles + the Mixed-card languages
+  // breadcrumb. Built once per card-pool change.
+  const cardsByLang = useMemo<Map<LanguageId, number>>(() => {
+    const m = new Map<LanguageId, number>();
+    for (const c of allCards) m.set(c.language, (m.get(c.language) ?? 0) + 1);
+    return m;
+  }, [allCards]);
+
+  // Languages that actually have cards available — these become the
+  // hub tiles. Sorted by drill count descending so the language with
+  // the most practice material reads first.
+  const availableLangs = useMemo<LanguageId[]>(() => {
+    return Array.from(cardsByLang.keys()).sort(
+      (a, b) => (cardsByLang.get(b) ?? 0) - (cardsByLang.get(a) ?? 0),
+    );
+  }, [cardsByLang]);
+
   // Languages the learner has touched (any completion in a course of
-  // that language). Empty set on first visit → fall back to "every
-  // language with cards".
+  // that language). Empty on first launch → Mixed falls back to "every
+  // language with cards" so the screen still has something to drill.
   const coveredLangs = useMemo<Set<LanguageId>>(() => {
     const out = new Set<LanguageId>();
     for (const c of courses) {
@@ -123,43 +163,52 @@ export default function MobilePractice({ courses, completed }: Props) {
     return out;
   }, [courses, completed]);
 
-  // Languages that actually have cards available. Practice pills only
-  // surface what the learner can actually drill on.
-  const availableLangs = useMemo<LanguageId[]>(() => {
-    const seen = new Set<LanguageId>();
-    for (const c of allCards) seen.add(c.language);
-    return Array.from(seen);
-  }, [allCards]);
-
-  // The default pick: "all covered" if the user has any completions,
-  // otherwise "all" — new users still get a deck.
-  const [filter, setFilter] = useState<"covered" | "all" | LanguageId>(
-    "covered",
-  );
-  // A nonce that bumps every time the user taps Shuffle. Used as a
-  // useMemo dep so the deck re-shuffles deterministically per click
+  // -------- mode state ------------------------------------------------
+  const [mode, setMode] = useState<Mode>({ kind: "hub" });
+  // Bumps every time the user taps Shuffle (or re-enters the same
+  // deck). Used as a useMemo dep so the deck re-shuffles per click
   // rather than every parent render.
   const [shuffleNonce, setShuffleNonce] = useState(0);
 
-  // Filter the card pool by the active language pill, then shuffle and
-  // take DECK_SIZE.
+  // If the active mode is a per-language deck and that language
+  // disappears from the pool (courses re-hydrating with different
+  // contents), bounce back to the hub rather than rendering an empty
+  // deck with no recovery path.
+  useEffect(() => {
+    if (mode.kind !== "deck") return;
+    if (mode.filter === "mixed" || mode.filter === "daily") return;
+    if (!availableLangs.includes(mode.filter)) {
+      setMode({ kind: "hub" });
+    }
+  }, [mode, availableLangs]);
+
+  // -------- deck builder ---------------------------------------------
   const deck = useMemo<DeckCard[]>(() => {
+    if (mode.kind !== "deck") return [];
+    // Daily mode: hand the candidate pool to the practice-history
+    // hook and let its scheduler build the session. The pool is
+    // every covered card (or all cards on a fresh account) — the
+    // hook handles due-vs-unattempted-vs-reinforce mixing.
+    if (mode.filter === "daily") {
+      const candidatePool = coveredLangs.size > 0
+        ? allCards.filter((c) => coveredLangs.has(c.language))
+        : allCards;
+      return practiceHistory.dailyDeck(candidatePool, DECK_SIZE);
+    }
     let pool: DeckCard[];
-    if (filter === "all") {
-      pool = allCards;
-    } else if (filter === "covered") {
-      // Fall back to "all" for fresh accounts so the tab still has
-      // something on first launch.
+    if (mode.filter === "mixed") {
       pool = coveredLangs.size > 0
         ? allCards.filter((c) => coveredLangs.has(c.language))
         : allCards;
     } else {
-      pool = allCards.filter((c) => c.language === filter);
+      // Narrow away `"daily"` (handled above) so TS sees a
+      // LanguageId here.
+      const lang = mode.filter as LanguageId;
+      pool = allCards.filter((c) => c.language === lang);
     }
+    // Fisher-Yates seeded with shuffleNonce so the same nonce gives
+    // the same order — keeps useMemo deterministic across re-renders.
     const out = [...pool];
-    // Fisher-Yates. We seed with shuffleNonce so calling-this-twice
-    // with the same nonce returns the same deck (helps when React
-    // re-runs useMemo on prop equality).
     let seed = shuffleNonce * 9301 + 49297;
     const rnd = () => {
       seed = (seed * 1103515245 + 12345) & 0x7fffffff;
@@ -170,43 +219,70 @@ export default function MobilePractice({ courses, completed }: Props) {
       [out[i], out[j]] = [out[j], out[i]];
     }
     return out.slice(0, DECK_SIZE);
-    // shuffleNonce intentionally part of deps — that's the whole
-    // point of the re-shuffle button.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, allCards, coveredLangs, shuffleNonce]);
+  }, [mode, allCards, coveredLangs, shuffleNonce, practiceHistory.byCard]);
 
-  // Reset the implicit MicroPuzzle render when the deck changes —
-  // remounting via a stable key tied to filter+nonce so card-level
-  // state (which option each chip is on) clears on shuffle / tab
-  // switch. Same trick MobileLesson uses to wipe puzzle state on
-  // lesson nav.
-  const deckKey = `${filter}::${shuffleNonce}`;
+  // Stable key for forcing MicroPuzzle remount per shuffle / mode pick.
+  const deckKey =
+    mode.kind === "deck" ? `${mode.filter}::${shuffleNonce}` : "hub";
 
-  // If the user has never touched anything AND there are no cards
-  // available at all (e.g. fresh install with the courses still
-  // hydrating), render an empty-state so the screen isn't blank.
+  // -------- empty-state branch (no cards anywhere yet) ---------------
   const hasAnyCards = allCards.length > 0;
 
-  // Pre-compute per-language card counts for the pill badges so the
-  // user sees at a glance where the drill weight is.
-  const cardsByLang = useMemo<Map<LanguageId, number>>(() => {
-    const m = new Map<LanguageId, number>();
-    for (const c of allCards) m.set(c.language, (m.get(c.language) ?? 0) + 1);
-    return m;
-  }, [allCards]);
+  // -------- mode handlers --------------------------------------------
+  const enterMixed = () => {
+    setMode({ kind: "deck", filter: "mixed", title: "Mixed practice" });
+    setShuffleNonce((n) => n + 1);
+  };
+  const enterDaily = () => {
+    setMode({ kind: "deck", filter: "daily", title: "Daily session" });
+    setShuffleNonce((n) => n + 1);
+  };
+  const enterLanguage = (lang: LanguageId) => {
+    setMode({ kind: "deck", filter: lang, title: `${labelFor(lang)} practice` });
+    setShuffleNonce((n) => n + 1);
+  };
+  const backToHub = () => setMode({ kind: "hub" });
 
-  // When availableLangs changes (e.g. courses finish hydrating), make
-  // sure the active filter is still valid. Falling back to "covered"
-  // is safe — the deck builder handles the empty-set case.
-  useEffect(() => {
-    if (
-      filter !== "covered" &&
-      filter !== "all" &&
-      !availableLangs.includes(filter)
-    ) {
-      setFilter("covered");
-    }
-  }, [availableLangs, filter]);
+  // Daily tile preview — count of cards due RIGHT NOW. Drives the
+  // urgency badge on the Daily hero and the disabled state when
+  // there's nothing due (we still let learners click through —
+  // they get the "X cards due, plus M unattempted" mix).
+  const dueCount = useMemo(
+    () => practiceHistory.dueCards(allCards).length,
+    [practiceHistory, allCards],
+  );
+  const totalAttempts = useMemo(
+    () =>
+      Object.values(practiceHistory.byCard).reduce(
+        (acc, s) => acc + s.attempts,
+        0,
+      ),
+    [practiceHistory.byCard],
+  );
+
+  // -------- render ---------------------------------------------------
+  if (mode.kind === "deck") {
+    return (
+      <DeckView
+        title={mode.title}
+        deck={deck}
+        deckKey={deckKey}
+        onBack={backToHub}
+        onShuffle={() => setShuffleNonce((n) => n + 1)}
+        onAttempt={practiceHistory.log}
+      />
+    );
+  }
+
+  // Hub render path.
+  const mixedPool = coveredLangs.size > 0
+    ? allCards.filter((c) => coveredLangs.has(c.language))
+    : allCards;
+  const mixedSubtitle =
+    coveredLangs.size > 0
+      ? `${mixedPool.length} drills from ${coveredLangs.size} language${coveredLangs.size === 1 ? "" : "s"} you've touched.`
+      : `${mixedPool.length} drills across the catalog. Touch a course to focus this on what you're learning.`;
 
   return (
     <div className="m-prac">
@@ -217,107 +293,189 @@ export default function MobilePractice({ courses, completed }: Props) {
             <span>Practice</span>
           </h1>
           <p className="m-prac__subtitle">
-            {coveredLangs.size > 0
-              ? `Random drills from ${coveredLangs.size} language${coveredLangs.size === 1 ? "" : "s"} you've touched.`
-              : "Random drills across the catalog. Open a course to focus your practice on what you're learning."}
+            Pick what to drill — the whole catalog, or a single language.
           </p>
         </div>
-        <button
-          type="button"
-          className="m-prac__shuffle"
-          onClick={() => setShuffleNonce((n) => n + 1)}
-          aria-label="Shuffle the deck"
-          disabled={!hasAnyCards || deck.length === 0}
-        >
-          <Icon icon={shuffleIcon} size="sm" color="currentColor" />
-        </button>
       </header>
-
-      {hasAnyCards && availableLangs.length > 1 && (
-        <nav
-          className="m-prac__filter"
-          role="tablist"
-          aria-label="Filter by language"
-        >
-          {/* "Covered" is the default — anything the learner has
-              touched. Always shown if they have completions. */}
-          {coveredLangs.size > 0 && (
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === "covered"}
-              className={`m-prac__pill${filter === "covered" ? " m-prac__pill--active" : ""}`}
-              onClick={() => setFilter("covered")}
-            >
-              Covered
-              <span className="m-prac__pill-count">{coveredLangs.size}</span>
-            </button>
-          )}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={filter === "all"}
-            className={`m-prac__pill${filter === "all" ? " m-prac__pill--active" : ""}`}
-            onClick={() => setFilter("all")}
-          >
-            All
-            <span className="m-prac__pill-count">{allCards.length}</span>
-          </button>
-          {availableLangs.map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              role="tab"
-              aria-selected={filter === lang}
-              className={`m-prac__pill${filter === lang ? " m-prac__pill--active" : ""}`}
-              onClick={() => setFilter(lang)}
-            >
-              {labelFor(lang)}
-              <span className="m-prac__pill-count">
-                {cardsByLang.get(lang) ?? 0}
-              </span>
-            </button>
-          ))}
-        </nav>
-      )}
 
       {!hasAnyCards && (
         <p className="m-prac__empty">
-          No drills available yet. Once you launch the app on a fresh
-          install (or the seed refresh runs on next launch), the
-          Practice tab will fill with cards from across the catalog.
+          No drills available yet. Once a course with micro-puzzles
+          finishes loading, the Practice tab will fill in.
         </p>
       )}
 
-      {hasAnyCards && deck.length === 0 && (
-        <p className="m-prac__empty">
-          No drills match this filter. Try "All" or pick a different
-          language.
-        </p>
-      )}
+      {hasAnyCards && (
+        <>
+          {/* Daily session hero — the "smart" path. Pulls from the */}
+          {/* spaced-repetition state: due cards first, then concept */}
+          {/* gaps the learner hasn't seen yet, then gentle */}
+          {/* reinforcement of recent hits. We always show this tile */}
+          {/* (a fresh account just gets a deck of all-unattempted */}
+          {/* cards, which is a great onboarding session). */}
+          <button
+            type="button"
+            className="m-prac__hero m-prac__hero--daily"
+            onClick={enterDaily}
+            disabled={mixedPool.length === 0}
+          >
+            <span className="m-prac__hero-glyph" aria-hidden>
+              <Icon icon={sun} size="base" color="currentColor" />
+            </span>
+            <span className="m-prac__hero-body">
+              <span className="m-prac__hero-title">Daily session</span>
+              <span className="m-prac__hero-sub">
+                {totalAttempts === 0
+                  ? `15 fresh cards across ${coveredLangs.size > 0 ? "your covered languages" : "the catalog"} to get rolling.`
+                  : dueCount > 0
+                    ? `${dueCount} card${dueCount === 1 ? "" : "s"} due now, plus new + reinforcement.`
+                    : `Review pass — strengthening what you've already nailed.`}
+              </span>
+            </span>
+            <span className="m-prac__hero-count">
+              {Math.min(DECK_SIZE, mixedPool.length)}
+            </span>
+          </button>
 
-      {deck.length > 0 && (
-        // The MicroPuzzle renderer expects a single `language` for the
-        // whole deck (Shiki theme + grammar). When the deck mixes
-        // languages we group consecutive same-language runs and render
-        // them as separate sub-decks so each row's syntax highlighting
-        // is correct. Each sub-deck remounts on shuffle via the
-        // composite key.
-        <MultiLangDeck deck={deck} keyHint={deckKey} />
+          {/* Mixed-practice hero — pure shuffle across the covered */}
+          {/* pool. Useful when the learner wants to drill a different */}
+          {/* slice than the daily algorithm picks. */}
+          <button
+            type="button"
+            className="m-prac__hero"
+            onClick={enterMixed}
+            disabled={mixedPool.length === 0}
+          >
+            <span className="m-prac__hero-glyph" aria-hidden>
+              <Icon icon={sparkles} size="base" color="currentColor" />
+            </span>
+            <span className="m-prac__hero-body">
+              <span className="m-prac__hero-title">Mixed practice</span>
+              <span className="m-prac__hero-sub">{mixedSubtitle}</span>
+            </span>
+            <span className="m-prac__hero-count">
+              {mixedPool.length}
+            </span>
+          </button>
+
+          {/* Per-language tiles. Only render the section when there's */}
+          {/* more than one language in the pool — for a single-language */}
+          {/* learner, "Mixed" + "Practice X" are the same thing and the */}
+          {/* extra row is just noise. */}
+          {availableLangs.length > 1 && (
+            <section className="m-prac__section">
+              <h2 className="m-prac__section-title">By language</h2>
+              <ul className="m-prac__grid" role="list">
+                {availableLangs.map((lang) => (
+                  <li key={lang} className="m-prac__cell">
+                    <button
+                      type="button"
+                      className={`m-prac__tile${coveredLangs.has(lang) ? " m-prac__tile--covered" : ""}`}
+                      onClick={() => enterLanguage(lang)}
+                    >
+                      <span className="m-prac__tile-icon" aria-hidden>
+                        <LanguageChip
+                          language={lang}
+                          size="md"
+                          iconOnly
+                          className="m-prac__tile-chip"
+                        />
+                      </span>
+                      <span className="m-prac__tile-text">
+                        <span className="m-prac__tile-title">
+                          {labelFor(lang)}
+                        </span>
+                        <span className="m-prac__tile-meta">
+                          {cardsByLang.get(lang) ?? 0} drill
+                          {(cardsByLang.get(lang) ?? 0) === 1 ? "" : "s"}
+                          {coveredLangs.has(lang) && " · covered"}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-/// Helper: render a deck that may contain cards from different
-/// languages. We segment by run-length so a Python card renders with
-/// the Python grammar even when surrounded by JS cards. Each segment
-/// is its own `<MobileMicroPuzzle>` block; the visual gap between
-/// them is small enough that the user reads it as one continuous
-/// stack.
-function MultiLangDeck({ deck, keyHint }: { deck: DeckCard[]; keyHint: string }) {
+/// Deck-mode header + card stack. Lives as a separate component
+/// because the hub's layout is so different that conditional JSX
+/// in one return became unreadable.
+function DeckView({
+  title,
+  deck,
+  deckKey,
+  onBack,
+  onShuffle,
+  onAttempt,
+}: {
+  title: string;
+  deck: DeckCard[];
+  deckKey: string;
+  onBack: () => void;
+  onShuffle: () => void;
+  onAttempt: (cardId: string, correct: boolean) => void;
+}) {
+  return (
+    <div className="m-prac">
+      <header className="m-prac__deck-head">
+        <button
+          type="button"
+          className="m-prac__back"
+          onClick={onBack}
+          aria-label="Back to practice menu"
+        >
+          <Icon icon={chevronLeft} size="sm" color="currentColor" />
+        </button>
+        <h1 className="m-prac__deck-title">{title}</h1>
+        <button
+          type="button"
+          className="m-prac__shuffle"
+          onClick={onShuffle}
+          aria-label="Shuffle the deck"
+          disabled={deck.length === 0}
+        >
+          <Icon icon={shuffleIcon} size="sm" color="currentColor" />
+        </button>
+      </header>
+
+      {deck.length === 0 ? (
+        <p className="m-prac__empty">
+          No drills match this mode. Pop back to the menu and try a
+          different language.
+        </p>
+      ) : (
+        <MultiLangDeck deck={deck} keyHint={deckKey} onAttempt={onAttempt} />
+      )}
+    </div>
+  );
+}
+
+/// Render a deck that may contain cards from different languages by
+/// segmenting consecutive same-language runs. Each segment is its own
+/// `<MobileMicroPuzzle>` so Shiki picks the right grammar per card —
+/// without this, a Python card surrounded by JS cards would highlight
+/// as JS. Each segment remounts on shuffle via the composite key.
+function MultiLangDeck({
+  deck,
+  keyHint,
+  onAttempt,
+}: {
+  deck: DeckCard[];
+  keyHint: string;
+  onAttempt?: (cardId: string, correct: boolean) => void;
+}) {
   const segments = useMemo(() => {
-    const out: Array<{ language: LanguageId; cards: MicroPuzzleCard[]; courseTitles: string[] }> = [];
+    const out: Array<{
+      language: LanguageId;
+      cards: MicroPuzzleCard[];
+      courseTitles: string[];
+    }> = [];
     for (const dc of deck) {
       const last = out[out.length - 1];
       if (last && last.language === dc.language) {
@@ -342,6 +500,7 @@ function MultiLangDeck({ deck, keyHint }: { deck: DeckCard[]; keyHint: string })
           challenges={seg.cards}
           language={seg.language}
           prompt={undefined}
+          onAttempt={onAttempt}
         />
       ))}
     </div>

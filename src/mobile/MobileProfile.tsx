@@ -496,7 +496,7 @@ export default function MobileProfile({
                 }
               >
                 <span className="m-prof__badge-icon" aria-hidden>
-                  <Icon icon={m.icon} size="md" color="currentColor" />
+                  <Icon icon={m.icon} size="sm" color="currentColor" />
                 </span>
                 <span className="m-prof__badge-label">{m.label}</span>
                 <span className="m-prof__badge-meta">
@@ -654,7 +654,7 @@ function RingGauge({
       </svg>
       <div className="m-prof__ring-body">
         <span className="m-prof__ring-icon" aria-hidden>
-          <Icon icon={icon} size="md" color="currentColor" />
+          <Icon icon={icon} size="sm" color="currentColor" />
         </span>
         <span className="m-prof__ring-value">{value}</span>
         <span className="m-prof__ring-label">{label}</span>

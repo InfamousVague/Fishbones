@@ -1,5 +1,9 @@
-/* Mobile Practice tab. Shares the same outer-padding rhythm as
-   Library / Profile so the three top-level views read as siblings. */
+/* Mobile Practice tab. Two surfaces (hub + deck) share this stylesheet
+   so the visual rhythm — outer padding, header type ramp, card radii —
+   stays consistent when the user drills in and pops back out.
+
+   Outer padding mirrors Library / Profile (18px / 16px / 8px) so the
+   three top-level mobile views read as siblings. */
 
 .m-prac {
   padding: 18px 16px 8px;
@@ -8,8 +12,8 @@
   gap: 14px;
 }
 
-/* Title + subtitle on the left, shuffle button on the far right —
-   same pattern Library / Profile use for their search affordance. */
+/* --- HUB header (default surface) ----------------------------------- */
+
 .m-prac__head {
   display: flex;
   align-items: flex-start;
@@ -48,9 +52,235 @@
   line-height: 1.4;
 }
 
-/* Shuffle button — same shape as the Library/Profile search button so
-   the three tabs look cousin'd. Flips the icon by 12° on press for a
-   tactile cue. */
+/* --- HERO TILE (Mixed practice) ------------------------------------- */
+/* Full-width prominent card with a subtle gradient — the "default" CTA
+   on the hub. Bigger type than the per-language tiles; the icon is
+   positioned in the top-left so the eye hits glyph → title → subtitle
+   in one sweep. */
+
+.m-prac__hero {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 18px 18px 16px;
+  text-align: left;
+  /* `--hero-tone` lets each hero variant (Mixed / Daily) pick its
+     own accent color for the gradient + glyph badge. Defaults to
+     a blue accent — Daily overrides to amber so the two tiles
+     read as distinct affordances at a glance. */
+  --hero-tone: var(--color-accent, #7c5cff);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--hero-tone) 18%, var(--color-bg-secondary)) 0%,
+    var(--color-bg-secondary) 70%
+  );
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-text-primary);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.m-prac__hero:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.m-prac__hero:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Daily session — amber tone with a stronger glow so it reads as
+   the "smart pick" the user should default to. Sits above the
+   Mixed-practice hero; small margin separates them. */
+.m-prac__hero--daily {
+  --hero-tone: #fcd34d;
+  margin-bottom: 4px;
+}
+
+.m-prac__hero--daily .m-prac__hero-glyph {
+  background: rgba(252, 211, 77, 0.18);
+  color: #fcd34d;
+  box-shadow: 0 0 0 1px rgba(252, 211, 77, 0.22) inset;
+}
+
+.m-prac__hero-glyph {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: var(--color-text-primary);
+  /* Subtle glow to mark this as the hero affordance. */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.m-prac__hero-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.m-prac__hero-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.m-prac__hero-sub {
+  font-size: 12.5px;
+  color: var(--color-text-tertiary);
+  line-height: 1.4;
+  /* Constrain to two lines on tighter screens so the count chip
+     doesn't get pushed below. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.m-prac__hero-count {
+  flex-shrink: 0;
+  min-width: 36px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 800;
+  font-feature-settings: "tnum";
+  text-align: center;
+}
+
+/* --- BY-LANGUAGE GRID ----------------------------------------------- */
+
+.m-prac__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.m-prac__section-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.m-prac__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 320px) {
+  .m-prac__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.m-prac__cell {
+  display: block;
+}
+
+.m-prac__tile {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-text-primary);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease,
+    transform 0.08s ease;
+}
+
+.m-prac__tile:active {
+  background: var(--color-bg-elevated);
+  transform: scale(0.98);
+}
+
+/* Languages the learner has touched get a slightly emphasised border —
+   a quiet hint that "this is where you've been working" without
+   shouting "covered!" in copy form. */
+.m-prac__tile--covered {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.m-prac__tile-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  /* The LanguageChip's internal styling gives us the colored badge — we
+     just need a sized container. */
+}
+
+.m-prac__tile-chip {
+  /* Override LanguageChip's default margin so it centers cleanly. */
+  margin: 0;
+}
+
+.m-prac__tile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.m-prac__tile-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m-prac__tile-meta {
+  font-size: 11.5px;
+  color: var(--color-text-tertiary);
+  font-feature-settings: "tnum";
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- DECK header (drill surface) ------------------------------------ */
+/* Three-column row: back arrow / title / shuffle. Title is centered
+   between them so a long title doesn't shove the shuffle button off
+   the right edge. */
+
+.m-prac__deck-head {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-prac__back,
 .m-prac__shuffle {
   width: 36px;
   height: 36px;
@@ -64,10 +294,14 @@
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, color 0.12s ease, transform 0.18s
-    cubic-bezier(0.22, 1, 0.36, 1);
-  /* Nudge down so it visually centers against the title baseline. */
-  margin-top: 4px;
+  transition: background 0.12s ease, color 0.12s ease,
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.m-prac__back:active {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transform: translateX(-2px);
 }
 
 .m-prac__shuffle:active:not(:disabled) {
@@ -81,61 +315,21 @@
   cursor: not-allowed;
 }
 
-/* Filter pills — copy the Library variant exactly so the row reads
-   the same across both screens. */
-.m-prac__filter {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  gap: 8px;
-  padding: 2px 0 4px;
-  scrollbar-width: none;
-}
-
-.m-prac__filter::-webkit-scrollbar {
-  display: none;
-}
-
-.m-prac__pill {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+.m-prac__deck-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  text-align: center;
+  /* Keep long titles from wrapping into a multi-line header — ellipsis
+     is fine since the back arrow makes "where am I" obvious anyway. */
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s
-    ease;
 }
 
-.m-prac__pill:active {
-  background: var(--color-bg-elevated);
-}
-
-.m-prac__pill--active {
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
-}
-
-.m-prac__pill-count {
-  font-size: 11px;
-  font-weight: 700;
-  opacity: 0.7;
-  font-feature-settings: "tnum";
-}
-
-.m-prac__pill--active .m-prac__pill-count {
-  opacity: 0.85;
-}
+/* --- empty state ---------------------------------------------------- */
 
 .m-prac__empty {
   font-size: 13px;
@@ -148,22 +342,21 @@
   line-height: 1.5;
 }
 
-/* The deck itself — segments stack vertically with a small gap so the
-   transitions between languages don't visually crash. The inner
-   MobileMicroPuzzle each render their own padding via `.m-mp`, so we
-   pull our padding off here to avoid double-pad. */
+/* --- the rendered deck ---------------------------------------------- */
+/* The MicroPuzzle's own .m-mp has horizontal padding that aligns with
+   Library / Profile. The Practice container already supplies the outer
+   16px — kill the inner so the cards align edge-to-edge with the hub
+   tiles. */
+
 .m-prac__deck {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  /* Bottom padding clears the floating pill nav so the last card sits
-     above it. Same arithmetic as MobileLesson. */
+  /* Bottom padding clears the floating pill nav. Same arithmetic as
+     MobileLesson. */
   padding-bottom: calc(env(safe-area-inset-bottom, 0) + 92px);
 }
 
 .m-prac__deck > .m-mp {
-  /* The MicroPuzzle's own .m-mp has horizontal padding that aligns
-     with Library / Profile. The Practice container already supplies
-     the outer 16px — kill the inner so the cards align. */
   padding: 0;
 }
