@@ -20,7 +20,7 @@
 /// `npm run vendor:web`.
 
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile, stat } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 
@@ -387,10 +387,12 @@ async function main() {
       const info = await stat(outFile);
 
       // Cover art — three-tier lookup, first match wins:
-      //   1. cover-overrides/<id>.png — manual designer drop-in.
+      //   1. cover-overrides/<pack-id>.png — manual designer drop-in.
       //      Lets us replace stale or missing in-zip covers without
       //      re-zipping the .fishbones (which often invalidates the
-      //      pack's checksum on disk).
+      //      pack's checksum on disk). Also accepts cover-overrides/
+      //      <course-id>.png for callers who keep overrides keyed
+      //      to the in-zip course id rather than the pack filename.
       //   2. cover.png inside the .fishbones zip — the historical
       //      home for course artwork, set when the pack was first
       //      authored.
@@ -401,13 +403,33 @@ async function main() {
       // All three converge on the same 480px JPEG q78 output so
       // downstream consumers (web manifest, kata library shelf) don't
       // care which path produced it.
-      const overridePath = join(COVER_OVERRIDES, `${id}.png`);
+      //
+      // The cover JPEG is written under BOTH the in-zip course id AND
+      // the pack filename slug. The kata web build's `useCourseCover`
+      // hook resolves to `/starter-courses/<courseId>.jpg` (it only
+      // knows the in-zip id at runtime), while the marketing site's
+      // catalog reads the manifest's `cover` field directly. Without
+      // the duplicate, packs whose course.id differs from the pack
+      // filename (e.g. `rust-async-book` vs `the-async-book-rust`)
+      // 404 in the embedded /learn/ shelf and fall back to the
+      // language-tinted glyph tile.
+      const courseId = course.id || id;
+      const packOverride = join(COVER_OVERRIDES, `${id}.png`);
+      const courseOverride = join(COVER_OVERRIDES, `${courseId}.png`);
+      const overridePath = existsSync(packOverride)
+        ? packOverride
+        : existsSync(courseOverride)
+          ? courseOverride
+          : null;
       const inZipPath = join(work, "cover.png");
+      // Manifest references the pack-id JPEG so existing tooling
+      // (catalog grid, library shelf desktop) keeps resolving. The
+      // course-id copy is the duplicate written below.
       const candidate = `${id}.jpg`;
       const dst = join(OUT, candidate);
       let coverFile;
       let coverSource;
-      if (existsSync(overridePath) && resizeCover(overridePath, dst)) {
+      if (overridePath && resizeCover(overridePath, dst)) {
         coverFile = candidate;
         coverSource = "override";
       } else if (existsSync(inZipPath) && resizeCover(inZipPath, dst)) {
@@ -419,6 +441,20 @@ async function main() {
         console.log(
           `  ↳ synthesised themed cover for ${id} (${course.language})`,
         );
+      }
+      // Mirror the JPEG under the in-zip course id so the kata web
+      // build's `useCourseCover` hook (which keys on courseId, not
+      // pack filename) finds the file. Cheap copyFile when the names
+      // already match — and a no-op when nothing was written.
+      if (coverFile && courseId !== id) {
+        const courseDst = join(OUT, `${courseId}.jpg`);
+        try {
+          await copyFile(dst, courseDst);
+        } catch (err) {
+          console.warn(
+            `[starter-courses] failed to mirror cover ${dst} → ${courseDst}: ${err instanceof Error ? err.message : err}`,
+          );
+        }
       }
 
       // Normalise the editorial tier into the manifest so the
