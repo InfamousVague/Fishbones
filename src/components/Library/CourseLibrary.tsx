@@ -4,7 +4,11 @@ import { libraryBig } from "@base/primitives/icon/icons/library-big";
 import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
 import { isChallengePack } from "../../data/types";
-import BookCover from "./BookCover";
+import BookCover, {
+  releaseStatusFor,
+  releaseStatusIcon,
+  type ReleaseStatus,
+} from "./BookCover";
 import CourseContextMenu, { useCourseMenu } from "../Shared/CourseContextMenu";
 import FishbonesLoader from "../Shared/FishbonesLoader";
 import LanguageChip from "../LanguageChip/LanguageChip";
@@ -210,6 +214,52 @@ export default function CourseLibrary({
         }
       });
   }, [enriched, langFilter, kindFilter, sortBy, query]);
+
+  // Group filtered courses by release-status tier so the shelf/grid
+  // can render labelled sections. Reading order top → bottom mirrors
+  // editorial readiness: BETA first (final polish for release), ALPHA
+  // next (next up in the queue), UNREVIEWED last (drafts at the
+  // bottom of the library so they don't crowd reviewed work).
+  // Each section preserves the order of `filtered`, so the user's
+  // chosen sort still applies within a tier.
+  const SECTION_ORDER: ReadonlyArray<{
+    status: ReleaseStatus;
+    label: string;
+    blurb: string;
+  }> = [
+    {
+      status: "BETA",
+      label: "Final polish",
+      blurb: "One pass from release — final polish underway.",
+    },
+    {
+      status: "ALPHA",
+      label: "Next up",
+      blurb: "Queued for editorial review — content stable, polish in progress.",
+    },
+    {
+      status: "UNREVIEWED",
+      label: "Unreviewed",
+      blurb: "Drafts that haven't been editorially reviewed yet.",
+    },
+  ];
+
+  const sections = useMemo(() => {
+    const buckets = new Map<ReleaseStatus, typeof filtered>();
+    for (const e of filtered) {
+      const status = releaseStatusFor(e.course);
+      const bucket = buckets.get(status);
+      if (bucket) bucket.push(e);
+      else buckets.set(status, [e]);
+    }
+    // Materialize in the declared order; drop empty sections so we
+    // don't render headings with no books underneath.
+    return SECTION_ORDER.flatMap((s) => {
+      const rows = buckets.get(s.status) ?? [];
+      if (rows.length === 0) return [];
+      return [{ ...s, rows }];
+    });
+  }, [filtered]);
 
   // Count courses per language so the filter chips can show badges and
   // hide languages with zero courses (unless they're the active filter).
@@ -509,48 +559,121 @@ export default function CourseLibrary({
               </div>
             </div>
           ) : viewMode === "shelf" ? (
-            <div className="fishbones-library-shelf">
-              {filtered.map((e) => (
-                <BookCover
-                  key={e.course.id}
-                  course={e.course}
-                  progress={e.pct}
-                  loading={hydrating?.has(e.course.id)}
-                  onOpen={() => onOpen(e.course.id)}
-                  onContextMenu={
-                    onExport || onDelete || onSettings
-                      ? (ev) => ctxMenu.show(e.course, ev)
-                      : undefined
-                  }
-                />
+            // Shelf mode — each release-status tier gets its own
+            // labelled section. Section heading + blurb sit above the
+            // cover grid; the inner .fishbones-library-shelf keeps its
+            // original layout so card sizing is unchanged.
+            <div className="fishbones-library-sections">
+              {sections.map((sec) => (
+                <section
+                  key={sec.status}
+                  className={`fishbones-library-section fishbones-library-section--${sec.status.toLowerCase()}`}
+                  aria-label={sec.label}
+                >
+                  <header className="fishbones-library-section-head">
+                    <span
+                      className={`fishbones-library-section-pill fishbones-book-status fishbones-book-status--${sec.status.toLowerCase()}`}
+                    >
+                      <Icon
+                        icon={releaseStatusIcon(sec.status)}
+                        size="xs"
+                        color="currentColor"
+                        className="fishbones-book-status-icon"
+                      />
+                      <span className="fishbones-book-status-label">
+                        {sec.status}
+                      </span>
+                    </span>
+                    <h2 className="fishbones-library-section-title">
+                      {sec.label}
+                    </h2>
+                    <span className="fishbones-library-section-count">
+                      {sec.rows.length}
+                    </span>
+                    <span className="fishbones-library-section-blurb">
+                      {sec.blurb}
+                    </span>
+                  </header>
+                  <div className="fishbones-library-shelf">
+                    {sec.rows.map((e) => (
+                      <BookCover
+                        key={e.course.id}
+                        course={e.course}
+                        progress={e.pct}
+                        loading={hydrating?.has(e.course.id)}
+                        onOpen={() => onOpen(e.course.id)}
+                        onContextMenu={
+                          onExport || onDelete || onSettings
+                            ? (ev) => ctxMenu.show(e.course, ev)
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           ) : (
-            <div className="fishbones-library-grid">
-              {filtered.map((e) => (
-                <CourseCard
-                  key={e.course.id}
-                  course={e.course}
-                  total={e.total}
-                  done={e.done}
-                  pct={e.pct}
-                  onOpen={() => onOpen(e.course.id)}
-                  onExport={
-                    onExport
-                      ? () => onExport(e.course.id, e.course.title)
-                      : undefined
-                  }
-                  onDelete={
-                    onDelete
-                      ? () => onDelete(e.course.id, e.course.title)
-                      : undefined
-                  }
-                  onContextMenu={
-                    onExport || onDelete || onSettings
-                      ? (ev) => ctxMenu.show(e.course, ev)
-                      : undefined
-                  }
-                />
+            // Grid mode — same sectioning rule, different inner layout.
+            <div className="fishbones-library-sections">
+              {sections.map((sec) => (
+                <section
+                  key={sec.status}
+                  className={`fishbones-library-section fishbones-library-section--${sec.status.toLowerCase()}`}
+                  aria-label={sec.label}
+                >
+                  <header className="fishbones-library-section-head">
+                    <span
+                      className={`fishbones-library-section-pill fishbones-book-status fishbones-book-status--${sec.status.toLowerCase()}`}
+                    >
+                      <Icon
+                        icon={releaseStatusIcon(sec.status)}
+                        size="xs"
+                        color="currentColor"
+                        className="fishbones-book-status-icon"
+                      />
+                      <span className="fishbones-book-status-label">
+                        {sec.status}
+                      </span>
+                    </span>
+                    <h2 className="fishbones-library-section-title">
+                      {sec.label}
+                    </h2>
+                    <span className="fishbones-library-section-count">
+                      {sec.rows.length}
+                    </span>
+                    <span className="fishbones-library-section-blurb">
+                      {sec.blurb}
+                    </span>
+                  </header>
+                  <div className="fishbones-library-grid">
+                    {sec.rows.map((e) => (
+                      <CourseCard
+                        key={e.course.id}
+                        course={e.course}
+                        total={e.total}
+                        done={e.done}
+                        pct={e.pct}
+                        onOpen={() => onOpen(e.course.id)}
+                        onExport={
+                          onExport
+                            ? () => onExport(e.course.id, e.course.title)
+                            : undefined
+                        }
+                        onDelete={
+                          onDelete
+                            ? () => onDelete(e.course.id, e.course.title)
+                            : undefined
+                        }
+                        onContextMenu={
+                          onExport || onDelete || onSettings
+                            ? (ev) => ctxMenu.show(e.course, ev)
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           )}

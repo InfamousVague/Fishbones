@@ -217,15 +217,17 @@
 }
 
 /* ── Language badge ──────────────────────────────────────────────
- * Brand-coloured pill in the top-right corner showing the course's
- * language icon. Sits above the cover image + gradient so it stays
- * legible against any background.
+ * Top-right pill showing the course's language icon (the same Simple-
+ * Icons component the rest of the app uses — see `lib/languages.tsx`).
+ * Treatment is unified with the release-status pill: a dark frosted-
+ * glass tile so both tags read clearly against busy cover art, with
+ * the brand colour applied to the icon itself rather than a white
+ * disc background.
  *
- * Inverted treatment vs. the original dark frosted fill: a near-
- * white surface with the brand-coloured glyph inside reads about
- * 2–3× more contrast on the dark themes Fishbones ships, AND keeps
- * dark brand marks (Python's blue snake, Three.js's logo, etc.)
- * from disappearing into a dark backdrop. */
+ * Why dropped the white disc: on photographic covers the white circle
+ * read like a flat sticker and pulled the eye away from the cover art.
+ * Dark glass + brand-coloured icon keeps the language readable while
+ * letting the cover stay the dominant visual. */
 .fishbones-book-langbadge {
   position: absolute;
   top: 8px;
@@ -234,26 +236,97 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  /* Bright disc face — the icon's brand colour reads sharply against
-     near-white regardless of cover art behind. */
-  background: #ffffff;
-  /* Brand colour for the SVG itself; defaults via the inline custom
-     property set on the element. Falls through to a slate grey if
-     the property isn't supplied (defensive — should never trigger). */
-  color: var(--book-langbadge-color, #1f2330);
-  /* Soft drop-shadow + hairline dark rim so the disc reads as a
-     physical chip lifted off the cover, not a sticker. */
+  width: 28px;
+  height: 28px;
+  /* Rounded square (not a circle) so the badge reads as an "icon
+     tile" the way Simple-Icons grids and macOS app icons do, and
+     pairs visually with the rounded-pill release-status tag on
+     the opposite corner. */
+  border-radius: 8px;
+  background: rgba(15, 15, 22, 0.72);
+  /* Brand colour for the SVG via the inline custom property set on
+     the element — vivid against the dark glass and matches the
+     LanguageChip coloring used elsewhere. */
+  color: var(--book-langbadge-color, #cfd1da);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* Frosted glass — same recipe as the release-status pill so the
+     two corners feel like one design system, not two. */
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(0, 0, 0, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.45);
   transition: none;
 }
 
 .fishbones-book-langbadge svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   display: block;
+}
+
+/* Release-status pill in the top-left corner. Pairs visually with the
+   language badge in the opposite corner: same dark frosted-glass
+   surface, same blur, same shadow recipe — only the foreground
+   (icon + text) picks up the tier colour so the eye reads the pill
+   as "tag" and the colour as the "tier".
+   Each tier modifier supplies one custom property for the foreground
+   colour; the base rule handles everything else. */
+.fishbones-book-status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  user-select: none;
+  pointer-events: none;
+  /* Dark frosted glass (matches the langbadge). The tier colour lives
+     in the foreground only — readable against any cover regardless
+     of what's behind. */
+  background: rgba(15, 15, 22, 0.72);
+  color: var(--book-status-fg, #cfd1da);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* The glyph picks up the tier's foreground colour via currentColor. */
+.fishbones-book-status-icon {
+  flex-shrink: 0;
+}
+
+/* The text label sits next to the icon. Letter-spacing and uppercase
+   come from the parent so we don't repeat them here. */
+.fishbones-book-status-label {
+  line-height: 1;
+}
+
+/* ALPHA — warm amber. "Next up" in the editorial pipeline. */
+.fishbones-book-status--alpha {
+  --book-status-fg: #f5b13a;
+}
+
+/* BETA — emerald. Top tier; final polish before release. */
+.fishbones-book-status--beta {
+  --book-status-fg: #4dd699;
+}
+
+/* UNREVIEWED — neutral slate. Bottom of the pipeline; drafts that
+   haven't been editorially reviewed yet. The renderer always
+   normalises legacy `"PRE-RELEASE"` values to `"UNREVIEWED"` (see
+   `releaseStatusFor` in BookCover.tsx) so we only need the one
+   modifier here. */
+.fishbones-book-status--unreviewed {
+  --book-status-fg: #9aa0b4;
 }

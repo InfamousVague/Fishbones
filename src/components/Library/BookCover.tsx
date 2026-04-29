@@ -1,9 +1,30 @@
 import { useEffect, useState } from "react";
+import { Icon } from "@base/primitives/icon";
+import { rocket } from "@base/primitives/icon/icons/rocket";
+import { flaskConical } from "@base/primitives/icon/icons/flask-conical";
+import { pencilLine } from "@base/primitives/icon/icons/pencil-line";
+import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
 import { useCourseCover } from "../../hooks/useCourseCover";
 import FishbonesLoader from "../Shared/FishbonesLoader";
 import { languageMeta } from "../../lib/languages";
 import "./BookCover.css";
+
+/// Pick a glyph that matches the editorial-pipeline metaphor for each
+/// tier. Pencil = drafting (unreviewed), flask = next up, rocket =
+/// final polish for launch. Exported so CourseLibrary's section
+/// header can render the same glyph next to the section title.
+export function releaseStatusIcon(status: ReleaseStatus): string {
+  switch (status) {
+    case "BETA":
+      return rocket;
+    case "ALPHA":
+      return flaskConical;
+    case "UNREVIEWED":
+    default:
+      return pencilLine;
+  }
+}
 
 interface Props {
   course: Course;
@@ -59,6 +80,14 @@ export default function BookCover({
   // reads against any cover.
   const langMeta = languageMeta(course.language);
   const LangIcon = langMeta.Icon;
+
+  // Release-status banner pinned to the top-left corner. Every shipped
+  // book is currently labelled PRE-RELEASE, except The Rust
+  // Programming Language which is ALPHA — it's furthest along the
+  // editorial pipeline of the local collection. This is intentionally
+  // hardcoded right now; if/when more books move tiers we'll lift the
+  // mapping into a manifest field.
+  const releaseStatus = releaseStatusFor(course);
 
   return (
     <button
@@ -134,6 +163,24 @@ export default function BookCover({
         <LangIcon />
       </span>
 
+      {/* Release-status pill in the top-left corner. Tinted bg +
+          colored text and glyph (matches the language-badge approach
+          of letting brand colour do the visual work). The icon shifts
+          per tier \u2014 pencil for ALPHA (drafting), flask for BETA
+          (testing), rocket for PRE-RELEASE (launching). */}
+      <span
+        className={`fishbones-book-status fishbones-book-status--${releaseStatus.toLowerCase()}`}
+        title={`${releaseStatus} \u2014 editorial tier`}
+      >
+        <Icon
+          icon={releaseStatusIcon(releaseStatus)}
+          size="xs"
+          color="currentColor"
+          className="fishbones-book-status-icon"
+        />
+        <span className="fishbones-book-status-label">{releaseStatus}</span>
+      </span>
+
       {/* Progress bar along the very bottom edge. Doubles as the visual
           affordance for "how far you've read". Hidden entirely when
           progress is 0 so untouched books don't show a strip. */}
@@ -157,6 +204,33 @@ export default function BookCover({
       )}
     </button>
   );
+}
+
+/// Release-status label for a single course tile. The editorial
+/// pipeline runs `UNREVIEWED` (drafts; bottom of the library) \u2192
+/// `ALPHA` (next up) \u2192 `BETA` (final polish for release; top).
+/// Exported so CourseLibrary can use the same rule to group books
+/// into sections.
+///
+/// The label is read from `course.releaseStatus` first (a per-course
+/// field on the on-disk `course.json` \u2014 set it there to promote
+/// or demote a book without a code change). Books with no field
+/// default to `UNREVIEWED` so brand-new imports land at the bottom
+/// of the library until they're editorially reviewed.
+///
+/// Legacy `"PRE-RELEASE"` values from before the rename normalise to
+/// `"UNREVIEWED"` here so on-disk data we haven't migrated yet still
+/// renders correctly.
+export type ReleaseStatus = "UNREVIEWED" | "ALPHA" | "BETA";
+
+export function releaseStatusFor(course: Pick<Course, "id" | "releaseStatus">): ReleaseStatus {
+  if (course.releaseStatus === "ALPHA" || course.releaseStatus === "BETA") {
+    return course.releaseStatus;
+  }
+  if (course.releaseStatus === "UNREVIEWED" || course.releaseStatus === "PRE-RELEASE") {
+    return "UNREVIEWED";
+  }
+  return "UNREVIEWED";
 }
 
 /// Short identifier rendered in the fallback tile when no cover image is

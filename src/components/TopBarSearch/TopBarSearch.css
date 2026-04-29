@@ -1,0 +1,95 @@
+/* TopBar search affordance — visually a search input, functionally a
+   button that opens the CommandPalette on click. The bar is sized at
+   roughly 40% of its earlier footprint (was 200–280px wide; now
+   80–112px) so it doesn't dominate the topbar — the palette is the
+   real search surface, and the placeholder + ⌘K hint are just a
+   discoverability cue. */
+
+.fishbones__tbsearch {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The whole bar is a real <button> styled to look like an input.
+   Click anywhere on it to open the command palette. */
+.fishbones__tbsearch-input-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 4px 0 8px;
+  /* 60% narrower than the previous 200/280px sizing. Tight enough to
+     mostly show the magnifying glass + the ⌘K kbd hint; the
+     placeholder text ellipsizes when there isn't room. */
+  min-width: 80px;
+  max-width: 112px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fishbones__tbsearch-input-row:hover,
+.fishbones__tbsearch-input-row:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.fishbones__tbsearch-input-row:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+.fishbones__tbsearch-icon {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  opacity: 0.85;
+}
+
+/* The placeholder text — looks like an input's placeholder but is
+   really a static span. Doesn't accept caret because the bar is a
+   button: clicking it opens the palette where typing actually
+   happens. Ellipsizes when the bar is too narrow to fit it. */
+.fishbones__tbsearch-placeholder {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Trailing ⌘K hint — purely decorative now (the parent button
+   handles the click). Kept as a span (not a nested button) so we
+   don't get nested interactive elements. */
+.fishbones__tbsearch-kbd {
+  flex-shrink: 0;
+  padding: 0 6px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-tertiary);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.fishbones__tbsearch-input-row:hover .fishbones__tbsearch-kbd {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.20);
+}

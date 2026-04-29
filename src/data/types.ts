@@ -143,6 +143,20 @@ export interface Course {
   /// link back to the original docs from the Library card's hover
   /// tooltip. Absent for PDF imports.
   sourceUrl?: string;
+  /// Editorial release tier. Drives the corner-pill on BookCover and
+  /// the section heading in CourseLibrary. Reading order, top of the
+  /// library to bottom:
+  ///   `BETA`       \u2014 final polish for release
+  ///   `ALPHA`      \u2014 next up in the queue
+  ///   `UNREVIEWED` \u2014 drafts; bottom of the library
+  /// Missing = `UNREVIEWED`. Set the field per-course in the on-disk
+  /// `course.json` to promote (or demote) a book without a code change.
+  ///
+  /// Legacy `"PRE-RELEASE"` values from before the tier rename still
+  /// deserialize and are normalised to `"UNREVIEWED"` by
+  /// `releaseStatusFor` until the migration script rewrites every
+  /// course.json on disk.
+  releaseStatus?: "UNREVIEWED" | "ALPHA" | "BETA" | "PRE-RELEASE";
 }
 
 export interface Chapter {
@@ -263,6 +277,15 @@ export interface ExerciseLesson extends LessonBase {
    */
   difficulty?: Difficulty;
   topic?: string;
+  /**
+   * Selects an enriched test harness with chain-aware globals.
+   * Default (undefined) keeps the legacy "tests run against compiled
+   * output / module exports" behavior. Set "evm" for Solidity/Vyper
+   * deploy+call lessons (test code receives a `chain` global with
+   * `deploy`, `read`, `write`, `expectRevert`); "solana" for LiteSVM
+   * lessons. See docs/evm-solana-runtime-design.md.
+   */
+  harness?: "evm" | "solana";
 }
 
 /**
@@ -280,6 +303,7 @@ export interface MixedLesson extends LessonBase {
   solutionFiles?: WorkbenchFile[];
   difficulty?: Difficulty;
   topic?: string;
+  harness?: "evm" | "solana";
 }
 
 /**
@@ -334,6 +358,38 @@ export function isCloze(lesson: Lesson): lesson is ClozeLesson {
 
 export function isMicroPuzzle(lesson: Lesson): lesson is MicroPuzzleLesson {
   return lesson.kind === "micropuzzle";
+}
+
+/// Lesson kinds we hide from the desktop navigation surfaces (sidebar,
+/// library, command palette, profile recents). All three are explicitly
+/// mobile-first drill formats — block arrangement, cloze fill-in, single-
+/// line micro-cloze — designed for big tap targets on phone / Apple Watch.
+/// On desktop the same content is much better delivered as the underlying
+/// `ExerciseLesson` they auto-derive from.
+///
+/// IMPORTANT: completion records + XP / streak still credit these
+/// lessons across devices. We only drop them from VISIBLE lists; the
+/// stats hooks keep operating on the unfiltered course tree (see
+/// `App.tsx` — `coursesAll` vs `courses`).
+export const DESKTOP_HIDDEN_KINDS: ReadonlySet<Lesson["kind"]> = new Set<
+  Lesson["kind"]
+>(["puzzle", "cloze", "micropuzzle"]);
+
+/// Returns a copy of `course` with `DESKTOP_HIDDEN_KINDS` lessons stripped
+/// from each chapter, and chapters that become empty dropped. Pure /
+/// referentially-stable when the input course's lesson set is unchanged
+/// (object-identity rebuilt only on actual filter changes), so wrapping
+/// the result in a `useMemo` keyed on the raw course list is cheap.
+export function filterCourseForDesktop(course: Course): Course {
+  return {
+    ...course,
+    chapters: course.chapters
+      .map((ch) => ({
+        ...ch,
+        lessons: ch.lessons.filter((l) => !DESKTOP_HIDDEN_KINDS.has(l.kind)),
+      }))
+      .filter((ch) => ch.lessons.length > 0),
+  };
 }
 
 /**

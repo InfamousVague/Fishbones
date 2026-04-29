@@ -394,6 +394,78 @@
   gap: 22px 16px;
 }
 
+/* Sectioned layout — the library now groups books by release status
+   (Alpha first, Pre-release second). Each `<section>` stacks a heading
+   row on top of the existing shelf/grid container. Generous vertical
+   gap between sections so the heading feels like a divider rather
+   than just another row. */
+.fishbones-library-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.fishbones-library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Section heading — pill (re-using the BookCover status colours so the
+   tier vocabulary is visually consistent with the per-card badge),
+   title, count, and a one-line blurb. The blurb wraps onto a second
+   line on narrow viewports; everything else stays on one row. */
+.fishbones-library-section-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.fishbones-library-section-pill {
+  /* Override the absolute-positioning the same class uses inside a
+     BookCover. In a section heading we want it inline. */
+  position: static;
+  top: auto;
+  left: auto;
+  z-index: auto;
+  pointer-events: auto;
+  font-size: 9.5px;
+}
+
+.fishbones-library-section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+.fishbones-library-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.fishbones-library-section-blurb {
+  flex: 1 1 240px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--color-text-tertiary);
+  line-height: 1.4;
+}
+
 /* View-mode segmented control — sits to the right of the sort dropdown.
    Two pills, active state inverted. Mirrors the existing pill patterns
    elsewhere in the app so it reads as standard chrome. */

@@ -263,7 +263,13 @@ export const LANGUAGE_META: Record<LanguageId, LanguageMeta> = {
   // ── Smart contracts ──────────────────────────────────────────
   // Solidity. Brand colour is the dark navy of the official wordmark
   // on docs.soliditylang.org; the glyph is the faceted-diamond mark.
-  solidity: { label: "Solidity", color: "#363636", Icon: SolidityIcon },
+  // Solidity's Simple-Icons brand colour is a near-black `#363636`,
+  // which disappears on the white book-cover language disc and is
+  // hard to read elsewhere on dark themes. Solidity is the Ethereum
+  // smart-contract language, so we adopt Ethereum's iconic `#627EEA`
+  // (the colour used on ethereum.org) — instantly more legible and
+  // strengthens the visual association.
+  solidity: { label: "Solidity", color: "#627EEA", Icon: SolidityIcon },
   // Vyper — Pythonic EVM contract language. Reuse the Solidity glyph
   // (both are smart-contract diamonds), but tint with Python's family
   // seafoam since the grammar derives from there.

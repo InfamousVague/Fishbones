@@ -278,28 +278,54 @@ const COVER_OVERRIDES = join(ROOT, "cover-overrides");
 ///     Kotlin, C#, Assembly, Swift, SvelteKit's Node sidecar). Those
 ///     stay desktop-only.
 const PACK_IDS = [
-  // Languages-as-a-foundation books.
-  // The Rust Programming Language ("the book") — open-source under MIT/Apache,
-  // safe to ship as a default. Runs via the proxied Rust playground (no
-  // local toolchain needed in the browser build).
+  // ── Languages-as-a-foundation books ────────────────────────────
+  // Long-form books that teach a language end-to-end. Order here is
+  // the order the library renders them on first launch.
   "the-rust-programming-language",
+  "rust-by-example",
+  "rust-async-book",
+  "rustonomicon",
+  "eloquent-javascript",
+  "javascript-info",
+  "javascript-the-definitive-guide",
+  "you-dont-know-js-yet",
+  "composing-programs",
+  "python-crash-course",
+  "learning-go",
 
-  // Frameworks + libraries
-  "svelte-5-complete",
+  // ── Computer-science fundamentals ──────────────────────────────
+  "algorithms-erickson",
+  "open-data-structures",
+  "crafting-interpreters-js",
+  "pro-git",
+
+  // ── Frameworks + libraries ─────────────────────────────────────
+  "svelte-tutorial",
   "solidjs-fundamentals",
   "htmx-fundamentals",
   "astro-fundamentals",
   "bun-complete",
   "react-native",
+  "learning-react-native",
+  "fluent-react",
+  "tauri-2-fundamentals",
+  "interactive-web-development-with-three-js-and-a-frame",
 
-  // Smart-contract / web3 / crypto
+  // ── Smart-contract / web3 / crypto ─────────────────────────────
+  "mastering-bitcoin",
+  "programming-bitcoin",
+  "mastering-ethereum",
+  "mastering-lightning-network",
   "solidity-complete",
+  "vyper-fundamentals",
   "solana-programs",
   "viem-ethers",
   "cryptography-fundamentals",
-  "vyper-fundamentals",
 
-  // Challenge packs — one per browser-runnable language
+  // ── Challenge packs ───────────────────────────────────────────
+  // One per browser-runnable language. C / C++ / Java / Kotlin /
+  // C# / Assembly / Swift live in the desktop bundle but stay out
+  // of the web set because their runtimes need a system compiler.
   "challenges-javascript-handwritten",
   "challenges-typescript-mo9c9k2o",
   "challenges-python-handwritten",
