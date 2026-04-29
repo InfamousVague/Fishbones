@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { UseFishbonesCloud } from "../../hooks/useFishbonesCloud";
+import { isWeb } from "../../lib/platform";
 import "./SignInDialog.css";
 
 /// Three-tab sign-in modal: email, Apple, Google. Used both by the
@@ -134,16 +135,120 @@ export default function SignInDialog({
     }
   }, [awaitingOAuth, cloud.signedIn, onClose]);
 
+  /// Holds the popup-window handle on the web variant so we can poll
+  /// `closed` (user dismissed it without finishing) and tear down the
+  /// pending state. Desktop doesn't need this — the OS owns the
+  /// browser tab.
+  const oauthPopupRef = useRef<Window | null>(null);
+  const oauthSessionRef = useRef<string | null>(null);
+
+  /// Web OAuth flow — we can't use `fishbones://` deep-links from a
+  /// browser, so the relay redirects to a `/oauth/done` page on this
+  /// origin instead, and that page postMessages the token back to
+  /// the opener. The relay's `build_return_url` allow-lists this
+  /// origin; passing any other URL falls through to the default
+  /// `fishbones://oauth/done`, which a browser can't follow.
+  ///
+  /// Returns `true` when the popup was opened so the caller knows
+  /// to flip into "awaiting" state. Returns `false` (and surfaces an
+  /// error message) when the popup was blocked or another path
+  /// fails before we hand off to the provider.
+  const startWebOAuth = (provider: "apple" | "google", sessionId: string): boolean => {
+    const returnTo = `${window.location.origin}/oauth/done`;
+    const url =
+      `${cloud.relayUrl}/fishbones/auth/${provider}/start` +
+      `?session=${encodeURIComponent(sessionId)}` +
+      `&return_to=${encodeURIComponent(returnTo)}`;
+    // Width/height roughly match Google's recommended OAuth popup
+    // dimensions — small enough to feel modal, big enough that the
+    // provider's own form doesn't horizontally scroll.
+    const features = "popup=yes,width=520,height=640";
+    const win = window.open(url, "fishbones-oauth", features);
+    if (!win) {
+      setOauthError(
+        "Couldn't open the sign-in popup — check your browser's pop-up blocker, then try again.",
+      );
+      return false;
+    }
+    oauthPopupRef.current = win;
+    oauthSessionRef.current = sessionId;
+    return true;
+  };
+
   const startOAuth = async (provider: "apple" | "google") => {
     setOauthError(null);
     try {
       const sessionId = generateSessionId();
-      await invoke("start_oauth", { provider, sessionId });
+      if (isWeb) {
+        if (!startWebOAuth(provider, sessionId)) return;
+      } else {
+        await invoke("start_oauth", { provider, sessionId });
+      }
       setAwaitingOAuth(true);
     } catch (e) {
       setOauthError(e instanceof Error ? e.message : String(e));
     }
   };
+
+  /// Web variant — listen for the popup's postMessage with the minted
+  /// token and feed it to the cloud hook (which persists, then fetches
+  /// `/me` to materialise the user). Also poll for the popup being
+  /// closed without success so we can clear the pending state instead
+  /// of leaving the dialog stuck in "Waiting for browser…" forever.
+  useEffect(() => {
+    if (!isWeb || !awaitingOAuth) return;
+
+    function onMessage(e: MessageEvent) {
+      // Origin pinning — only accept the postMessage if it came from
+      // our own /oauth/done page. The popup runs on the same origin
+      // as the parent (we always send return_to=<our-origin>/oauth/done),
+      // so anything else is either a misdirected message we should
+      // ignore or an attempted token exfiltration.
+      if (e.origin !== window.location.origin) return;
+      const data = e.data as { type?: string; token?: string; session?: string; error?: string } | null;
+      if (!data || data.type !== "fishbones-oauth") return;
+      // Session id check — defends against a stale popup whose token
+      // arrives after the user opened a new attempt with a fresh id.
+      if (oauthSessionRef.current && data.session !== oauthSessionRef.current) return;
+      if (data.token) {
+        void cloud.applyOAuthToken(data.token);
+      } else if (data.error) {
+        setOauthError(data.error);
+        setAwaitingOAuth(false);
+      }
+      try {
+        oauthPopupRef.current?.close();
+      } catch {
+        // Cross-origin popups sometimes throw on close after navigation.
+        // Not a problem — the user can dismiss it manually.
+      }
+      oauthPopupRef.current = null;
+      oauthSessionRef.current = null;
+    }
+    window.addEventListener("message", onMessage);
+
+    // Polling fallback — if the user closes the popup without
+    // completing, we never get a postMessage. A 750ms cadence is
+    // gentle on the event loop and quick enough that the dialog
+    // doesn't feel stuck.
+    const closedTimer = window.setInterval(() => {
+      const w = oauthPopupRef.current;
+      if (w && w.closed) {
+        window.clearInterval(closedTimer);
+        oauthPopupRef.current = null;
+        // Only clear awaitingOAuth if we haven't already signed in
+        // (the postMessage path closes the popup AFTER applying the
+        // token, and the parent watcher in App.tsx flips `awaiting`
+        // off on signedIn).
+        if (!cloud.signedIn) setAwaitingOAuth(false);
+      }
+    }, 750);
+
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.clearInterval(closedTimer);
+    };
+  }, [awaitingOAuth, cloud]);
 
   return (
     <div className="fishbones-signin-backdrop" onClick={onClose}>

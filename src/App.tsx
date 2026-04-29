@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { onOpenUrl, getCurrent as getCurrentDeepLinks } from "@tauri-apps/plugin-deep-link";
 import {
   Course,
   Lesson,
+  filterCourseForDesktop,
   isCloze,
   isExerciseKind,
   isMicroPuzzle,
@@ -36,8 +37,11 @@ import BulkImportDialog from "./components/ImportDialog/BulkImportDialog";
 import DocsImportDialog from "./components/ImportDialog/DocsImportDialog";
 import SettingsDialog from "./components/SettingsDialog/SettingsDialog";
 import CourseLibrary from "./components/Library/CourseLibrary";
+import ArchiveDropOverlay from "./components/Library/ArchiveDropOverlay";
+import { useArchiveDrop } from "./hooks/useArchiveDrop";
 import { DeferredMount, LoadingPane } from "./components/Shared/DeferredMount";
 import FishbonesLoader from "./components/Shared/FishbonesLoader";
+import DottedGradientBg from "./components/Shared/DottedGradientBg";
 import ConfirmDialog from "./components/ConfirmDialog/ConfirmDialog";
 import CourseSettingsModal from "./components/CourseSettings/CourseSettingsModal";
 import FloatingIngestPanel from "./components/IngestPanel/FloatingIngestPanel";
@@ -106,12 +110,27 @@ export default function App() {
   }
 
   const {
-    courses,
+    courses: coursesAll,
     loaded: coursesLoaded,
     refresh: refreshCourses,
     hydrateCourse,
     hydrating,
   } = useCourses();
+
+  // Desktop hides drill-style lesson kinds (puzzle / cloze / micropuzzle)
+  // from every navigation surface — they're mobile/watch-first formats
+  // designed for big tap targets, and on desktop the underlying
+  // `ExerciseLesson` they auto-derive from is the better presentation.
+  // Stats and completion records still credit drill completions; we keep
+  // `coursesAll` around for `useStreakAndXp` so XP / streak stay correct
+  // across devices. Every other downstream consumer (Sidebar, Library,
+  // CommandPalette, ProfileView, tab tracker, lesson lookup) gets the
+  // filtered list — see `filterCourseForDesktop` in data/types.ts for
+  // the rule.
+  const courses = useMemo(
+    () => coursesAll.map(filterCourseForDesktop),
+    [coursesAll],
+  );
 
   const [openTabs, setOpenTabs] = useState<OpenCourse[]>([]);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
@@ -334,7 +353,11 @@ export default function App() {
     if (!completed.has(key)) setCelebrateAt(Date.now());
     markCompleted(courseId, lessonId);
   }
-  const stats = useStreakAndXp(history, courses);
+  // Stats use the UNFILTERED list so XP / streak / longest-streak stay
+  // correct even when the learner racked up completions via drill kinds
+  // we hide from the desktop nav. See `filterCourseForDesktop` doc in
+  // data/types.ts.
+  const stats = useStreakAndXp(history, coursesAll);
 
   /// Per-course "last opened" timestamps for the sidebar carousel. Stored
   /// in localStorage so recent-first ordering survives an app restart.
@@ -713,10 +736,40 @@ export default function App() {
   }
 
   /// Import a previously-exported `.fishbones` (or legacy `.kata`) archive.
-  /// Opens the native file picker filtered to both extensions, then hands the
-  /// absolute path to the Rust `import_course` command which unzips into the
-  /// courses dir. On success we refresh the sidebar and jump to the first
-  /// lesson.
+  /// Shared importer used by BOTH the file-picker path and the
+  /// drag-drop path. Hands `archivePath` (an absolute fs path on
+  /// disk) to the Rust `import_course` command which unzips into
+  /// the courses dir, then refreshes the sidebar and opens the
+  /// first lesson if `andOpen` is true.
+  ///
+  /// `andOpen` defaults to true. Drag-drop sets it to true only on
+  /// the LAST item of a batch — earlier items just import quietly
+  /// so the user doesn't see tabs flap open and closed during a
+  /// multi-drop.
+  async function importArchiveAtPath(
+    archivePath: string,
+    andOpen: boolean = true,
+  ): Promise<string | null> {
+    const courseId = await invoke<string>("import_course", { archivePath });
+    const fresh = await refreshCourses();
+    if (!andOpen) return courseId;
+    const imported = fresh.find((c) => c.id === courseId);
+    if (!imported || imported.chapters.length === 0) return courseId;
+    const firstLessonId = imported.chapters[0].lessons[0]?.id;
+    if (!firstLessonId) return courseId;
+    setOpenTabs((prev) => {
+      const without = prev.filter((t) => t.courseId !== courseId);
+      const next = [...without, { courseId, lessonId: firstLessonId }];
+      setActiveTabIndex(next.length - 1);
+      return next;
+    });
+    setView("courses");
+    return courseId;
+  }
+
+  /// Opens the native file picker filtered to both extensions, then
+  /// imports the chosen path. Wraps `importArchiveAtPath` with the
+  /// picker + error reporting.
   async function importCourseArchive() {
     try {
       const picked = await openDialog({
@@ -724,21 +777,7 @@ export default function App() {
         filters: [{ name: "Fishbones course", extensions: ["fishbones", "kata"] }],
       });
       if (typeof picked !== "string") return; // user cancelled
-      const courseId = await invoke<string>("import_course", {
-        archivePath: picked,
-      });
-      const fresh = await refreshCourses();
-      const imported = fresh.find((c) => c.id === courseId);
-      if (!imported || imported.chapters.length === 0) return;
-      const firstLessonId = imported.chapters[0].lessons[0]?.id;
-      if (!firstLessonId) return;
-      setOpenTabs((prev) => {
-        const without = prev.filter((t) => t.courseId !== courseId);
-        const next = [...without, { courseId, lessonId: firstLessonId }];
-        setActiveTabIndex(next.length - 1);
-        return next;
-      });
-      setView("courses");
+      await importArchiveAtPath(picked);
     } catch (e) {
       console.error("[fishbones] import_course failed:", e);
       alert(
@@ -746,6 +785,41 @@ export default function App() {
       );
     }
   }
+
+  // Track in-flight drag-drop batch so we only "open" the LAST
+  // imported course (avoids tab thrash when 5+ files are dropped).
+  // Captured by ref because the hook's onImport callback is stable
+  // over the component lifetime — we don't want to re-subscribe the
+  // Tauri listener every time these change.
+  const dropBatchRef = useRef<{ remaining: number }>({ remaining: 0 });
+  const archiveDrop = useArchiveDrop({
+    onImport: async (archivePath: string) => {
+      const remaining = dropBatchRef.current.remaining;
+      const isLastInBatch = remaining <= 1;
+      try {
+        await importArchiveAtPath(archivePath, isLastInBatch);
+      } catch (e) {
+        console.error("[fishbones] dropped import failed:", e);
+        // Don't alert mid-batch — too noisy if a user dropped 10
+        // files and 2 had bad zips. The console error is enough; the
+        // overlay already conveys progress.
+      } finally {
+        dropBatchRef.current.remaining = Math.max(0, remaining - 1);
+      }
+    },
+  });
+  // Keep `dropBatchRef.remaining` synced to the progress total. The
+  // hook bumps `progress.total` once per batch (single setState at
+  // queue start), so this effect runs once per batch + once on
+  // teardown — cheap.
+  useEffect(() => {
+    if (archiveDrop.progress) {
+      dropBatchRef.current.remaining =
+        archiveDrop.progress.total - archiveDrop.progress.current + 1;
+    } else {
+      dropBatchRef.current.remaining = 0;
+    }
+  }, [archiveDrop.progress]);
 
   function closeTab(index: number) {
     const next = openTabs.filter((_, i) => i !== index);
@@ -772,6 +846,17 @@ export default function App() {
         sidebarCollapsed ? "fishbones--sidebar-collapsed" : ""
       }`}
     >
+      {/* Always-on top-left corner bloom — the same animated dotted
+          gradient used by the bootloader, but anchored top-left of the
+          viewport via `variant="corner"` and pointer-events disabled.
+          Fixed-position so it stays put across view changes. Lives
+          above the root .fishbones bg but below the topbar / sidebar /
+          panels (z-index 0); chrome with solid backgrounds covers it
+          where they overlap, but it peeks through any transparent
+          surface (e.g. the bootloader during fade-out, an empty
+          welcome view). */}
+      <DottedGradientBg variant="corner" />
+
       {/* First-load overlay. Shown until `useCourses` resolves its
           initial list so the learner sees a branded loader instead of
           an empty sidebar + blank welcome flash. Same fish-bone spinner
@@ -784,8 +869,23 @@ export default function App() {
         }`}
         aria-hidden={coursesLoaded}
       >
+        {/* Ambient halftone-dot gradient sits behind the spinner so
+            the cold-start screen doesn't read as a flat black rectangle.
+            Drifts on a 22s loop; honors prefers-reduced-motion. */}
+        <DottedGradientBg />
         <FishbonesLoader label="loading Fishbones…" />
       </div>
+
+      {/* Drag-and-drop import overlay. Listens at the app level via
+          `useArchiveDrop` so .fishbones / .kata files can be dropped
+          anywhere on the window — the OS-level Tauri webview drop
+          handler fires regardless of where in the React tree the
+          cursor is. The overlay is purely visual feedback. */}
+      <ArchiveDropOverlay
+        isDragging={archiveDrop.isDragging}
+        isImporting={archiveDrop.isImporting}
+        progress={archiveDrop.progress}
+      />
 
       <TopBar
         tabs={tabs}
@@ -800,6 +900,7 @@ export default function App() {
         }}
         onClose={closeTab}
         stats={stats}
+        history={history}
         onOpenProfile={() => setView("profile")}
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
@@ -808,30 +909,37 @@ export default function App() {
         // briefly during the `me` refetch); once it lands we pass a
         // concrete `signedIn` boolean so the row picks the right shape.
         //
-        // Web build: pretend we're permanently in a "no auth attempted"
-        // state. Passing `undefined` keeps the TopBar from rendering
-        // either a "Sign in" CTA or a signed-in chip — login is hidden
-        // entirely on the browser variant until OAuth has a web path.
-        signedIn={
-          isWeb ? undefined : cloud.user === null ? undefined : cloud.signedIn
-        }
+        // Both desktop and web ship the auth chip now. The web variant
+        // routes OAuth through a popup window that postMessages the
+        // token back via /oauth/done (see SignInDialog `startOAuth`)
+        // instead of the desktop's `fishbones://` deep-link callback.
+        // While `cloud.user === null` (booting) we still render
+        // `undefined` so the TopBar stays in its skeleton state and
+        // doesn't flash a "Sign in" CTA before we know the persisted
+        // token's actual status.
+        signedIn={cloud.user === null ? undefined : cloud.signedIn}
         userDisplayName={
-          !isWeb && cloud.signedIn && typeof cloud.user === "object" && cloud.user
+          cloud.signedIn && typeof cloud.user === "object" && cloud.user
             ? cloud.user.display_name
             : null
         }
         userEmail={
-          !isWeb && cloud.signedIn && typeof cloud.user === "object" && cloud.user
+          cloud.signedIn && typeof cloud.user === "object" && cloud.user
             ? cloud.user.email
             : null
         }
-        onSignIn={isWeb ? undefined : () => setSignInOpen(true)}
-        onSignOut={isWeb ? undefined : () => {
+        onSignIn={() => setSignInOpen(true)}
+        onSignOut={() => {
           void cloud.signOut();
         }}
         // Search trigger sits left of the stats chip; clicking it pops
         // the same CommandPalette that Cmd/Ctrl+K already binds.
         onOpenSearch={() => setPaletteOpen(true)}
+        // Feed the inline search input's pool. The TopBarSearch widget
+        // filters across all courses + their lessons; clicking a row
+        // routes through the same selectLesson path the sidebar uses.
+        courses={courses}
+        onOpenLesson={selectLesson}
       />
 
       <div className="fishbones__body">
@@ -1013,7 +1121,7 @@ export default function App() {
         <SettingsDialog
           cloud={cloud}
           onDismiss={() => setSettingsOpen(false)}
-          onRequestSignIn={isWeb ? undefined : () => setSignInOpen(true)}
+          onRequestSignIn={() => setSignInOpen(true)}
         />
       )}
 
@@ -1079,6 +1187,35 @@ export default function App() {
                 courseId: course.id,
               });
               current.language = language;
+              await invoke("save_course", {
+                courseId: course.id,
+                body: current,
+              });
+              await refreshCourses();
+            }}
+            onChangeMetadata={async (patch) => {
+              // Title / author / release-status edit. Same load →
+              // mutate → save → refresh as the language handler. The
+              // patch carries only the keys the user actually changed
+              // (modal computes the diff before calling). null on
+              // author or releaseStatus clears the field, so the
+              // course can fall back to "no byline" / "Unreviewed".
+              const current = await invoke<Course>("load_course", {
+                courseId: course.id,
+              });
+              if (typeof patch.title === "string") {
+                current.title = patch.title;
+              }
+              if (patch.author === null) {
+                delete (current as { author?: string }).author;
+              } else if (typeof patch.author === "string") {
+                current.author = patch.author;
+              }
+              if (patch.releaseStatus === null) {
+                delete (current as { releaseStatus?: string }).releaseStatus;
+              } else if (patch.releaseStatus !== undefined) {
+                current.releaseStatus = patch.releaseStatus;
+              }
               await invoke("save_course", {
                 courseId: course.id,
                 body: current,
@@ -1191,21 +1328,21 @@ export default function App() {
           quiet on every subsequent launch unless the user clicks
           "Skip" without ticking the checkbox.
 
-          Web build: skipped entirely. The sign-in flow relies on
-          Tauri's `start_oauth` command + a `fishbones://` deep-link
-          callback, neither of which exists in a plain browser. We
-          treat the web variant as "always anonymous" until that
-          flow is ported to a popup-based redirect. See SignInDialog
-          for the auth mechanics. */}
-      {!isWeb && <FirstLaunchPrompt cloud={cloud} />}
+          Web build: enabled. SignInDialog branches on `isWeb` to
+          route OAuth through a popup window that postMessages the
+          minted token back to the parent (instead of the desktop's
+          `fishbones://` deep-link callback). Email + password worked
+          unchanged on web all along — the dialog just wasn't being
+          rendered. */}
+      <FirstLaunchPrompt cloud={cloud} />
 
       {/* Re-openable sign-in modal. Driven by the "Sign in" button in
           the TopBar stats dropdown — separate from the first-launch
           prompt above (which has a one-time-show gate of its own).
-          The dialog auto-closes on a successful OAuth deep-link round-
-          trip via its internal `awaitingOAuth` watcher. Web build:
-          unreachable because the Sign-in CTA is also gated below. */}
-      {signInOpen && !isWeb && (
+          The dialog auto-closes on a successful OAuth round-trip
+          (deep-link on desktop, postMessage on web) via its internal
+          `awaitingOAuth` watcher. */}
+      {signInOpen && (
         <SignInDialog
           cloud={cloud}
           onClose={() => setSignInOpen(false)}
@@ -1417,6 +1554,10 @@ function LessonView({
         courseLanguage === "threejs"
           ? courseLanguage
           : lesson.language;
+      const harness =
+        "harness" in lesson
+          ? (lesson as { harness?: "evm" | "solana" }).harness
+          : undefined;
       const r = await runFiles(
         effectiveLanguage,
         files,
@@ -1427,6 +1568,7 @@ function LessonView({
         // re-runs hot-reload the same server instead of spinning
         // up a fresh project dir each time.
         `${courseId}:${lesson.id}`,
+        harness,
       );
       // Defensive guard: a runtime can theoretically resolve to
       // undefined (unknown language id slipping past the LanguageId

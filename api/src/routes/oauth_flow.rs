@@ -130,23 +130,44 @@ pub struct StartParams {
     pub return_to: Option<String>,
 }
 
+/// HTTPS return URLs we trust to receive a freshly-minted token.
+/// The web build of Fishbones can't follow a `fishbones://` deep-link,
+/// so its OAuth popup redirects through a same-origin `/oauth/done`
+/// page that postMessages the token back to the parent. Any URL not
+/// in this list (or matching the `fishbones://` / `kata://` scheme
+/// allowlist below) falls through to the default `fishbones://oauth/done`,
+/// which a browser can't follow — so an attacker who got the user
+/// to click `return_to=https://attacker.com/log?token=` simply ends
+/// up with a dead link in their popup, never the bearer.
+///
+/// Add new origins explicitly. Don't widen this to a wildcard.
+const WEB_RETURN_ALLOWLIST: &[&str] = &[
+    "https://fishbones.academy/oauth/done",
+];
+
 /// Build the deep-link return URL the desktop should be redirected
 /// to once auth completes. Always passes through this single helper
 /// so a redirect injection (`return_to=https://attacker.com`) gets
-/// caught here — we only allow the configured scheme prefix.
+/// caught here — we only allow the configured scheme prefix or an
+/// exact origin from `WEB_RETURN_ALLOWLIST`.
 fn build_return_url(
     desired: Option<&str>,
     session: &str,
     payload: ReturnPayload,
 ) -> String {
     let base = desired.unwrap_or("fishbones://oauth/done");
-    // Reject any return_to that isn't a custom-scheme URL — the
-    // browser-OAuth handoff is the only sanctioned shape, and an
+    // Reject any return_to that isn't either:
+    //   - a custom-scheme URL the desktop / iOS app handles, or
+    //   - an exact-match entry from WEB_RETURN_ALLOWLIST (the
+    //     fishbones.academy `/oauth/done` page that postMessages
+    //     the token back to the popup opener).
+    // The browser-OAuth handoff is the only sanctioned shape, and an
     // attacker who got the user to click a malicious link with
     // `return_to=https://attacker.com/log?fishbones_token=` would
     // otherwise leak the bearer.
     let safe_base = if base.starts_with("fishbones://")
         || base.starts_with("kata://")
+        || WEB_RETURN_ALLOWLIST.iter().any(|allowed| base == *allowed)
     {
         base
     } else {
