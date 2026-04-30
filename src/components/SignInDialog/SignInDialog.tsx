@@ -35,9 +35,7 @@ interface Props {
   blurb?: string;
 }
 
-type Tab = "email" | "apple" | "google";
-
-/// Email-tab sub-mode. Replaces the previous "try login, fall back to
+/// Email-form sub-mode. Replaces the previous "try login, fall back to
 /// signup" auto-flow which dead-ended whenever the user typed the
 /// wrong password for an existing account: login 401 → signup 409
 /// "account exists" → no path forward in the dialog. Explicit modes
@@ -69,10 +67,15 @@ export default function SignInDialog({
   headline,
   blurb,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("email");
   const [emailMode, setEmailMode] = useState<EmailMode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  /// Second password field on Create-account mode. Match check below
+  /// blocks submit when populated and ≠ password — catches typos in
+  /// the masked input before the user commits a password they can't
+  /// repeat. Cleared on mode switch so the Sign-in path never sees a
+  /// stale confirm value.
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   /// Local-only error state for the email tab. We don't surface
   /// `cloud.error` directly anymore because the explicit-mode form
   /// needs more nuanced messaging than the hook's pass-through 401
@@ -123,9 +126,10 @@ export default function SignInDialog({
   };
 
   /// Create-account submit. Validates length client-side (same 8-char
-  /// floor the relay enforces in api/src/routes/auth.rs) so the user
-  /// gets immediate feedback instead of a server round-trip 400. On
-  /// 409 ("already exists") we route the user to the Sign-in tab so
+  /// floor the relay enforces in api/src/routes/auth.rs) AND that
+  /// the confirm field matches before posting, so the user gets
+  /// immediate feedback instead of a server round-trip 400. On 409
+  /// ("already exists") we route the user to the Sign-in tab so
   /// they don't dead-end.
   const onSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,6 +137,10 @@ export default function SignInDialog({
     setCreatedNotice(false);
     if (password.length < PASSWORD_MIN_LENGTH) {
       setEmailError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setEmailError("Passwords don't match. Re-enter both fields.");
       return;
     }
     try {
@@ -157,15 +165,31 @@ export default function SignInDialog({
     }
   };
 
-  /// Reset the local error state when the user switches modes — the
-  /// previous mode's error becomes irrelevant ("password too short"
-  /// from a signup attempt shouldn't linger when the user clicks
-  /// Sign in to retry an existing account).
+  /// Reset the local error state + confirm field when the user
+  /// switches modes — the previous mode's error becomes irrelevant
+  /// ("password too short" from a signup attempt shouldn't linger
+  /// when the user clicks Sign in to retry an existing account), and
+  /// a stale confirm value would cause a "passwords don't match"
+  /// flash if they switched back to signup later.
   const switchEmailMode = (next: EmailMode) => {
     setEmailMode(next);
     setEmailError(null);
     setCreatedNotice(false);
+    setPasswordConfirm("");
   };
+
+  /// Inline mismatch hint shown under the confirm field while the
+  /// user is still typing. Stays empty until they've entered enough
+  /// characters in confirm to plausibly know whether it should match
+  /// — flashing "Passwords don't match" after the first keystroke is
+  /// noise. Threshold = the shorter of the two fields' lengths
+  /// (they're typing into confirm, so we know that length grows by
+  /// 1 each keystroke).
+  const confirmMismatch =
+    emailMode === "signUp" &&
+    passwordConfirm.length > 0 &&
+    passwordConfirm.length >= Math.min(password.length, 4) &&
+    password !== passwordConfirm;
 
   /// Auto-close once the deep-link path lands and the user record
   /// materialises. Watching `signedIn` (rather than the raw token)
@@ -318,71 +342,42 @@ export default function SignInDialog({
             "Optional — sync progress between devices, upload courses, and share them with friends. You can also keep using Fishbones without an account; everything else still runs locally."}
         </p>
 
-        <div className="fishbones-signin-tabs" role="tablist">
-          <button
-            role="tab"
-            aria-selected={tab === "email"}
-            className={`fishbones-signin-tab ${tab === "email" ? "fishbones-signin-tab--active" : ""}`}
-            onClick={() => setTab("email")}
-          >
-            Email
-          </button>
-          <button
-            role="tab"
-            aria-selected={tab === "apple"}
-            className={`fishbones-signin-tab ${tab === "apple" ? "fishbones-signin-tab--active" : ""}`}
-            onClick={() => setTab("apple")}
-          >
-            Apple
-          </button>
-          <button
-            role="tab"
-            aria-selected={tab === "google"}
-            className={`fishbones-signin-tab ${tab === "google" ? "fishbones-signin-tab--active" : ""}`}
-            onClick={() => setTab("google")}
-          >
-            Google
-          </button>
-        </div>
+        {/* Email is the primary form — always shown above the
+            Apple / Google buttons. Tabs were removed because the
+            three flows aren't mutually exclusive: a user typing
+            their email shouldn't have to first click "Email" to
+            see the form. */}
+        <form
+          onSubmit={emailMode === "signIn" ? onSignInSubmit : onSignUpSubmit}
+          className="fishbones-signin-form"
+        >
+          {/* Mode toggle — segmented Sign in / Create account.
+              Replaces the old "we'll figure out which one" copy
+              with an explicit choice. The submit handler, button
+              label, password autocomplete, strength meter, and
+              cross-link below all key off this state. */}
+          <div className="fishbones-signin-mode-toggle" role="tablist" aria-label="Email account mode">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={emailMode === "signIn"}
+              className={`fishbones-signin-mode-btn ${emailMode === "signIn" ? "fishbones-signin-mode-btn--active" : ""}`}
+              onClick={() => switchEmailMode("signIn")}
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={emailMode === "signUp"}
+              className={`fishbones-signin-mode-btn ${emailMode === "signUp" ? "fishbones-signin-mode-btn--active" : ""}`}
+              onClick={() => switchEmailMode("signUp")}
+            >
+              Create account
+            </button>
+          </div>
 
-        {tab === "email" && (
-          <form
-            onSubmit={emailMode === "signIn" ? onSignInSubmit : onSignUpSubmit}
-            className="fishbones-signin-form"
-          >
-            {/* Mode toggle — segmented Sign in / Create account.
-                Replaces the old "we'll figure out which one" copy
-                with an explicit choice. The submit handler, button
-                label, password autocomplete, strength meter, and
-                cross-link below all key off this state. */}
-            <div className="fishbones-signin-mode-toggle" role="tablist" aria-label="Email account mode">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={emailMode === "signIn"}
-                className={`fishbones-signin-mode-btn ${emailMode === "signIn" ? "fishbones-signin-mode-btn--active" : ""}`}
-                onClick={() => switchEmailMode("signIn")}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={emailMode === "signUp"}
-                className={`fishbones-signin-mode-btn ${emailMode === "signUp" ? "fishbones-signin-mode-btn--active" : ""}`}
-                onClick={() => switchEmailMode("signUp")}
-              >
-                Create account
-              </button>
-            </div>
-
-            <p className="fishbones-signin-helper">
-              {emailMode === "signIn"
-                ? "Welcome back. Enter the email and password you signed up with."
-                : "New here? We'll set up your account so progress syncs across devices."}
-            </p>
-
-            <label className="fishbones-signin-field">
+          <label className="fishbones-signin-field">
               <span>Email</span>
               <input
                 type="email"
@@ -398,159 +393,182 @@ export default function SignInDialog({
                 flips between current-password (Sign in) and
                 new-password (Create account) so password managers
                 pick the right slot. */}
+          <PasswordField
+            value={password}
+            onChange={setPassword}
+            showStrength={emailMode === "signUp"}
+            autoComplete={emailMode === "signUp" ? "new-password" : "current-password"}
+            required
+            disabled={cloud.busy}
+            helper={
+              emailMode === "signUp"
+                ? `At least ${PASSWORD_MIN_LENGTH} characters. Mix cases, digits, and symbols for a stronger password.`
+                : null
+            }
+          />
+
+          {/* Confirm-password field — only on Create account. The
+              inline `error` prop tints the border + replaces the
+              helper line with "Passwords don't match" once the
+              user has typed enough characters that a mismatch is
+              a typo rather than mid-edit. autoComplete=new-password
+              so password managers don't try to fill an existing
+              credential here. */}
+          {emailMode === "signUp" && (
             <PasswordField
-              value={password}
-              onChange={setPassword}
-              showStrength={emailMode === "signUp"}
-              autoComplete={emailMode === "signUp" ? "new-password" : "current-password"}
+              value={passwordConfirm}
+              onChange={setPasswordConfirm}
+              label="Confirm password"
+              showStrength={false}
+              autoComplete="new-password"
               required
               disabled={cloud.busy}
-              helper={
-                emailMode === "signUp"
-                  ? `At least ${PASSWORD_MIN_LENGTH} characters. Mix cases, digits, and symbols for a stronger password.`
-                  : null
-              }
+              helper={null}
+              error={confirmMismatch ? "Passwords don't match" : null}
             />
+          )}
 
-            {emailError && (
-              <p className="fishbones-signin-error">{emailError}</p>
-            )}
-            {createdNotice && !emailError && (
-              <p className="fishbones-signin-helper fishbones-signin-helper--success">
-                Welcome! Account created — signing you in…
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="fishbones-signin-primary"
-              disabled={
-                cloud.busy ||
-                email.length === 0 ||
-                password.length === 0 ||
-                // On Create account, also block the submit when the
-                // password is below the relay's minimum. Sign in
-                // doesn't gate on length — a legacy account might
-                // pre-date today's policy.
-                (emailMode === "signUp" && scorePassword(password).belowMinLength)
-              }
-            >
-              {cloud.busy
-                ? "…"
-                : emailMode === "signIn"
-                  ? "Sign in"
-                  : "Create account"}
-            </button>
-
-            {/* Cross-link — gives the user an unmistakable next step
-                when they realise they're on the wrong mode. Buttons
-                instead of <a> tags so we stay inside the dialog. */}
-            <p className="fishbones-signin-switch">
-              {emailMode === "signIn" ? (
-                <>
-                  Don't have an account?{" "}
-                  <button
-                    type="button"
-                    className="fishbones-signin-switch__link"
-                    onClick={() => switchEmailMode("signUp")}
-                  >
-                    Create one
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    className="fishbones-signin-switch__link"
-                    onClick={() => switchEmailMode("signIn")}
-                  >
-                    Sign in
-                  </button>
-                </>
-              )}
+          {emailError && (
+            <p className="fishbones-signin-error">{emailError}</p>
+          )}
+          {createdNotice && !emailError && (
+            <p className="fishbones-signin-helper fishbones-signin-helper--success">
+              Welcome! Account created — signing you in…
             </p>
-          </form>
-        )}
+          )}
 
-        {(tab === "apple" || tab === "google") && (
-          <div className="fishbones-signin-oauth">
-            <p className="fishbones-signin-helper">
-              We'll open your browser to sign in with{" "}
-              {tab === "apple" ? "Apple" : "Google"}, then bring you back here.
-            </p>
-            {tab === "apple" ? (
-              <button
-                type="button"
-                className="fishbones-signin-oauth-btn fishbones-signin-oauth-btn--apple"
-                onClick={() => void startOAuth("apple")}
-                disabled={awaitingOAuth}
-              >
-                <span className="fishbones-signin-oauth-glyph" aria-hidden>
-                  {/* Inline Apple silhouette. The earlier version used
-                      the `` U+F8FF private-use codepoint, which only
-                      renders when the cascaded font is an Apple system
-                      face — under our `font: inherit` chain it fell
-                      back to a font with no glyph for that codepoint
-                      and the button label looked unbalanced. SVG is
-                      what Apple's Sign-In branding guidelines actually
-                      sanction for non-native buttons. */}
-                  <svg
-                    viewBox="0 0 18 18"
-                    width="18"
-                    height="18"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d="M14.94 9.97c-.02-2.05 1.68-3.04 1.76-3.09-.96-1.4-2.45-1.59-2.98-1.61-1.27-.13-2.48.74-3.13.74-.65 0-1.65-.72-2.71-.7-1.39.02-2.69.81-3.4 2.05-1.45 2.51-.37 6.22 1.04 8.27.69 1 1.51 2.13 2.58 2.09 1.04-.04 1.43-.67 2.69-.67 1.25 0 1.61.67 2.7.65 1.12-.02 1.83-1.02 2.51-2.03.79-1.16 1.12-2.29 1.14-2.35-.03-.01-2.18-.84-2.2-3.35M12.95 4.18c.57-.69.96-1.65.85-2.6-.82.03-1.81.55-2.4 1.24-.53.61-.99 1.59-.87 2.52.91.07 1.85-.46 2.42-1.16" />
-                  </svg>
-                </span>
-                <span>Continue with Apple</span>
-              </button>
+          <button
+            type="submit"
+            className="fishbones-signin-primary"
+            disabled={
+              cloud.busy ||
+              email.length === 0 ||
+              password.length === 0 ||
+              // On Create account, also block when the password is
+              // below the relay's minimum, when the confirm field is
+              // empty, or when confirm doesn't match. Sign in
+              // doesn't gate on length — a legacy account might
+              // pre-date today's policy.
+              (emailMode === "signUp" &&
+                (scorePassword(password).belowMinLength ||
+                  passwordConfirm.length === 0 ||
+                  password !== passwordConfirm))
+            }
+          >
+            {cloud.busy
+              ? "…"
+              : emailMode === "signIn"
+                ? "Sign in"
+                : "Create account"}
+          </button>
+
+          {/* Cross-link — gives the user an unmistakable next step
+              when they realise they're on the wrong mode. Buttons
+              instead of <a> tags so we stay inside the dialog. */}
+          <p className="fishbones-signin-switch">
+            {emailMode === "signIn" ? (
+              <>
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  className="fishbones-signin-switch__link"
+                  onClick={() => switchEmailMode("signUp")}
+                >
+                  Create one
+                </button>
+              </>
             ) : (
-              <button
-                type="button"
-                className="fishbones-signin-oauth-btn fishbones-signin-oauth-btn--google"
-                onClick={() => void startOAuth("google")}
-                disabled={awaitingOAuth}
+              <>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  className="fishbones-signin-switch__link"
+                  onClick={() => switchEmailMode("signIn")}
+                >
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+        </form>
+
+        {/* OR-divider — separates the email form from the OAuth
+            alternatives. Pure CSS line-with-text so the dialog
+            stays visually balanced even on narrow viewports. */}
+        <div
+          className="fishbones-signin-or"
+          role="separator"
+          aria-label="or"
+        >
+          <span>or</span>
+        </div>
+
+        <div className="fishbones-signin-oauth">
+          <button
+            type="button"
+            className="fishbones-signin-oauth-btn fishbones-signin-oauth-btn--apple"
+            onClick={() => void startOAuth("apple")}
+            disabled={awaitingOAuth}
+          >
+            <span className="fishbones-signin-oauth-glyph" aria-hidden>
+              {/* Inline Apple silhouette — see earlier note about
+                  the U+F8FF codepoint not rendering under our
+                  cascaded font. SVG is what Apple's Sign-In
+                  branding guidelines sanction for non-native
+                  buttons. */}
+              <svg
+                viewBox="0 0 18 18"
+                width="18"
+                height="18"
+                fill="currentColor"
+                aria-hidden="true"
               >
-                <span className="fishbones-signin-oauth-glyph" aria-hidden>
-                  <svg viewBox="0 0 18 18" width="18" height="18">
-                    <path
-                      fill="#4285F4"
-                      d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
-                    />
-                  </svg>
-                </span>
-                <span>Continue with Google</span>
-              </button>
-            )}
-            {awaitingOAuth && (
-              <p className="fishbones-signin-oauth-waiting">
-                Waiting for sign-in… finish in your browser, then we'll bring
-                you back automatically.
-              </p>
-            )}
-            {oauthError && (
-              <p className="fishbones-signin-error">{oauthError}</p>
-            )}
-            {cloud.error && !oauthError && (
-              <p className="fishbones-signin-error">{cloud.error}</p>
-            )}
-          </div>
-        )}
+                <path d="M14.94 9.97c-.02-2.05 1.68-3.04 1.76-3.09-.96-1.4-2.45-1.59-2.98-1.61-1.27-.13-2.48.74-3.13.74-.65 0-1.65-.72-2.71-.7-1.39.02-2.69.81-3.4 2.05-1.45 2.51-.37 6.22 1.04 8.27.69 1 1.51 2.13 2.58 2.09 1.04-.04 1.43-.67 2.69-.67 1.25 0 1.61.67 2.7.65 1.12-.02 1.83-1.02 2.51-2.03.79-1.16 1.12-2.29 1.14-2.35-.03-.01-2.18-.84-2.2-3.35M12.95 4.18c.57-.69.96-1.65.85-2.6-.82.03-1.81.55-2.4 1.24-.53.61-.99 1.59-.87 2.52.91.07 1.85-.46 2.42-1.16" />
+              </svg>
+            </span>
+            <span>Sign in with Apple</span>
+          </button>
+          <button
+            type="button"
+            className="fishbones-signin-oauth-btn fishbones-signin-oauth-btn--google"
+            onClick={() => void startOAuth("google")}
+            disabled={awaitingOAuth}
+          >
+            <span className="fishbones-signin-oauth-glyph" aria-hidden>
+              <svg viewBox="0 0 18 18" width="18" height="18">
+                <path
+                  fill="#4285F4"
+                  d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+                />
+              </svg>
+            </span>
+            <span>Sign in with Google</span>
+          </button>
+          {awaitingOAuth && (
+            <p className="fishbones-signin-oauth-waiting">
+              Waiting for sign-in… finish in your browser, then we'll bring
+              you back automatically.
+            </p>
+          )}
+          {oauthError && (
+            <p className="fishbones-signin-error">{oauthError}</p>
+          )}
+          {cloud.error && !oauthError && (
+            <p className="fishbones-signin-error">{cloud.error}</p>
+          )}
+        </div>
 
         {showSkipButton && (
           <button

@@ -211,14 +211,15 @@
 }
 
 .fishbones-signin-helper {
+  /* Plain helper text — no panel chrome. The earlier version had a
+     dark "code-block" backdrop that visually fought the form below
+     it; users read it as something inert + technical instead of
+     friendly guidance. */
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
   color: var(--color-text-tertiary);
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
-  padding: 10px 12px;
+  padding: 0;
 }
 .fishbones-signin-helper code {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
@@ -226,6 +227,42 @@
   background: var(--color-bg-tertiary);
   padding: 1px 5px;
   border-radius: 3px;
+}
+
+/* "or" divider between the email form and the OAuth buttons — a
+   horizontal rule with the word "or" centered over it. */
+.fishbones-signin-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 4px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.fishbones-signin-or::before,
+.fishbones-signin-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-default, rgba(255, 255, 255, 0.08));
+}
+
+.fishbones-signin-or span {
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* OAuth button stack — two equally-weighted Apple/Google buttons
+   below the "or". Vertical stack so each is full-width and the
+   visual hierarchy stays "email primary, OAuth secondary". */
+.fishbones-signin-oauth {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .fishbones-signin-field {

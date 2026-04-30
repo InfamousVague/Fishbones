@@ -170,6 +170,11 @@ export interface PasswordFieldProps {
   /// Optional id override — useful when an external `<label htmlFor>`
   /// needs to match. We generate one with `useId` by default.
   inputId?: string;
+  /// Optional error message — replaces the helper line when set and
+  /// tints the input border red. Used by the SignInDialog's confirm-
+  /// password field to surface "Passwords don't match" without
+  /// taking up an extra row.
+  error?: string | null;
 }
 
 /// Dot icon variants — drawn inline so we don't pull a third icon set
@@ -204,15 +209,17 @@ export default function PasswordField({
   disabled = false,
   autoFocus = false,
   inputId,
+  error,
 }: PasswordFieldProps) {
   const [revealed, setRevealed] = useState(false);
   const generatedId = useId();
   const id = inputId ?? generatedId;
 
   const score = useMemo(() => scorePassword(value), [value]);
+  const hasError = !!error;
 
   return (
-    <div className="fishbones-pwfield">
+    <div className={`fishbones-pwfield${hasError ? " fishbones-pwfield--invalid" : ""}`}>
       <label className="fishbones-pwfield__label" htmlFor={id}>
         {label}
       </label>
@@ -234,7 +241,14 @@ export default function PasswordField({
           // pre-dating today's policy). Strength scoring reports
           // `belowMinLength` and the parent decides whether to block.
           spellCheck={false}
-          aria-describedby={showStrength ? `${id}-strength` : undefined}
+          aria-invalid={hasError || undefined}
+          aria-describedby={
+            hasError
+              ? `${id}-error`
+              : showStrength
+                ? `${id}-strength`
+                : undefined
+          }
         />
         <button
           type="button"
@@ -249,7 +263,7 @@ export default function PasswordField({
         </button>
       </div>
 
-      {showStrength && value.length > 0 && (
+      {showStrength && value.length > 0 && !hasError && (
         <div
           id={`${id}-strength`}
           className={`fishbones-pwfield__strength fishbones-pwfield__strength--s${score.score}`}
@@ -268,17 +282,22 @@ export default function PasswordField({
         </div>
       )}
 
-      {/* Helper line — relay-rule reminder by default. Falls below
-          the strength meter so the meter is the most prominent
-          feedback while typing; the helper is a static aside. */}
-      {helper !== null && (
+      {/* Error takes precedence over the helper; both targets the
+          same slot so the form doesn't reflow when validity flips.
+          Polite aria-live so screen readers announce a newly-
+          appearing mismatch without interrupting typing. */}
+      {hasError ? (
+        <small id={`${id}-error`} className="fishbones-pwfield__error" aria-live="polite">
+          {error}
+        </small>
+      ) : helper !== null ? (
         <small className="fishbones-pwfield__helper">
           {/* When there's an active hint from scorePassword, swap it
               in for the static helper — it's more actionable than
               the generic "8+ chars" copy. */}
           {value.length > 0 && score.hint ? score.hint : helper}
         </small>
-      )}
+      ) : null}
     </div>
   );
 }
