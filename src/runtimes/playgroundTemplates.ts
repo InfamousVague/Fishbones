@@ -695,6 +695,117 @@ def reset():
     self.count = 0
 `,
   },
+
+  // ── 2026 expansion ──────────────────────────────────────────
+  // Each starter is a one-liner that produces visible output on
+  // first Run, so the picker → Run flow has a non-zero default
+  // result for the new languages. Real lessons override these
+  // with the lesson's `starter` / `starterFiles`.
+
+  ruby: {
+    filename: "main.rb",
+    fileLanguage: "ruby",
+    content: `puts "Hello, world!"\n`,
+  },
+
+  lua: {
+    filename: "main.lua",
+    fileLanguage: "lua",
+    content: `print("Hello, world!")\n`,
+  },
+
+  dart: {
+    filename: "main.dart",
+    fileLanguage: "dart",
+    content: `void main() {
+  print('Hello, world!');
+}
+`,
+  },
+
+  haskell: {
+    filename: "Main.hs",
+    fileLanguage: "haskell",
+    content: `module Main where
+
+main :: IO ()
+main = putStrLn "Hello, world!"
+`,
+  },
+
+  scala: {
+    filename: "Main.scala",
+    fileLanguage: "scala",
+    content: `@main def hello(): Unit =
+  println("Hello, world!")
+`,
+  },
+
+  sql: {
+    filename: "query.sql",
+    fileLanguage: "sql",
+    content: `-- Each Run boots a fresh in-memory SQLite database.
+-- The runtime prints every query's result set as a table.
+
+CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, species TEXT);
+
+INSERT INTO pets (name, species) VALUES
+  ('Mochi', 'cat'),
+  ('Hopper', 'dog'),
+  ('Newt', 'lizard');
+
+SELECT name, species FROM pets ORDER BY name;
+`,
+  },
+
+  elixir: {
+    filename: "main.exs",
+    fileLanguage: "elixir",
+    content: `IO.puts("Hello, world!")\n`,
+  },
+
+  move: {
+    filename: "Hello.move",
+    fileLanguage: "move",
+    content: `module hello::main {
+    use std::debug;
+
+    public fun greet() {
+        debug::print(&b"Hello, world!");
+    }
+}
+`,
+  },
+
+  cairo: {
+    filename: "main.cairo",
+    fileLanguage: "cairo",
+    content: `// Cairo 1 — a simple function on the StarkNet VM.
+
+fn main() -> felt252 {
+    'Hello, world!'
+}
+`,
+  },
+
+  sway: {
+    filename: "main.sw",
+    fileLanguage: "sway",
+    content: `// Sway — Fuel's smart-contract language.
+
+contract;
+
+abi Hello {
+    fn greet() -> str[13];
+}
+
+impl Hello for Contract {
+    fn greet() -> str[13] {
+        __to_str_array("Hello, world!")
+    }
+}
+`,
+  },
 };
 
 /// Resolve the starter-file set for a playground language. Multi-file

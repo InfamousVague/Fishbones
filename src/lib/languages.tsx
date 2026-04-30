@@ -221,6 +221,109 @@ const SolidityIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
   </svg>
 );
 
+// ── 2026 expansion: ten new languages ──────────────────────────
+// Each glyph is hand-drawn on the same 24×24 grid so they sit flush
+// next to the Simple-Icons-derived marks above without breaking the
+// visual rhythm. We don't import from a remote SVG set — keeping
+// every icon inline keeps the bundle deterministic and offline.
+
+// Ruby — the canonical four-facet ruby silhouette from rubygems.org,
+// simplified to a single path.
+const RubyIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M12 2 L4 9 L8 21 L16 21 L20 9 Z M8 9 L12 6 L16 9 L14 17 L10 17 Z" />
+  </svg>
+);
+
+// Lua — the Lua moon mark: a crescent on a circle. Drawn as one
+// big circle minus a smaller offset circle (no fill-rule trickery
+// needed; the second circle just paints over the first).
+const LuaIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="16" cy="9" r="2.5" fill="#ffffff" />
+  </svg>
+);
+
+// Dart — the official "dart" point inside a "D"-shaped sail. A
+// triangle stacked on a parallelogram approximates the brand mark
+// at small scale.
+const DartIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M5 13 L12 3 L19 7 L19 17 L12 21 L5 17 Z" opacity="0.55" />
+    <path d="M12 3 L19 7 L19 17 L12 21 Z" />
+  </svg>
+);
+
+// Haskell — the lambda glyph that's the unmistakable mark on the
+// haskell.org logo. A stylised λ on a transparent background.
+const HaskellIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M2 4 L7 4 L13 12 L7 20 L2 20 L8 12 Z" />
+    <path d="M9 4 L13 4 L21 16 L21 20 L17 20 Z" opacity="0.7" />
+    <path d="M14 12 L17 12 L17 16 L14 16 Z" />
+  </svg>
+);
+
+// Scala — two stacked diagonal slashes echoing the "S" mark on the
+// scala-lang.org logo. Uses the brand red gradient (rendered solid
+// here; the chip's `color` token carries the gradient into context).
+const ScalaIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M5 5 L19 3 L19 7 L5 9 Z" />
+    <path d="M5 11 L19 9 L19 13 L5 15 Z" opacity="0.85" />
+    <path d="M5 17 L19 15 L19 19 L5 21 Z" opacity="0.7" />
+  </svg>
+);
+
+// SQL — a stack of three flat ovals representing a database
+// cylinder. Standard "data" pictogram across most icon sets.
+const SqlIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <ellipse cx="12" cy="5" rx="8" ry="2.5" />
+    <path d="M4 5 L4 12 C4 13.4 7.6 14.5 12 14.5 C16.4 14.5 20 13.4 20 12 L20 5" />
+    <path d="M4 12 L4 19 C4 20.4 7.6 21.5 12 21.5 C16.4 21.5 20 20.4 20 19 L20 12" />
+  </svg>
+);
+
+// Elixir — the official drop / pill mark. A taller-than-wide
+// elliptical capsule with a soft inner highlight.
+const ElixirIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M12 1.5 C7 6 4 11 4 15 C4 19.5 7.6 22.5 12 22.5 C16.4 22.5 20 19.5 20 15 C20 11 17 6 12 1.5 Z" />
+    <path d="M9 11 C8 13 7.5 15 7.5 16.5 C7.5 19 9.5 20.5 12 20.5" opacity="0.5" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+// Move — the Sui-flavoured "M" silhouette, stacked diamond stripes.
+// Aptos and Sui both use Move; we lean on a generic mark so the
+// glyph reads "Move" rather than tying to one chain visually.
+const MoveIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M3 6 L7 3 L12 6 L17 3 L21 6 L21 18 L17 21 L12 18 L7 21 L3 18 Z" />
+    <path d="M7 7 L7 17 M12 8 L12 18 M17 7 L17 17" stroke="#0a0a0a" strokeWidth="1.2" fill="none" opacity="0.4" />
+  </svg>
+);
+
+// Cairo — interlocking-arrows pattern from the StarkNet / Cairo
+// brand. Two stylised chevrons pointing inward (echoing zk-proof
+// "compress" semantics) on top of a single stroke.
+const CairoIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M3 6 L9 12 L3 18 L7 18 L13 12 L7 6 Z" />
+    <path d="M21 6 L15 12 L21 18 L17 18 L11 12 L17 6 Z" opacity="0.85" />
+  </svg>
+);
+
+// Sway — Fuel's "S"-spiral mark, two interlocking commas. Approximated
+// here as two oblique blocks meeting in the middle.
+const SwayIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M5 5 L13 5 L13 9 L9 9 L9 11 L13 11 L13 19 L5 19 L5 15 L9 15 L9 13 L5 13 Z" />
+    <path d="M11 5 L19 5 L19 13 L15 13 L15 15 L19 15 L19 19 L11 19 L11 15 L15 15 L15 13 L11 13 Z" opacity="0.7" />
+  </svg>
+);
+
 // ── The map ──────────────────────────────────────────────────────
 
 export const LANGUAGE_META: Record<LanguageId, LanguageMeta> = {
@@ -274,6 +377,40 @@ export const LANGUAGE_META: Record<LanguageId, LanguageMeta> = {
   // (both are smart-contract diamonds), but tint with Python's family
   // seafoam since the grammar derives from there.
   vyper: { label: "Vyper", color: "#3F8A7C", Icon: SolidityIcon },
+
+  // ── 2026 expansion ───────────────────────────────────────────
+  // Brand colours sourced from each project's official press kit
+  // / wordmark. When a colour wouldn't read on the chip backdrop,
+  // we adjust toward a slightly more saturated variant.
+
+  // Ruby — the rubygems brick-red is iconic.
+  ruby: { label: "Ruby", color: "#CC342D", Icon: RubyIcon },
+  // Lua — the official Lua moon-blue.
+  lua: { label: "Lua", color: "#000080", Icon: LuaIcon },
+  // Dart — the Flutter-adjacent teal that's been Dart's brand
+  // colour on dart.dev since 2018.
+  dart: { label: "Dart", color: "#0175C2", Icon: DartIcon },
+  // Haskell — the deep purple of the haskell.org logo (slightly
+  // brighter than the literal hex so it doesn't disappear on
+  // dark backdrops).
+  haskell: { label: "Haskell", color: "#5D4F85", Icon: HaskellIcon },
+  // Scala — Scala-red, sampled from scala-lang.org.
+  scala: { label: "Scala", color: "#DC322F", Icon: ScalaIcon },
+  // SQL — generic "data" indigo. SQL has no canonical brand
+  // (it's a multi-vendor standard), so we pick a colour that
+  // visually suggests "structured data" without aligning to any
+  // one vendor's mark.
+  sql: { label: "SQL", color: "#336791", Icon: SqlIcon },
+  // Elixir — the official violet from elixir-lang.org.
+  elixir: { label: "Elixir", color: "#6E4A7E", Icon: ElixirIcon },
+  // Move — Aptos / Sui share the language; we pick a neutral
+  // chain-agnostic blue-grey rather than tying to one ecosystem.
+  move: { label: "Move", color: "#4E5D7E", Icon: MoveIcon },
+  // Cairo — StarkNet's "Cairo orange". Aligns with the wordmark on
+  // cairo-lang.org.
+  cairo: { label: "Cairo", color: "#FA9056", Icon: CairoIcon },
+  // Sway — Fuel's signature green from fuel.network.
+  sway: { label: "Sway", color: "#00F58C", Icon: SwayIcon },
 };
 
 /// Convenience accessor with a fallback. Lookup is constant-time —

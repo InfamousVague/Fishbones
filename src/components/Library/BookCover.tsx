@@ -447,5 +447,29 @@ function langGlyph(lang: LanguageId): string {
       return "SOL";
     case "vyper":
       return "VY";
+    // ── 2026 expansion ───────────────────────────────────────
+    // Glyphs match the LANG_GLYPHS map in extract-starter-courses.mjs
+    // so the synthesised cover JPEG and the no-cover fallback tile
+    // show the same abbreviation per language.
+    case "ruby":
+      return "RB";
+    case "lua":
+      return "LU";
+    case "dart":
+      return "DT";
+    case "haskell":
+      return "HS";
+    case "scala":
+      return "SC";
+    case "sql":
+      return "SQL";
+    case "elixir":
+      return "EX";
+    case "move":
+      return "MV";
+    case "cairo":
+      return "CR";
+    case "sway":
+      return "SW";
   }
 }

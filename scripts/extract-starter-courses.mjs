@@ -23,6 +23,12 @@ import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
+import {
+  ALL_PACK_IDS,
+  tierFor,
+  releaseStatusFor,
+  REMOTE_ARCHIVE_BASE,
+} from "./course-tiers.mjs";
 
 /// Cover-resize helper. The bundled covers are ~3-4MB unoptimised
 /// PNGs (extracted as cover images by the desktop app's
@@ -79,6 +85,19 @@ const LANG_GRADIENTS = {
   reactnative: ["#1c4357", "#0e2330"],
   react: ["#1c4357", "#0e2330"],
   threejs: ["#2d2d2d", "#0c0c0c"],
+  // 2026 expansion — gradients tuned to each language's brand
+  // colour but flattened toward darker mid-tones so the cover
+  // text stays readable.
+  ruby: ["#5c1818", "#2a0a0a"],
+  lua: ["#1a1a4e", "#0a0a26"],
+  dart: ["#1a4d6b", "#0a2535"],
+  haskell: ["#3a2c52", "#1a1428"],
+  scala: ["#5c1a1a", "#2a0a0a"],
+  sql: ["#1f3a52", "#0e1d29"],
+  elixir: ["#3a2a4d", "#1a0f26"],
+  move: ["#283044", "#10141d"],
+  cairo: ["#5c3a1a", "#2a1a0a"],
+  sway: ["#1f4d3a", "#0e261d"],
 };
 
 const LANG_GLYPHS = {
@@ -103,6 +122,18 @@ const LANG_GLYPHS = {
   kotlin: "KT",
   csharp: "C#",
   assembly: "ASM",
+  // 2026 expansion. Glyphs are 2-3 chars max so they fit the
+  // 320×480 cover synthesis without wrapping.
+  ruby: "RB",
+  lua: "LU",
+  dart: "DT",
+  haskell: "HS",
+  scala: "SC",
+  sql: "SQL",
+  elixir: "EX",
+  move: "MV",
+  cairo: "CR",
+  sway: "SW",
 };
 
 /// Find a usable .ttf font path. ImageMagick on macOS can't load
@@ -277,12 +308,12 @@ const COVER_OVERRIDES = join(ROOT, "cover-overrides");
 ///   - Excluded: anything needing a system compiler (C, C++, Java,
 ///     Kotlin, C#, Assembly, Swift, SvelteKit's Node sidecar). Those
 ///     stay desktop-only.
-// IDs match the .fishbones filename without the extension. The
-// canonical source for these archives is `X10 Pro/FishbonesCourses/`,
-// which uses descriptive slugs (e.g. `bun-the-complete-runtime` rather
-// than the older `bun-complete`). Keep this list in sync with the
-// promotion script's bundled-packs directory.
-const PACK_IDS = [
+// (Legacy PACK_IDS kept inline below for back-compat — the live
+// extract loop now reads from `ALL_PACK_IDS` in
+// `scripts/course-tiers.mjs` so the catalog + the desktop bundle
+// + the web build all share one source of truth. This array is
+// reachable as `LEGACY_PACK_IDS` only and isn't used by main().)
+const LEGACY_PACK_IDS = [
   // ── Languages-as-a-foundation books ────────────────────────────
   // Long-form books that teach a language end-to-end. Order here is
   // the order the library renders them on first launch.
@@ -356,13 +387,21 @@ async function main() {
   // burying it in `+ cover.png` absences across 22 lines.
   warnIfNoResizer();
 
+  // Reference the legacy list once so the linter doesn't strip the
+  // declaration we kept around for documentation. The live loop
+  // pulls from ALL_PACK_IDS imported above.
+  void LEGACY_PACK_IDS;
   const manifest = [];
-  for (const id of PACK_IDS) {
+  for (const id of ALL_PACK_IDS) {
     const packPath = join(PACKS_DIR, `${id}.fishbones`);
     if (!existsSync(packPath)) {
       console.warn(`[starter-courses] missing pack: ${packPath}, skipping`);
       continue;
     }
+    // Capture the .fishbones archive size BEFORE extraction so the
+    // catalog can show learners "X MB to download" on the placeholder
+    // tile. Cheap stat — both desktop + web manifests get this.
+    const archiveStat = await stat(packPath);
 
     // .fishbones is a zip — use the system `unzip` (BSD on macOS,
     // InfoZIP on Linux; both ship by default on the GitHub Actions
@@ -462,21 +501,60 @@ async function main() {
       // `PRE-RELEASE` collapses to `UNREVIEWED` to match the renamed
       // pipeline. Anything missing or unrecognised falls back to
       // `UNREVIEWED` so books default into the bottom section.
-      const rawStatus = course.releaseStatus;
-      const releaseStatus =
-        rawStatus === "BETA" || rawStatus === "ALPHA"
-          ? rawStatus
-          : "UNREVIEWED";
+      // Editorial tier — first the per-pack override (see
+      // `RELEASE_STATUS_OVERRIDES` in course-tiers.mjs) so we can
+      // bump a book without repacking its archive, then the in-zip
+      // value, then UNREVIEWED as the floor.
+      const releaseStatus = releaseStatusFor(id, course.releaseStatus);
 
+      // Quick walk to count visible lessons — useful on the
+      // placeholder tile so users know how big a course they're
+      // about to install. Don't include drill kinds (puzzle / cloze
+      // / micropuzzle) since those are auto-derived and aren't
+      // user-visible on desktop.
+      let lessonCount = 0;
+      for (const ch of course.chapters ?? []) {
+        for (const l of ch.lessons ?? []) {
+          if (
+            l.kind === "exercise" ||
+            l.kind === "mixed" ||
+            l.kind === "reading" ||
+            l.kind === "quiz"
+          ) {
+            lessonCount++;
+          }
+        }
+      }
       manifest.push({
         id: course.id || id,
+        // The pack filename — needed by the desktop downloader to
+        // build the archive URL when the in-zip course id differs
+        // from the pack slug (rare but happens).
+        packId: id,
         title: course.title || id,
+        author: course.author,
         language: course.language,
         file: `${id}.json`,
         cover: coverFile,
         sizeBytes: info.size,
+        // Size of the .fishbones zip — used by the desktop
+        // downloader's progress UI + by the placeholder tile to show
+        // "Y MB" on hover.
+        archiveSizeBytes: archiveStat.size,
+        // Where the desktop downloader fetches the .fishbones from
+        // when the user clicks Install on a remote placeholder.
+        // Web build ignores this — it fetches the per-course JSON
+        // from `file` (same-origin) instead.
+        archiveUrl: `${REMOTE_ARCHIVE_BASE.replace(/\/$/, "")}/${id}.fishbones`,
         packType: course.packType || "course",
         releaseStatus,
+        // Whether this pack is bundled with the app (extracted on
+        // first launch + always present) or a remote download
+        // (rendered as a placeholder until the user clicks Install).
+        // The single source of truth lives in
+        // `scripts/course-tiers.mjs`.
+        tier: tierFor(id),
+        lessonCount,
       });
       console.log(
         `[starter-courses] staged ${id} (${(info.size / 1024).toFixed(0)} KB)` +
@@ -489,11 +567,22 @@ async function main() {
 
   await writeFile(
     join(OUT, "manifest.json"),
-    JSON.stringify({ version: 1, courses: manifest }, null, 2),
+    JSON.stringify(
+      {
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        archiveBaseUrl: REMOTE_ARCHIVE_BASE,
+        courses: manifest,
+      },
+      null,
+      2,
+    ),
     "utf-8",
   );
+  const coreCount = manifest.filter((m) => m.tier === "core").length;
+  const remoteCount = manifest.filter((m) => m.tier === "remote").length;
   console.log(
-    `[starter-courses] wrote manifest with ${manifest.length} courses`,
+    `[starter-courses] wrote manifest with ${manifest.length} courses (${coreCount} core, ${remoteCount} remote)`,
   );
 }
 

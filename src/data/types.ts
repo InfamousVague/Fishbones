@@ -29,7 +29,32 @@ export type LanguageId =
   | "csharp"
   | "assembly"
   | "solidity"
-  | "vyper";
+  | "vyper"
+  // ── Phase: 2026 language expansion ───────────────────────────
+  // Browser-native runtimes (no toolchain on host): Lua via
+  // Fengari, SQL via sql.js. Both run in the same `runCode`
+  // path as JS / Python.
+  | "lua"
+  | "sql"
+  // Sandbox-proxy runtimes: shell out to a public free playground
+  // service over HTTPS. Same shape as Rust (play.rust-lang.org)
+  // and Go (play.golang.org). DartPad / Scastie / play-haskell are
+  // the targets — see runtimes/<lang>.ts for the exact endpoint.
+  | "dart"
+  | "haskell"
+  | "scala"
+  // Native-toolchain runtimes (host has the compiler / VM, we shell
+  // out via Tauri). Ruby ships with macOS / most Linux distros;
+  // Elixir installs via brew or asdf. Web build short-circuits to
+  // a desktop-upsell banner.
+  | "ruby"
+  | "elixir"
+  // Smart-contract languages on alternative chains. Move (Aptos /
+  // Sui), Cairo (StarkNet), Sway (Fuel). All three need the chain's
+  // native toolchain on the host; web build upsells to desktop.
+  | "move"
+  | "cairo"
+  | "sway";
 
 /// Difficulty tier for challenge-pack exercises. Courses' exercises don't
 /// set this — it's specific to the kata-style challenge packs that group
@@ -66,6 +91,21 @@ export type FileLanguage =
   | "assembly"
   | "solidity"
   | "vyper"
+  | "lua"
+  | "sql"
+  | "dart"
+  | "haskell"
+  | "scala"
+  | "ruby"
+  | "elixir"
+  // Move / Cairo / Sway don't have native Monaco syntax — Monaco
+  // falls back to plaintext rendering, which is fine for v1. We
+  // keep the LanguageId entries in FileLanguage so a workbench
+  // file reading `language: "move"` typechecks; future improvement
+  // is registering a TextMate grammar to upgrade highlighting.
+  | "move"
+  | "cairo"
+  | "sway"
   | "html"
   | "css"
   | "json"
@@ -157,6 +197,34 @@ export interface Course {
   /// `releaseStatusFor` until the migration script rewrites every
   /// course.json on disk.
   releaseStatus?: "UNREVIEWED" | "ALPHA" | "BETA" | "PRE-RELEASE";
+  /// SHA-256 of the bundled `public/starter-courses/<id>.json` at the
+  /// last sync (first install OR explicit "Reapply bundled starter").
+  /// The Library compares this against `hash(currentBundled)` to
+  /// decide whether to render an "update available" badge on the
+  /// cover. Storing the LAST-SYNCED hash (not just hash(installed))
+  /// means user-local edits don't trigger the badge — only an
+  /// upstream bundle change does. Absent on courses that were
+  /// imported, not bundled.
+  bundleSha?: string;
+  /// Set on synthetic "this course is downloadable but not yet
+  /// installed" entries that the Library merges into its grid from
+  /// the catalog. Real Course objects loaded from disk never set
+  /// this. The Library renders placeholders semi-opaque with a
+  /// Download badge instead of an Open click.
+  placeholder?: boolean;
+  /// Where the .fishbones archive (desktop) or course JSON (web)
+  /// can be fetched from to install the course. Populated only on
+  /// placeholders.
+  downloadUrl?: string;
+  /// Archive size in bytes — surfaced on the placeholder hover so
+  /// the user knows what they're about to download. Populated only
+  /// on placeholders.
+  archiveSize?: number;
+  /// Distribution tier from the catalog. `core` = bundled with the
+  /// app installer (always installed after first launch). `remote`
+  /// = downloadable on demand. Set on installed courses too so the
+  /// Library can sort core books to the front of the shelf.
+  tier?: "core" | "remote";
 }
 
 export interface Chapter {

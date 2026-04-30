@@ -134,6 +134,27 @@ const MONACO_LANGUAGES: Record<FileLanguage, string> = {
   // and `payable` won't get the special tint they deserve) but a
   // sensible default until someone hand-writes a Vyper Monarch.
   vyper: "python",
+  // ── 2026 expansion ───────────────────────────────────────────
+  // Monaco's built-in language ids; for the chain-specific languages
+  // (move / cairo / sway) Monaco has no native grammar, so we alias
+  // them to the closest syntactic neighbour. A proper Monarch
+  // tokenizer per language is a follow-up; this gets us readable
+  // colouring on day one.
+  ruby: "ruby",
+  lua: "lua",
+  dart: "dart",
+  haskell: "haskell",
+  scala: "scala",
+  sql: "sql",
+  // Elixir's syntax is closer to Ruby (do/end blocks, atoms, etc.)
+  // than to anything else Monaco ships built-in.
+  elixir: "ruby",
+  // Move + Sway both look very Rust-ish. Cairo 1 also leans Rust-
+  // ish. Aliasing all three to `rust` gets keywords like `fn`,
+  // `let`, `match`, plus number / string highlighting for free.
+  move: "rust",
+  cairo: "rust",
+  sway: "rust",
   // Monaco's built-in markdown is fine for lesson-body fragments
   // (.md files in mixed-lesson file sets) — wire it up so the
   // editor doesn't fall through to plaintext on those.

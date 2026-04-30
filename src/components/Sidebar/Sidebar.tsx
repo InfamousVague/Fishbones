@@ -76,6 +76,27 @@ function languageLabel(lang: LanguageId): string {
       return "Solidity";
     case "vyper":
       return "Vyper";
+    // 2026 expansion — full names matching the LANGUAGE_META labels.
+    case "ruby":
+      return "Ruby";
+    case "lua":
+      return "Lua";
+    case "dart":
+      return "Dart";
+    case "haskell":
+      return "Haskell";
+    case "scala":
+      return "Scala";
+    case "sql":
+      return "SQL";
+    case "elixir":
+      return "Elixir";
+    case "move":
+      return "Move";
+    case "cairo":
+      return "Cairo";
+    case "sway":
+      return "Sway";
   }
 }
 
@@ -1066,6 +1087,28 @@ function carouselGlyph(lang: LanguageId): string {
       return "SOL";
     case "vyper":
       return "VY";
+    // 2026 expansion — match BookCover.tsx's langGlyph + the
+    // LANG_GLYPHS map in extract-starter-courses.mjs.
+    case "ruby":
+      return "RB";
+    case "lua":
+      return "LU";
+    case "dart":
+      return "DT";
+    case "haskell":
+      return "HS";
+    case "scala":
+      return "SC";
+    case "sql":
+      return "SQL";
+    case "elixir":
+      return "EX";
+    case "move":
+      return "MV";
+    case "cairo":
+      return "CR";
+    case "sway":
+      return "SW";
   }
 }
 

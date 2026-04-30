@@ -105,9 +105,16 @@ const LANGUAGE_OPTIONS: Array<{ id: LanguageId; label: string }> = [
   { id: "javascript", label: "JavaScript" },
   { id: "typescript", label: "TypeScript" },
   { id: "python", label: "Python" },
+  { id: "ruby", label: "Ruby" },
   { id: "rust", label: "Rust" },
   { id: "go", label: "Go" },
   { id: "swift", label: "Swift" },
+  { id: "dart", label: "Dart" },
+  { id: "scala", label: "Scala" },
+  { id: "haskell", label: "Haskell" },
+  { id: "elixir", label: "Elixir" },
+  { id: "lua", label: "Lua" },
+  { id: "sql", label: "SQL" },
   { id: "c", label: "C" },
   { id: "cpp", label: "C++" },
   { id: "java", label: "Java" },
@@ -124,7 +131,12 @@ const LANGUAGE_OPTIONS: Array<{ id: LanguageId; label: string }> = [
   { id: "astro", label: "Astro" },
   { id: "bun", label: "Bun" },
   { id: "tauri", label: "Tauri (Rust)" },
+  // Smart-contract languages grouped at the bottom — they share
+  // the "needs a chain-specific toolchain" mental model.
   { id: "solidity", label: "Solidity" },
+  { id: "move", label: "Move (Aptos / Sui)" },
+  { id: "cairo", label: "Cairo (StarkNet)" },
+  { id: "sway", label: "Sway (Fuel)" },
 ];
 
 /// View layout options for the workbench. `split` (editor + output

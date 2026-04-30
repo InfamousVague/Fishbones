@@ -60,6 +60,16 @@ export const isMobile = detectMobile();
 /// Kept in a Set so adding / removing a language is one line. When a
 /// new browser-runnable language lands (e.g. someone WASM-compiles a
 /// Java VM) just remove it here and the runtime gate stops blocking.
+///
+/// 2026 expansion notes:
+///   - Lua + SQL run fully in-browser (Fengari + sql.js) so they're
+///     NOT in this set.
+///   - Haskell + Scala + Dart hit a public sandbox over HTTPS — same
+///     pattern as Rust + Go — so they're also NOT in this set.
+///   - Ruby + Elixir + Move + Cairo + Sway need the host's toolchain
+///     for now (we'll vendor ruby.wasm + spin up subprocess runners
+///     in a follow-up). Web build short-circuits these via the same
+///     upsell banner the system-compiler languages get.
 const DESKTOP_ONLY_LANGUAGES = new Set<LanguageId>([
   "c",
   "cpp",
@@ -68,6 +78,11 @@ const DESKTOP_ONLY_LANGUAGES = new Set<LanguageId>([
   "csharp",
   "assembly",
   "swift",
+  "ruby",
+  "elixir",
+  "move",
+  "cairo",
+  "sway",
 ]);
 
 /// Whether a language has a runtime that fits in a browser tab on

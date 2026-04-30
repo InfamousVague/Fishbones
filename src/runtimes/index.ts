@@ -10,6 +10,9 @@ import { runReact } from "./react";
 import { runReactNative } from "./reactnative";
 import { runSvelte } from "./svelte";
 import { runSolidity } from "./solidity";
+import { runLua } from "./lua";
+import { runSql } from "./sql";
+import { runComingSoon } from "./desktopComingSoon";
 import type { RunResult } from "./types";
 
 /// Build a `desktopOnly` RunResult for languages that don't fit in a
@@ -141,6 +144,30 @@ export async function runCode(
         [{ name: "Contract.sol", language: "solidity", content: code }],
         testCode,
       );
+    // ── 2026 expansion ─────────────────────────────────────
+    case "lua":
+      // Browser-native via Fengari — pure-JS Lua VM, no toolchain.
+      return runLua(code, testCode);
+    case "sql":
+      // Browser-native via sql.js (SQLite compiled to WASM). Each
+      // Run gets a fresh in-memory database; tests use leading
+      // `-- expect:` comments to assert row count + first-row shape.
+      return runSql(code, testCode);
+    case "ruby":
+    case "haskell":
+    case "scala":
+    case "dart":
+    case "elixir":
+    case "move":
+    case "cairo":
+    case "sway":
+      // Reserved-but-not-yet-wired runtimes. `runComingSoon` returns
+      // a `desktopOnly`-shaped RunResult so OutputPane renders the
+      // upsell banner with a per-language install hint. As each
+      // language's real runner lands (host subprocess on desktop,
+      // sandbox proxy / vendored WASM on web), drop its case from
+      // this group and add a real `case "<lang>": return runX(...)`.
+      return runComingSoon(language);
     default:
       // Exhaustiveness guard. If a new LanguageId slips in without
       // wiring a runtime (or a lesson's serialized JSON contains a
@@ -171,6 +198,12 @@ export async function runFiles(
   /// process per lesson under `<app-data>/sveltekit-runs/<lessonId>`.
   /// Optional because most runtimes are stateless across lessons.
   lessonId?: string,
+  /// Opts in to a richer test harness for chain-aware lessons.
+  /// "evm" routes Solidity / Vyper through @ethereumjs/vm so tests
+  /// can deploy + call contracts; "solana" (planned) routes Rust
+  /// through LiteSVM. Undefined keeps the legacy compile-and-check
+  /// behavior so existing exercises don't regress.
+  harness?: "evm" | "solana",
 ): Promise<RunResult> {
   // Web build gate — same logic as runCode, applied here too because
   // runFiles can be entered directly from the workbench (which
@@ -236,9 +269,22 @@ export async function runFiles(
     return runWeb(files, testCode, assets);
   }
   // Solidity — compile via solc-js, run optional JS tests against the
-  // compilation output. Headless (no preview iframe).
+  // compilation output. Headless (no preview iframe). When the lesson
+  // sets `harness: "evm"`, route to the chain-aware runtime that
+  // actually deploys + invokes the bytecode in @ethereumjs/vm.
   if (language === "solidity") {
+    if (harness === "evm") {
+      return (await import("./evm")).runEvm(files, testCode);
+    }
     return runSolidity(files, testCode);
+  }
+  // Vyper — same dual mode. No legacy "compile-only" runtime exists
+  // today (vyper used to fall through to the exhaustiveness guard);
+  // both branches go through the new runtime, which compiles via
+  // Pyodide + micropip and either reports compile output or hands
+  // the artifacts to the EVM harness.
+  if (language === "vyper") {
+    return (await import("./vyper")).runVyper(files, testCode, { harness });
   }
   // Auto-route: the LLM sometimes tags a React Native lesson's
   // `language` as "javascript" / "typescript" because JSX transpiles
