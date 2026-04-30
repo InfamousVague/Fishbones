@@ -764,6 +764,18 @@ SELECT name, species FROM pets ORDER BY name;
     content: `IO.puts("Hello, world!")\n`,
   },
 
+  zig: {
+    filename: "main.zig",
+    fileLanguage: "zig",
+    content: `const std = @import("std");
+
+pub fn main() !void {
+    const stdout = std.io.getStdOut().writer();
+    try stdout.print("Hello, world!\\n", .{});
+}
+`,
+  },
+
   move: {
     filename: "Hello.move",
     fileLanguage: "move",

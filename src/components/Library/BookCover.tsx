@@ -465,6 +465,8 @@ function langGlyph(lang: LanguageId): string {
       return "SQL";
     case "elixir":
       return "EX";
+    case "zig":
+      return "ZG";
     case "move":
       return "MV";
     case "cairo":

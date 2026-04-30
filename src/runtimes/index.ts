@@ -169,6 +169,8 @@ export async function runCode(
       return (await import("./nativeRunners")).runScala(code, testCode);
     case "dart":
       return (await import("./nativeRunners")).runDart(code, testCode);
+    case "zig":
+      return (await import("./nativeRunners")).runZig(code, testCode);
     // Move / Cairo / Sway need project scaffolding (manifest +
     // package layout) before their toolchains will run. Stubbed
     // until we add a per-Run scaffolding step in the Rust backend.

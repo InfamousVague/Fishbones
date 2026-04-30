@@ -91,6 +91,8 @@ function languageLabel(lang: LanguageId): string {
       return "SQL";
     case "elixir":
       return "Elixir";
+    case "zig":
+      return "Zig";
     case "move":
       return "Move";
     case "cairo":
@@ -1103,6 +1105,8 @@ function carouselGlyph(lang: LanguageId): string {
       return "SQL";
     case "elixir":
       return "EX";
+    case "zig":
+      return "ZG";
     case "move":
       return "MV";
     case "cairo":

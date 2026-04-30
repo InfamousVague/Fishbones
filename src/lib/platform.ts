@@ -80,6 +80,7 @@ const DESKTOP_ONLY_LANGUAGES = new Set<LanguageId>([
   "swift",
   "ruby",
   "elixir",
+  "zig",
   "move",
   "cairo",
   "sway",

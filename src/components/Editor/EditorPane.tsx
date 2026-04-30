@@ -149,6 +149,11 @@ const MONACO_LANGUAGES: Record<FileLanguage, string> = {
   // Elixir's syntax is closer to Ruby (do/end blocks, atoms, etc.)
   // than to anything else Monaco ships built-in.
   elixir: "ruby",
+  // Zig has no built-in Monaco grammar yet. C-family bracing + the
+  // bulk of its keywords (`if`, `while`, `for`, `return`, `const`,
+  // `fn`) overlap heavily with Rust, so aliasing to `rust` colours
+  // most tokens correctly. Custom Monarch is a follow-up.
+  zig: "rust",
   // Move + Sway both look very Rust-ish. Cairo 1 also leans Rust-
   // ish. Aliasing all three to `rust` gets keywords like `fn`,
   // `let`, `match`, plus number / string highlighting for free.

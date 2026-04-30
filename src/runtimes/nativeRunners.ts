@@ -205,3 +205,7 @@ export function runScala(code: string, testCode?: string): Promise<RunResult> {
 export function runDart(code: string, testCode?: string): Promise<RunResult> {
   return runNative("run_dart", code, "dart", "dart", testCode);
 }
+
+export function runZig(code: string, testCode?: string): Promise<RunResult> {
+  return runNative("run_zig", code, "zig", "zig", testCode);
+}

@@ -707,6 +707,26 @@ pub async fn run_dart(code: String) -> SubprocessResult {
     )
 }
 
+// ---- Zig ------------------------------------------------------------
+
+/// `zig run <file>`. Compiles + executes the user's program in one
+/// shot. Zig's compiler is a single binary distributed via tarball;
+/// the install hint points to the official downloads page since
+/// platform package managers don't always ship the latest. Output
+/// from `std.debug.print` lands on stderr; `std.io.getStdOut().writer()`
+/// goes to stdout. Both are captured by `from_output`.
+#[tauri::command]
+pub async fn run_zig(code: String) -> SubprocessResult {
+    simple_run_one_file(
+        "zig",
+        &["run"],
+        "zig",
+        "zig",
+        "install Zig (`brew install zig` on macOS, or grab a tarball from https://ziglang.org/download/).",
+        code,
+    )
+}
+
 // ---- Silence unused-import in builds where none of the commands are
 // actually wired yet. Harmless in production.
 #[allow(dead_code)]

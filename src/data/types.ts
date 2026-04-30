@@ -49,6 +49,10 @@ export type LanguageId =
   // a desktop-upsell banner.
   | "ruby"
   | "elixir"
+  // Zig — native subprocess runner. Compiles + runs the user's code via
+  // `zig run` on the host. macOS / Linux / Windows all install via the
+  // official tarball; web build upsells to desktop.
+  | "zig"
   // Smart-contract languages on alternative chains. Move (Aptos /
   // Sui), Cairo (StarkNet), Sway (Fuel). All three need the chain's
   // native toolchain on the host; web build upsells to desktop.
@@ -98,6 +102,7 @@ export type FileLanguage =
   | "scala"
   | "ruby"
   | "elixir"
+  | "zig"
   // Move / Cairo / Sway don't have native Monaco syntax — Monaco
   // falls back to plaintext rendering, which is fine for v1. We
   // keep the LanguageId entries in FileLanguage so a workbench

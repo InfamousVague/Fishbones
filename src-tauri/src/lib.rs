@@ -234,6 +234,7 @@ pub fn run() {
             native_runners::run_haskell,
             native_runners::run_scala,
             native_runners::run_dart,
+            native_runners::run_zig,
             ai_chat::ai_chat_probe,
             ai_chat::ai_chat_stream,
             ai_chat::ai_chat_install_status,

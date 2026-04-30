@@ -324,6 +324,16 @@ const SwayIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
   </svg>
 );
 
+// Zig — the official lightning-bolt-meets-Z mark. Approximated as a
+// chevron-Z that reads as both a Z and the bolt motif on the
+// Ziglang.org wordmark. Single-stroke geometry keeps it legible at
+// small sizes (book covers, sidebar dots).
+const ZigIcon: ComponentType<SVGProps<SVGSVGElement>> = (p) => (
+  <svg {...svgBase(p)}>
+    <path d="M3 5 L21 5 L21 9 L11 9 L21 13 L21 19 L3 19 L3 15 L13 15 L3 11 Z" />
+  </svg>
+);
+
 // ── The map ──────────────────────────────────────────────────────
 
 export const LANGUAGE_META: Record<LanguageId, LanguageMeta> = {
@@ -403,6 +413,9 @@ export const LANGUAGE_META: Record<LanguageId, LanguageMeta> = {
   sql: { label: "SQL", color: "#336791", Icon: SqlIcon },
   // Elixir — the official violet from elixir-lang.org.
   elixir: { label: "Elixir", color: "#6E4A7E", Icon: ElixirIcon },
+  // Zig — the orange-amber from the official Zig brand kit
+  // (ziglang.org). Reads well on both light and dark backdrops.
+  zig: { label: "Zig", color: "#F7A41D", Icon: ZigIcon },
   // Move — Aptos / Sui share the language; we pick a neutral
   // chain-agnostic blue-grey rather than tying to one ecosystem.
   move: { label: "Move", color: "#4E5D7E", Icon: MoveIcon },

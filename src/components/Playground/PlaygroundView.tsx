@@ -121,6 +121,7 @@ const LANGUAGE_OPTIONS: Array<{ id: LanguageId; label: string }> = [
   { id: "kotlin", label: "Kotlin" },
   { id: "csharp", label: "C#" },
   { id: "assembly", label: "Assembly" },
+  { id: "zig", label: "Zig" },
   { id: "web", label: "Web (HTML + CSS + JS)" },
   { id: "threejs", label: "Three.js" },
   { id: "react", label: "React (JSX + CSS)" },
