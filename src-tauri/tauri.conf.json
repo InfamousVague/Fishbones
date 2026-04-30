@@ -25,7 +25,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; style-src-attr 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost http://tauri.localhost https://tauri.localhost http://127.0.0.1:* http://localhost:* https://api.mattssoftware.com https://play.rust-lang.org https://play.golang.org; font-src 'self' data:; img-src 'self' data: blob: asset: https://asset.localhost tauri: http://tauri.localhost https://tauri.localhost; media-src 'self' data: blob:; worker-src 'self' blob:; child-src 'self' blob: http://127.0.0.1:* http://localhost:*; frame-src 'self' blob: http://127.0.0.1:* http://localhost:*;"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; style-src-attr 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost http://tauri.localhost https://tauri.localhost http://127.0.0.1:* http://localhost:* https://api.mattssoftware.com https://mattssoftware.com https://play.rust-lang.org https://play.golang.org; font-src 'self' data:; img-src 'self' data: blob: asset: https://asset.localhost tauri: http://tauri.localhost https://tauri.localhost https://mattssoftware.com; media-src 'self' data: blob:; worker-src 'self' blob:; child-src 'self' blob: http://127.0.0.1:* http://localhost:*; frame-src 'self' blob: http://127.0.0.1:* http://localhost:*;"
     }
   },
   "plugins": {
@@ -47,7 +47,33 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "resources/bundled-packs/*",
+      "resources/bundled-packs/the-rust-programming-language.fishbones",
+      "resources/bundled-packs/learning-go.fishbones",
+      "resources/bundled-packs/rust-challenges.fishbones",
+      "resources/bundled-packs/go-challenges.fishbones",
+      "resources/bundled-packs/javascript-challenges.fishbones",
+      "resources/bundled-packs/typescript-challenge-pack.fishbones",
+      "resources/bundled-packs/python-challenges.fishbones",
+      "resources/bundled-packs/react-native-challenges.fishbones",
+      "resources/bundled-packs/c-challenges.fishbones",
+      "resources/bundled-packs/cpp-challenges.fishbones",
+      "resources/bundled-packs/java-challenges.fishbones",
+      "resources/bundled-packs/kotlin-challenges.fishbones",
+      "resources/bundled-packs/csharp-challenges.fishbones",
+      "resources/bundled-packs/swift-challenges.fishbones",
+      "resources/bundled-packs/assembly-challenges-arm64-macos.fishbones",
+      "resources/bundled-packs/challenges-ruby-handwritten.fishbones",
+      "resources/bundled-packs/challenges-lua-handwritten.fishbones",
+      "resources/bundled-packs/challenges-dart-handwritten.fishbones",
+      "resources/bundled-packs/challenges-haskell-handwritten.fishbones",
+      "resources/bundled-packs/challenges-scala-handwritten.fishbones",
+      "resources/bundled-packs/challenges-sql-handwritten.fishbones",
+      "resources/bundled-packs/challenges-elixir-handwritten.fishbones",
+      "resources/bundled-packs/challenges-zig-handwritten.fishbones",
+      "resources/bundled-packs/challenges-move-handwritten.fishbones",
+      "resources/bundled-packs/challenges-cairo-handwritten.fishbones",
+      "resources/bundled-packs/challenges-sway-handwritten.fishbones",
+      "resources/bundled-packs/README.md",
       "resources/vendor/*",
       "resources/node/**/*"
     ],
