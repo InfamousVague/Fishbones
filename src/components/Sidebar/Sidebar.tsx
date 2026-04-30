@@ -446,9 +446,14 @@ export default function Sidebar({
           const inactiveBooks = books.filter(
             (c) => c.id !== activeCourseId && isStarted(c),
           );
-          const inactivePacks = packs.filter(
-            (c) => c.id !== activeCourseId && isStarted(c),
-          );
+          // Challenge packs intentionally skip the `isStarted` filter
+          // — packs are small, language-pickable practice surfaces, and
+          // the "I have a Ruby pack but never saw it because the
+          // sidebar hid it until I started a lesson" failure mode is
+          // worse than showing 11 unstarted tiles. Books still filter
+          // by started so the bench doesn't drown in 30+ untouched
+          // long-form courses on a fresh install.
+          const inactivePacks = packs.filter((c) => c.id !== activeCourseId);
 
           // Language-filtered packs when focused on a course. We match
           // the pack's primary language to the active course's language.

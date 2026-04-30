@@ -191,19 +191,39 @@ export const RELEASE_STATUS_OVERRIDES = {
   // Auto-generated kata sets validated as a class via the recent
   // runtime hardening (rand 0.10 trait fix, parseTestResults
   // defensive parsing, should_panic regex, missing-imports infer).
-  // The Rust + Go packs already shipped at BETA (line above);
-  // promoting the rest from UNREVIEWED → ALPHA.
-  "javascript-challenges": "ALPHA",
-  "typescript-challenge-pack": "ALPHA",
-  "python-challenges": "ALPHA",
-  "react-native-challenges": "ALPHA",
-  "c-challenges": "ALPHA",
-  "cpp-challenges": "ALPHA",
-  "java-challenges": "ALPHA",
-  "kotlin-challenges": "ALPHA",
-  "csharp-challenges": "ALPHA",
-  "swift-challenges": "ALPHA",
-  "assembly-challenges-arm64-macos": "ALPHA",
+  // All challenge packs ship at BETA — they're small, focused, and
+  // either run end-to-end on the host (the original 11) or against
+  // a stubbed-runtime install-hint banner (Move / Cairo / Sway).
+  "javascript-challenges": "BETA",
+  "typescript-challenge-pack": "BETA",
+  "python-challenges": "BETA",
+  "react-native-challenges": "BETA",
+  "c-challenges": "BETA",
+  "cpp-challenges": "BETA",
+  "java-challenges": "BETA",
+  "kotlin-challenges": "BETA",
+  "csharp-challenges": "BETA",
+  "swift-challenges": "BETA",
+  "assembly-challenges-arm64-macos": "BETA",
+  "rust-challenges": "BETA",
+  "go-challenges": "BETA",
+  // ── 2026 expansion challenge packs ───────────────────────────
+  // Same BETA tier — the runtimes for Ruby / Lua / Dart / Haskell
+  // / Scala / SQL / Elixir / Zig run via the host's installed CLI
+  // (or browser-native for Lua / SQL). Move / Cairo / Sway carry
+  // BETA too because the content + #[test] form is final; the
+  // language-runtime stubs surface install-hint banners cleanly.
+  "challenges-ruby-handwritten": "BETA",
+  "challenges-lua-handwritten": "BETA",
+  "challenges-dart-handwritten": "BETA",
+  "challenges-haskell-handwritten": "BETA",
+  "challenges-scala-handwritten": "BETA",
+  "challenges-sql-handwritten": "BETA",
+  "challenges-elixir-handwritten": "BETA",
+  "challenges-zig-handwritten": "BETA",
+  "challenges-move-handwritten": "BETA",
+  "challenges-cairo-handwritten": "BETA",
+  "challenges-sway-handwritten": "BETA",
 };
 
 /// Normalise a course's tier through the override map. Falls back to
