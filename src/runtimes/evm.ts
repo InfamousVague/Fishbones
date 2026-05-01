@@ -203,7 +203,57 @@ const DEFAULT_PRIVKEYS: Hex[] = [
 const DEFAULT_BALANCE = 10n ** 24n; // 1,000,000 ETH — generous for tests
 const SLOT_DURATION = 12n; // post-merge: a block every 12 seconds
 
-async function buildChain(compiled: CompiledOutput): Promise<ChainHarness> {
+/// Optional hooks the long-lived chain singleton (in
+/// `evmChainService`) wires up so the in-app GanacheDock UI re-renders
+/// when state changes. The ephemeral test path (default) passes
+/// `undefined` and the chain runs without any side-effects.
+export interface ChainAttachHooks {
+  onAccountsChanged?(accounts: AccountSnapshot[]): void;
+  onBlockChanged?(blockNumber: bigint, blockTimestamp: bigint): void;
+  onContractDeployed?(c: ContractSnapshot): void;
+  onTx?(tx: TxSnapshot): void;
+}
+
+interface AccountSnapshot {
+  address: Hex;
+  privateKey: Hex;
+  balanceWei: bigint;
+  nonce: bigint;
+  label: string;
+}
+
+interface ContractSnapshot {
+  address: Hex;
+  name: string;
+  deployedAtBlock: bigint;
+}
+
+interface TxSnapshot {
+  hash: Hex;
+  kind: "deploy" | "call" | "value-transfer" | "faucet";
+  from: Hex;
+  to?: Hex;
+  fn?: string;
+  valueWei: bigint;
+  status: "success" | "reverted";
+  blockNumber: bigint;
+  timestamp: number;
+}
+
+/// Mutator added on top of `ChainHarness` for the persistent path.
+/// `setCompiled` swaps the compiled-artifacts table so a single
+/// long-lived chain can serve sequential lessons without rebuilding
+/// the VM. `loadInitialSnapshot` flushes the current state through
+/// the hooks so the UI sees something immediately on first mount.
+interface PersistentChainExtras {
+  setCompiled(c: CompiledOutput): void;
+  loadInitialSnapshot(): Promise<void>;
+}
+
+async function buildChain(
+  initialCompiled: CompiledOutput,
+  hooks: ChainAttachHooks = {},
+): Promise<ChainHarness & PersistentChainExtras> {
   // Common across the whole run. Mainnet + Cancun is the closest
   // match to what a learner targets when developing today —
   // post-merge, post-shanghai, has push0, has tload/tstore, has
@@ -211,6 +261,11 @@ async function buildChain(compiled: CompiledOutput): Promise<ChainHarness> {
   // semantics line up with a current node).
   const common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.Cancun });
   const vm = await VM.create({ common });
+
+  // Mutable so the persistent path can swap in fresh artifacts each
+  // lesson run without rebuilding the VM. `findArtifact` reads from
+  // this ref, not the closure-captured `initialCompiled`.
+  let compiled = initialCompiled;
 
   // Mutable virtual block context. mine() bumps the number;
   // warp() bumps the timestamp delta which folds in on the next mine.
@@ -379,6 +434,26 @@ async function buildChain(compiled: CompiledOutput): Promise<ChainHarness> {
     const thisBlock = currentBlockNumber;
     currentBlockNumber += 1n;
     currentBlockTimestamp += SLOT_DURATION;
+
+    // Notify any attached UI listener. Best-effort — a hook throwing
+    // mid-tx must NOT break the tx itself; the dock would just miss
+    // a frame.
+    try {
+      hooks.onBlockChanged?.(currentBlockNumber, currentBlockTimestamp);
+      hooks.onTx?.({
+        hash: ("0x" + thisBlock.toString(16).padStart(8, "0") +
+          params.from.address.slice(2).padStart(56, "0")) as Hex,
+        kind: result.createdAddress ? "deploy" : (params.value ?? 0n) > 0n ? "value-transfer" : "call",
+        from: params.from.address,
+        to: params.to,
+        valueWei: params.value ?? 0n,
+        status: reverted ? "reverted" : "success",
+        blockNumber: thisBlock,
+        timestamp: Date.now(),
+      });
+    } catch {
+      /* swallow */
+    }
 
     return {
       reverted,
@@ -688,6 +763,15 @@ async function buildChain(compiled: CompiledOutput): Promise<ChainHarness> {
       if (reverted) throw decodeRevert(artifact.abi, revertReason ?? "0x");
       if (!createdAddress)
         throw new Error(`Deployment of ${name} produced no address`);
+      try {
+        hooks.onContractDeployed?.({
+          address: createdAddress,
+          name,
+          deployedAtBlock: currentBlockNumber - 1n,
+        });
+      } catch {
+        /* swallow */
+      }
       return wrap(name, createdAddress, artifact.abi, sender);
     },
 
@@ -839,7 +923,65 @@ async function buildChain(compiled: CompiledOutput): Promise<ChainHarness> {
   // don't drop the type declaration we use as documentation.
   void ({} as AbiEvent);
 
-  return chain;
+  // Persistent-chain mutators. The ephemeral path doesn't use these;
+  // the singleton in evmChainService.ts calls setCompiled() at the
+  // start of every Run + loadInitialSnapshot() at attach time.
+  const persistent: PersistentChainExtras = {
+    setCompiled(c) {
+      compiled = c;
+    },
+    async loadInitialSnapshot() {
+      // Push the current account list + block info to the hook so
+      // the dock has something to render before the first tx fires.
+      const snaps: AccountSnapshot[] = [];
+      for (let i = 0; i < accounts.length; i++) {
+        const a = accounts[i];
+        const balance = await chain.balanceOf(a.address);
+        snaps.push({
+          address: a.address,
+          privateKey: a.privateKey,
+          balanceWei: balance,
+          nonce: nonceCache.get(a.address) ?? 0n,
+          label: i === 0 ? "Default sender" : `Account #${i}`,
+        });
+      }
+      try {
+        hooks.onAccountsChanged?.(snaps);
+        hooks.onBlockChanged?.(currentBlockNumber, currentBlockTimestamp);
+      } catch {
+        /* swallow */
+      }
+    },
+  };
+
+  return Object.assign(chain, persistent);
+}
+
+// Re-export the AccountSnapshot/ContractSnapshot/TxSnapshot/
+// ChainAttachHooks types under stable names so evmChainService can
+// import them without re-declaring. These are the SAME interfaces
+// declared above; this block just re-exports them as values.
+export type {
+  AccountSnapshot as EvmAccountSnapshot,
+  ContractSnapshot as EvmContractSnapshot,
+  TxSnapshot as EvmTxSnapshot,
+};
+
+/// Singleton-friendly factory used by `evmChainService.ts`. Builds a
+/// chain with empty compiled artifacts (so it can be attached before
+/// any lesson has compiled) and wires the supplied hooks. The caller
+/// loads compiled artifacts via `chain.setCompiled(c)` on every run.
+export async function _buildChainPersistent(
+  hooks: ChainAttachHooks,
+): Promise<{
+  chain: ChainHarness & PersistentChainExtras;
+  rebuildSnapshot: () => Promise<void>;
+}> {
+  const chain = await buildChain({ contracts: {} }, hooks);
+  return {
+    chain,
+    rebuildSnapshot: () => chain.loadInitialSnapshot(),
+  };
 }
 
 /// Public entry point. Same shape as runSolidity so the dispatcher
@@ -941,7 +1083,24 @@ export async function runEvm(
     return { logs, durationMs: Date.now() - started };
   }
 
-  const chain = await buildChain(compiled);
+  // Pick a chain. Prefer the long-lived singleton from
+  // `evmChainService` so the GanacheDock UI can show balances /
+  // recent contracts / recent txs across runs. The singleton is
+  // browser-only (it imports our own runtime back), so we guard the
+  // dynamic import — Node-side callers (smoke tests, the verifier)
+  // still get a fresh ephemeral chain via the catch fallback.
+  let chain: ChainHarness & PersistentChainExtras;
+  try {
+    const svc = await import("../lib/evmChainService");
+    const { chain: persistent } = await svc.getOrCreateChain();
+    const c = persistent as ChainHarness & PersistentChainExtras;
+    c.setCompiled(compiled);
+    await c.loadInitialSnapshot();
+    chain = c;
+  } catch {
+    // No service available (likely Node) — fall back to ephemeral.
+    chain = await buildChain(compiled);
+  }
 
   // Console proxy for the test harness — buffered into the Run
   // panel just like the JS runtime. lets `console.log(receipt)`

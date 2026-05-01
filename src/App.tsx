@@ -20,6 +20,8 @@ import "@base/primitives/icon/icon.css";
 import Sidebar from "./components/Sidebar/Sidebar";
 import TopBar from "./components/TopBar/TopBar";
 import LessonReader from "./components/Lesson/LessonReader";
+import { GanacheDock } from "./components/GanacheDock/GanacheDock";
+import { openEvmDockPopout } from "./lib/evmDockPopout";
 import LessonNav from "./components/Lesson/LessonNav";
 import EditorPane from "./components/Editor/EditorPane";
 import OutputPane from "./components/Output/OutputPane";
@@ -88,12 +90,13 @@ import { useCourses } from "./hooks/useCourses";
 import { useRecentCourses } from "./hooks/useRecentCourses";
 import { useStreakAndXp } from "./hooks/useStreakAndXp";
 import { useWorkbenchFiles } from "./hooks/useWorkbenchFiles";
+import {
+  loadPersistedTabs,
+  savePersistedTabs,
+  validateTabsAgainstCourses,
+  type OpenCourse,
+} from "./lib/openTabsState";
 import "./App.css";
-
-interface OpenCourse {
-  courseId: string;
-  lessonId: string;
-}
 
 /// Languages that need a local compiler / VM / assembler installed on
 /// the host before lessons in them can run. Used by LessonView to
@@ -144,8 +147,23 @@ export default function App() {
     [coursesAll],
   );
 
-  const [openTabs, setOpenTabs] = useState<OpenCourse[]>([]);
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  // Resume-state hydration. The synchronous `loadPersistedTabs()` call
+  // runs during the initial useState — meaning the first paint already
+  // has the learner's last tabs in hand, no flash of "library →
+  // auto-open courses[0] → restore actual tabs". A null result means
+  // there's no persisted state at all (first launch); we leave the
+  // initial state empty and let the auto-open effect at line ~580 fire
+  // its `courses[0]` convenience pick. A persisted snapshot with
+  // `tabs: []` is treated as "the user explicitly closed everything"
+  // and bypasses the auto-open via `didAutoOpen.current = true` (see
+  // useRef init below).
+  const initialPersisted = useRef(loadPersistedTabs()).current;
+  const [openTabs, setOpenTabs] = useState<OpenCourse[]>(
+    initialPersisted?.tabs ?? [],
+  );
+  const [activeTabIndex, setActiveTabIndex] = useState(
+    initialPersisted?.activeIndex ?? 0,
+  );
 
   /// `cmd+K → "Verify this course"` session state. Null when no
   /// verification is in flight or visible. The overlay component
@@ -564,7 +582,12 @@ export default function App() {
   // tab should NOT auto-re-open it, the learner wanted the library view.
   // The ref is flipped after the first auto-open OR after any manual
   // selectLesson call so repeated close-all cycles don't keep re-opening.
-  const didAutoOpen = useRef(false);
+  //
+  // Initial value of `true` whenever we hydrated tabs from disk —
+  // either case (restored tabs OR explicitly-empty snapshot) means the
+  // learner already has a last-known intent and we shouldn't paper
+  // over it with the courses[0] default.
+  const didAutoOpen = useRef(initialPersisted !== null);
   useEffect(() => {
     if (didAutoOpen.current) return;
     if (!coursesLoaded || courses.length === 0 || openTabs.length !== 0) return;
@@ -639,6 +662,54 @@ export default function App() {
     // render). pendingOpen + coursesLoaded are the actual triggers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingOpen, coursesLoaded, courses]);
+
+  // Persist tab state on every change. Cheap (<1 KB to localStorage)
+  // and synchronous, so the next launch reads exactly what the
+  // learner left behind — which course tabs were open, which one was
+  // active. No debounce needed: tab open/close/switch are infrequent
+  // events triggered by user clicks, not by every keystroke.
+  useEffect(() => {
+    savePersistedTabs({ tabs: openTabs, activeIndex: activeTabIndex });
+  }, [openTabs, activeTabIndex]);
+
+  // Validate restored tabs against the live course list once it loads.
+  // A learner who uninstalled a course between sessions would otherwise
+  // boot into a tab pointing at a missing course → LessonView would
+  // render nothing. Run-once via the ref guard: subsequent course-list
+  // mutations (a new install, an update) shouldn't invalidate tabs the
+  // learner JUST opened.
+  const didValidateRestoredTabs = useRef(false);
+  useEffect(() => {
+    if (didValidateRestoredTabs.current) return;
+    if (!coursesLoaded || courses.length === 0) return;
+    didValidateRestoredTabs.current = true;
+    if (openTabs.length === 0) return; // nothing to validate
+    const cleaned = validateTabsAgainstCourses(
+      { tabs: openTabs, activeIndex: activeTabIndex },
+      courses,
+    );
+    if (
+      cleaned.tabs.length !== openTabs.length ||
+      cleaned.activeIndex !== activeTabIndex
+    ) {
+      setOpenTabs(cleaned.tabs);
+      setActiveTabIndex(cleaned.activeIndex);
+      // Stale-uninstall recovery: if EVERY saved tab pointed at a
+      // course that's no longer installed, the learner clearly wanted
+      // a lesson open (not the library — that would have persisted as
+      // `tabs: []`). Re-arm the auto-open ref so the existing
+      // courses[0] convenience effect fires on the next render and
+      // they land on something instead of an empty shell.
+      if (cleaned.tabs.length === 0) {
+        didAutoOpen.current = false;
+      }
+    }
+    // openTabs / activeTabIndex deliberately not in deps — this is a
+    // one-shot validation against the freshly-loaded course list. We
+    // only care about the snapshot at the moment courses become
+    // available; subsequent edits are the learner's intent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coursesLoaded, courses]);
 
   const activeTab = openTabs[activeTabIndex];
   const activeCourse = courses.find((c) => c.id === activeTab?.courseId) ?? null;
@@ -1063,6 +1134,7 @@ export default function App() {
                 onBulkExport={isWeb ? undefined : bulkExportLibrary}
                 onUpdateCourse={handleReapplyBundledStarter}
                 onAddCourse={isWeb ? undefined : handleAddCourse}
+                onInstallCatalogEntry={handleInstallCatalogEntry}
               />
             </DeferredMount>
           ) : courses.length === 0 && coursesLoaded ? (
@@ -1134,10 +1206,20 @@ export default function App() {
                 onBulkExport={isWeb ? undefined : bulkExportLibrary}
                 onUpdateCourse={handleReapplyBundledStarter}
                 onAddCourse={isWeb ? undefined : handleAddCourse}
+                onInstallCatalogEntry={handleInstallCatalogEntry}
               />
             </DeferredMount>
           ) : activeLesson && activeCourse ? (
-            <LessonView
+            <>
+              {/* Ganache-style chain dock — appears above any
+                  smart-contract lesson so the learner can watch
+                  account balances, recent deploys, and tx flow as
+                  their tests run. Hides automatically when the
+                  active lesson is non-EVM. */}
+              {shouldShowEvmDock(activeLesson, activeCourse) && (
+                <EvmDockBanner />
+              )}
+              <LessonView
               // Key on course+lesson so the editor/code state and quiz answers
               // fully reset when navigating via Prev/Next — otherwise React
               // would reuse stale component state across lessons.
@@ -1157,6 +1239,7 @@ export default function App() {
                 )
               }
             />
+            </>
           ) : (
             <div className="fishbones__empty">
               <p>Pick a lesson from the sidebar to get started.</p>
@@ -1586,6 +1669,51 @@ export default function App() {
     verifyControllerRef.current?.abort();
     verifyControllerRef.current = null;
     setVerifySession((s) => (s ? { ...s, done: true, current: null } : null));
+  }
+
+  /// Install a course from the catalog by downloading its
+  /// .fishbones archive (desktop) or its course JSON (web), then
+  /// persisting it via the same path bundled-pack seed uses. After
+  /// the write lands, refresh the in-memory course list + hydrate
+  /// the new course so the placeholder tile in the Library flips
+  /// to a real installed cover and the user can click into it
+  /// immediately.
+  async function handleInstallCatalogEntry(entry: {
+    id: string;
+    file: string;
+    archiveUrl: string;
+    title: string;
+  }) {
+    try {
+      if (isWeb) {
+        // Web build: fetch the course JSON from same-origin
+        // (`/starter-courses/<file>.json`) and save straight to
+        // IndexedDB via the storage abstraction.
+        const base = (import.meta.env.BASE_URL ?? "/").replace(/\/?$/, "/");
+        const url = `${base}starter-courses/${entry.file}`;
+        const res = await fetch(url, { cache: "no-cache" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const course = await res.json();
+        const { storage } = await import("./lib/storage");
+        await storage.saveCourse(entry.id, course);
+      } else {
+        // Desktop: lazy-import the Tauri invoke helper so the web
+        // bundle doesn't pull it in. The native command fetches
+        // the .fishbones archive over HTTPS, writes to a temp
+        // file, and unzips into the courses dir.
+        const { invoke } = await import("@tauri-apps/api/core");
+        await invoke<string>("download_and_install_course", {
+          archiveUrl: entry.archiveUrl,
+        });
+      }
+      await refreshCourses();
+      await hydrateCourse(entry.id);
+    } catch (e) {
+      console.error("[fishbones] install catalog entry failed:", e);
+      alert(
+        `Couldn't install ${entry.title}: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
   }
 
   /// Unified "Add course" handler — replaces the four separate
@@ -2339,4 +2467,35 @@ function findLesson(course: Course | null, lessonId: string | undefined): Lesson
     if (found) return found;
   }
   return null;
+}
+
+/// Show the GanacheDock when the lesson actively interacts with the
+/// EVM (`harness: "evm"`) OR when the lesson is a Solidity / Vyper
+/// exercise that compiles to bytecode. Other lessons in EVM courses
+/// (the chapter introduction reading, JS-only encoding drills) skip
+/// the dock — it'd just be noise above non-chain content.
+function shouldShowEvmDock(lesson: Lesson, _course: Course): boolean {
+  if ("harness" in lesson && lesson.harness === "evm") return true;
+  // Solidity/Vyper lessons typically compile to EVM bytecode even
+  // without the explicit harness flag (legacy compile-only path).
+  if ("language" in lesson) {
+    const lang = (lesson as { language?: string }).language;
+    if (lang === "solidity" || lang === "vyper") return true;
+  }
+  return false;
+}
+
+/// Banner-mode dock. Memoised so the parent re-rendering doesn't
+/// also rebuild the heavy chain subscriber chain — the dock listens
+/// to its own external store via `subscribe()` and re-renders only
+/// on real chain mutations.
+function EvmDockBanner() {
+  return (
+    <GanacheDock
+      variant="banner"
+      onOpenPopout={() => {
+        void openEvmDockPopout();
+      }}
+    />
+  );
 }

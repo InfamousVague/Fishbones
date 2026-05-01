@@ -1,0 +1,377 @@
+/* Ganache-style dock — banner above EVM lessons + popout window. */
+
+.ganache-dock {
+  font-family: var(--font-sans, system-ui), sans-serif;
+  font-size: 12px;
+  color: var(--text, #d6d6d8);
+  background: linear-gradient(135deg, #18222e 0%, #11171f 100%);
+  border: 1px solid #2a3a4f;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ganache-dock--popout {
+  margin: 0;
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+}
+
+.ganache-dock__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ganache-dock__title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ganache-dock__chip {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #ffba66;
+  background: rgba(255, 186, 102, 0.12);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ganache-dock__block strong {
+  color: #ffba66;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.ganache-dock__timestamp {
+  color: #6b7c8e;
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 11px;
+}
+
+.ganache-dock__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ganache-dock__btn {
+  border: 1px solid #2e4159;
+  background: rgba(20, 30, 42, 0.6);
+  color: #c8d3e1;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.ganache-dock__btn:hover:not(:disabled) {
+  background: rgba(35, 50, 70, 0.9);
+  border-color: #3d5573;
+  color: #fff;
+}
+
+.ganache-dock__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ganache-dock__btn--ghost {
+  background: transparent;
+}
+
+.ganache-dock__btn--icon {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ganache-dock__btn--faucet {
+  background: rgba(60, 130, 220, 0.15);
+  border-color: rgba(80, 150, 230, 0.4);
+  color: #9bc2ee;
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ganache-dock__btn--faucet:hover:not(:disabled) {
+  background: rgba(80, 150, 230, 0.25);
+  color: #d2e2f7;
+}
+
+/* ---- grid layout: accounts | contracts | txs ---- */
+
+.ganache-dock__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.5fr;
+  gap: 10px;
+}
+
+.ganache-dock--popout .ganache-dock__grid {
+  grid-template-columns: 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.ganache-dock__panel {
+  background: rgba(8, 14, 22, 0.5);
+  border: 1px solid #1c2735;
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+.ganache-dock--popout .ganache-dock__panel {
+  overflow: auto;
+}
+
+.ganache-dock__panel-title {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6f8298;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ganache-dock__count {
+  background: rgba(255, 186, 102, 0.1);
+  color: #ffba66;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ganache-dock__empty {
+  color: #5a6b7e;
+  font-style: italic;
+  font-size: 11px;
+  padding: 8px 4px;
+  line-height: 1.4;
+}
+
+.ganache-dock__empty--inline {
+  padding: 4px 0;
+}
+
+/* ---- accounts ---- */
+
+.ganache-dock__acc {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: rgba(20, 30, 42, 0.4);
+  margin-bottom: 4px;
+}
+
+.ganache-dock__acc--default {
+  background: rgba(60, 100, 160, 0.18);
+  border-left: 2px solid #ffba66;
+}
+
+.ganache-dock__acc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ganache-dock__acc-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #d6d6d8;
+}
+
+.ganache-dock__acc-addr {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 10px;
+  color: #6b7c8e;
+}
+
+.ganache-dock__acc-balance {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 12px;
+  color: #ffba66;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ganache-dock__acc-balance em {
+  font-style: normal;
+  color: #6f8298;
+  font-weight: 400;
+  font-size: 10px;
+  margin-left: 3px;
+}
+
+.ganache-dock__more {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6f8298;
+}
+
+.ganache-dock__more summary {
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.ganache-dock__more summary:hover {
+  background: rgba(20, 30, 42, 0.5);
+  color: #c8d3e1;
+}
+
+.ganache-dock__more-list {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ---- contracts ---- */
+
+.ganache-dock__contract-list,
+.ganache-dock__tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ganache-dock__contract {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 6px;
+  font-size: 11px;
+  border-radius: 3px;
+  background: rgba(20, 30, 42, 0.3);
+}
+
+.ganache-dock__contract-name {
+  font-weight: 600;
+  color: #d6d6d8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ganache-dock__contract-addr {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 10px;
+  color: #6b7c8e;
+}
+
+.ganache-dock__contract-block {
+  font-size: 9px;
+  color: #4a5b6e;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- transactions ---- */
+
+.ganache-dock__tx {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  background: rgba(20, 30, 42, 0.3);
+  flex-wrap: wrap;
+}
+
+.ganache-dock__tx--reverted {
+  border-left: 2px solid #d04545;
+  background: rgba(60, 25, 25, 0.3);
+}
+
+.ganache-dock__tx-kind {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ganache-dock__tx-kind--deploy {
+  background: rgba(255, 186, 102, 0.15);
+  color: #ffba66;
+}
+
+.ganache-dock__tx-kind--call {
+  background: rgba(80, 150, 230, 0.15);
+  color: #9bc2ee;
+}
+
+.ganache-dock__tx-kind--value-transfer {
+  background: rgba(110, 180, 110, 0.15);
+  color: #a3d2a3;
+}
+
+.ganache-dock__tx-kind--faucet {
+  background: rgba(180, 110, 200, 0.15);
+  color: #c89cdf;
+}
+
+.ganache-dock__tx-from,
+.ganache-dock__tx-to {
+  font-family: var(--font-mono, ui-monospace), monospace;
+  color: #c8d3e1;
+}
+
+.ganache-dock__tx-arrow {
+  color: #4a5b6e;
+}
+
+.ganache-dock__tx-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #ffba66;
+}
+
+.ganache-dock__tx-block,
+.ganache-dock__tx-ago {
+  margin-left: auto;
+  font-size: 9px;
+  color: #4a5b6e;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- responsive ---- */
+
+@media (max-width: 1100px) {
+  .ganache-dock__grid {
+    grid-template-columns: 1fr;
+  }
+}
