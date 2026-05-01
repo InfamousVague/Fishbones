@@ -358,10 +358,17 @@ async function buildChain(
       pendingTimestampDelta = 0n;
     }
 
+    // Cancun enforces EIP-1559: every block has a baseFeePerGas the
+    // tx must clear or the VM rejects with "gasPrice (X) is less
+    // than the block's baseFeePerGas (Y)". @ethereumjs/vm starts at
+    // baseFee = 7 wei and ratchets up with every full block, so a
+    // long-running session needs a comfortable margin. 100 gwei is
+    // anvil's default — well above anything the in-process VM will
+    // ever charge — and lets us treat gas as a non-event for tests.
     const tx = LegacyTransaction.fromTxData(
       {
         nonce: nextNonce(params.from.address),
-        gasPrice: 1n,
+        gasPrice: 100n * 10n ** 9n, // 100 gwei
         gasLimit: 30_000_000n,
         to: params.to,
         value: params.value ?? 0n,

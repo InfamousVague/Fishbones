@@ -1,14 +1,30 @@
-/* Ganache-style dock — banner above EVM lessons + popout window. */
+/* Ganache-style dock — banner above EVM lessons + popout window.
+ *
+ * Styling rules:
+ *   - Pull every colour from the app's theme variables so the dock
+ *     follows the active theme automatically (vs the previous
+ *     hardcoded slate-blue palette that looked fine on the default
+ *     dark theme but jarring everywhere else).
+ *   - The amber accent (block number, faucet "+ETH" total) is the
+ *     ONE colour the dock owns — nothing in the theme system covers
+ *     "this is a chain primitive" semantically, and amber reads as
+ *     "Ethereum-y" in a way that fits cross-theme.
+ *   - Layout: banner mode gets right margin so it doesn't butt
+ *     against the editor pane; popout mode goes full bleed.
+ */
 
 .ganache-dock {
   font-family: var(--font-sans, system-ui), sans-serif;
   font-size: 12px;
-  color: var(--text, #d6d6d8);
-  background: linear-gradient(135deg, #18222e 0%, #11171f 100%);
-  border: 1px solid #2a3a4f;
-  border-radius: 10px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md, 10px);
   padding: 10px 12px;
-  margin: 12px 0 16px;
+  /* Banner mode: leave right-side breathing room so the dock doesn't
+   * touch the workbench edge. Vertical margin matches the lesson
+   * reader's top padding. */
+  margin: 12px 16px 16px 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -19,6 +35,10 @@
   height: 100vh;
   border-radius: 0;
   border: none;
+  /* Popout window — fill the OS-provided rectangle and add internal
+   * padding instead of the banner's tight 10px. */
+  padding: 16px 20px;
+  background: var(--color-bg-primary);
 }
 
 .ganache-dock__header {
@@ -39,7 +59,9 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #ffba66;
+  /* Amber for the chain chip — reads as "Ethereum-y" across themes
+   * even though the app doesn't have a centralised accent variable. */
+  color: var(--color-accent, #ffba66);
   background: rgba(255, 186, 102, 0.12);
   padding: 3px 8px;
   border-radius: 4px;
@@ -47,13 +69,17 @@
 }
 
 .ganache-dock__block strong {
-  color: #ffba66;
+  color: var(--color-accent, #ffba66);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 
+.ganache-dock__block {
+  color: var(--color-text-secondary);
+}
+
 .ganache-dock__timestamp {
-  color: #6b7c8e;
+  color: var(--color-text-tertiary);
   font-family: var(--font-mono, ui-monospace), monospace;
   font-size: 11px;
 }
@@ -64,20 +90,20 @@
 }
 
 .ganache-dock__btn {
-  border: 1px solid #2e4159;
-  background: rgba(20, 30, 42, 0.6);
-  color: #c8d3e1;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
   padding: 4px 10px;
-  border-radius: 5px;
+  border-radius: var(--radius-sm, 5px);
   font-size: 11px;
   cursor: pointer;
   transition: all 120ms ease;
 }
 
 .ganache-dock__btn:hover:not(:disabled) {
-  background: rgba(35, 50, 70, 0.9);
-  border-color: #3d5573;
-  color: #fff;
+  background: var(--color-bg-primary);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
 }
 
 .ganache-dock__btn:disabled {
@@ -99,17 +125,17 @@
 }
 
 .ganache-dock__btn--faucet {
-  background: rgba(60, 130, 220, 0.15);
-  border-color: rgba(80, 150, 230, 0.4);
-  color: #9bc2ee;
+  background: rgba(255, 186, 102, 0.12);
+  border-color: rgba(255, 186, 102, 0.35);
+  color: var(--color-accent, #ffba66);
   font-weight: 500;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
 .ganache-dock__btn--faucet:hover:not(:disabled) {
-  background: rgba(80, 150, 230, 0.25);
-  color: #d2e2f7;
+  background: rgba(255, 186, 102, 0.22);
+  color: var(--color-accent, #ffba66);
 }
 
 /* ---- grid layout: accounts | contracts | txs ---- */
@@ -127,9 +153,9 @@
 }
 
 .ganache-dock__panel {
-  background: rgba(8, 14, 22, 0.5);
-  border: 1px solid #1c2735;
-  border-radius: 6px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm, 6px);
   padding: 8px 10px;
   min-width: 0;
 }
@@ -144,7 +170,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #6f8298;
+  color: var(--color-text-tertiary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -152,7 +178,7 @@
 
 .ganache-dock__count {
   background: rgba(255, 186, 102, 0.1);
-  color: #ffba66;
+  color: var(--color-accent, #ffba66);
   padding: 1px 6px;
   border-radius: 3px;
   font-size: 9px;
@@ -161,7 +187,7 @@
 }
 
 .ganache-dock__empty {
-  color: #5a6b7e;
+  color: var(--color-text-tertiary);
   font-style: italic;
   font-size: 11px;
   padding: 8px 4px;
@@ -180,14 +206,17 @@
   gap: 8px;
   align-items: center;
   padding: 6px 8px;
-  border-radius: 5px;
-  background: rgba(20, 30, 42, 0.4);
+  border-radius: var(--radius-sm, 5px);
+  background: var(--color-bg-secondary);
   margin-bottom: 4px;
+  border: 1px solid transparent;
 }
 
 .ganache-dock__acc--default {
-  background: rgba(60, 100, 160, 0.18);
-  border-left: 2px solid #ffba66;
+  /* The default sender gets a faint accent border so the learner
+   * always knows which account their tests sign from. */
+  border-left: 2px solid var(--color-accent, #ffba66);
+  background: var(--color-bg-primary);
 }
 
 .ganache-dock__acc-meta {
@@ -200,13 +229,13 @@
 .ganache-dock__acc-label {
   font-size: 11px;
   font-weight: 600;
-  color: #d6d6d8;
+  color: var(--color-text-primary);
 }
 
 .ganache-dock__acc-addr {
   font-family: var(--font-mono, ui-monospace), monospace;
   font-size: 10px;
-  color: #6b7c8e;
+  color: var(--color-text-tertiary);
 }
 
 .ganache-dock__acc-balance {
@@ -214,14 +243,14 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   font-size: 12px;
-  color: #ffba66;
+  color: var(--color-accent, #ffba66);
   text-align: right;
   white-space: nowrap;
 }
 
 .ganache-dock__acc-balance em {
   font-style: normal;
-  color: #6f8298;
+  color: var(--color-text-tertiary);
   font-weight: 400;
   font-size: 10px;
   margin-left: 3px;
@@ -230,19 +259,19 @@
 .ganache-dock__more {
   margin-top: 6px;
   font-size: 11px;
-  color: #6f8298;
+  color: var(--color-text-tertiary);
 }
 
 .ganache-dock__more summary {
   cursor: pointer;
   user-select: none;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm, 4px);
 }
 
 .ganache-dock__more summary:hover {
-  background: rgba(20, 30, 42, 0.5);
-  color: #c8d3e1;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
 }
 
 .ganache-dock__more-list {
@@ -271,13 +300,13 @@
   align-items: baseline;
   padding: 3px 6px;
   font-size: 11px;
-  border-radius: 3px;
-  background: rgba(20, 30, 42, 0.3);
+  border-radius: var(--radius-sm, 3px);
+  background: var(--color-bg-secondary);
 }
 
 .ganache-dock__contract-name {
   font-weight: 600;
-  color: #d6d6d8;
+  color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -286,13 +315,14 @@
 .ganache-dock__contract-addr {
   font-family: var(--font-mono, ui-monospace), monospace;
   font-size: 10px;
-  color: #6b7c8e;
+  color: var(--color-text-tertiary);
 }
 
 .ganache-dock__contract-block {
   font-size: 9px;
-  color: #4a5b6e;
+  color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 
 /* ---- transactions ---- */
@@ -303,20 +333,20 @@
   gap: 6px;
   padding: 3px 6px;
   font-size: 10px;
-  border-radius: 3px;
-  background: rgba(20, 30, 42, 0.3);
+  border-radius: var(--radius-sm, 3px);
+  background: var(--color-bg-secondary);
   flex-wrap: wrap;
 }
 
 .ganache-dock__tx--reverted {
   border-left: 2px solid #d04545;
-  background: rgba(60, 25, 25, 0.3);
+  background: rgba(208, 69, 69, 0.08);
 }
 
 .ganache-dock__tx-kind {
   display: inline-block;
   padding: 1px 6px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm, 3px);
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
@@ -326,11 +356,11 @@
 
 .ganache-dock__tx-kind--deploy {
   background: rgba(255, 186, 102, 0.15);
-  color: #ffba66;
+  color: var(--color-accent, #ffba66);
 }
 
 .ganache-dock__tx-kind--call {
-  background: rgba(80, 150, 230, 0.15);
+  background: rgba(120, 170, 230, 0.15);
   color: #9bc2ee;
 }
 
@@ -347,25 +377,26 @@
 .ganache-dock__tx-from,
 .ganache-dock__tx-to {
   font-family: var(--font-mono, ui-monospace), monospace;
-  color: #c8d3e1;
+  color: var(--color-text-secondary);
 }
 
 .ganache-dock__tx-arrow {
-  color: #4a5b6e;
+  color: var(--color-text-tertiary);
 }
 
 .ganache-dock__tx-value {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  color: #ffba66;
+  color: var(--color-accent, #ffba66);
 }
 
 .ganache-dock__tx-block,
 .ganache-dock__tx-ago {
   margin-left: auto;
   font-size: 9px;
-  color: #4a5b6e;
+  color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 
 /* ---- responsive ---- */
