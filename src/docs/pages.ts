@@ -940,9 +940,11 @@ export function setupMonaco() {
   monaco.languages.register({ id: "svelte" });
   monaco.languages.setMonarchTokensProvider("svelte", svelteGrammar);
 
-  // Theme regeneration based on the active app theme
+  // Theme regeneration based on the active app theme. Light app
+  // themes (ayu-light, catppuccin-latte) intentionally point at
+  // the dark Monaco theme — see MONACO_THEME_BY_APP_THEME.
   monaco.editor.defineTheme("fishbones-dark", FISHBONES_DARK_THEME);
-  monaco.editor.defineTheme("fishbones-light", FISHBONES_LIGHT_THEME);
+  monaco.editor.defineTheme("fishbones-ayu-mirage", AYU_MIRAGE_THEME);
 }
 \`\`\`
 
@@ -1421,7 +1423,7 @@ The Monaco theme switches whenever the app theme switches:
 \`\`\`ts
 // src/lib/monaco-setup.ts
 useEffect(() => {
-  monaco.editor.setTheme(activeTheme === 'dark' ? 'fishbones-dark' : 'fishbones-light');
+  monaco.editor.setTheme(MONACO_THEME_BY_APP_THEME[activeTheme]);
 }, [activeTheme]);
 \`\`\`
 

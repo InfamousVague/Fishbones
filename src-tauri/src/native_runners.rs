@@ -709,32 +709,41 @@ pub async fn run_dart(code: String) -> SubprocessResult {
 
 // ---- Zig ------------------------------------------------------------
 
-/// `zig run <file>`. Compiles + executes the user's program in one
-/// shot. Zig's compiler is a single binary distributed via tarball;
-/// the install hint points to the official downloads page since
-/// platform package managers don't always ship the latest. Output
-/// from `std.debug.print` lands on stderr — both stdout and stderr
-/// are captured by `from_output` and the JS-side parser scans both
-/// streams for `KATA_TEST::` lines.
+/// `zig test <file>`. Native Zig test runner — no harness synthesis,
+/// no `KATA_TEST::` protocol, no stdout dance. We hand `zig test` the
+/// merged source (solution + tests) and it compiles + runs every
+/// `test "name" { ... }` block, printing one `N/M slug.test.<name>...
+/// (OK|FAIL [(reason)])` line per case to stderr.
 ///
-/// Source pre-processing: lessons author plain function definitions
-/// + a `// CASES: [["name","fnName"], ...]` comment (or just rely on
-/// `fn test*()` auto-detection). `preprocess_zig_source` strips any
-/// pre-existing `pub fn main` / `fn runTest` blocks, then appends a
-/// generated harness that uses `std.debug.print` (works in every
-/// recent Zig version, unlike `std.io.getStdOut()` which Zig 0.16
-/// removed). One source-of-truth for the I/O shape means we don't
-/// have to rewrite 120 lessons every time the Zig stdlib reshuffles.
+/// Why native test instead of the older `zig run` + synthesised
+/// `pub fn main()` harness:
+///   - **Idiomatic.** Lesson tests now look like the `test "name" {}`
+///     blocks every Zig codebase uses — what learners will write
+///     outside the lesson.
+///   - **`std.testing.allocator` works.** Leak-checked, double-free-
+///     checked. For a course full of allocator lessons that's a real
+///     teaching feature, not a workaround.
+///   - **No 0.x churn.** `zig test`'s output format has been stable
+///     since 0.10. We don't have to rediscover the new buffered-
+///     writer API every release just to print one line per test.
+///   - **Drops 150 lines of Rust.** `preprocess_zig_source` and its
+///     helpers (`scan_test_fn_names`, `parse_cases_comment`,
+///     `parse_runtest_calls`, `strip_top_level_block`) become dead
+///     code; left in place for now in case some legacy lesson source
+///     surfaces, but the live path no longer touches them.
+///
+/// Output parsing happens in `runtimes/nativeRunners.ts::runZig` —
+/// regex on the per-test lines from stderr, matched up with leak
+/// reports and overall exit code.
 #[tauri::command]
 pub async fn run_zig(code: String) -> SubprocessResult {
-    let prepared = preprocess_zig_source(&code);
     simple_run_one_file(
         "zig",
-        &["run"],
+        &["test"],
         "zig",
         "zig",
         "install Zig (`brew install zig` on macOS, or grab a tarball from https://ziglang.org/download/).",
-        prepared,
+        code,
     )
 }
 

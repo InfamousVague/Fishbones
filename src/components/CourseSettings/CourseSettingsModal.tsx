@@ -5,7 +5,28 @@ import { Icon } from "@base/primitives/icon";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
+import type { ReleaseStatus } from "../Library/BookCover";
 import "./CourseSettingsModal.css";
+
+/// Editable fields in the "Course details" section. Each is optional
+/// in the patch — the parent handler writes only the supplied keys
+/// back to course.json. `releaseStatus: null` clears the field
+/// (treated as "Unreviewed" by `releaseStatusFor`); a string value
+/// promotes/demotes to that tier.
+export interface CourseMetadataPatch {
+  title?: string;
+  author?: string | null;
+  releaseStatus?: ReleaseStatus | null;
+}
+
+/// Editorial-tier options for the release-status select. Order
+/// matches the library's section order (top → bottom): final polish
+/// first, then next up, then unreviewed.
+const RELEASE_OPTIONS: Array<{ value: ReleaseStatus; label: string }> = [
+  { value: "BETA", label: "BETA — final polish for release" },
+  { value: "ALPHA", label: "ALPHA — next up in the queue" },
+  { value: "UNREVIEWED", label: "UNREVIEWED — unreviewed draft" },
+];
 
 /// Human-readable labels for every `LanguageId`. Rendered in the
 /// language-fix dropdown below; order matches the Playground's picker so
@@ -46,6 +67,12 @@ interface Props {
   /// writes back, and refreshes the in-memory course list. Optional
   /// so this component stays usable in preview / test contexts.
   onChangeLanguage?: (language: LanguageId) => Promise<void>;
+  /// Persist editorial metadata (title, author, release status). The
+  /// patch carries only the fields the user actually changed — see
+  /// `CourseMetadataPatch`. Same load → mutate → save → refresh
+  /// pattern as `onChangeLanguage`. Optional so the modal stays
+  /// usable in preview / test contexts.
+  onChangeMetadata?: (patch: CourseMetadataPatch) => Promise<void>;
 }
 
 interface CoverResult {
@@ -72,7 +99,64 @@ export default function CourseSettingsModal({
   onEnrichLessons,
   onCoverRefreshed,
   onChangeLanguage,
+  onChangeMetadata,
 }: Props) {
+  // ────────── Editable metadata (title / author / releaseStatus) ──
+  // Staged in local state so the user can edit freely and only the
+  // diff against `course` gets written on Save. We keep title/author
+  // as strings (empty string = "clear") and releaseStatus as the
+  // typed enum. The Save button is disabled when the staged values
+  // match the current course values verbatim.
+  const currentReleaseStatus: ReleaseStatus =
+    course.releaseStatus === "ALPHA" || course.releaseStatus === "BETA"
+      ? course.releaseStatus
+      : "UNREVIEWED";
+  const [pendingTitle, setPendingTitle] = useState<string>(course.title ?? "");
+  const [pendingAuthor, setPendingAuthor] = useState<string>(course.author ?? "");
+  const [pendingReleaseStatus, setPendingReleaseStatus] =
+    useState<ReleaseStatus>(currentReleaseStatus);
+  const [savingMetadata, setSavingMetadata] = useState(false);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [metadataSaved, setMetadataSaved] = useState(false);
+
+  // Has the user actually changed anything? Strict-equal compare
+  // against the current course; whitespace differences count as
+  // edits intentionally so a user "tightening" trailing spaces gets
+  // a Save button. Empty title falls back to the existing title
+  // (we don't allow saving a blank title — the library would
+  // render "Untitled" and the user would lose the original).
+  const titleChanged = pendingTitle.trim() !== (course.title ?? "");
+  const authorChanged = pendingAuthor !== (course.author ?? "");
+  const statusChanged = pendingReleaseStatus !== currentReleaseStatus;
+  const metadataDirty = titleChanged || authorChanged || statusChanged;
+  const titleValid = pendingTitle.trim().length > 0;
+
+  async function commitMetadataChange() {
+    if (!onChangeMetadata) return;
+    if (!metadataDirty) return;
+    if (!titleValid) {
+      setMetadataError("Title can't be empty.");
+      return;
+    }
+    const patch: CourseMetadataPatch = {};
+    if (titleChanged) patch.title = pendingTitle.trim();
+    if (authorChanged) patch.author = pendingAuthor.trim() === "" ? null : pendingAuthor.trim();
+    if (statusChanged) patch.releaseStatus = pendingReleaseStatus;
+    setMetadataError(null);
+    setMetadataSaved(false);
+    setSavingMetadata(true);
+    try {
+      await onChangeMetadata(patch);
+      setMetadataSaved(true);
+      // Auto-clear the saved indicator after a beat so it doesn't
+      // linger if the user makes another edit later.
+      window.setTimeout(() => setMetadataSaved(false), 2200);
+    } catch (e) {
+      setMetadataError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSavingMetadata(false);
+    }
+  }
   // Cover fetch state — "fetching" while pdftoppm is shelling out,
   // error string if the command failed. Cleared on success (the library
   // re-renders with the new art via onCoverRefreshed).
@@ -273,6 +357,100 @@ export default function CourseSettingsModal({
               </div>
             </div>
           </section>
+
+          {/* Course details — title / author / release-status. All three
+              flow through one Save button so the round-trip to the
+              course.json on disk is a single load → mutate → save →
+              refresh. The button is disabled until something actually
+              changes so accidental edits don't trigger a write. */}
+          {onChangeMetadata && (
+            <section>
+              <div className="fishbones-coursesettings-section">Course details</div>
+              <div className="fishbones-coursesettings-row fishbones-coursesettings-row--column">
+                <div className="fishbones-coursesettings-row-text">
+                  <div className="fishbones-coursesettings-row-label">
+                    Title, author, and release status
+                  </div>
+                  <div className="fishbones-coursesettings-row-hint">
+                    Edit any of the three and click Save to write the
+                    change back to <code>course.json</code>. Title can't
+                    be empty. Clearing the author leaves the byline blank.
+                    Release status drives the section the book lands in
+                    on the library shelf.
+                  </div>
+                </div>
+                <div className="fishbones-coursesettings-meta-fields">
+                  <label className="fishbones-coursesettings-meta-field">
+                    <span className="fishbones-coursesettings-meta-field-label">Title</span>
+                    <input
+                      type="text"
+                      className="fishbones-coursesettings-meta-input"
+                      value={pendingTitle}
+                      onChange={(e) => setPendingTitle(e.target.value)}
+                      disabled={savingMetadata}
+                      placeholder="Course title"
+                      aria-label="Course title"
+                    />
+                  </label>
+                  <label className="fishbones-coursesettings-meta-field">
+                    <span className="fishbones-coursesettings-meta-field-label">Author</span>
+                    <input
+                      type="text"
+                      className="fishbones-coursesettings-meta-input"
+                      value={pendingAuthor}
+                      onChange={(e) => setPendingAuthor(e.target.value)}
+                      disabled={savingMetadata}
+                      placeholder="Author (optional)"
+                      aria-label="Course author"
+                    />
+                  </label>
+                  <label className="fishbones-coursesettings-meta-field">
+                    <span className="fishbones-coursesettings-meta-field-label">
+                      Release status
+                    </span>
+                    <select
+                      className="fishbones-coursesettings-meta-input"
+                      value={pendingReleaseStatus}
+                      onChange={(e) =>
+                        setPendingReleaseStatus(e.target.value as ReleaseStatus)
+                      }
+                      disabled={savingMetadata}
+                      aria-label="Release status"
+                    >
+                      {RELEASE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {metadataError && (
+                  <div className="fishbones-coursesettings-row-error">
+                    {metadataError}
+                  </div>
+                )}
+                <div className="fishbones-coursesettings-meta-actions">
+                  {metadataSaved && !metadataDirty && (
+                    <span
+                      className="fishbones-coursesettings-meta-saved"
+                      role="status"
+                    >
+                      Saved
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="fishbones-coursesettings-btn fishbones-coursesettings-btn--primary"
+                    onClick={commitMetadataChange}
+                    disabled={!metadataDirty || !titleValid || savingMetadata}
+                  >
+                    {savingMetadata ? "Saving…" : "Save"}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
 
           <section>
             <div className="fishbones-coursesettings-section">Regenerate content</div>

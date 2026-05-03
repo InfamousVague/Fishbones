@@ -289,6 +289,14 @@
   flex-wrap: wrap;
 }
 
+/* Chain sub-row (Bitcoin / Ethereum / Solana / …) sits between the
+ * top-level category toggle and the language pills. Slightly tighter
+ * top spacing so the two rows read as a stack, not as two separate
+ * controls. */
+.fishbones-library-chain-pills {
+  margin-top: 4px;
+}
+
 .fishbones-library-pill {
   display: inline-flex;
   align-items: center;
@@ -427,6 +435,250 @@
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 12px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Compact controls bar (Option A — single-row chips + popover).
+   Replaces the earlier 4-row stack of pill bars. Same filter
+   functionality, all collapsed into a Filter popover. The
+   `--compact` modifier on `.fishbones-library-controls` switches
+   the container to a single non-wrapping flex row.
+   ────────────────────────────────────────────────────────────── */
+
+.fishbones-library-controls--compact {
+  flex-wrap: nowrap;
+  padding: 10px 22px;
+  gap: 12px;
+  /* Anchor the filter popover to this row — `position: relative`
+     here means the popover (which is `position: absolute`) lands
+     directly under the cluster. Keep it simple: no portal needed
+     since the popover never has to escape this scrollable area. */
+  position: relative;
+}
+
+.fishbones-library-filter-cluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+
+/* Active-filter chip. Removable via the inline × button. Slightly
+   tighter padding than the old language pills since it's a status
+   readout, not a switch. */
+.fishbones-library-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 10px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  color: var(--color-text-primary);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fishbones-library-filter-chip-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fishbones-library-filter-chip-x:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+}
+
+/* The Filter trigger pill. Looks like a chip but with a primary-ish
+   accent so it reads as the *action* alongside the status chips. */
+.fishbones-library-filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px dashed var(--color-border-default);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.fishbones-library-filter-trigger:hover,
+.fishbones-library-filter-trigger--open {
+  color: var(--color-text-primary);
+  border-color: rgba(255, 255, 255, 0.22);
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Filter popover panel. Anchored under the trigger via the cluster's
+   relative-positioning. Wide enough to fit the longest section
+   (Language) without wrapping into a wall of pills. */
+.fishbones-library-filter-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 10px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fishbones-library-filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fishbones-library-filter-section-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-text-tertiary);
+  padding: 0 4px;
+}
+
+.fishbones-library-filter-section-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fishbones-library-filter-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.fishbones-library-filter-opt:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fishbones-library-filter-opt--active,
+.fishbones-library-filter-opt--active:hover {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+.fishbones-library-filter-opt-count {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.fishbones-library-filter-opt--active .fishbones-library-filter-opt-count {
+  opacity: 1;
+}
+
+/* Compact tools row. Search becomes an icon + slim input. Sort
+   loses its "sort:" label (the icon takes its job). View mode
+   buttons go icon-only. All three live on a single line on the
+   right edge of the row. */
+.fishbones-library-controls--compact .fishbones-library-tools {
+  flex-shrink: 0;
+}
+
+.fishbones-library-search-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-text-tertiary);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.fishbones-library-search-wrap:focus-within {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--color-text-primary);
+}
+
+.fishbones-library-search-icon {
+  flex-shrink: 0;
+}
+
+.fishbones-library-controls--compact .fishbones-library-search {
+  /* Override the boxed style from the legacy rule — the wrap
+     already provides the chrome. */
+  padding: 0;
+  background: transparent;
+  border: 0;
+  min-width: 160px;
+  color: var(--color-text-primary);
+}
+
+.fishbones-library-controls--compact .fishbones-library-search:focus {
+  outline: none;
+  border: 0;
+}
+
+/* Sort, compact: leading icon + bare select. Hides the legacy
+   "sort" label since the up-down arrows are unambiguous. */
+.fishbones-library-sort--compact {
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-library-sort--compact .fishbones-library-sort-select {
+  padding: 0 4px;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-primary);
+}
+
+/* Icon-only viewmode buttons: square, just the lucide glyph. */
+.fishbones-library-viewmode-btn--icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Body + grid. Scrollable independently of the header/controls. */

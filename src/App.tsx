@@ -52,7 +52,7 @@ import ProfileView from "./components/Profile/ProfileView";
 import PlaygroundView from "./components/Playground/PlaygroundView";
 import DocsView from "./components/Docs/DocsView";
 import { FISHBONES_DOCS } from "./docs/pages";
-import { isWeb, isMobile } from "./lib/platform";
+import { isWeb, isMobile, downloadUrl } from "./lib/platform";
 import GeneratePackDialog from "./components/ChallengePack/GeneratePackDialog";
 import { useIngestRun } from "./hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
@@ -1165,28 +1165,59 @@ export default function App() {
                 </p>
                 <div className="fishbones__welcome-actions">
                   {isWeb ? (
-                    <a
-                      className="fishbones__welcome-primary"
-                      href="https://github.com/InfamousVague/Kata/releases/latest"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Get the desktop app
-                    </a>
+                    (() => {
+                      // Web visitors see explicit per-platform
+                      // download buttons. Detected OS gets the
+                      // primary CTA; the other two sit alongside as
+                      // smaller pills so a Linux user on a Windows
+                      // detection still has a one-click path. All
+                      // links go to the latest GitHub release page.
+                      const { primary, all } = downloadUrl();
+                      const others = all.filter((t) => t.os !== primary.os);
+                      return (
+                        <>
+                          <a
+                            className="fishbones__welcome-primary"
+                            href={primary.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {primary.label}
+                          </a>
+                          {others.map((t) => (
+                            <a
+                              key={t.os}
+                              className="fishbones__welcome-secondary"
+                              href={t.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {t.os === "macos"
+                                ? "macOS"
+                                : t.os === "windows"
+                                  ? "Windows"
+                                  : "Linux"}
+                            </a>
+                          ))}
+                        </>
+                      );
+                    })()
                   ) : (
-                    <button
-                      className="fishbones__welcome-primary"
-                      onClick={() => setImportOpen(true)}
-                    >
-                      Import a PDF
-                    </button>
+                    <>
+                      <button
+                        className="fishbones__welcome-primary"
+                        onClick={() => setImportOpen(true)}
+                      >
+                        Import a PDF
+                      </button>
+                      <button
+                        className="fishbones__welcome-secondary"
+                        onClick={() => setSettingsOpen(true)}
+                      >
+                        Open Settings
+                      </button>
+                    </>
                   )}
-                  <button
-                    className="fishbones__welcome-secondary"
-                    onClick={() => setSettingsOpen(true)}
-                  >
-                    Open Settings
-                  </button>
                 </div>
                 <p className="fishbones__welcome-hint">
                   {isWeb

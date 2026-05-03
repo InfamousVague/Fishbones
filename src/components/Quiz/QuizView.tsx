@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { check } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
 import type { QuizLesson, QuizQuestion } from "../../data/types";
 import { normalizeAnswer } from "../../data/types";
+import { onCommand as onVerifierCommand } from "../../lib/verifierBus";
 import "./QuizView.css";
 
 interface Props {
@@ -40,6 +41,30 @@ export default function QuizView({ lesson, onComplete }: Props) {
       return copy;
     });
   }
+
+  /// Watch-mode verifier wiring: when the cmd+K verify-course
+  /// coroutine dispatches `answerQuiz` for this lesson, mark every
+  /// question correct one at a time so the user can see the chips
+  /// flip green in sequence (rather than snapping all at once). The
+  /// completion bubble fires automatically via the existing
+  /// `setQuestionState` "all green" check.
+  useEffect(() => {
+    const off = onVerifierCommand((cmd) => {
+      if (cmd.type !== "answerQuiz") return;
+      if (cmd.lessonId !== lesson.id) return;
+      lesson.questions.forEach((_, i) => {
+        // 220ms stagger keeps the visual rhythm slow enough to read
+        // but fast enough that a 10-question quiz still finishes
+        // in a couple of seconds.
+        setTimeout(() => setQuestionState(i, { status: "correct" }), i * 220);
+      });
+    });
+    return off;
+    // setQuestionState closes over `allCorrect` from the latest
+    // render, which is what we want — re-binding when allCorrect
+    // changes lets the listener pick up the freshest closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id, lesson.questions.length, allCorrect]);
 
   return (
     <div className="fishbones-quiz">

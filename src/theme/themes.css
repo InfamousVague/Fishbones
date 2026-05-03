@@ -9,6 +9,34 @@
    look hot and make the whole UI feel stained. Instead we keep borders at
    low-alpha neutral values that let the accent pop in the foreground. */
 
+/* ---- Glass surfaces ----------------------------------------------------
+   The translucent / frosted-glass elements (left sidebar, topbar, the
+   floating right skill panel, the zoom controls overlay, etc.) all read
+   their surface + border + rim + shadow colours from these variables.
+   Defaults are dark — appropriate for the majority of themes. Light
+   themes (ayu-light, catppuccin-latte) override below so the glass
+   doesn't print as a dark block on a white workspace. */
+:root {
+  --color-glass-bg: rgba(20, 20, 28, 0.35);
+  --color-glass-bg-strong: rgba(20, 20, 28, 0.55);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-rim: rgba(255, 255, 255, 0.04);
+  --color-glass-shadow: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme-name="ayu-light"],
+[data-theme-name="catppuccin-latte"] {
+  /* Lighter glass: ~55% white tint over the workspace, so the
+     frosted-glass blur reads as a brighter version of the surface
+     behind it instead of a dark blot. Border + shadow flip to
+     dark-on-light values to match. */
+  --color-glass-bg: rgba(255, 255, 255, 0.55);
+  --color-glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+  --color-glass-rim: rgba(255, 255, 255, 0.5);
+  --color-glass-shadow: rgba(0, 0, 0, 0.08);
+}
+
 /* ---- Synesthesia Synthwave --------------------------------------------- */
 [data-theme-name="synthwave"] {
   --color-bg-primary: #1a1427;

@@ -1,0 +1,26 @@
+# Counter — the first course-author Solana program. A trivial,
+# single-instruction program: increment a u64 stored in a per-user
+# account by 1 each call. Used to teach the program-deploy + invoke
+# loop in chapter 4 (native-programs).
+#
+# Build with the project's `npm run build:svm-programs` script —
+# it shells out to the locally-installed `cargo-build-sbf` and drops
+# the resulting `.so` under `target/deploy/`.
+
+[package]
+name = "fishbones_counter"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+# Pinned to a stable release that matches the litesvm runtime our
+# tests use. solana-program is the on-chain side of the SDK — entry
+# point macro, AccountInfo, Pubkey, etc.
+solana-program = "2.1"
+
+[features]
+no-entrypoint = []

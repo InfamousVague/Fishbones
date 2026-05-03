@@ -351,6 +351,14 @@
   line-height: 1.45;
 }
 
+/// Inline success-state span appended to the data-hint after a manual
+/// sync. Picks up the active accent so the result reads as positive
+/// feedback without needing its own row.
+.fishbones-settings-data-success {
+  color: var(--color-accent, #4caf50);
+  font-weight: 500;
+}
+
 .fishbones-settings-danger {
   padding: 6px 12px;
   background: transparent;

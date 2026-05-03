@@ -77,7 +77,7 @@
 
 /* Light-theme ring adjustment — the 0.12 white overlay above disappears
    on a light background, so swap in a dark one. */
-[data-theme-name="default-light"] .fishbones-loader-ring,
+[data-theme-name="ayu-light"] .fishbones-loader-ring,
 [data-theme-name="ayu-light"] .fishbones-loader-ring,
 [data-theme-name="catppuccin-latte"] .fishbones-loader-ring {
   border-color: rgba(0, 0, 0, 0.1);

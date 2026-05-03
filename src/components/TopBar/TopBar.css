@@ -18,16 +18,17 @@
      position: relative + z-index together do the lift. */
   position: relative;
   z-index: 60;
-  /* Frosted-glass surface over the ambient DottedGradientBg corner
-     bloom. Lower-alpha base color (~35%) lets the colored bloom
-     bleed through clearly while keeping text legible; `backdrop-
-     filter: blur + saturate` gives the iOS / macOS translucent
-     vibrancy treatment. `-webkit-` prefix covers WKWebView (Tauri)
-     and older Safari; the unprefixed version covers Chromium. */
-  background: rgba(15, 15, 22, 0.35);
+  /* Frosted-glass surface. Surface + border read from theme-aware
+     --color-glass-* tokens (themes.css) so the topbar inverts to a
+     light glass on white in light themes instead of printing a
+     dark slab. backdrop-filter: blur + saturate gives the iOS /
+     macOS translucent vibrancy treatment. -webkit- prefix covers
+     WKWebView (Tauri) and older Safari; the unprefixed version
+     covers Chromium. */
+  background: var(--color-glass-bg);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   backdrop-filter: blur(28px) saturate(160%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-glass-border);
   user-select: none;
   -webkit-user-select: none;
 }

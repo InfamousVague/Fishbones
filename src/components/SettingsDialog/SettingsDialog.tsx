@@ -82,6 +82,11 @@ export default function SettingsDialog({ onDismiss, cloud, onRequestSignIn }: Pr
   const [clearingCourses, setClearingCourses] = useState(false);
   const [clearingCache, setClearingCache] = useState(false);
   const [confirmClearCourses, setConfirmClearCourses] = useState(false);
+  const [syncingCourses, setSyncingCourses] = useState(false);
+  /// Last-sync result message. Held for ~4s after a manual sync so the
+  /// learner can see the outcome ("1 new course added" / "Already up
+  /// to date") before the row reverts to the idle state.
+  const [syncResult, setSyncResult] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemeName>(() => loadTheme());
   // Account-section state. `confirmDeleteAccount` follows the same
   // click-to-confirm pattern as `confirmClearCourses` above so the
@@ -182,6 +187,56 @@ export default function SettingsDialog({ onDismiss, cloud, onRequestSignIn }: Pr
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setClearingCache(false);
+    }
+  }
+
+  /// Sync newly-bundled course packs into the local install.
+  ///
+  /// Calls the Rust `refresh_bundled_courses` command which re-runs the
+  /// seed routine in force-refresh mode: any NEW pack that landed in
+  /// the binary's bundled-packs/ since the last sync gets seeded, and
+  /// any EXISTING pack the user still has installed gets re-extracted
+  /// so lesson / drill / cover updates land. User-deleted packs stay
+  /// deleted (we respect their choice).
+  ///
+  /// On success we full-reload the window so `useCourses` picks up the
+  /// fresh course folders without us having to plumb a refresh callback
+  /// through props. Same pattern as `clearAllCourses` above.
+  async function syncCourses() {
+    setSyncingCourses(true);
+    setSyncResult(null);
+    setError(null);
+    try {
+      const report = await invoke<{
+        new: number;
+        refreshed: number;
+        skipped_deleted: number;
+      }>("refresh_bundled_courses");
+      const parts: string[] = [];
+      if (report.new > 0) {
+        parts.push(`${report.new} new course${report.new === 1 ? "" : "s"}`);
+      }
+      if (report.refreshed > 0) {
+        parts.push(`${report.refreshed} refreshed`);
+      }
+      const message =
+        parts.length > 0 ? `Synced — ${parts.join(", ")}.` : "Already up to date.";
+      setSyncResult(message);
+      // If we actually changed something on disk, reload the window so
+      // the course list re-fetches. Up-to-date case skips the reload to
+      // avoid flickering the whole UI for a no-op.
+      if (report.new > 0 || report.refreshed > 0) {
+        // Brief delay so the user reads the success message before the
+        // window blanks for the reload.
+        setTimeout(() => window.location.reload(), 700);
+      } else {
+        // Clear the "already up to date" message after a few seconds.
+        setTimeout(() => setSyncResult(null), 4000);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSyncingCourses(false);
     }
   }
 
@@ -328,8 +383,32 @@ export default function SettingsDialog({ onDismiss, cloud, onRequestSignIn }: Pr
               <section>
                 <h3 className="fishbones-settings-section">Data</h3>
                 <p className="fishbones-settings-blurb">
-                  Clears local content. Your API key and preferences stay.
+                  Pull in new bundled books, clear caches, or wipe local content.
+                  Your API key and preferences stay.
                 </p>
+                <div className="fishbones-settings-data-row">
+                  <div>
+                    <div className="fishbones-settings-data-label">Sync latest courses</div>
+                    <div className="fishbones-settings-data-hint">
+                      Pulls newly-bundled books into your library and refreshes any
+                      existing courses with the latest lessons + drills. Deleted
+                      packs stay deleted.
+                      {syncResult && (
+                        <span className="fishbones-settings-data-success">
+                          {" · "}
+                          {syncResult}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    className="fishbones-settings-secondary"
+                    onClick={syncCourses}
+                    disabled={syncingCourses}
+                  >
+                    {syncingCourses ? "Syncing…" : "Sync now"}
+                  </button>
+                </div>
                 <div className="fishbones-settings-data-row">
                   <div>
                     <div className="fishbones-settings-data-label">Ingest cache</div>

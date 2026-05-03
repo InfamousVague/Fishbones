@@ -1,0 +1,325 @@
+/* VerifyCourseOverlay — floating bottom-right panel that reports
+   progress as the cmd+K "Verify course" actions iterate through every
+   exercise. Non-modal, so the workbench stays interactive while the
+   verifier runs in the background. */
+
+.fishbones-verify-overlay {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 380px;
+  max-height: min(70vh, 640px);
+  background: var(--color-bg-secondary, #15151c);
+  color: var(--color-text-primary, #f5f5f7);
+  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.32),
+    0 2px 6px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  z-index: 9000;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.fishbones-verify-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.06));
+}
+
+.fishbones-verify-title-block {
+  min-width: 0;
+}
+
+.fishbones-verify-title {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fishbones-verify-subtitle {
+  margin-top: 2px;
+  color: var(--color-text-secondary, #a4a4ad);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fishbones-verify-icon-btn {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-secondary, #a4a4ad);
+  padding: 4px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fishbones-verify-icon-btn:hover {
+  color: var(--color-text-primary, #f5f5f7);
+  background: var(--color-bg-tertiary, #1f1f28);
+}
+
+.fishbones-verify-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 6px;
+}
+
+.fishbones-verify-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--color-bg-tertiary, #1f1f28);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fishbones-verify-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent, #6c8cff) 0%,
+    var(--color-accent-secondary, #4caf85) 100%
+  );
+  transition: width 220ms ease-out;
+}
+
+.fishbones-verify-progress-text {
+  color: var(--color-text-secondary, #a4a4ad);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  min-width: 60px;
+  text-align: right;
+}
+
+.fishbones-verify-tally {
+  display: flex;
+  gap: 6px;
+  padding: 6px 14px 10px;
+}
+
+.fishbones-verify-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-bg-tertiary, #1f1f28);
+  border: 1px solid transparent;
+}
+
+.fishbones-verify-pill--pass {
+  color: #5fd49d;
+  border-color: rgba(95, 212, 157, 0.25);
+}
+
+.fishbones-verify-pill--fail {
+  color: #ef6f6f;
+  border-color: rgba(239, 111, 111, 0.25);
+}
+
+.fishbones-verify-pill--skip {
+  color: var(--color-text-tertiary, #71717a);
+  border-color: rgba(113, 113, 122, 0.25);
+}
+
+.fishbones-verify-pill .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.fishbones-verify-list {
+  overflow-y: auto;
+  padding: 4px 6px 6px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fishbones-verify-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-secondary, #a4a4ad);
+  padding: 12px;
+  font-size: 12px;
+}
+
+.fishbones-verify-empty .icon {
+  width: 14px;
+  height: 14px;
+  animation: fishbones-verify-spin 1s linear infinite;
+}
+
+@keyframes fishbones-verify-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.fishbones-verify-row {
+  border-radius: 6px;
+}
+
+.fishbones-verify-row--fail {
+  background: rgba(239, 111, 111, 0.06);
+}
+
+.fishbones-verify-row-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: inherit;
+  font-size: 12px;
+}
+
+.fishbones-verify-row-summary[aria-disabled="true"] {
+  cursor: default;
+}
+
+.fishbones-verify-row-summary:hover:not([aria-disabled="true"]) {
+  background: var(--color-bg-tertiary, #1f1f28);
+}
+
+.fishbones-verify-row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.fishbones-verify-row-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary, #71717a);
+}
+
+.fishbones-verify-row-kind .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.fishbones-verify-row--pass .fishbones-verify-row-icon { color: #5fd49d; }
+.fishbones-verify-row--fail .fishbones-verify-row-icon { color: #ef6f6f; }
+.fishbones-verify-row--skip .fishbones-verify-row-icon { color: var(--color-text-tertiary, #71717a); }
+
+.fishbones-verify-row-icon .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.fishbones-verify-row-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fishbones-verify-row-meta {
+  color: var(--color-text-tertiary, #71717a);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.fishbones-verify-row-detail {
+  padding: 4px 8px 10px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fishbones-verify-row-error {
+  color: #ef6f6f;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.fishbones-verify-row-log {
+  margin: 0;
+  padding: 6px 8px;
+  background: var(--color-bg-primary, #0b0b10);
+  border-radius: 4px;
+  color: var(--color-text-secondary, #a4a4ad);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.fishbones-verify-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.06));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fishbones-verify-footer-spacer {
+  flex: 1;
+}
+
+.fishbones-verify-btn {
+  background: var(--color-bg-tertiary, #1f1f28);
+  color: var(--color-text-primary, #f5f5f7);
+  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fishbones-verify-btn .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.fishbones-verify-btn:hover {
+  background: var(--color-bg-secondary, #15151c);
+}
+
+.fishbones-verify-btn--primary {
+  background: var(--color-accent, #6c8cff);
+  color: var(--color-bg-primary, #0b0b10);
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.fishbones-verify-btn--primary:hover {
+  /* Slightly darker than the accent for a press-feedback feel.
+     Falls back to the secondary bg if the accent var isn't set. */
+  filter: brightness(0.92);
+  background: var(--color-accent, #6c8cff);
+}

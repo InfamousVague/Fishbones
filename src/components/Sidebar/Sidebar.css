@@ -1,15 +1,36 @@
 /* Floating sidebar — direct port of Stash's .stash__sidebar styling so Fishbones
-   feels like part of the same family. */
+   feels like part of the same family.
+
+   Surface is now frosted glass over the ambient DottedGradientBg
+   corner bloom living behind `.fishbones`. Low-alpha tinted base + a
+   strong backdrop-filter blur gives the translucent-vibrancy treatment
+   iOS / macOS use for navigation chrome — the colored dots from the
+   bloom show through softly without making the sidebar text hard to
+   read. The hairline border is bumped to a brighter rgba so the
+   sidebar still reads as a distinct floating panel against the
+   translucent backdrop. */
 .fishbones__sidebar {
   width: 260px;
   margin: 10px 0 10px 10px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  /* Surface + border + rim/shadow read from --color-glass-* tokens
+     defined in theme/themes.css. Light themes override the tokens
+     so this same rule produces a light frosted-glass on white,
+     instead of a dark blot. */
+  background: var(--color-glass-bg);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--color-glass-border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  /* Soft shadow lifts the panel off the gradient. Without it, the
+     glass blends too closely with the backdrop and loses the
+     "floating card" hierarchy. */
+  box-shadow:
+    inset 0 1px 0 var(--color-glass-rim),
+    0 12px 28px var(--color-glass-shadow);
 }
 
 .fishbones__nav {
@@ -242,7 +263,7 @@
 /* Light themes: bg-secondary IS the sidebar surface, so hovering with
    it produces no contrast. Bump to bg-tertiary on hover for those
    themes so the row still reads as interactive. */
-[data-theme-name="default-light"] .fishbones__course-row:hover,
+[data-theme-name="ayu-light"] .fishbones__course-row:hover,
 [data-theme-name="ayu-light"] .fishbones__course-row:hover,
 [data-theme-name="catppuccin-latte"] .fishbones__course-row:hover {
   background: var(--color-bg-tertiary);
@@ -404,7 +425,7 @@
 
 /* Light themes want a dark-on-light track instead. */
 [data-theme="light"] .fishbones__course-progress-bar,
-[data-theme-name="default-light"] .fishbones__course-progress-bar,
+[data-theme-name="ayu-light"] .fishbones__course-progress-bar,
 [data-theme-name="ayu-light"] .fishbones__course-progress-bar,
 [data-theme-name="catppuccin-latte"] .fishbones__course-progress-bar {
   background: rgba(0, 0, 0, 0.12);
@@ -750,8 +771,8 @@
 
 /* Light themes need a darker-on-light active surface since the
    rgba-white pill above disappears against a pale sidebar. */
-[data-theme-name="default-light"] .fishbones__sidebar-nav-item--active,
-[data-theme-name="default-light"] .fishbones__sidebar-nav-item--active:hover,
+[data-theme-name="ayu-light"] .fishbones__sidebar-nav-item--active,
+[data-theme-name="ayu-light"] .fishbones__sidebar-nav-item--active:hover,
 [data-theme-name="ayu-light"] .fishbones__sidebar-nav-item--active,
 [data-theme-name="ayu-light"] .fishbones__sidebar-nav-item--active:hover,
 [data-theme-name="catppuccin-latte"] .fishbones__sidebar-nav-item--active,

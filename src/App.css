@@ -26,6 +26,17 @@ button {
   height: 100vh;
   overflow: hidden;
   background: var(--color-bg-primary);
+  /* `position: relative` makes this the containing block for the
+     absolutely-positioned <DottedGradientBg variant="corner" />, and
+     `isolation: isolate` opens a fresh stacking context so the
+     gradient's `z-index: -1` paints BETWEEN this element's own
+     background and its children — i.e. the gradient sits behind the
+     chrome (which paints in normal flow on top of it) without
+     escaping out to the viewport stacking context. Browsers without
+     `isolation` support fall back to the gradient escaping; rare
+     enough not to special-case. */
+  position: relative;
+  isolation: isolate;
 }
 
 .fishbones__body {

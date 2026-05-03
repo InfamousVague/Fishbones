@@ -50,6 +50,13 @@ export interface SkillNode {
   /// Set when `matches` is empty. Surfaced in the gap report and the
   /// node's tooltip so we know what's missing if it can't be filled.
   gapNote?: string;
+  /// Optional node kind. "section" nodes are categorical organizers
+  /// (e.g. "Frameworks", "Production Readiness") that group their
+  /// descendants visually but don't carry their own lesson. They
+  /// always read as "complete" for unlock-gating purposes (so they
+  /// never block dependents) and are excluded from progress %
+  /// calculations and the gap report.
+  kind?: "section";
 }
 
 export interface SkillTree {
@@ -314,68 +321,134 @@ const WEB: SkillTree = {
   audience: "specialty",
   accent: "#56b6c2",
   description:
-    "From HTML/CSS up through React, async data, and SSR vs CSR. Spans both classic browser APIs and the modern framework stack.",
+    "From HTML/CSS up through React, async data, SSR vs CSR. Spans browser APIs, frameworks, testing, and deployment.",
+  // Trimmed to ~58 nodes (down from 117) for a cleaner tree shape.
+  // Sections were dropped — the tree structure now relies on natural
+  // dependency chains (HTML → DOM → events → React → Next.js → ...) for
+  // its hierarchy instead of categorical hub nodes. Anything cut here
+  // is captured as a gap and can be re-added when there's actual lesson
+  // content backing it.
   nodes: [
+    // ── Root + HTML basics ────────────────────────────────────────
     {
       id: "html-structure",
       label: "HTML Document Structure",
       summary: "Tags, attributes, semantic elements, the DOM tree.",
       prereqs: [],
       matches: [],
-      gapNote:
-        "No HTML-from-zero course. Host in a new `html-fundamentals` or expand `eloquent-javascript` ch13–15.",
+      gapNote: "No HTML-from-zero course.",
     },
+    {
+      id: "html-forms",
+      label: "HTML Forms",
+      summary: "Input types, validation, native form submission.",
+      prereqs: ["html-structure"],
+      matches: [],
+      gapNote: "No forms lesson.",
+    },
+    {
+      id: "html-accessibility",
+      label: "Accessibility",
+      summary: "Semantic markup, ARIA roles, focus management.",
+      prereqs: ["html-structure"],
+      matches: [],
+      gapNote: "No a11y lesson.",
+    },
+    {
+      id: "html-media",
+      label: "HTML Media",
+      summary: "img / picture / video / audio + responsive images.",
+      prereqs: ["html-structure"],
+      matches: [],
+      gapNote: "No media lesson.",
+    },
+    {
+      id: "image-optimization",
+      label: "Image Optimization",
+      summary: "Responsive images, AVIF/WebP, lazy loading.",
+      prereqs: ["html-media"],
+      matches: [],
+      gapNote: "No image optimization lesson.",
+    },
+
+    // ── CSS chain ────────────────────────────────────────────────
     {
       id: "css-selectors",
       label: "CSS Selectors",
-      summary: "Targeting elements with type, class, id, attribute, descendant.",
+      summary: "Targeting elements with type, class, id, attribute.",
       prereqs: ["html-structure"],
       matches: [],
-      gapNote: "No CSS course. Host in a new `css-fundamentals`.",
+      gapNote: "No CSS course.",
     },
     {
       id: "css-layout",
       label: "CSS Layout",
-      summary: "The box model, display modes, positioning.",
+      summary: "Box model, display modes, positioning.",
       prereqs: ["css-selectors"],
       matches: [],
-      gapNote: "Pair with css-fundamentals course.",
+      gapNote: "Pair with css-fundamentals.",
     },
     {
       id: "css-flexbox",
       label: "Flexbox",
-      summary: "One-dimensional layout with main + cross axis.",
+      summary: "1D layout: main + cross axis.",
       prereqs: ["css-layout"],
       matches: [],
-      gapNote:
-        "RN flexbox lesson exists but teaches Yoga, not browser CSS. Add a CSS-flexbox lesson.",
+      gapNote: "RN flexbox lesson teaches Yoga not browser CSS.",
     },
     {
       id: "css-grid",
       label: "CSS Grid",
-      summary: "Two-dimensional layout with rows + columns.",
+      summary: "2D layout: rows + columns.",
       prereqs: ["css-layout"],
       matches: [],
-      gapNote: "No CSS Grid content anywhere.",
+      gapNote: "No grid lesson.",
     },
+    {
+      id: "css-responsive",
+      label: "Responsive Design",
+      summary: "Media queries, mobile-first, container queries.",
+      prereqs: ["css-layout"],
+      matches: [],
+      gapNote: "No responsive lesson.",
+    },
+
+    // ── DOM + Events ─────────────────────────────────────────────
     {
       id: "js-dom",
       label: "DOM Selection",
-      summary: "querySelector, document, traversing the element tree.",
+      summary: "querySelector, document, traversing elements.",
       prereqs: ["html-structure"],
       matches: [],
       gapNote:
-        "Eloquent JavaScript stops at ch11 in our build; never reaches the DOM/events/canvas chapters.",
+        "Eloquent JavaScript stops at ch11; never reaches DOM/events chapters.",
     },
     {
       id: "js-events",
       label: "DOM Events",
-      summary: "Listening for clicks, input, keydown; bubble vs capture.",
+      summary: "click, input, keydown; bubble vs capture.",
       prereqs: ["js-dom"],
       matches: [],
-      gapNote:
-        "Only `javascript-the-definitive-guide/events-and-event-listeners` mentions events, framed under async — no DOM-events teacher.",
+      gapNote: "No DOM events lesson.",
     },
+    {
+      id: "js-modules",
+      label: "ES Modules",
+      summary: "import / export, ESM vs CJS.",
+      prereqs: ["js-events"],
+      matches: [],
+      gapNote: "Add a modules lesson.",
+    },
+    {
+      id: "js-closures",
+      label: "Closures & Scope",
+      summary: "Lexical scope, closure semantics, the TDZ.",
+      prereqs: ["js-events"],
+      matches: [],
+      gapNote: "No closures lesson.",
+    },
+
+    // ── Networking + Async ───────────────────────────────────────
     {
       id: "fetch",
       label: "Fetch API",
@@ -407,9 +480,87 @@ const WEB: SkillTree = {
       ],
     },
     {
+      id: "websockets",
+      label: "WebSockets",
+      summary: "Full-duplex client/server messages.",
+      prereqs: ["fetch"],
+      matches: [],
+      gapNote: "No WebSocket lesson.",
+    },
+    {
+      id: "web-workers",
+      label: "Web Workers",
+      summary: "Off-main-thread JS, postMessage.",
+      prereqs: ["async-await"],
+      matches: [],
+      gapNote: "No web workers lesson.",
+    },
+    {
+      id: "service-workers",
+      label: "Service Workers",
+      summary: "Offline support, cache strategies.",
+      prereqs: ["web-workers"],
+      matches: [],
+      gapNote: "No service workers lesson.",
+    },
+    {
+      id: "indexeddb",
+      label: "IndexedDB",
+      summary: "Client-side database, object stores.",
+      prereqs: ["js-modules"],
+      matches: [],
+      gapNote: "No IndexedDB lesson.",
+    },
+
+    // ── Backend / API ────────────────────────────────────────────
+    {
+      id: "rest-apis",
+      label: "REST APIs",
+      summary: "REST principles, HTTP verbs, status codes.",
+      prereqs: ["fetch"],
+      matches: [],
+      gapNote: "No REST design lesson.",
+    },
+    {
+      id: "graphql-basics",
+      label: "GraphQL",
+      summary: "Schema, queries, mutations, resolvers.",
+      prereqs: ["rest-apis"],
+      matches: [],
+      gapNote: "No GraphQL lesson.",
+    },
+
+    // ── Auth ─────────────────────────────────────────────────────
+    {
+      id: "auth-basics",
+      label: "Auth Basics",
+      summary: "Sessions vs tokens, secure storage.",
+      prereqs: ["rest-apis"],
+      matches: [],
+      gapNote: "No auth lesson.",
+    },
+    {
+      id: "jwt",
+      label: "JWT",
+      summary: "JSON Web Tokens, signing, verification.",
+      prereqs: ["auth-basics"],
+      matches: [],
+      gapNote: "No JWT lesson.",
+    },
+    {
+      id: "oauth",
+      label: "OAuth 2.0",
+      summary: "Authorization Code flow, PKCE, third-party login.",
+      prereqs: ["auth-basics"],
+      matches: [],
+      gapNote: "No OAuth lesson.",
+    },
+
+    // ── React ────────────────────────────────────────────────────
+    {
       id: "react-components",
       label: "React Components",
-      summary: "JSX, props, the function-component model.",
+      summary: "JSX, props, function components.",
       prereqs: ["js-events"],
       matches: [
         { courseId: "react-native", lessonId: "the-basics-reactnative-dev-docs-intro-react" },
@@ -440,20 +591,60 @@ const WEB: SkillTree = {
     {
       id: "react-context",
       label: "Context",
-      summary: "Sharing state across the tree without prop drilling.",
+      summary: "Sharing state across the tree.",
       prereqs: ["react-state"],
       matches: [
         { courseId: "fluent-react", lessonId: "advanced-patterns-recap" },
       ],
     },
     {
-      id: "routing",
-      label: "Client-Side Routing",
-      summary: "URL ↔ component mapping with no full page reload.",
+      id: "react-reducer",
+      label: "useReducer",
+      summary: "Action-driven state for complex transitions.",
+      prereqs: ["react-state"],
+      matches: [
+        { courseId: "fluent-react", lessonId: "usestate-vs-usereducer" },
+      ],
+    },
+    {
+      id: "react-refs",
+      label: "Refs",
+      summary: "useRef, forwardRef, imperative DOM access.",
       prereqs: ["react-components"],
       matches: [],
-      gapNote:
-        "Only SvelteKit routing exists as a single fragment. Add a React-Router or generic routing lesson.",
+      gapNote: "No refs lesson.",
+    },
+    {
+      id: "react-memo",
+      label: "Memoization",
+      summary: "memo, useMemo, useCallback.",
+      prereqs: ["react-state"],
+      matches: [],
+      gapNote: "No memoization lesson.",
+    },
+    {
+      id: "react-suspense",
+      label: "Suspense",
+      summary: "Async UI with fallbacks, code splitting.",
+      prereqs: ["react-effects"],
+      matches: [],
+      gapNote: "No suspense lesson.",
+    },
+    {
+      id: "react-query",
+      label: "React Query",
+      summary: "Server-state caching, background refetch.",
+      prereqs: ["react-effects"],
+      matches: [],
+      gapNote: "No TanStack Query lesson.",
+    },
+    {
+      id: "redux",
+      label: "Redux",
+      summary: "Global store, actions, reducers.",
+      prereqs: ["react-state"],
+      matches: [],
+      gapNote: "No Redux lesson.",
     },
     {
       id: "forms",
@@ -464,13 +655,20 @@ const WEB: SkillTree = {
         { courseId: "svelte-tutorial", lessonId: "basic-sveltekit--06-forms--03-form-validation" },
         { courseId: "svelte-tutorial", lessonId: "basic-sveltekit--06-forms--04-progressive-enhancement" },
       ],
-      gapNote:
-        "Svelte-only today; add a React/HTML controlled-input lesson for the generic pattern.",
+      gapNote: "Svelte-only today; add a React/HTML controlled-input lesson.",
+    },
+    {
+      id: "routing",
+      label: "Client-Side Routing",
+      summary: "URL ↔ component mapping, no full page reload.",
+      prereqs: ["react-components"],
+      matches: [],
+      gapNote: "No React-Router lesson.",
     },
     {
       id: "ssr-vs-csr",
       label: "SSR vs CSR",
-      summary: "Trade-offs, hydration, the why behind server components.",
+      summary: "Trade-offs, hydration, server components.",
       prereqs: ["react-components"],
       matches: [
         { courseId: "fluent-react", lessonId: "limitations-of-client-side-rendering" },
@@ -489,9 +687,54 @@ const WEB: SkillTree = {
       ],
     },
     {
+      id: "react-server-components",
+      label: "Server Components",
+      summary: "Server-only rendering, streaming, RSC payload.",
+      prereqs: ["nextjs"],
+      matches: [],
+      gapNote: "No RSC lesson.",
+    },
+
+    // ── Alternative frameworks ──────────────────────────────────
+    {
+      id: "vue-framework",
+      label: "Vue 3",
+      summary: "Composition API, single-file components, reactivity.",
+      prereqs: ["js-modules"],
+      matches: [],
+      gapNote: "No Vue lesson.",
+    },
+    {
+      id: "svelte-framework",
+      label: "Svelte 5",
+      summary: "Compiled framework, runes, no virtual DOM.",
+      prereqs: ["js-modules"],
+      matches: [
+        { courseId: "svelte-tutorial", lessonId: "basic-sveltekit--06-forms--03-form-validation" },
+      ],
+      gapNote: "Svelte tutorial in library; expand coverage.",
+    },
+    {
+      id: "sveltekit",
+      label: "SvelteKit",
+      summary: "Routing, load functions, form actions.",
+      prereqs: ["svelte-framework"],
+      matches: [
+        { courseId: "svelte-tutorial", lessonId: "basic-sveltekit--06-forms--04-progressive-enhancement" },
+      ],
+    },
+    {
+      id: "solid-framework",
+      label: "SolidJS",
+      summary: "Fine-grained reactivity, JSX without VDOM.",
+      prereqs: ["js-modules"],
+      matches: [],
+      gapNote: "No Solid lesson.",
+    },
+    {
       id: "astro-islands",
       label: "Astro Islands",
-      summary: "HTML-first sites with selectively-hydrated interactive islands.",
+      summary: "HTML-first sites with hydrated islands.",
       prereqs: ["html-structure", "react-components"],
       matches: [
         { courseId: "astro-fundamentals", lessonId: "r3" },
@@ -509,6 +752,102 @@ const WEB: SkillTree = {
         { courseId: "htmx-fundamentals", lessonId: "r2" },
         { courseId: "htmx-fundamentals", lessonId: "r3" },
       ],
+    },
+
+    // ── TypeScript ───────────────────────────────────────────────
+    {
+      id: "ts-basics",
+      label: "TypeScript",
+      summary: "Types, interfaces, narrowing.",
+      prereqs: ["js-modules"],
+      matches: [],
+      gapNote: "Add typescript-fundamentals course.",
+    },
+    {
+      id: "ts-react",
+      label: "TS in React",
+      summary: "Typing components, hooks, props.",
+      prereqs: ["ts-basics", "react-components"],
+      matches: [],
+      gapNote: "Add TS-in-React lesson.",
+    },
+    {
+      id: "ts-generics",
+      label: "Generics",
+      summary: "Generic functions, constraints.",
+      prereqs: ["ts-basics"],
+      matches: [],
+      gapNote: "No generics lesson.",
+    },
+
+    // ── Tooling / Build ──────────────────────────────────────────
+    {
+      id: "bundlers",
+      label: "Bundlers",
+      summary: "Module graph, tree shaking, build pipeline.",
+      prereqs: ["js-modules"],
+      matches: [],
+      gapNote: "No bundlers lesson.",
+    },
+    {
+      id: "vite-build",
+      label: "Vite",
+      summary: "Vite config, plugins, dev / prod build.",
+      prereqs: ["bundlers"],
+      matches: [],
+      gapNote: "No Vite lesson.",
+    },
+
+    // ── Testing ──────────────────────────────────────────────────
+    {
+      id: "unit-testing",
+      label: "Unit Testing",
+      summary: "Assertions, runners, mocking basics.",
+      prereqs: ["js-modules"],
+      matches: [],
+      gapNote: "Add unit-testing fundamentals lesson.",
+    },
+    {
+      id: "testing-library",
+      label: "Testing Library",
+      summary: "RTL queries, user-event, a11y-driven tests.",
+      prereqs: ["unit-testing", "react-components"],
+      matches: [],
+      gapNote: "No Testing Library lesson.",
+    },
+    {
+      id: "e2e-playwright",
+      label: "Playwright",
+      summary: "End-to-end tests, browsers, fixtures.",
+      prereqs: ["unit-testing"],
+      matches: [],
+      gapNote: "No Playwright lesson.",
+    },
+
+    // ── Performance + Deployment ─────────────────────────────────
+    {
+      id: "web-vitals",
+      label: "Core Web Vitals",
+      summary: "LCP, INP, CLS — measurement.",
+      prereqs: ["nextjs"],
+      matches: [],
+      gapNote: "No web vitals lesson.",
+    },
+    {
+      id: "static-deployment",
+      label: "Static Deployment",
+      summary: "Vercel, Netlify, Pages from build artifact.",
+      prereqs: ["nextjs"],
+      matches: [],
+      gapNote: "No deployment lesson.",
+    },
+    {
+      id: "edge-deployment",
+      label: "Edge Functions",
+      summary: "Edge runtimes, KV stores, geo-distributed.",
+      prereqs: ["static-deployment"],
+      matches: [],
+      gapNote: "No edge deployment lesson.",
     },
   ],
 };
@@ -1443,11 +1782,14 @@ export function layoutTree(tree: SkillTree): NodeWithLayout[] {
 
 /// Per-node completion check. A skill is complete when AT LEAST ONE
 /// of its `matches` entries is in the user's completed set. Empty-
-/// match (gap) skills can never complete.
+/// match (gap) skills can never complete. Section nodes (kind:
+/// "section") are always considered complete — they're categorical
+/// organizers, not lessons, and shouldn't block their dependents.
 export function isSkillComplete(
   node: SkillNode,
   completed: Set<string>,
 ): boolean {
+  if (node.kind === "section") return true;
   if (node.matches.length === 0) return false;
   return node.matches.some((m) =>
     completed.has(`${m.courseId}:${m.lessonId}`),
@@ -1478,9 +1820,13 @@ export function treeProgressPercent(
   tree: SkillTree,
   completed: Set<string>,
 ): number {
-  if (tree.nodes.length === 0) return 0;
-  const done = tree.nodes.filter((n) => isSkillComplete(n, completed)).length;
-  return Math.round((done / tree.nodes.length) * 100);
+  // Exclude section nodes from the denominator — they're
+  // organizational, not learnable units, so counting them would
+  // artificially inflate completion percentages.
+  const learnable = tree.nodes.filter((n) => n.kind !== "section");
+  if (learnable.length === 0) return 0;
+  const done = learnable.filter((n) => isSkillComplete(n, completed)).length;
+  return Math.round((done / learnable.length) * 100);
 }
 
 /// "Next up" = the unlocked, incomplete, non-gap node closest to the
@@ -1494,6 +1840,8 @@ export function suggestNextSkill(
   const byId = new Map<string, SkillNode>();
   for (const n of tree.nodes) byId.set(n.id, n);
   for (const n of layout) {
+    // Section nodes don't have lessons to "do next" — skip them.
+    if (n.kind === "section") continue;
     if (n.matches.length === 0) continue;
     if (isSkillComplete(n, completed)) continue;
     if (!isSkillUnlocked(n, byId, completed)) continue;
@@ -1537,18 +1885,67 @@ export function iconForSkill(nodeId: string): string {
   if (nodeId === "testing") return "check-circle";
 
   // ── Web Development
+  // Section hubs — pick icons that read as "category" rather than
+  // "specific concept" so the user can tell at a glance these are
+  // organizational nodes, not lessons to complete.
+  if (nodeId === "web-markup-style") return "palette";
+  if (nodeId === "web-js-platform") return "code-2";
+  if (nodeId === "web-frameworks") return "boxes";
+  if (nodeId === "web-production") return "factory";
   if (nodeId === "html-structure") return "code";
+  if (nodeId === "html-forms") return "type";
+  if (nodeId === "html-accessibility") return "search";
+  if (nodeId === "html-media") return "image";
+  if (nodeId === "html-canvas") return "palette";
   if (nodeId.startsWith("css-")) return "palette";
   if (nodeId === "js-dom") return "mouse-pointer-2";
   if (nodeId === "js-events") return "zap";
+  if (nodeId === "js-modules") return "package";
+  if (nodeId === "js-closures") return "parentheses";
+  if (nodeId === "js-storage") return "database";
+  if (nodeId === "js-history") return "route";
+  if (nodeId === "js-iterators" || nodeId === "js-generators") return "infinity";
+  if (nodeId === "js-proxy") return "boxes";
   if (nodeId === "fetch") return "download";
   if (nodeId === "promises" || nodeId === "async-await") return "hourglass";
+  if (nodeId === "websockets" || nodeId === "websocket-realtime" || nodeId === "sse-protocol") return "radio";
+  if (nodeId === "web-workers" || nodeId === "service-workers") return "cpu";
+  if (nodeId === "indexeddb") return "database";
+  if (nodeId === "intersection-observer" || nodeId === "mutation-observer" || nodeId === "resize-observer") return "search";
+  if (nodeId === "broadcast-channel") return "radio";
+  if (nodeId === "file-system-access") return "file-text";
   if (nodeId.startsWith("react-")) return "atom";
   if (nodeId === "routing") return "route";
   if (nodeId === "forms") return "type";
   if (nodeId === "ssr-vs-csr" || nodeId === "nextjs") return "server";
   if (nodeId === "astro-islands") return "sparkles";
   if (nodeId === "htmx") return "zap";
+  if (nodeId === "redux" || nodeId === "redux-toolkit" || nodeId === "zustand" || nodeId === "jotai" || nodeId === "mobx") return "boxes";
+  if (nodeId === "react-query" || nodeId === "swr") return "download";
+  if (nodeId.startsWith("ts-")) return "type";
+  if (nodeId === "bundlers" || nodeId === "vite-build" || nodeId === "webpack-build" || nodeId === "esbuild-tool") return "package";
+  if (nodeId === "unit-testing" || nodeId === "vitest-jest" || nodeId === "testing-library" || nodeId === "e2e-playwright" || nodeId === "cypress-e2e" || nodeId === "a11y-testing" || nodeId === "visual-regression") return "check-circle";
+  if (nodeId === "rest-apis") return "server";
+  if (nodeId === "graphql-basics" || nodeId === "graphql-client") return "git-branch";
+  if (nodeId === "trpc") return "link";
+  if (nodeId === "orm-prisma" || nodeId === "drizzle-orm") return "database";
+  if (nodeId === "hono-api") return "server";
+  if (nodeId === "auth-basics" || nodeId === "session-cookies" || nodeId === "passkeys" || nodeId === "mfa") return "shield";
+  if (nodeId === "oauth") return "shield";
+  if (nodeId === "jwt") return "signature";
+  if (nodeId === "web-vitals" || nodeId === "bundle-analysis") return "gauge";
+  if (nodeId === "image-optimization") return "image";
+  if (nodeId === "font-optimization") return "type";
+  if (nodeId === "virtualization" || nodeId === "lazy-hydration") return "layers";
+  if (nodeId === "web-animations-api") return "sparkles";
+  if (nodeId === "static-deployment" || nodeId === "cdn-caching") return "server";
+  if (nodeId === "edge-deployment") return "network";
+  if (nodeId === "vue-framework" || nodeId === "vue-pinia") return "triangle";
+  if (nodeId === "svelte-framework" || nodeId === "sveltekit") return "sparkles";
+  if (nodeId === "solid-framework") return "atom";
+  if (nodeId === "qwik-framework") return "zap";
+  if (nodeId === "preact-framework") return "atom";
+  if (nodeId === "lit-framework") return "code-2";
 
   // ── Smart contracts
   if (nodeId === "evm-mental-model") return "cpu";

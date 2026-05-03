@@ -218,33 +218,185 @@ export function runDart(code: string, testCode?: string): Promise<RunResult> {
   return runNative("run_dart", code, "dart", "dart", testCode);
 }
 
-export function runZig(code: string, testCode?: string): Promise<RunResult> {
-  // Zig has a very strict "no duplicate top-level names" rule. The default
-  // KATA_TEST harness for our Zig packs starts test code with
-  // `const std = @import("std");` so that references like
-  // `std.mem.eql` resolve. The user's solution / starter usually ALSO
-  // declares `const std = @import("std");` at the top. When `runNative`
-  // concatenates them, Zig fails with:
-  //
-  //   error: duplicate struct member name 'std'
-  //
-  // …pointing at the second declaration. Strip the redundant import
-  // from the test code if the user's code already has one. The test
-  // code's `std.foo` references still resolve to the user's import
-  // because they share the same file scope after concatenation.
-  return runNative("run_zig", code, "zig", "zig", dedupeZigStdImport(code, testCode));
+/// Zig is the only language whose runtime takes a different shape from
+/// the generic KATA_TEST stdout protocol every other native runner
+/// uses. The Rust side dispatches to `zig test` (not `zig run`); zig's
+/// own test runner emits one line per `test "name" {}` block on
+/// stderr in a stable format we parse below.
+///
+/// Why diverge? See `native_runners.rs::run_zig` — TL;DR: idiomatic
+/// Zig tests, free leak detection via `std.testing.allocator`, and no
+/// bespoke harness to keep current with each Zig release.
+///
+/// The `runNative` plumbing is bypassed because:
+///   - We don't want the KATA_TEST::name parsing (zig test uses its
+///     own format).
+///   - We don't want the "synthesize a 'program exited cleanly' pass
+///     when no tests parse" fallback — a `zig test` file with no
+///     `test {}` blocks is a misconfigured lesson, not a smoke test.
+///   - The "merged via runNative" stdout/stderr bookkeeping doesn't
+///     match what zig test produces (separate test-result lines plus
+///     leak reports plus the standard "N passed; M failed" footer).
+export async function runZig(code: string, testCode?: string): Promise<RunResult> {
+  const start = performance.now();
+  // Dedupe std import — the user's solution and our test header both
+  // declare `const std = @import("std");`. Zig's "no duplicate top-
+  // level names" rule means the merged file errors with `duplicate
+  // struct member name 'std'` unless we strip one of them. The user's
+  // import is the source of truth (we don't know if they need extras
+  // bound from std), so we strip from the test side.
+  const dedupedTests = dedupeZigStdImport(code, testCode);
+  const merged = dedupedTests ? `${code}\n${dedupedTests}\n` : code;
+  const raw = await invoke<{
+    stdout: string;
+    stderr: string;
+    success: boolean;
+    duration_ms: number;
+    launch_error: string | null;
+  }>("run_zig", { code: merged });
+
+  if (raw.launch_error) {
+    return {
+      logs: [],
+      error: raw.launch_error,
+      durationMs: raw.duration_ms,
+      testsExpected: testCode !== undefined,
+      missingToolchainLanguage: "zig",
+    };
+  }
+
+  const isLessonRun = testCode !== undefined;
+  const tests = isLessonRun ? parseZigTestOutput(raw.stderr) : undefined;
+
+  // Build the visible log stream. Strip the per-test result lines and
+  // the "N passed; M skipped; K failed." footer — the test pills
+  // already convey that information. Keep stderr noise that points at
+  // compile errors / panic stacks / leak reports so the learner can
+  // see what went wrong.
+  const visibleStderr = isLessonRun
+    ? stripZigTestProtocol(raw.stderr)
+    : raw.stderr.replace(/\n+$/, "");
+  const visibleStdout = raw.stdout.replace(/\n+$/, "");
+
+  const logs: LogLine[] = [];
+  if (visibleStdout) logs.push({ level: "log", text: visibleStdout });
+  if (visibleStderr && !raw.success) {
+    logs.push({ level: "error", text: visibleStderr.trimEnd() });
+  } else if (visibleStderr) {
+    logs.push({ level: "warn", text: visibleStderr.trimEnd() });
+  }
+
+  return {
+    logs,
+    tests,
+    durationMs: performance.now() - start,
+    testsExpected: isLessonRun,
+  };
 }
 
 /// Drop a leading `const std = @import("std");` from `testCode` when
-/// the user's `code` already declares it. This is a Zig-specific
-/// hazard — most other languages let you re-import a module without
-/// erroring (Rust hides duplicates behind module scopes, Go forbids
-/// imports outside the import block so the merger never has to look).
-/// Keeping the helper here (rather than in runNative) means
-/// non-Zig languages keep their straight-through merge.
+/// the user's `code` already declares it. Zig forbids two top-level
+/// declarations with the same name within a file; this is the only
+/// duplicate we can mechanically resolve since `std` is the canonical
+/// well-known name.
 function dedupeZigStdImport(code: string, testCode?: string): string | undefined {
   if (testCode == null) return testCode;
   const importRe = /^[ \t]*const\s+std\s*=\s*@import\(\s*"std"\s*\)\s*;[ \t]*\r?\n?/m;
-  if (!importRe.test(code)) return testCode; // user didn't import; harness import is fine
+  if (!importRe.test(code)) return testCode;
   return testCode.replace(importRe, "");
+}
+
+/// Parse the per-test lines `zig test` writes to stderr. Each test
+/// emits exactly one line in the format:
+///
+///   1/3 mySlug.test.add basic...OK
+///   2/3 mySlug.test.add negatives...FAIL (TestUnexpectedResult)
+///
+/// The slug is the temp filename (random; we ignore it). The test
+/// name is everything between `.test.` and `...`. The status is
+/// `OK`, `FAIL`, or `SKIP`; FAIL may include a parenthesised reason.
+///
+/// Leak reports (from `std.testing.allocator`) come on separate
+/// lines after the `OK` summary — we surface them by retroactively
+/// flipping affected tests to FAIL (the `0x... in test.<name>` line
+/// in the leak trace tells us which test owns the leak).
+function parseZigTestOutput(stderr: string): TestResult[] {
+  const results: TestResult[] = [];
+  const lines = stderr.split("\n");
+  // Header line shape: `<idx>/<total> <slug>.test.<name>...<trailing>`
+  // The trailing portion MAY be the status (`OK` / `FAIL [(reason)]`)
+  // OR may be empty / contain stdout the test body printed inline. In
+  // the latter case the actual status lands on a later line with no
+  // header — so we track an "active" test until we see its terminator.
+  const headerRe = /\d+\/\d+\s+\S+\.test\.(.+?)\.\.\.(.*)$/;
+  const statusRe = /^(OK|FAIL|SKIP)(?:\s+\((.+?)\))?\s*$/;
+  let active: { name: string } | null = null;
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\r$/, "");
+    const header = headerRe.exec(line);
+    if (header) {
+      // Flush any unresolved previous header as a failure — this only
+      // hits malformed output, but failing closed beats silent drop.
+      if (active) results.push({ name: active.name, passed: false, error: "no status line" });
+      const [, name, trailing] = header;
+      const inline = statusRe.exec(trailing.trim());
+      if (inline) {
+        const [, status, reason] = inline;
+        if (status === "OK") results.push({ name, passed: true });
+        else if (status === "FAIL") results.push({ name, passed: false, error: reason || "test failed" });
+        active = null;
+      } else {
+        active = { name };
+      }
+      continue;
+    }
+    if (!active) continue;
+    const standalone = statusRe.exec(line.trim());
+    if (!standalone) continue;
+    const [, status, reason] = standalone;
+    if (status === "OK") results.push({ name: active.name, passed: true });
+    else if (status === "FAIL") results.push({ name: active.name, passed: false, error: reason || "test failed" });
+    active = null;
+  }
+  if (active) results.push({ name: active.name, passed: false, error: "no status line" });
+  // Walk leak trace lines and demote any matching test from PASS to
+  // FAIL. Format: `0xADDR in test.<name> (test)`.
+  const leakOwnerRe = /0x[0-9a-fA-F]+ in test\.(.+?) \(test\)/;
+  let sawLeakHeader = false;
+  for (const line of lines) {
+    if (/\[DebugAllocator\] \(err\): memory address .* leaked/.test(line)) {
+      sawLeakHeader = true;
+      continue;
+    }
+    if (!sawLeakHeader) continue;
+    const m = leakOwnerRe.exec(line);
+    if (!m) continue;
+    const owner = m[1];
+    const idx = results.findIndex((r) => r.name === owner && r.passed);
+    if (idx >= 0) {
+      results[idx] = { name: owner, passed: false, error: "leaked memory" };
+    }
+    sawLeakHeader = false;
+  }
+  return results;
+}
+
+/// Drop the per-test result lines, the leak-report block, and the
+/// final `N passed; M skipped; K failed.` summary from stderr so the
+/// log pane only shows real diagnostic output. Leaves compile errors,
+/// panic stacks, and `error:` lines intact since those are the
+/// signal the learner needs.
+function stripZigTestProtocol(stderr: string): string {
+  return stderr
+    .split("\n")
+    .filter((line) => {
+      if (/^\s*\d+\/\d+\s+\S+\.test\..+\.\.\.(OK|FAIL|SKIP)/.test(line)) return false;
+      if (/^\d+ passed; \d+ skipped; \d+ failed\.$/.test(line)) return false;
+      if (/^All \d+ tests passed\.$/.test(line)) return false;
+      if (/^error: the following test command failed/.test(line)) return false;
+      if (/^\/.*?\.cache\/zig\/o\/[a-f0-9]+\/test/.test(line)) return false;
+      return true;
+    })
+    .join("\n")
+    .replace(/\n+$/, "");
 }

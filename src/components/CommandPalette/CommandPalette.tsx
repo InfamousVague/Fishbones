@@ -9,6 +9,10 @@ import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { command as commandIcon } from "@base/primitives/icon/icons/command";
 import { userRoundCog } from "@base/primitives/icon/icons/user-round-cog";
+import { circleCheck } from "@base/primitives/icon/icons/circle-check";
+import { listChecks } from "@base/primitives/icon/icons/list-checks";
+import { refreshCw } from "@base/primitives/icon/icons/refresh-cw";
+import { clipboardPaste } from "@base/primitives/icon/icons/clipboard-paste";
 import "@base/primitives/icon/icon.css";
 import type { Course, Lesson } from "../../data/types";
 import "./CommandPalette.css";
@@ -47,6 +51,23 @@ interface CommandPaletteProps {
     openSettings?: () => void;
     importBook?: () => void;
     askAi?: () => void;
+    /// Verify the currently active course — runs each exercise's
+    /// solution against its tests through the live in-browser
+    /// runtime. Wired by App.tsx; the palette stays unaware of the
+    /// session state and just fires the action.
+    verifyCourse?: () => void;
+    /// Verify every loaded course in sequence. Same per-lesson logic
+    /// as `verifyCourse`, looped across the library.
+    verifyAllCourses?: () => void;
+    /// Overwrite the active course's installed copy with the
+    /// bundled `public/starter-courses/<id>.json`. Wired by
+    /// App.tsx to `syncBundledToInstalled` + course-list refresh.
+    /// Most useful in dev when the author has updated the
+    /// bundled JSON and wants the running app to pick it up.
+    reapplyBundledStarter?: () => void;
+    /// Open the fix-applier dialog so the user can paste an LLM's
+    /// fix-prompt reply and patch lessons in the active course.
+    applyFixesFromPrompt?: () => void;
   };
   /// Open a specific lesson in a tab. Mirrors `selectLesson` in App.tsx.
   onOpenLesson: (courseId: string, lessonId: string) => void;
@@ -161,6 +182,54 @@ export default function CommandPalette({
         icon: sparkles,
         onSelect: () => {
           actions.askAi?.();
+          onClose();
+        },
+      });
+    if (actions.verifyCourse)
+      out.push({
+        id: "action:verify-course",
+        kind: "action",
+        label: "Verify this course",
+        hint: "Run every exercise's solution",
+        icon: circleCheck,
+        onSelect: () => {
+          actions.verifyCourse?.();
+          onClose();
+        },
+      });
+    if (actions.verifyAllCourses)
+      out.push({
+        id: "action:verify-all-courses",
+        kind: "action",
+        label: "Verify all courses",
+        hint: "Run every exercise across the library",
+        icon: listChecks,
+        onSelect: () => {
+          actions.verifyAllCourses?.();
+          onClose();
+        },
+      });
+    if (actions.reapplyBundledStarter)
+      out.push({
+        id: "action:reapply-bundled-starter",
+        kind: "action",
+        label: "Reapply bundled starter (this course)",
+        hint: "Overwrite installed copy from public/starter-courses",
+        icon: refreshCw,
+        onSelect: () => {
+          actions.reapplyBundledStarter?.();
+          onClose();
+        },
+      });
+    if (actions.applyFixesFromPrompt)
+      out.push({
+        id: "action:apply-fixes-from-prompt",
+        kind: "action",
+        label: "Apply fixes from prompt",
+        hint: "Paste an LLM reply to patch lessons",
+        icon: clipboardPaste,
+        onSelect: () => {
+          actions.applyFixesFromPrompt?.();
           onClose();
         },
       });

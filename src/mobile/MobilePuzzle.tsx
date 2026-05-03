@@ -9,7 +9,8 @@
 /// "correct" if staged. On match, fire onComplete; on mismatch when
 /// pool is empty, show "not quite" + reset button.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { renderMarkdown } from "../components/Lesson/markdown";
 import type { PuzzleBlock } from "../data/types";
 import "./MobilePuzzle.css";
 
@@ -47,6 +48,36 @@ export default function MobilePuzzle({
     "pending",
   );
 
+  // Two-phase prompt rendering. Exercise lessons route through here
+  // with the full markdown problem statement passed as `prompt`, so we
+  // need to render markdown — including fenced code blocks, headings,
+  // lists, and inline code — not plain text. While Shiki is doing its
+  // async syntax-highlighting pass, we show the raw text inline so
+  // the user always sees the prompt; the formatted HTML upgrades in
+  // place once it's ready (typically <100ms, longer if the body has
+  // multiple code blocks).
+  //
+  // We previously hard-sliced `prompt` to 240 chars to avoid markdown
+  // bleeding into a 1-line legacy puzzle prompt. The 240-char ceiling
+  // hid the rest of the body for every exercise lesson on mobile.
+  // Rendering markdown handles both cases: a 1-sentence legacy prompt
+  // emits `<p>that sentence</p>`, a 600-word exercise body emits
+  // proper prose, and nothing is truncated.
+  const [promptHtml, setPromptHtml] = useState<string | null>(null);
+  useEffect(() => {
+    if (!prompt) {
+      setPromptHtml(null);
+      return;
+    }
+    let cancelled = false;
+    void renderMarkdown(prompt).then((html) => {
+      if (!cancelled) setPromptHtml(html);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [prompt]);
+
   const stageBlock = (b: PuzzleBlock) => {
     if (checked !== "pending") return;
     setPool(pool.filter((p) => p.id !== b.id));
@@ -79,12 +110,20 @@ export default function MobilePuzzle({
 
   return (
     <div className="m-puzzle">
-      {prompt && (
-        <p className="m-puzzle__prompt">
-          {/* Strip markdown from a body if it bled in — keep it terse. */}
-          {prompt.length > 240 ? prompt.slice(0, 240) + "…" : prompt}
-        </p>
-      )}
+      {prompt &&
+        (promptHtml === null ? (
+          // Phase 1: raw text fallback while markdown is being
+          // rendered + Shiki-highlighted. CSS preserves whitespace
+          // so multi-paragraph bodies still read naturally.
+          <p className="m-puzzle__prompt m-puzzle__prompt--raw">{prompt}</p>
+        ) : (
+          // Phase 2: full markdown HTML, including code blocks +
+          // headings + lists. Same pipeline MobileReader uses.
+          <div
+            className="m-puzzle__prompt m-puzzle__prompt--prose"
+            dangerouslySetInnerHTML={{ __html: promptHtml }}
+          />
+        ))}
 
       <section className="m-puzzle__section" aria-label="Your solution">
         <h3 className="m-puzzle__section-title">Your solution</h3>

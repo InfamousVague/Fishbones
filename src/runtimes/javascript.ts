@@ -1,4 +1,5 @@
 import { transform as sucraseTransform } from "sucrase";
+import jsSha3Source from "js-sha3/build/sha3.min.js?raw";
 import type { RunResult, LogLine, TestResult } from "./types";
 
 /// In-browser JavaScript / TypeScript runtime.
@@ -65,7 +66,66 @@ function compileTypeScript(
 }
 
 function runInWorker(code: string, testCode: string | undefined): Promise<RunResult> {
+  // Inline js-sha3 so `require('js-sha3')` works inside the worker.
+  // We expose the resolved exports via `__jsSha3` for the shim below.
+  // The library is a UMD bundle that walks `module`/`globalThis` to
+  // attach its API; binding `module.exports = {}` and running it under
+  // a freshly-named scope captures whatever it tried to export.
+  const jsSha3Inline = `
+    const __jsSha3 = (() => {
+      const module = { exports: {} };
+      ${jsSha3Source}
+      return module.exports;
+    })();
+  `;
+  // Minimal Buffer polyfill so the few Node-style \`Buffer.from(...)\`
+  // patterns that ingest-generated tests use (utf8 + hex encodings,
+  // \`.toString('hex')\`) work inside the worker without pulling the
+  // full \`buffer\` package in.
+  const bufferShim = `
+    class __Buf extends Uint8Array {
+      static from(input, encoding) {
+        if (input instanceof Uint8Array) return new __Buf(input);
+        if (Array.isArray(input)) return new __Buf(input);
+        if (typeof input === 'string') {
+          if (encoding === 'hex') {
+            const clean = input.replace(/^0x/, '');
+            const out = new Uint8Array(clean.length / 2);
+            for (let i = 0; i < out.length; i++) {
+              out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+            }
+            return new __Buf(out);
+          }
+          // Default to utf8 (matches Node).
+          return new __Buf(new TextEncoder().encode(input));
+        }
+        throw new Error('Buffer.from: unsupported input');
+      }
+      static concat(parts) {
+        let n = 0;
+        for (const p of parts) n += p.length;
+        const out = new Uint8Array(n);
+        let off = 0;
+        for (const p of parts) { out.set(p, off); off += p.length; }
+        return new __Buf(out);
+      }
+      toString(encoding) {
+        if (encoding === 'hex' || encoding === undefined) {
+          let s = '';
+          for (const b of this) s += b.toString(16).padStart(2, '0');
+          return s;
+        }
+        if (encoding === 'utf8' || encoding === 'utf-8') {
+          return new TextDecoder().decode(this);
+        }
+        return Uint8Array.prototype.toString.call(this);
+      }
+    }
+    self.Buffer = __Buf;
+  `;
   const workerSource = `
+    ${bufferShim}
+    ${jsSha3Inline}
     self.onmessage = async (e) => {
       const logs = [];
       const tests = [];
@@ -308,7 +368,8 @@ function runInWorker(code: string, testCode: string | undefined): Promise<RunRes
         const require = (path) => {
           if (path === './user' || path === '../user' || path === 'user')
             return userModule.exports;
-          throw new Error("require() only supports './user' in tests (got " + fmt(path) + ')');
+          if (path === 'js-sha3') return __jsSha3;
+          throw new Error("require() does not support " + fmt(path) + " in tests");
         };
 
         // Minimal Jest-compatible \`jest.fn\` shim. Tracks calls + results

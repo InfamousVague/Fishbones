@@ -331,14 +331,14 @@
 /* Light themes: ring track switches to a darker alpha so the stroke
    reads against the lighter background. The fish itself is already
    driven by `currentColor`, so it goes black automatically. */
-[data-theme-name="default-light"] .fishbones-output-running-ring,
+[data-theme-name="ayu-light"] .fishbones-output-running-ring,
 [data-theme-name="ayu-light"] .fishbones-output-running-ring,
 [data-theme-name="catppuccin-latte"] .fishbones-output-running-ring {
   border-color: rgba(0, 0, 0, 0.08);
   border-top-color: currentColor;
 }
 
-[data-theme-name="default-light"] .fishbones-output-running-pill,
+[data-theme-name="ayu-light"] .fishbones-output-running-pill,
 [data-theme-name="ayu-light"] .fishbones-output-running-pill,
 [data-theme-name="catppuccin-latte"] .fishbones-output-running-pill {
   background: rgba(0, 0, 0, 0.04);

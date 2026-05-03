@@ -1,6 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { Icon } from "@base/primitives/icon";
 import { libraryBig } from "@base/primitives/icon/icons/library-big";
+import { filter as filterIcon } from "@base/primitives/icon/icons/filter";
+import { x as xIcon } from "@base/primitives/icon/icons/x";
+import { search as searchIcon } from "@base/primitives/icon/icons/search";
+import { arrowUpDown } from "@base/primitives/icon/icons/arrow-up-down";
+import { layoutGrid } from "@base/primitives/icon/icons/layout-grid";
+import { rows3 } from "@base/primitives/icon/icons/rows-3";
 import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
 import { isChallengePack } from "../../data/types";
@@ -103,6 +116,114 @@ interface Props {
 
 type SortKey = "name" | "progress" | "lessons";
 
+/// Top-level "what kind of book is this" split. Library-wide filter
+/// that lives above the language pills so a learner can scope the
+/// whole grid to crypto material (Bitcoin, Ethereum, Solana, the
+/// Solidity/Vyper/Cairo/Move/Sway-based challenge packs, viem-ethers,
+/// cryptography-fundamentals) or to plain programming material
+/// (everything else).
+type CourseCategory = "crypto" | "programming";
+
+/// Within crypto, which chain/protocol the course is teaching. `other`
+/// catches material that's chain-agnostic (cryptography-fundamentals)
+/// or about an alt-L1 we don't yet split out (Cairo/Starknet, Move,
+/// Sway). Adding a new dedicated chain pill = add an entry here, add
+/// a regex/lang rule in `cryptoChain()`, add a label in CHAIN_PILLS.
+type CryptoChain = "bitcoin" | "ethereum" | "solana" | "other";
+
+/// Languages that exist primarily for blockchain work — every course
+/// in one of these languages is automatically categorized as crypto.
+const CRYPTO_LANGUAGES: ReadonlySet<string> = new Set([
+  "solidity",
+  "vyper",
+  "cairo",
+  "move",
+  "sway",
+]);
+
+/// Course-id patterns that mark a course as crypto even when the
+/// language is general-purpose (Mastering Bitcoin uses JavaScript,
+/// Programming Bitcoin uses Python, etc.). Order doesn't matter — any
+/// match wins. Tweak this when adding a new crypto book that doesn't
+/// fall under a crypto-specific language.
+const CRYPTO_ID_PATTERNS: readonly RegExp[] = [
+  /\bbitcoin\b/i,
+  /\bethereum\b/i,
+  /\bsolana\b/i,
+  /\blightning\b/i,
+  /\bblockchain\b/i,
+  /\bweb3\b/i,
+  /\bdefi\b/i,
+  /^crypto/i, // catches cryptography-fundamentals; books about /encryption/
+  /^viem-/i, // viem-ethers (Ethereum tooling tutorial)
+];
+
+/// Classify a course as crypto or programming. Default is programming
+/// — only courses that match a crypto language or id pattern get
+/// flagged crypto. Pure language-tutorial books (the-rust-programming-
+/// language, learning-go, you-dont-know-js-yet, …) stay programming
+/// even if a learner uses them later for crypto work.
+function categorizeCourse(course: Course): CourseCategory {
+  if (CRYPTO_LANGUAGES.has(course.language)) return "crypto";
+  if (CRYPTO_ID_PATTERNS.some((re) => re.test(course.id))) return "crypto";
+  return "programming";
+}
+
+/// Returns true when the chain-pill row should render — at least two
+/// distinct chains are present in the crypto subset. With only one
+/// chain there's nothing to switch between, so the row hides.
+function chainCountsHasMultiple(byChain: Map<CryptoChain, number>): boolean {
+  let nonEmpty = 0;
+  for (const count of byChain.values()) {
+    if (count > 0) nonEmpty += 1;
+    if (nonEmpty >= 2) return true;
+  }
+  return false;
+}
+
+/// Map a crypto course to its chain. Only meaningful when
+/// categorizeCourse() already returned "crypto"; for non-crypto
+/// courses the result is undefined behavior (caller's responsibility
+/// to gate). Lightning is rolled up under bitcoin since it's a
+/// Bitcoin L2. Solidity/Vyper/viem all imply Ethereum.
+function cryptoChain(course: Course): CryptoChain {
+  const id = course.id;
+  if (/\bbitcoin\b|\blightning\b/i.test(id)) return "bitcoin";
+  if (
+    /\bethereum\b|^viem-/i.test(id) ||
+    course.language === "solidity" ||
+    course.language === "vyper"
+  ) {
+    return "ethereum";
+  }
+  if (/\bsolana\b/i.test(id)) return "solana";
+  return "other";
+}
+
+const CATEGORY_PILLS: ReadonlyArray<{
+  id: "all" | CourseCategory;
+  label: string;
+}> = [
+  { id: "all", label: "All" },
+  { id: "crypto", label: "Crypto" },
+  { id: "programming", label: "Programming" },
+];
+
+/// Sub-pills shown as a second row when the user has selected the
+/// Crypto category. Pills with a zero count auto-hide (except `all`
+/// and the active selection) so the row collapses to whatever's
+/// actually present in the library.
+const CHAIN_PILLS: ReadonlyArray<{
+  id: "all" | CryptoChain;
+  label: string;
+}> = [
+  { id: "all", label: "All" },
+  { id: "bitcoin", label: "Bitcoin" },
+  { id: "ethereum", label: "Ethereum" },
+  { id: "solana", label: "Solana" },
+  { id: "other", label: "Other" },
+];
+
 // Every LanguageId we support. Each pill is hidden at render time when
 // there are zero courses for that language (see the `countByLang` filter
 // below), so this full list is safe to carry around even on a library
@@ -155,6 +276,16 @@ export default function CourseLibrary({
 }: Props) {
   const isInline = mode === "inline";
   const ctxMenu = useCourseMenu();
+  // Top-level domain filter — All / Crypto / Programming. Sits above
+  // the language pills so picking "Crypto" narrows everything below
+  // to blockchain material, then language pills further refine within
+  // that scope.
+  const [categoryFilter, setCategoryFilter] = useState<
+    "all" | CourseCategory
+  >("all");
+  // Chain sub-filter, only visible when categoryFilter === "crypto".
+  // Reset to "all" any time the user navigates away from Crypto.
+  const [chainFilter, setChainFilter] = useState<"all" | CryptoChain>("all");
   const [langFilter, setLangFilter] = useState<"all" | LanguageId>("all");
   // Kind toggle — separate the two course archetypes the library
   // mixes today: full-length books (chapter-major prose with
@@ -308,6 +439,19 @@ export default function CourseLibrary({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return enriched
+      .filter(
+        (e) =>
+          categoryFilter === "all" ||
+          categorizeCourse(e.course) === categoryFilter,
+      )
+      // Chain filter only takes effect when category is crypto —
+      // there's no chain on a programming course to compare against.
+      .filter(
+        (e) =>
+          categoryFilter !== "crypto" ||
+          chainFilter === "all" ||
+          cryptoChain(e.course) === chainFilter,
+      )
       .filter((e) => langFilter === "all" || e.course.language === langFilter)
       .filter((e) => {
         if (kindFilter === "all") return true;
@@ -331,7 +475,15 @@ export default function CourseLibrary({
             return a.course.title.localeCompare(b.course.title);
         }
       });
-  }, [enriched, langFilter, kindFilter, sortBy, query]);
+  }, [
+    enriched,
+    categoryFilter,
+    chainFilter,
+    langFilter,
+    kindFilter,
+    sortBy,
+    query,
+  ]);
 
   // Group filtered courses by release-status tier so the shelf/grid
   // can render labelled sections. Reading order top → bottom mirrors
@@ -379,29 +531,89 @@ export default function CourseLibrary({
     });
   }, [filtered]);
 
+  // Count courses per category so the top-level toggle can show
+  // badges. Always uses the full enriched set — the badge needs to
+  // tell you "how many crypto courses TOTAL exist", regardless of
+  // the lang/kind narrowing further down.
+  const categoryCounts = useMemo(() => {
+    let crypto = 0;
+    let programming = 0;
+    for (const e of enriched) {
+      if (categorizeCourse(e.course) === "crypto") crypto += 1;
+      else programming += 1;
+    }
+    return { crypto, programming, all: crypto + programming };
+  }, [enriched]);
+
+  // Count courses per chain WITHIN the crypto subset. Used to render
+  // the chain pills (Bitcoin / Ethereum / Solana / Other). Always
+  // ignores the chain filter itself — otherwise picking "Bitcoin"
+  // would zero out every other pill's count.
+  const chainCounts = useMemo(() => {
+    const m = new Map<CryptoChain, number>();
+    let total = 0;
+    for (const e of enriched) {
+      if (categorizeCourse(e.course) !== "crypto") continue;
+      const chain = cryptoChain(e.course);
+      m.set(chain, (m.get(chain) ?? 0) + 1);
+      total += 1;
+    }
+    return { byChain: m, all: total };
+  }, [enriched]);
+
   // Count courses per language so the filter chips can show badges and
   // hide languages with zero courses (unless they're the active filter).
+  // Counts are scoped to the active category + chain — picking
+  // "Crypto > Ethereum" hides Python (since no Ethereum-Python course
+  // exists), keeps Solidity / TypeScript visible.
   const countByLang = useMemo(() => {
     const m = new Map<string, number>();
     for (const e of enriched) {
+      if (
+        categoryFilter !== "all" &&
+        categorizeCourse(e.course) !== categoryFilter
+      ) {
+        continue;
+      }
+      if (
+        categoryFilter === "crypto" &&
+        chainFilter !== "all" &&
+        cryptoChain(e.course) !== chainFilter
+      ) {
+        continue;
+      }
       m.set(e.course.language, (m.get(e.course.language) ?? 0) + 1);
     }
     return m;
-  }, [enriched]);
+  }, [enriched, categoryFilter, chainFilter]);
 
   // Count books vs challenges so the kind toggle can show badges. Only
-  // counts within the current language filter so the numbers track
-  // what's actually visible after the lang chip narrows the set.
+  // counts within the current category + chain + language filters so
+  // the numbers track what's actually visible after upstream filters
+  // narrow the set.
   const kindCounts = useMemo(() => {
     let books = 0;
     let challenges = 0;
     for (const e of enriched) {
+      if (
+        categoryFilter !== "all" &&
+        categorizeCourse(e.course) !== categoryFilter
+      ) {
+        continue;
+      }
+      if (
+        categoryFilter === "crypto" &&
+        chainFilter !== "all" &&
+        cryptoChain(e.course) !== chainFilter
+      ) {
+        continue;
+      }
       if (langFilter !== "all" && e.course.language !== langFilter) continue;
       if (isChallengePack(e.course)) challenges += 1;
       else books += 1;
     }
     return { books, challenges, all: books + challenges };
-  }, [enriched, langFilter]);
+  }, [enriched, categoryFilter, chainFilter, langFilter]);
 
   // The panel content is identical in both modes; only the wrapper differs:
   // modal wraps with a full-viewport backdrop, inline just renders in place.
@@ -468,145 +680,38 @@ export default function CourseLibrary({
         </div>
 
         {courses.length > 0 && (
-          <div className="fishbones-library-controls">
-            <div className="fishbones-library-pills" role="tablist" aria-label="Filter by language">
-              {LANG_PILLS.filter(
-                (p) => p.id === "all" || p.id === langFilter || (countByLang.get(p.id) ?? 0) > 0,
-              ).map((p) => {
-                const count =
-                  p.id === "all" ? courses.length : countByLang.get(p.id) ?? 0;
-                return (
-                  <button
-                    key={p.id}
-                    role="tab"
-                    aria-selected={langFilter === p.id}
-                    className={`fishbones-library-pill ${
-                      langFilter === p.id ? "fishbones-library-pill--active" : ""
-                    }`}
-                    onClick={() => setLangFilter(p.id)}
-                  >
-                    {p.label}
-                    <span className="fishbones-library-pill-count">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Kind toggle — All / Books / Challenges. Counts tracking
-                whatever the language filter has narrowed to, so a learner
-                who picks "Rust" and then clicks "Challenges" sees
-                only Rust challenges. The toggle is hidden when the
-                language-narrowed set has only one kind (no point in
-                offering a switch that does nothing). */}
-            {kindCounts.books > 0 && kindCounts.challenges > 0 && (
-              <div
-                className="fishbones-library-kind-toggle"
-                role="tablist"
-                aria-label="Filter by kind"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={kindFilter === "all"}
-                  className={`fishbones-library-kind ${
-                    kindFilter === "all" ? "fishbones-library-kind--active" : ""
-                  }`}
-                  onClick={() => setKindFilter("all")}
-                >
-                  All
-                  <span className="fishbones-library-kind-count">
-                    {kindCounts.all}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={kindFilter === "books"}
-                  className={`fishbones-library-kind ${
-                    kindFilter === "books" ? "fishbones-library-kind--active" : ""
-                  }`}
-                  onClick={() => setKindFilter("books")}
-                >
-                  Books
-                  <span className="fishbones-library-kind-count">
-                    {kindCounts.books}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={kindFilter === "challenges"}
-                  className={`fishbones-library-kind ${
-                    kindFilter === "challenges" ? "fishbones-library-kind--active" : ""
-                  }`}
-                  onClick={() => setKindFilter("challenges")}
-                >
-                  Challenges
-                  <span className="fishbones-library-kind-count">
-                    {kindCounts.challenges}
-                  </span>
-                </button>
-              </div>
-            )}
-
-            <div className="fishbones-library-tools">
-              <input
-                type="search"
-                className="fishbones-library-search"
-                placeholder="Search title or author…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <label className="fishbones-library-sort">
-                <span className="fishbones-library-sort-label">sort</span>
-                <select
-                  className="fishbones-library-sort-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortKey)}
-                >
-                  <option value="name">Name (A–Z)</option>
-                  <option value="progress">Progress</option>
-                  <option value="lessons">Lesson count</option>
-                </select>
-              </label>
-              {/* View-mode toggle: shelf (book covers) vs grid (dense
-                  info cards). Remembers the choice in localStorage. */}
-              <div
-                className="fishbones-library-viewmode"
-                role="tablist"
-                aria-label="View mode"
-              >
-                <button
-                  role="tab"
-                  type="button"
-                  aria-selected={viewMode === "shelf"}
-                  className={`fishbones-library-viewmode-btn ${
-                    viewMode === "shelf"
-                      ? "fishbones-library-viewmode-btn--active"
-                      : ""
-                  }`}
-                  onClick={() => setViewMode("shelf")}
-                  title="Shelf view — book covers"
-                >
-                  Shelf
-                </button>
-                <button
-                  role="tab"
-                  type="button"
-                  aria-selected={viewMode === "grid"}
-                  className={`fishbones-library-viewmode-btn ${
-                    viewMode === "grid"
-                      ? "fishbones-library-viewmode-btn--active"
-                      : ""
-                  }`}
-                  onClick={() => setViewMode("grid")}
-                  title="Grid view — info cards"
-                >
-                  Grid
-                </button>
-              </div>
-            </div>
-          </div>
+          <LibraryControls
+            // ── filter state ──
+            categoryFilter={categoryFilter}
+            chainFilter={chainFilter}
+            langFilter={langFilter}
+            kindFilter={kindFilter}
+            // ── filter setters (each clears downstream as needed) ──
+            onSetCategory={(c) => {
+              setCategoryFilter(c);
+              setChainFilter("all");
+              setLangFilter("all");
+            }}
+            onSetChain={(c) => {
+              setChainFilter(c);
+              setLangFilter("all");
+            }}
+            onSetLang={setLangFilter}
+            onSetKind={setKindFilter}
+            // ── counts (drive both badges and visibility rules) ──
+            categoryCounts={categoryCounts}
+            chainCounts={chainCounts}
+            countByLang={countByLang}
+            kindCounts={kindCounts}
+            totalCourses={courses.length}
+            // ── tools ──
+            query={query}
+            onSetQuery={setQuery}
+            sortBy={sortBy}
+            onSetSort={setSortBy}
+            viewMode={viewMode}
+            onSetViewMode={setViewMode}
+          />
         )}
 
         {/*
@@ -957,3 +1062,433 @@ function CourseCard({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// LibraryControls — single-row filter chips + popover + tools.
+//
+// Replaces the earlier 4-row stack of pill bars (category / chain /
+// language / kind) plus tools row. The same filtering surface is now:
+//
+//   ┌────────────────────────────────────────────────────────────┐
+//   │ [Crypto×] [Bitcoin×] [⚙ Filter]   🔍search   ⤓sort  ▦ ▤   │
+//   └────────────────────────────────────────────────────────────┘
+//
+// Active filters render as removable chips. The "Filter" button opens
+// a popover with sectioned options for every dimension (Category /
+// Chain / Language / Kind). All sections that have nothing to choose
+// (e.g. Chain when not in Crypto, or only-one-kind libraries) auto-
+// hide — same visibility rules the old pill-bar version had.
+// ─────────────────────────────────────────────────────────────────────
+
+interface ChainCountsShape {
+  byChain: Map<CryptoChain, number>;
+  all: number;
+}
+interface CategoryCountsShape {
+  crypto: number;
+  programming: number;
+  all: number;
+}
+interface KindCountsShape {
+  books: number;
+  challenges: number;
+  all: number;
+}
+
+interface LibraryControlsProps {
+  categoryFilter: "all" | CourseCategory;
+  chainFilter: "all" | CryptoChain;
+  langFilter: "all" | LanguageId;
+  kindFilter: "all" | "books" | "challenges";
+  onSetCategory: (c: "all" | CourseCategory) => void;
+  onSetChain: (c: "all" | CryptoChain) => void;
+  onSetLang: (l: "all" | LanguageId) => void;
+  onSetKind: (k: "all" | "books" | "challenges") => void;
+  categoryCounts: CategoryCountsShape;
+  chainCounts: ChainCountsShape;
+  countByLang: Map<string, number>;
+  kindCounts: KindCountsShape;
+  totalCourses: number;
+  query: string;
+  onSetQuery: (q: string) => void;
+  sortBy: SortKey;
+  onSetSort: (s: SortKey) => void;
+  viewMode: ViewMode;
+  onSetViewMode: (v: ViewMode) => void;
+}
+
+function LibraryControls(p: LibraryControlsProps): ReactElement {
+  const [filterOpen, setFilterOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  // Click-outside / Escape closes the popover. Only registers the
+  // listeners while open so we don't leak them per render.
+  useEffect(() => {
+    if (!filterOpen) return;
+    function onClick(e: MouseEvent) {
+      const t = e.target as Node | null;
+      if (!t) return;
+      if (wrapRef.current?.contains(t)) return;
+      setFilterOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setFilterOpen(false);
+    }
+    window.addEventListener("mousedown", onClick);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onClick);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filterOpen]);
+
+  // ── Active-filter chip strip ─────────────────────────────────────
+  // Build a flat list of "this filter is active" entries so the
+  // header can render them as removable chips. Order goes from
+  // broadest (category) → narrowest (kind) so a user reading left-
+  // to-right sees the hierarchy that produced the current grid.
+  const activeChips: Array<{ key: string; label: string; clear: () => void }> = [];
+  if (p.categoryFilter !== "all") {
+    activeChips.push({
+      key: "cat",
+      label: p.categoryFilter === "crypto" ? "Crypto" : "Programming",
+      clear: () => p.onSetCategory("all"),
+    });
+  }
+  if (p.chainFilter !== "all" && p.categoryFilter === "crypto") {
+    const chainPill = CHAIN_PILLS.find((cp) => cp.id === p.chainFilter);
+    activeChips.push({
+      key: "chain",
+      label: chainPill?.label ?? p.chainFilter,
+      clear: () => p.onSetChain("all"),
+    });
+  }
+  if (p.langFilter !== "all") {
+    const langPill = LANG_PILLS.find((lp) => lp.id === p.langFilter);
+    activeChips.push({
+      key: "lang",
+      label: langPill?.label ?? p.langFilter,
+      clear: () => p.onSetLang("all"),
+    });
+  }
+  if (p.kindFilter !== "all") {
+    activeChips.push({
+      key: "kind",
+      label: p.kindFilter === "books" ? "Books" : "Challenges",
+      clear: () => p.onSetKind("all"),
+    });
+  }
+
+  return (
+    <div className="fishbones-library-controls fishbones-library-controls--compact">
+      {/* Left side: active filter chips + Filter popover trigger.
+          The trigger pill itself doubles as a status when nothing's
+          active ("Filter ▾") and as the entry-point when chips are
+          present. */}
+      <div className="fishbones-library-filter-cluster" ref={wrapRef}>
+        {activeChips.map((c) => (
+          <span key={c.key} className="fishbones-library-filter-chip">
+            {c.label}
+            <button
+              type="button"
+              className="fishbones-library-filter-chip-x"
+              onClick={c.clear}
+              aria-label={`Remove ${c.label} filter`}
+            >
+              <Icon icon={xIcon} size="xs" color="currentColor" />
+            </button>
+          </span>
+        ))}
+        <button
+          type="button"
+          className={`fishbones-library-filter-trigger ${
+            filterOpen ? "fishbones-library-filter-trigger--open" : ""
+          }`}
+          onClick={() => setFilterOpen((v) => !v)}
+          aria-haspopup="dialog"
+          aria-expanded={filterOpen}
+        >
+          <Icon icon={filterIcon} size="xs" color="currentColor" />
+          <span>{activeChips.length === 0 ? "Filter" : "More"}</span>
+        </button>
+
+        {filterOpen && (
+          <FilterPopover
+            categoryFilter={p.categoryFilter}
+            chainFilter={p.chainFilter}
+            langFilter={p.langFilter}
+            kindFilter={p.kindFilter}
+            categoryCounts={p.categoryCounts}
+            chainCounts={p.chainCounts}
+            countByLang={p.countByLang}
+            kindCounts={p.kindCounts}
+            totalCourses={p.totalCourses}
+            onSetCategory={p.onSetCategory}
+            onSetChain={p.onSetChain}
+            onSetLang={p.onSetLang}
+            onSetKind={p.onSetKind}
+          />
+        )}
+      </div>
+
+      {/* Right side: search + sort + view. The dominant tools row.
+          Sort + view collapse to icon buttons to save space. */}
+      <div className="fishbones-library-tools">
+        <label className="fishbones-library-search-wrap">
+          <Icon
+            icon={searchIcon}
+            size="xs"
+            color="currentColor"
+            className="fishbones-library-search-icon"
+          />
+          <input
+            type="search"
+            className="fishbones-library-search"
+            placeholder="Search…"
+            value={p.query}
+            onChange={(e) => p.onSetQuery(e.target.value)}
+          />
+        </label>
+        <label
+          className="fishbones-library-sort fishbones-library-sort--compact"
+          title="Sort order"
+        >
+          <Icon icon={arrowUpDown} size="xs" color="currentColor" />
+          <select
+            className="fishbones-library-sort-select"
+            value={p.sortBy}
+            onChange={(e) => p.onSetSort(e.target.value as SortKey)}
+          >
+            <option value="name">Name (A–Z)</option>
+            <option value="progress">Progress</option>
+            <option value="lessons">Lesson count</option>
+          </select>
+        </label>
+        <div
+          className="fishbones-library-viewmode"
+          role="tablist"
+          aria-label="View mode"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={p.viewMode === "shelf"}
+            className={`fishbones-library-viewmode-btn fishbones-library-viewmode-btn--icon ${
+              p.viewMode === "shelf"
+                ? "fishbones-library-viewmode-btn--active"
+                : ""
+            }`}
+            onClick={() => p.onSetViewMode("shelf")}
+            title="Shelf view — book covers"
+            aria-label="Shelf view"
+          >
+            <Icon icon={rows3} size="xs" color="currentColor" />
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={p.viewMode === "grid"}
+            className={`fishbones-library-viewmode-btn fishbones-library-viewmode-btn--icon ${
+              p.viewMode === "grid"
+                ? "fishbones-library-viewmode-btn--active"
+                : ""
+            }`}
+            onClick={() => p.onSetViewMode("grid")}
+            title="Grid view — info cards"
+            aria-label="Grid view"
+          >
+            <Icon icon={layoutGrid} size="xs" color="currentColor" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// FilterPopover — sectioned panel of every filter dimension.
+//
+// Sections auto-hide using the same rules the old inline pill bars
+// did:
+//   - Category: hides when only one category is present
+//   - Chain: hides unless the active category is "crypto" AND there
+//     are at least two non-empty chains
+//   - Language: hides if only one language is present
+//   - Kind: hides if there's nothing to switch (only books OR only
+//     challenges)
+//
+// Picking a value updates the relevant filter immediately; the
+// popover stays open so users can layer multiple filters in one
+// session. They dismiss by clicking outside or pressing Escape.
+// ─────────────────────────────────────────────────────────────────────
+
+interface FilterPopoverProps {
+  categoryFilter: "all" | CourseCategory;
+  chainFilter: "all" | CryptoChain;
+  langFilter: "all" | LanguageId;
+  kindFilter: "all" | "books" | "challenges";
+  categoryCounts: CategoryCountsShape;
+  chainCounts: ChainCountsShape;
+  countByLang: Map<string, number>;
+  kindCounts: KindCountsShape;
+  totalCourses: number;
+  onSetCategory: (c: "all" | CourseCategory) => void;
+  onSetChain: (c: "all" | CryptoChain) => void;
+  onSetLang: (l: "all" | LanguageId) => void;
+  onSetKind: (k: "all" | "books" | "challenges") => void;
+}
+
+function FilterPopover(p: FilterPopoverProps): ReactElement {
+  const showCategory =
+    p.categoryCounts.crypto > 0 && p.categoryCounts.programming > 0;
+  const showChain =
+    p.categoryFilter === "crypto" &&
+    p.chainCounts.all > 0 &&
+    chainCountsHasMultiple(p.chainCounts.byChain);
+  const showKind = p.kindCounts.books > 0 && p.kindCounts.challenges > 0;
+  const langPills = LANG_PILLS.filter(
+    (l) =>
+      l.id === "all" ||
+      l.id === p.langFilter ||
+      (p.countByLang.get(l.id) ?? 0) > 0,
+  );
+  const showLang = langPills.length > 1;
+
+  return (
+    <div
+      className="fishbones-library-filter-pop"
+      role="dialog"
+      aria-label="Filter courses"
+    >
+      {showCategory && (
+        <FilterSection title="Category">
+          {CATEGORY_PILLS.map((cp) => {
+            const count =
+              cp.id === "all"
+                ? p.categoryCounts.all
+                : cp.id === "crypto"
+                  ? p.categoryCounts.crypto
+                  : p.categoryCounts.programming;
+            return (
+              <FilterOption
+                key={cp.id}
+                label={cp.label}
+                count={count}
+                active={p.categoryFilter === cp.id}
+                onSelect={() => p.onSetCategory(cp.id)}
+              />
+            );
+          })}
+        </FilterSection>
+      )}
+
+      {showChain && (
+        <FilterSection title="Chain">
+          {CHAIN_PILLS.filter(
+            (cp) =>
+              cp.id === "all" ||
+              cp.id === p.chainFilter ||
+              (p.chainCounts.byChain.get(cp.id as CryptoChain) ?? 0) > 0,
+          ).map((cp) => {
+            const count =
+              cp.id === "all"
+                ? p.chainCounts.all
+                : p.chainCounts.byChain.get(cp.id as CryptoChain) ?? 0;
+            return (
+              <FilterOption
+                key={cp.id}
+                label={cp.label}
+                count={count}
+                active={p.chainFilter === cp.id}
+                onSelect={() => p.onSetChain(cp.id)}
+              />
+            );
+          })}
+        </FilterSection>
+      )}
+
+      {showLang && (
+        <FilterSection title="Language">
+          {langPills.map((lp) => {
+            const count =
+              lp.id === "all"
+                ? p.totalCourses
+                : p.countByLang.get(lp.id) ?? 0;
+            return (
+              <FilterOption
+                key={lp.id}
+                label={lp.label}
+                count={count}
+                active={p.langFilter === lp.id}
+                onSelect={() => p.onSetLang(lp.id)}
+              />
+            );
+          })}
+        </FilterSection>
+      )}
+
+      {showKind && (
+        <FilterSection title="Kind">
+          <FilterOption
+            label="All"
+            count={p.kindCounts.all}
+            active={p.kindFilter === "all"}
+            onSelect={() => p.onSetKind("all")}
+          />
+          <FilterOption
+            label="Books"
+            count={p.kindCounts.books}
+            active={p.kindFilter === "books"}
+            onSelect={() => p.onSetKind("books")}
+          />
+          <FilterOption
+            label="Challenges"
+            count={p.kindCounts.challenges}
+            active={p.kindFilter === "challenges"}
+            onSelect={() => p.onSetKind("challenges")}
+          />
+        </FilterSection>
+      )}
+    </div>
+  );
+}
+
+function FilterSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <div className="fishbones-library-filter-section">
+      <div className="fishbones-library-filter-section-title">{title}</div>
+      <div className="fishbones-library-filter-section-options">{children}</div>
+    </div>
+  );
+}
+
+function FilterOption({
+  label,
+  count,
+  active,
+  onSelect,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onSelect: () => void;
+}): ReactElement {
+  return (
+    <button
+      type="button"
+      className={`fishbones-library-filter-opt ${
+        active ? "fishbones-library-filter-opt--active" : ""
+      }`}
+      onClick={onSelect}
+      aria-pressed={active}
+    >
+      <span>{label}</span>
+      <span className="fishbones-library-filter-opt-count">{count}</span>
+    </button>
+  );
+}

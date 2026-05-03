@@ -11,6 +11,101 @@
   margin: 0;
 }
 
+/* Phase-1 fallback while markdown is rendering: preserve whitespace
+ * so multi-paragraph exercise bodies don't collapse into a single
+ * blob. Looks identical to the pre-markdown rendering for a 1-line
+ * legacy prompt. */
+.m-puzzle__prompt--raw {
+  white-space: pre-wrap;
+}
+
+/* Phase-2 markdown HTML — exercise bodies typically have headings,
+ * inline code, fenced code blocks, and bullet lists. Mirror the
+ * MobileReader prose styling so challenges and readings read with
+ * the same typographic voice. */
+.m-puzzle__prompt--prose {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.m-puzzle__prompt--prose p {
+  margin: 0 0 12px;
+}
+
+.m-puzzle__prompt--prose p:last-child {
+  margin-bottom: 0;
+}
+
+.m-puzzle__prompt--prose h1,
+.m-puzzle__prompt--prose h2,
+.m-puzzle__prompt--prose h3 {
+  letter-spacing: -0.01em;
+  margin: 16px 0 8px;
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.m-puzzle__prompt--prose h2 {
+  font-size: 18px;
+}
+
+.m-puzzle__prompt--prose h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.m-puzzle__prompt--prose ul,
+.m-puzzle__prompt--prose ol {
+  padding-left: 22px;
+  margin: 0 0 12px;
+}
+
+.m-puzzle__prompt--prose li {
+  margin-bottom: 6px;
+}
+
+.m-puzzle__prompt--prose code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+
+.m-puzzle__prompt--prose pre {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 12px 0;
+}
+
+.m-puzzle__prompt--prose pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+.m-puzzle__prompt--prose blockquote {
+  margin: 12px 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+.m-puzzle__prompt--prose a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
 .m-puzzle__section {
   display: flex;
   flex-direction: column;

@@ -313,10 +313,41 @@ async function highlightCode(
     ? "fishbones-code-block fishbones-code-block--with-filename"
     : "fishbones-code-block";
   try {
-    const inner = await codeToHtml(trimmed, { lang, theme: SHIKI_THEME });
+    const inner = await codeToHtml(trimmed, { lang: shikiLang(lang), theme: SHIKI_THEME });
     return `<div class="${wrapperClass}">${filenameStrip}${askBadge}${inner}</div>`;
   } catch {
     return `<div class="${wrapperClass}">${filenameStrip}${askBadge}<pre class="fishbones-code-plain">${escapeHtml(trimmed)}</pre></div>`;
+  }
+}
+
+/// Map a code-fence language to Shiki's bundled-grammar id. Most pass
+/// through unchanged — Shiki's defaults match common names. The remaps
+/// here cover:
+///   - LanguageIds we use internally that aren't Shiki language ids
+///     (`reactnative` → `tsx`, `bun` → `typescript`, `vyper` → `python`,
+///     `assembly` → `asm`).
+///   - 2026-expansion smart-contract languages whose Shiki grammars
+///     aren't bundled. We map to the closest syntactic relative so the
+///     code still gets meaningful colour instead of falling through the
+///     try/catch above into plain `<pre>`. Sway is Rust-derived; once
+///     a real Sway TextMate grammar ships in Shiki we can drop the
+///     alias.
+function shikiLang(lang: string): string {
+  switch (lang.toLowerCase()) {
+    case "reactnative":
+      return "tsx";
+    case "threejs":
+      return "javascript";
+    case "vyper":
+      return "python";
+    case "bun":
+      return "typescript";
+    case "assembly":
+      return "asm";
+    case "sway":
+      return "rust"; // sway is Rust-derived; no Shiki grammar yet
+    default:
+      return lang;
   }
 }
 

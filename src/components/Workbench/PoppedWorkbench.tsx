@@ -121,7 +121,16 @@ export default function PoppedWorkbench() {
     const bus = makeBus(courseId, lessonId);
     bus.emit({ type: "running" }, "popped");
     try {
-      const r = await runFiles(lesson.language, files, lesson.tests);
+      const harness =
+        "harness" in lesson ? (lesson as { harness?: "evm" | "solana" }).harness : undefined;
+      const r = await runFiles(
+        lesson.language,
+        files,
+        lesson.tests,
+        undefined,
+        undefined,
+        harness,
+      );
       setResult(r);
       bus.emit({ type: "result", result: r }, "popped");
       if (isPassing(r)) bus.emit({ type: "complete" }, "popped");

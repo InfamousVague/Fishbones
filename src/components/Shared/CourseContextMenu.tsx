@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
@@ -52,7 +53,11 @@ export default function CourseContextMenu({
   if (!menu) return null;
   if (!onSettings && !onExport && !onDelete) return null;
 
-  return (
+  // Portal to body so we escape any ancestor that creates a containing
+  // block for fixed positioning (sidebars / modals with `backdrop-filter`,
+  // `transform`, etc.) — without this the menu gets clipped by the
+  // ancestor's `overflow: hidden`.
+  return createPortal(
     <div
       className="fishbones__context-menu"
       style={{ left: menu.x, top: menu.y, position: "fixed", zIndex: 1000 }}
@@ -104,7 +109,8 @@ export default function CourseContextMenu({
           </button>
         </>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

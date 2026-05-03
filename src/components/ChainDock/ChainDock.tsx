@@ -1,5 +1,5 @@
-/// In-app Ganache-style dock — visible above smart-contract lessons.
-/// Shows the same things you'd see in the real Ganache GUI:
+/// In-app local-chain dock — visible above smart-contract lessons.
+/// Shows the same things you'd see in any anvil-style chain UI:
 ///
 ///   - Current block number + timestamp (updates as txs land)
 ///   - 10 pre-funded accounts with their balances. The default
@@ -32,7 +32,7 @@ import {
   type AccountSnapshot,
   type TxSnapshot,
 } from "../../lib/evmChainService";
-import "./GanacheDock.css";
+import "./ChainDock.css";
 
 interface Props {
   /// When the dock is rendering inside its own popout window we
@@ -48,7 +48,7 @@ interface Props {
   onClose?: () => void;
 }
 
-export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props) {
+export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) {
   const [snap, setSnap] = useState<EvmChainSnapshot>(() => getSnapshot());
   const [pendingFaucet, setPendingFaucet] = useState<Set<string>>(new Set());
   const [, setTick] = useState(0);
@@ -94,17 +94,17 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
 
   return (
     <div
-      className={`ganache-dock ganache-dock--${variant}`}
+      className={`chain-dock chain-dock--${variant}`}
       role="region"
       aria-label="In-process Ethereum dev chain"
     >
-      <header className="ganache-dock__header">
-        <div className="ganache-dock__title">
-          <span className="ganache-dock__chip">Local chain</span>
-          <span className="ganache-dock__block">
+      <header className="chain-dock__header">
+        <div className="chain-dock__title">
+          <span className="chain-dock__chip">Local chain</span>
+          <span className="chain-dock__block">
             block <strong>{snap.blockNumber.toString()}</strong>
           </span>
-          <span className="ganache-dock__timestamp">
+          <span className="chain-dock__timestamp">
             {snap.blockTimestamp > 0n
               ? new Date(Number(snap.blockTimestamp) * 1000)
                   .toISOString()
@@ -113,11 +113,11 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
               : "—"}
           </span>
         </div>
-        <div className="ganache-dock__actions">
+        <div className="chain-dock__actions">
           {variant === "banner" && onOpenPopout && (
             <button
               type="button"
-              className="ganache-dock__btn ganache-dock__btn--ghost"
+              className="chain-dock__btn chain-dock__btn--ghost"
               onClick={onOpenPopout}
               title="Open the dock in its own window"
             >
@@ -126,7 +126,7 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
           )}
           <button
             type="button"
-            className="ganache-dock__btn ganache-dock__btn--ghost"
+            className="chain-dock__btn chain-dock__btn--ghost"
             onClick={onReset}
             title="Drop all chain state"
           >
@@ -135,7 +135,7 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
           {variant === "banner" && onClose && (
             <button
               type="button"
-              className="ganache-dock__btn ganache-dock__btn--icon"
+              className="chain-dock__btn chain-dock__btn--icon"
               onClick={onClose}
               aria-label="Close dock"
             >
@@ -150,20 +150,20 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
           right-side count chip) and a body sitting on bg-primary.
           That's why the three columns read as part of the same
           family as the workbench rather than a standalone overlay. */}
-      <div className="ganache-dock__body">
-        <div className="ganache-dock__grid">
-          <section className="ganache-dock__panel ganache-dock__panel--accounts">
-            <header className="ganache-dock__panel-header">
-              <span className="ganache-dock__panel-label">Accounts</span>
+      <div className="chain-dock__body">
+        <div className="chain-dock__grid">
+          <section className="chain-dock__panel chain-dock__panel--accounts">
+            <header className="chain-dock__panel-header">
+              <span className="chain-dock__panel-label">Accounts</span>
               {snap.accounts.length > 0 && (
-                <span className="ganache-dock__panel-meta">
+                <span className="chain-dock__panel-meta">
                   {snap.accounts.length}
                 </span>
               )}
             </header>
-            <div className="ganache-dock__panel-body">
+            <div className="chain-dock__panel-body">
               {!defaultAcc && (
-                <div className="ganache-dock__empty">
+                <div className="chain-dock__empty">
                   The chain hasn't been initialised yet. Run a smart-contract
                   lesson to spin it up.
                 </div>
@@ -177,9 +177,9 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
                 />
               )}
               {otherAccs.length > 0 && (
-                <details className="ganache-dock__more">
+                <details className="chain-dock__more">
                   <summary>+{otherAccs.length} other accounts</summary>
-                  <div className="ganache-dock__more-list">
+                  <div className="chain-dock__more-list">
                     {otherAccs.map((a) => (
                       <AccountRow
                         key={a.address}
@@ -194,27 +194,27 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
             </div>
           </section>
 
-          <section className="ganache-dock__panel ganache-dock__panel--contracts">
-            <header className="ganache-dock__panel-header">
-              <span className="ganache-dock__panel-label">Contracts</span>
-              <span className="ganache-dock__panel-meta">
+          <section className="chain-dock__panel chain-dock__panel--contracts">
+            <header className="chain-dock__panel-header">
+              <span className="chain-dock__panel-label">Contracts</span>
+              <span className="chain-dock__panel-meta">
                 {snap.contracts.length}
               </span>
             </header>
-            <div className="ganache-dock__panel-body">
+            <div className="chain-dock__panel-body">
               {snap.contracts.length === 0 && (
-                <div className="ganache-dock__empty ganache-dock__empty--inline">
+                <div className="chain-dock__empty chain-dock__empty--inline">
                   No deploys yet.
                 </div>
               )}
-              <ul className="ganache-dock__contract-list">
+              <ul className="chain-dock__contract-list">
                 {snap.contracts.slice(0, 8).map((c) => (
-                  <li key={c.address} className="ganache-dock__contract">
-                    <span className="ganache-dock__contract-name">{c.name}</span>
-                    <span className="ganache-dock__contract-addr">
+                  <li key={c.address} className="chain-dock__contract">
+                    <span className="chain-dock__contract-name">{c.name}</span>
+                    <span className="chain-dock__contract-addr">
                       {shortAddr(c.address)}
                     </span>
-                    <span className="ganache-dock__contract-block">
+                    <span className="chain-dock__contract-block">
                       block {c.deployedAtBlock.toString()}
                     </span>
                   </li>
@@ -223,18 +223,18 @@ export function GanacheDock({ variant = "banner", onOpenPopout, onClose }: Props
             </div>
           </section>
 
-          <section className="ganache-dock__panel ganache-dock__panel--txs">
-            <header className="ganache-dock__panel-header">
-              <span className="ganache-dock__panel-label">Recent transactions</span>
-              <span className="ganache-dock__panel-meta">{snap.txs.length}</span>
+          <section className="chain-dock__panel chain-dock__panel--txs">
+            <header className="chain-dock__panel-header">
+              <span className="chain-dock__panel-label">Recent transactions</span>
+              <span className="chain-dock__panel-meta">{snap.txs.length}</span>
             </header>
-            <div className="ganache-dock__panel-body">
+            <div className="chain-dock__panel-body">
               {snap.txs.length === 0 && (
-                <div className="ganache-dock__empty ganache-dock__empty--inline">
+                <div className="chain-dock__empty chain-dock__empty--inline">
                   No txs yet.
                 </div>
               )}
-              <ul className="ganache-dock__tx-list">
+              <ul className="chain-dock__tx-list">
                 {snap.txs.slice(0, 8).map((tx) => (
                   <TxRow key={tx.hash} tx={tx} />
                 ))}
@@ -259,18 +259,18 @@ function AccountRow({ acc, isDefault, pending, onFaucet }: AccountRowProps) {
   const onCooldown = remaining > 0;
   return (
     <div
-      className={`ganache-dock__acc ${isDefault ? "ganache-dock__acc--default" : ""}`}
+      className={`chain-dock__acc ${isDefault ? "chain-dock__acc--default" : ""}`}
     >
-      <div className="ganache-dock__acc-meta">
-        <span className="ganache-dock__acc-label">{acc.label}</span>
-        <span className="ganache-dock__acc-addr">{shortAddr(acc.address)}</span>
+      <div className="chain-dock__acc-meta">
+        <span className="chain-dock__acc-label">{acc.label}</span>
+        <span className="chain-dock__acc-addr">{shortAddr(acc.address)}</span>
       </div>
-      <span className="ganache-dock__acc-balance">
+      <span className="chain-dock__acc-balance">
         {formatEth(acc.balanceWei)} <em>ETH</em>
       </span>
       <button
         type="button"
-        className="ganache-dock__btn ganache-dock__btn--faucet"
+        className="chain-dock__btn chain-dock__btn--faucet"
         disabled={pending || onCooldown}
         onClick={() => onFaucet(acc.address)}
         title={
@@ -298,26 +298,26 @@ function TxRow({ tx }: { tx: TxSnapshot }) {
     faucet: "faucet",
   }[tx.kind];
   return (
-    <li className={`ganache-dock__tx ganache-dock__tx--${tx.status}`}>
-      <span className={`ganache-dock__tx-kind ganache-dock__tx-kind--${tx.kind}`}>
+    <li className={`chain-dock__tx chain-dock__tx--${tx.status}`}>
+      <span className={`chain-dock__tx-kind chain-dock__tx-kind--${tx.kind}`}>
         {kindLabel}
       </span>
-      <span className="ganache-dock__tx-from">{shortAddr(tx.from)}</span>
+      <span className="chain-dock__tx-from">{shortAddr(tx.from)}</span>
       {tx.to && tx.kind !== "faucet" && (
         <>
-          <span className="ganache-dock__tx-arrow">→</span>
-          <span className="ganache-dock__tx-to">{shortAddr(tx.to)}</span>
+          <span className="chain-dock__tx-arrow">→</span>
+          <span className="chain-dock__tx-to">{shortAddr(tx.to)}</span>
         </>
       )}
       {tx.valueWei > 0n && (
-        <span className="ganache-dock__tx-value">
+        <span className="chain-dock__tx-value">
           {formatEth(tx.valueWei)} ETH
         </span>
       )}
-      <span className="ganache-dock__tx-block">
+      <span className="chain-dock__tx-block">
         block {tx.blockNumber.toString()}
       </span>
-      <span className="ganache-dock__tx-ago">{ago}</span>
+      <span className="chain-dock__tx-ago">{ago}</span>
     </li>
   );
 }

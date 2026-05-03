@@ -138,8 +138,8 @@
    tint used in dark themes. */
 [data-theme="light"] .fishbones-workbench-width-handle:hover,
 [data-theme="light"] .fishbones-workbench-width-handle:active,
-[data-theme-name="default-light"] .fishbones-workbench-width-handle:hover,
-[data-theme-name="default-light"] .fishbones-workbench-width-handle:active,
+[data-theme-name="ayu-light"] .fishbones-workbench-width-handle:hover,
+[data-theme-name="ayu-light"] .fishbones-workbench-width-handle:active,
 [data-theme-name="ayu-light"] .fishbones-workbench-width-handle:hover,
 [data-theme-name="ayu-light"] .fishbones-workbench-width-handle:active,
 [data-theme-name="catppuccin-latte"] .fishbones-workbench-width-handle:hover,

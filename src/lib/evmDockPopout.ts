@@ -1,4 +1,4 @@
-/// Popout-window plumbing for the GanacheDock — opens the dock in
+/// Popout-window plumbing for the ChainDock — opens the dock in
 /// its own OS window so the learner can park it on a second monitor
 /// while their tests run in the main editor. Mirrors the pattern in
 /// `phonePopout.ts` (Tauri's WebviewWindow on desktop, plain

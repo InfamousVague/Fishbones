@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import PoppedWorkbench from "./components/Workbench/PoppedWorkbench";
 import PhonePopoutView from "./components/PhonePopout/PhonePopoutView";
-import { GanacheDock } from "./components/GanacheDock/GanacheDock";
+import { ChainDock } from "./components/ChainDock/ChainDock";
 import { applyTheme, loadTheme } from "./theme/themes";
 import "./theme/themes.css";
 import "./App.css";
@@ -23,14 +23,14 @@ applyTheme(loadTheme());
 const params = new URLSearchParams(window.location.search);
 const isPopped = params.get("popped") === "1";
 const isPhone = params.get("phone") === "1";
-// Standalone Ganache-style dock window. Mounts only the chain UI in
+// Standalone local chain-style dock window. Mounts only the chain UI in
 // popout variant — see `evmDockPopout.ts` for the open-side helper.
 const isEvmDock = params.get("evmDock") === "1";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     {isEvmDock ? (
-      <GanacheDock variant="popout" />
+      <ChainDock variant="popout" />
     ) : isPhone ? (
       <PhonePopoutView />
     ) : isPopped ? (

@@ -116,12 +116,12 @@
 }
 
 /* Light-theme overrides — the semi-transparent darks become more opaque. */
-[data-theme-name="default-light"] .fishbones-inline-symbol,
+[data-theme-name="ayu-light"] .fishbones-inline-symbol,
 [data-theme-name="ayu-light"] .fishbones-inline-symbol,
 [data-theme-name="catppuccin-latte"] .fishbones-inline-symbol {
   border-bottom-color: rgba(2, 122, 159, 0.5);
 }
-[data-theme-name="default-light"] .fishbones-inline-term,
+[data-theme-name="ayu-light"] .fishbones-inline-term,
 [data-theme-name="ayu-light"] .fishbones-inline-term,
 [data-theme-name="catppuccin-latte"] .fishbones-inline-term {
   border-bottom-color: rgba(136, 83, 194, 0.5);

@@ -13,10 +13,27 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  /* The shelf view (TreesView's card grid) needs its own scroll;
+   * the detail view (single tree DAG) handles navigation via
+   * drag-pan inside `.fishbones-trees__web-scroll` and so the outer
+   * shouldn't scroll. The detail variant overrides this below. */
   overflow: auto;
   padding: 24px 28px 32px;
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
+  /* Defensive: any min-height descendant needs `min-height: 0` to
+   * shrink inside a flex parent with overflow. Without this the
+   * detail view's scroll viewport sometimes inflated past the
+   * available space, pushing its bottom edge below the visible
+   * region — that's the "bottom is clipping in the parent
+   * container" symptom. */
+  min-height: 0;
+}
+
+.fishbones-trees--detail {
+  /* Detail view: outer container holds the header + the pan
+   * viewport. Both fit on screen, no outer scroll. */
+  overflow: hidden;
 }
 
 .fishbones-trees__header {
@@ -241,48 +258,133 @@
   position: relative;
   flex: 1;
   min-height: 0;
-  /* Vertical scroll only — horizontal overflow caused tooltip
-   * placement to nudge the layout (showing a horizontal scrollbar
-   * during hover, which shifted everything by ~16px and triggered
-   * the next pointermove → flicker loop). */
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 0 32px;
+  /* Free-form drag-pan viewport. Overflow stays hidden — the SVG
+   * inside is absolutely positioned and shifted by a CSS transform
+   * controlled from React state, so there's no native scrollbar and
+   * the user navigates the tree by dragging the canvas around. The
+   * cursor swaps to grab/grabbing in pointer handlers below to
+   * communicate this affordance. */
+  overflow: hidden;
+  cursor: grab;
+  /* Vignette: each edge of the viewport dissolves into the
+   * surrounding panel. Two linear gradients intersect via
+   * mask-composite, so the corners get the strongest fade and the
+   * centre stays fully visible. The mask is anchored to the
+   * viewport's box, not the panned content, so the fade follows the
+   * viewport edges as the user drags — content slides INTO and OUT
+   * OF the soft edge instead of suddenly appearing. */
+  mask-image:
+    linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%),
+    linear-gradient(to bottom, transparent 0, black 60px, black calc(100% - 60px), transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, black 60px, black calc(100% - 60px), transparent 100%),
+    linear-gradient(to bottom, transparent 0, black 60px, black calc(100% - 60px), transparent 100%);
+  -webkit-mask-composite: source-in;
+  /* Disable touch-action so two-finger touch pans the canvas
+   * directly without the browser hijacking it for page scroll. */
+  touch-action: none;
+}
+
+.fishbones-trees__web-scroll:active {
+  cursor: grabbing;
 }
 
 .fishbones-trees__web {
   display: block;
-  margin: 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* The transform applied via inline style is `translate3d(panX,
+   * panY) scale(zoom)`. Anchoring transform-origin at the SVG's
+   * top-left lets the zoom-around-cursor math stay simple — see
+   * `zoomAroundPoint` in TreesView.tsx. translate3d engages GPU
+   * compositing so drag + zoom stays at native frame rate. */
+  transform-origin: 0 0;
+  will-change: transform;
 }
 
-/* ── edges (cubic bezier curves between connected nodes) ─────── */
+/* ── edges (orthogonal L-shapes between connected nodes) ─────── */
 
+/* All edges share the same monochrome stroke — same neutral grey
+ * the rest of the app uses for borders/separators (the
+ * --color-text-tertiary token). State (active vs reachable vs
+ * cross) is communicated through OPACITY only, not colour, so the
+ * graph reads as a single monochrome density map: lone runs are
+ * faint, every crossing or parallel run accumulates alpha and
+ * darkens. With a 0.18 base, two crossings stack to ~0.33; three
+ * to ~0.45; four to ~0.55 — visibly steeper than the previous
+ * 0.4 base, which was already so present that overlap added
+ * little.
+ *
+ * The mask defined in TreesView.tsx still clips paths so they
+ * don't bleed into a node's circle — keeping crossings visible
+ * only in open space, where they should be. */
 .fishbones-trees__edge {
-  /* Slightly accented border-default so the inert lines still
-   * read against the panel surface. Round joins on the L-bends
-   * give them a softer feel than perfect right angles. */
-  stroke: color-mix(in srgb, var(--color-text-tertiary) 65%, var(--color-border-default));
-  stroke-width: 3;
+  stroke: var(--color-text-tertiary);
+  stroke-opacity: 0.18;
+  stroke-width: 2.5;
   fill: none;
   stroke-linejoin: round;
   stroke-linecap: round;
-  transition: stroke 200ms ease, stroke-width 200ms ease;
+  transition: stroke-opacity 200ms ease, stroke-width 200ms ease;
 }
 
-/* Edge whose source node is complete AND target is also complete
- * — the path the learner has actually walked. Drawn in the tree's
- * accent so the completed sub-graph stands out. */
+/* Completed edge — both endpoints done. Same monochrome colour as
+ * the default; just brighter (higher alpha) and slightly thicker
+ * so a fully-walked subtree visibly stands out. Opacity-building
+ * still applies on top of this — two completed edges crossing
+ * stack to ~0.75 alpha. */
 .fishbones-trees__edge--active {
-  stroke: var(--tree-accent);
-  stroke-width: 3.5;
+  stroke-opacity: 0.5;
+  stroke-width: 3;
 }
 
-/* Edge whose source is complete but target is still incomplete —
- * the "wavefront" of available next steps. Slightly accented so
- * the learner can trace where to go next visually. */
+/* Reachable edge (parent complete, child still incomplete) is
+ * intentionally indistinguishable from the default — the
+ * wavefront is already telegraphed by the pulsing Next-Up ring on
+ * the unlocked node, and adding another opacity tier here would
+ * just muddle the density-map signal. Class preserved on the
+ * element so future styling hooks remain wired up. */
 .fishbones-trees__edge--reachable {
-  stroke: color-mix(in srgb, var(--tree-accent) 50%, var(--color-text-tertiary));
-  stroke-width: 3;
+  /* intentionally inherits the default --edge styling */
+}
+
+/* Cross-edge — a prereq link that *isn't* the node's primary
+ * parent in the tidy-tree layout. Thinner + dashed + slightly
+ * lower alpha so the eye picks out the primary-parent skeleton
+ * (which forms the actual top-down tree shape) and treats
+ * cross-edges as supplementary "this node also depends on..."
+ * hints. Same monochrome colour — distinction is via dash + width
+ * + alpha, not hue. */
+.fishbones-trees__edge--cross {
+  stroke-opacity: 0.14;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.fishbones-trees__edge--cross.fishbones-trees__edge--active {
+  stroke-opacity: 0.35;
+  stroke-width: 1.75;
+}
+
+/* Track edge — sits on the highlighted prereq path from a root to
+ * the active goal. Brighter alpha + thicker stroke so the chain of
+ * dependencies pops against the surrounding monochrome graph. The
+ * monochrome stays — this isn't about hue, just emphasis. */
+.fishbones-trees__edge--in-track {
+  stroke-opacity: 0.85;
+  stroke-width: 4;
+}
+
+.fishbones-trees__edge--in-track.fishbones-trees__edge--cross {
+  stroke-opacity: 0.6;
+  stroke-width: 2.5;
+  /* Solid line for cross-edges that participate in the track —
+   * the dashed treatment was a "less important" hint, but if it's
+   * on the path you actually need to walk, the dash hurts more
+   * than it helps. */
+  stroke-dasharray: none;
 }
 
 /* ── nodes (circle + icon + label below) ─────────────────────── */
@@ -339,6 +441,51 @@
 .fishbones-trees__node--selected .fishbones-trees__node-circle {
   stroke: var(--tree-accent);
   stroke-width: 3;
+}
+
+/* In-track skill — sits on the path to the active goal. Brighter
+ * stroke and stronger fill so the chain reads as a single coherent
+ * highlight against the rest of the monochrome graph. */
+.fishbones-trees__node--in-track .fishbones-trees__node-circle {
+  stroke: var(--color-text-primary);
+  stroke-width: 2.5;
+  fill: color-mix(in srgb, var(--color-text-primary) 8%, var(--color-bg-secondary));
+}
+
+.fishbones-trees__node--in-track .fishbones-trees__node-icon {
+  stroke: var(--color-text-primary);
+}
+
+/* The goal itself gets a thicker ring + brighter fill so it's the
+ * obvious destination at the end of the path. */
+.fishbones-trees__node--track-goal .fishbones-trees__node-circle {
+  stroke-width: 3.5;
+  fill: color-mix(in srgb, var(--color-text-primary) 16%, var(--color-bg-secondary));
+}
+
+/* Section nodes — categorical organizers, not lessons. Render as
+ * larger pills with a heavier border so they read as section
+ * headers rather than competing with the actual skill nodes. They
+ * also auto-complete (see isSkillComplete in trees.ts) so they
+ * never block downstream learning. */
+.fishbones-trees__node--section .fishbones-trees__node-circle {
+  fill: var(--color-bg-tertiary);
+  stroke: var(--color-text-secondary);
+  stroke-width: 2.5;
+  stroke-dasharray: none;
+}
+
+.fishbones-trees__node--section .fishbones-trees__node-icon {
+  stroke: var(--color-text-primary);
+  stroke-width: 2.25;
+}
+
+.fishbones-trees__node--section .fishbones-trees__node-text {
+  font-weight: 700;
+  font-size: 12.5px;
+  fill: var(--color-text-primary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
 /* Pulsing ring around the recommended-next node so the learner's
@@ -429,6 +576,63 @@
   stroke: var(--color-bg-primary);
 }
 
+/* ── zoom controls ───────────────────────────────────────────── */
+
+/* Small floating cluster of [- / readout / +] buttons in the
+ * bottom-left of the canvas viewport. Sits OUTSIDE the masked
+ * vignette area visually (positioned in the corner where the
+ * mask is fully transparent) by virtue of its position, so it
+ * doesn't get faded by the canvas's mask-image. */
+.fishbones-trees__zoom {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  /* Slightly more opaque (-strong variant) than the panel since
+     this is a small UI cluster the user actually clicks — needs to
+     read as a button group, not a translucent overlay. */
+  background: var(--color-glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px var(--color-glass-shadow);
+  z-index: 25;
+  font-family: inherit;
+}
+
+.fishbones-trees__zoom-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.fishbones-trees__zoom-btn:hover {
+  background: var(--color-glass-rim);
+  color: var(--color-text-primary);
+}
+
+.fishbones-trees__zoom-btn--readout {
+  width: 56px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  border-left: 1px solid var(--color-glass-border);
+  border-right: 1px solid var(--color-glass-border);
+}
+
 /* ── hover tooltip ───────────────────────────────────────────── */
 
 .fishbones-trees__tooltip {
@@ -445,6 +649,14 @@
   font-size: 12px;
   line-height: 1.45;
   color: var(--color-text-primary);
+}
+
+/* Flipped variant — tooltip is to the LEFT of the node (we ran out
+ * of room on the right). Move the accent border to the right edge
+ * so the visual "tail" still points back toward the node. */
+.fishbones-trees__tooltip--flipped {
+  border-left: 1px solid var(--color-border-default);
+  border-right: 3px solid var(--tree-accent);
 }
 
 .fishbones-trees__tooltip-title {
@@ -495,18 +707,39 @@
 
 /* ── side panel ──────────────────────────────────────────────── */
 
+/* Floating skill-detail card. Matches the left sidebar's visual
+ * vocabulary — frosted-glass surface, rounded card, soft drop
+ * shadow — instead of the previous full-height edge-flush slab.
+ * The 10px outset on three sides leaves the underlying tree
+ * visible behind the panel (especially on a wide tree where the
+ * scroll position matters), making the card feel docked but not
+ * occluding. Matches `.fishbones__sidebar` in `Sidebar.css` so the
+ * two side panels read as siblings of the same UI family.
+ *
+ * `top: 54px` clears the 44px topbar plus a matching 10px gutter
+ * — without it the panel printed underneath the topbar's frosted
+ * glass and the "LOCKED / Goal" flags at the top of the panel got
+ * occluded. */
 .fishbones-trees__panel {
   position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  right: 10px;
+  top: 54px;
+  bottom: 10px;
   width: min(360px, 92vw);
-  background: var(--color-bg-secondary);
-  border-left: 1px solid var(--color-border-default);
+  /* Surface tokens — see theme/themes.css. Light themes flip these
+     so the panel reads as a light frosted card on white instead of
+     a dark blot. */
+  background: var(--color-glass-bg);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 12px;
   padding: 20px 22px;
   overflow-y: auto;
   z-index: 30;
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    inset 0 1px 0 var(--color-glass-rim),
+    0 12px 28px var(--color-glass-shadow);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -549,6 +782,108 @@
 .fishbones-trees__panel-flag--gap {
   color: #c89cdf;
   background: rgba(200, 156, 223, 0.14);
+}
+
+.fishbones-trees__panel-flag--goal {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-text-primary) 14%, transparent);
+}
+
+/* "Set as goal" / "Clear goal" toggle. Reuses the panel-lesson
+ * outline so it reads as an action card rather than a primary
+ * button — the primary action on the panel is "open a lesson",
+ * and the goal toggle should sit at the same hierarchy level. */
+.fishbones-trees__panel-track {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.fishbones-trees__panel-track:hover {
+  border-color: var(--color-text-primary);
+}
+
+.fishbones-trees__panel-track--active {
+  border-color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-text-primary) 12%, var(--color-bg-tertiary));
+}
+
+/* Path-to-goal checklist. Numbered list (root → goal), with each
+ * step showing a tick if the underlying skill is already complete.
+ * Renders only when the open panel's skill IS the active goal. */
+.fishbones-trees__panel-track-list ol {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  counter-reset: step;
+}
+
+.fishbones-trees__panel-track-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  padding: 4px 0;
+  counter-increment: step;
+}
+
+.fishbones-trees__panel-track-step::before {
+  content: counter(step);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 14px;
+  text-align: right;
+}
+
+.fishbones-trees__panel-track-step-tick {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-bg-primary);
+  background: transparent;
+}
+
+.fishbones-trees__panel-track-step-tick svg {
+  stroke: currentColor;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fishbones-trees__panel-track-step--done {
+  color: var(--color-text-primary);
+}
+
+.fishbones-trees__panel-track-step--done .fishbones-trees__panel-track-step-tick {
+  background: #4ade80;
+  border-color: #4ade80;
+  color: var(--color-bg-primary);
+}
+
+.fishbones-trees__panel-track-step--goal {
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 .fishbones-trees__panel-close {

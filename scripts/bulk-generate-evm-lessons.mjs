@@ -292,6 +292,15 @@ WRITING RULES — NON-NEGOTIABLE:
 
   10. Solidity pragma: use \`pragma solidity ^0.8.26;\` to match the runtime's Cancun hardfork.
 
+  11. SINGLE-FILE RULE — the workbench has exactly one .sol file. Every contract your tests reference via \`chain.deploy("Name", ...)\` MUST be defined in the \`solution\` field. If you need a mock/attacker/helper contract, paste it INLINE at the bottom of the same source. The runtime will compile all contracts in the file together; \`chain.deploy("Attacker")\` then resolves to the Attacker class in the same compilation unit. A test that deploys "Attacker" while the solution only has "Vault" will fail.
+
+  12. ASSEMBLY RULE — when using \`assembly { ... }\` blocks, only use direct number constants for slot offsets (e.g. \`sload(0x360894...)\`). Solidity's inline assembly cannot dereference \`bytes32\` or \`uint\` storage variables directly inside assembly except via specific patterns (`Constant.slot`, computed from constants). When in doubt, define the slot as a \`bytes32 constant\` and reference it as \`MY_SLOT.slot\` would not work either — paste the literal hex in the assembly block.
+
+  13. ADDRESS-CONTRACT CASTING — to cast an \`address\` to a contract type in 0.8.x:
+        - For non-payable contracts: \`MyContract c = MyContract(addr);\`
+        - For contracts WITH a payable fallback / receive: cast through \`payable\`: \`MyContract c = MyContract(payable(addr));\`
+      Skipping the \`payable(...)\` wrapper triggers "Explicit type conversion not allowed from non-payable address to contract X, which has a payable fallback function".
+
 DIFFICULTY GUIDE:
   easy   — single function, single state slot, ~10-25 lines of solution; tests do read+write+assert.
   medium — 2-4 functions, modifier or mapping or event, 25-60 lines; tests do multi-actor or revert.

@@ -1,0 +1,4 @@
+# cargo-build-sbf output. Regenerated locally via
+# `npm run build:svm-programs` — checked-in .so files would skew
+# code review and the rebuild is fast (~5s incremental).
+*/target/

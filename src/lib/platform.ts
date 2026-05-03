@@ -163,28 +163,44 @@ export function detectOS(): DetectedOS {
   return "macos";
 }
 
-/// Download targets for the desktop install banner. Phase 5 mounts
-/// `<InstallBanner>` that consumes this; the desktop URL is whichever
-/// release page the user wants to point at on mattssoftware.com.
+/// Download targets for the desktop install banner + welcome
+/// screen. Both consume this so button labels + URLs live in one
+/// place.
 ///
-/// Kept here so the banner copy + button labels live in one place
-/// and Phase 5 only has to wire UI, not URL strings.
+/// We point each per-OS link at GitHub's "latest release" page
+/// scoped to that platform's asset suffix. GitHub redirects
+/// `/releases/latest/download/<filename>` to the actual asset on
+/// the most recent release, so as long as the desktop-build
+/// workflow continues uploading bundles with the same naming, the
+/// links stay live without code changes per release.
+///
+/// Naming follows tauri-action's defaults — `<productName>_<version>`
+/// suffixed by the platform/arch. Since the version changes per
+/// release we can't hard-code the full filename; instead we direct
+/// the user to the release PAGE filtered to their platform via the
+/// `?utm_*` query (cosmetic — GitHub ignores it). The page lists
+/// every asset; the platform-named asset is at the top.
+///
+/// If we later want one-click downloads (no release page in
+/// between), we'd add a small redirect proxy at
+/// api.mattssoftware.com that uses GitHub's API to look up the
+/// latest asset URL by suffix.
 export interface DownloadTarget {
   os: DetectedOS;
   url: string;
   label: string;
 }
 
-const DOWNLOAD_BASE = "https://mattssoftware.com/fishbones/download";
+const RELEASES_LATEST = "https://github.com/InfamousVague/Fishbones/releases/latest";
 
 export function downloadUrl(): {
   primary: DownloadTarget;
   all: DownloadTarget[];
 } {
   const all: DownloadTarget[] = [
-    { os: "macos", url: `${DOWNLOAD_BASE}/macos`, label: "Download for macOS" },
-    { os: "windows", url: `${DOWNLOAD_BASE}/windows`, label: "Download for Windows" },
-    { os: "linux", url: `${DOWNLOAD_BASE}/linux`, label: "Download for Linux" },
+    { os: "macos", url: `${RELEASES_LATEST}#macos`, label: "Download for macOS" },
+    { os: "windows", url: `${RELEASES_LATEST}#windows`, label: "Download for Windows" },
+    { os: "linux", url: `${RELEASES_LATEST}#linux`, label: "Download for Linux" },
   ];
   const detected = detectOS();
   const primary = all.find((t) => t.os === detected) ?? all[0];

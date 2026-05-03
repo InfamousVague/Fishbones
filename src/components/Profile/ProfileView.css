@@ -14,90 +14,231 @@
   overflow-y: auto;
 }
 
-/* Content column — centered horizontally so the Profile reads as its own
-   destination rather than blending into the left-aligned lesson body.
-   Max-width caps at a comfortable measure so the page doesn't sprawl on
-   wide windows. */
+/* Content column. We bumped from 720px to 880px when we added the
+   heatmap + lang-chart + badges — those modules need horizontal room
+   to breathe. The page still feels composed and not sprawl-y. */
 .fishbones-profile-inner {
-  max-width: 720px;
+  max-width: 880px;
   margin: 0 auto;
-  padding: 40px 32px;
+  padding: 36px 32px 56px;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 32px;
 }
 
-/* ---- Hero ----------------------------------------------------------- */
+/* ---- Hero (twin rings + title) ------------------------------------- */
 
 .fishbones-profile-hero {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
 }
 
-.fishbones-profile-hero-body {
+.fishbones-profile-hero-text {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  flex: 1;
 }
 
 .fishbones-profile-hero-title {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
 
 .fishbones-profile-hero-sub {
-  font-size: 13px;
+  margin: 0;
+  font-size: 14px;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
-.fishbones-profile-hero-chips {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 20px;
-  margin-top: 10px;
+/* ---- Twin rings ---------------------------------------------------- */
+
+.fishbones-profile-rings {
+  display: flex;
+  gap: 14px;
 }
 
-.fishbones-profile-hero-chip {
+.fishbones-profile-ring {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  display: grid;
+  place-items: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 22px;
+  /* Container padding pushes the SVG ring inward so the text body
+     inside the ring has breathing room from the stroke. The SVG below
+     uses `inset: 36px` to match — the two values move in lockstep.
+     Aggressive inset shrinks the ring so the body content (which
+     includes a multi-line "830/840 XP" sub) clears the stroke at
+     the top and bottom of the circle. The container is also slightly
+     larger overall so the ring itself stays a comfortable size after
+     the inset. */
+  padding: 36px;
+  --ring-tone: var(--color-text-primary);
+  --ring-tone-soft: rgba(255, 255, 255, 0.08);
+}
+
+.fishbones-profile-ring--streak {
+  --ring-tone: #f59e3b;
+  --ring-tone-soft: rgba(245, 158, 59, 0.16);
+}
+
+.fishbones-profile-ring--level {
+  --ring-tone: #7cd97c;
+  --ring-tone-soft: rgba(124, 217, 124, 0.16);
+}
+
+.fishbones-profile-ring-svg {
+  position: absolute;
+  inset: 36px;
+  width: calc(100% - 72px);
+  height: calc(100% - 72px);
+}
+
+.fishbones-profile-ring-track {
+  stroke: var(--ring-tone-soft);
+  stroke-width: 6;
+}
+
+.fishbones-profile-ring-fill {
+  stroke: var(--ring-tone);
+  stroke-width: 6;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fishbones-profile-ring-body {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.fishbones-profile-hero-chip-label {
-  display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  z-index: 1;
 }
 
-.fishbones-profile-hero-chip-icon {
+.fishbones-profile-ring-icon {
+  color: var(--ring-tone);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 12px;
-  height: 12px;
 }
 
-.fishbones-profile-hero-chip-value {
-  font-size: 16px;
-  font-weight: 700;
+.fishbones-profile-ring-value {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
+  line-height: 1;
+  margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Section shell -------------------------------------------------- */
+.fishbones-profile-ring-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-top: 3px;
+}
+
+.fishbones-profile-ring-sub {
+  font-size: 9.5px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+
+/* ---- Color-toned stat tiles --------------------------------------- */
+/* Four-up row on desktop (vs mobile's 2x2 grid). At narrow widths the
+   row wraps into 2x2 automatically — `auto-fit` with a 200px floor
+   keeps the tiles legible without us having to add a media query. */
+
+.fishbones-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.fishbones-profile-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  position: relative;
+  --stat-tone: var(--color-text-primary);
+  overflow: hidden;
+}
+
+/* Toned accent strip on the left edge — same trick the mobile profile
+   uses. Gives each tile its own identity without a busy color
+   background. */
+.fishbones-profile-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--stat-tone);
+  opacity: 0.85;
+}
+
+.fishbones-profile-stat--streak  { --stat-tone: #f59e3b; }
+.fishbones-profile-stat--lessons { --stat-tone: #7cd9d3; }
+.fishbones-profile-stat--xp      { --stat-tone: #fcd34d; }
+.fishbones-profile-stat--level   { --stat-tone: #7cd97c; }
+.fishbones-profile-stat--longest { --stat-tone: #c79bff; }
+
+.fishbones-profile-stat-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--stat-tone) 22%, transparent);
+  color: var(--stat-tone);
+  flex-shrink: 0;
+}
+
+.fishbones-profile-stat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.fishbones-profile-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.fishbones-profile-stat-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
+}
+
+/* ---- Section shell ------------------------------------------------- */
 
 .fishbones-profile-section {
   display: flex;
@@ -105,18 +246,23 @@
   gap: 14px;
 }
 
+/* Section header row that pairs the title with an inline subtitle
+   on the right (e.g. the heatmap's "X completions across N days"
+   summary). The two slide together on narrow shells so the title
+   never wraps under its own subtitle. */
 .fishbones-profile-section-head {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 16px;
 }
 
 .fishbones-profile-section-title {
   margin: 0;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -129,102 +275,277 @@
   font-style: italic;
 }
 
-/* ---- CTA button ----------------------------------------------------- */
+/* ---- Activity heatmap --------------------------------------------- */
+/* 7-row × 20-week grid. flex-column-wrap with a fixed height = 7 cells
+   tall does the column packing automatically — no manual math needed.
+   Cells are 16px (vs mobile's 14px) so the grid reads from desktop
+   distance. */
 
-.fishbones-profile-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
-  border: 1px solid var(--color-text-primary);
-  border-radius: 7px;
-  font-family: inherit;
-  font-size: 12px;
+/* Heatmap layout: weekday labels in a fixed-width left column, the
+   actual grid stretches to the right. We use a flex row instead of
+   grid because the heatmap itself uses flex-column-wrap internally —
+   nesting two grids gets fussy. */
+.fishbones-profile-heatmap-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+/* Day-of-week labels — Mon / Wed / Fri only, every other row. The 7
+   slots line up exactly with the 7 cell rows because the same gap
+   value is used. */
+.fishbones-profile-heatmap-rowlabels {
+  display: grid;
+  grid-template-rows: repeat(7, 16px);
+  row-gap: 4px;
+  padding: 4px 0;
+  font-size: 10px;
   font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.04em;
+  user-select: none;
 }
 
-.fishbones-profile-cta:hover {
-  opacity: 0.9;
-}
-
-.fishbones-profile-cta-icon {
-  display: inline-flex;
+.fishbones-profile-heatmap-rowlabels span {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  white-space: nowrap;
+  min-width: 24px;
+}
+
+.fishbones-profile-heatmap-summary {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fishbones-profile-heatmap {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  height: calc(7 * 16px + 6 * 4px);
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.fishbones-profile-heatmap-cell {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--color-bg-inset, rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Future days of the current week — render as visible empty squares
+   with a dashed outline so the grid reads as a complete 7×N
+   rectangle. The dashed treatment hints at "not yet" without
+   needing an extra legend; their position (always the bottom of
+   the rightmost column) makes the meaning obvious in context. */
+.fishbones-profile-heatmap-cell--pad {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.fishbones-profile-heatmap-cell--lvl-0 { background: rgba(255, 255, 255, 0.04); }
+.fishbones-profile-heatmap-cell--lvl-1 { background: rgba(124, 217, 124, 0.22); border-color: rgba(124, 217, 124, 0.18); }
+.fishbones-profile-heatmap-cell--lvl-2 { background: rgba(124, 217, 124, 0.42); border-color: rgba(124, 217, 124, 0.32); }
+.fishbones-profile-heatmap-cell--lvl-3 { background: rgba(124, 217, 124, 0.65); border-color: rgba(124, 217, 124, 0.55); }
+.fishbones-profile-heatmap-cell--lvl-4 { background: #7cd97c;                     border-color: rgba(124, 217, 124, 0.85); }
+
+.fishbones-profile-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+}
+
+.fishbones-profile-heatmap-legend .fishbones-profile-heatmap-cell {
   width: 12px;
   height: 12px;
 }
 
-/* ---- Languages grid ------------------------------------------------- */
+/* ---- Per-language XP chart ---------------------------------------- */
+/* Horizontal bars, brand-tinted via `data-lang`. Bar width is set
+   inline from React; the fill color comes from CSS so we don't ship a
+   color table on the JS side. The grid columns: language name,
+   stretchy bar, lessons-done fraction, XP total. */
 
-.fishbones-profile-lang-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.fishbones-profile-lang-card {
-  padding: 12px 14px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
+.fishbones-profile-lang-chart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.fishbones-profile-lang-head {
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-.fishbones-profile-lang-stats {
-  display: flex;
-  justify-content: space-between;
+.fishbones-profile-lang-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 80px 70px;
+  align-items: center;
   gap: 12px;
 }
 
-.fishbones-profile-lang-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.fishbones-profile-lang-subvalue {
-  color: var(--color-text-tertiary);
-  font-weight: 500;
+.fishbones-profile-lang-name {
   font-size: 13px;
-}
-
-.fishbones-profile-lang-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-  margin-top: 1px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fishbones-profile-lang-bar {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--color-bg-tertiary);
+  height: 10px;
+  background: var(--color-bg-inset, rgba(255, 255, 255, 0.06));
+  border-radius: 5px;
   overflow: hidden;
 }
 
 .fishbones-profile-lang-bar-fill {
   height: 100%;
   background: var(--color-text-primary);
-  transition: width 0.3s ease;
+  border-radius: 5px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---- Topics --------------------------------------------------------- */
+/* Brand colors per language — applied via [data-lang]. Mirrors mobile
+   exactly so JS reads yellow on every surface, Rust reads oxblood, etc.
+   Adding a new language: add an entry here AND in MobileProfile.css. */
+.fishbones-profile-lang-bar[data-lang="javascript"] .fishbones-profile-lang-bar-fill { background: #f7df1e; }
+.fishbones-profile-lang-bar[data-lang="typescript"] .fishbones-profile-lang-bar-fill { background: #3178c6; }
+.fishbones-profile-lang-bar[data-lang="python"]     .fishbones-profile-lang-bar-fill { background: #3776ab; }
+.fishbones-profile-lang-bar[data-lang="rust"]       .fishbones-profile-lang-bar-fill { background: #ce412b; }
+.fishbones-profile-lang-bar[data-lang="go"]         .fishbones-profile-lang-bar-fill { background: #00add8; }
+.fishbones-profile-lang-bar[data-lang="swift"]      .fishbones-profile-lang-bar-fill { background: #fa7343; }
+.fishbones-profile-lang-bar[data-lang="reactnative"]   .fishbones-profile-lang-bar-fill { background: #61dafb; }
+.fishbones-profile-lang-bar[data-lang="svelte"]     .fishbones-profile-lang-bar-fill { background: #ff3e00; }
+.fishbones-profile-lang-bar[data-lang="solid"]      .fishbones-profile-lang-bar-fill { background: #2c4f7c; }
+.fishbones-profile-lang-bar[data-lang="htmx"]       .fishbones-profile-lang-bar-fill { background: #3a4252; }
+.fishbones-profile-lang-bar[data-lang="astro"]      .fishbones-profile-lang-bar-fill { background: #ff5d01; }
+.fishbones-profile-lang-bar[data-lang="bun"]        .fishbones-profile-lang-bar-fill { background: #fbf0df; }
+.fishbones-profile-lang-bar[data-lang="solidity"]   .fishbones-profile-lang-bar-fill { background: #6b4f7a; }
+.fishbones-profile-lang-bar[data-lang="vyper"]      .fishbones-profile-lang-bar-fill { background: #3f8a7c; }
+.fishbones-profile-lang-bar[data-lang="c"]          .fishbones-profile-lang-bar-fill { background: #a8b9cc; }
+.fishbones-profile-lang-bar[data-lang="cpp"]        .fishbones-profile-lang-bar-fill { background: #00599c; }
+.fishbones-profile-lang-bar[data-lang="java"]       .fishbones-profile-lang-bar-fill { background: #d9a74a; }
+.fishbones-profile-lang-bar[data-lang="kotlin"]     .fishbones-profile-lang-bar-fill { background: #7f52ff; }
+.fishbones-profile-lang-bar[data-lang="csharp"]     .fishbones-profile-lang-bar-fill { background: #5c2d91; }
+.fishbones-profile-lang-bar[data-lang="assembly"]   .fishbones-profile-lang-bar-fill { background: #6b6b6b; }
+.fishbones-profile-lang-bar[data-lang="threejs"]    .fishbones-profile-lang-bar-fill { background: #2d2d2d; }
+
+.fishbones-profile-lang-meta {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.fishbones-profile-lang-meta-sub {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+.fishbones-profile-lang-xp {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Achievement badges ------------------------------------------- */
+/* 6-col × 2-row grid on desktop (vs mobile's 3×4). Locked badges dim
+   with a "x / target" hint; unlocked ones gain a gold tint + glow. */
+
+.fishbones-profile-badges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  /* Profile column rarely gets this narrow on desktop, but the
+   * settings dialog can host this layout in a popup. Drop to 4 cols
+   * before things get cramped. */
+  .fishbones-profile-badges {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.fishbones-profile-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  text-align: center;
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  transition: opacity 0.2s ease, filter 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.fishbones-profile-badge--unlocked {
+  opacity: 1;
+  filter: none;
+  border-color: rgba(252, 211, 77, 0.4);
+  background:
+    linear-gradient(180deg, rgba(252, 211, 77, 0.06), transparent 70%),
+    var(--color-bg-secondary);
+}
+
+.fishbones-profile-badge--unlocked:hover {
+  transform: translateY(-1px);
+  border-color: rgba(252, 211, 77, 0.6);
+}
+
+.fishbones-profile-badge-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fcd34d;
+  background: rgba(252, 211, 77, 0.12);
+}
+
+.fishbones-profile-badge--unlocked .fishbones-profile-badge-icon {
+  background: rgba(252, 211, 77, 0.18);
+  box-shadow: 0 0 0 2px rgba(252, 211, 77, 0.18);
+}
+
+.fishbones-profile-badge-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.fishbones-profile-badge-meta {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fishbones-profile-badge--unlocked .fishbones-profile-badge-meta {
+  color: rgba(252, 211, 77, 0.85);
+}
+
+/* ---- Topics chips (desktop-unique, kept from previous design) ----- */
 
 .fishbones-profile-topic-grid {
   display: flex;
@@ -258,7 +579,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Activity timeline --------------------------------------------- */
+/* ---- Activity timeline (preserved) -------------------------------- */
 
 .fishbones-profile-activity {
   list-style: none;
@@ -298,17 +619,12 @@
 }
 
 .fishbones-profile-activity-kind--exercise,
-.fishbones-profile-activity-kind--mixed {
-  background: #7cc1d9;
-}
-
-.fishbones-profile-activity-kind--quiz {
-  background: #e8c46b;
-}
-
-.fishbones-profile-activity-kind--reading {
-  background: #7cd97c;
-}
+.fishbones-profile-activity-kind--mixed       { background: #7cc1d9; }
+.fishbones-profile-activity-kind--quiz         { background: #e8c46b; }
+.fishbones-profile-activity-kind--reading      { background: #7cd97c; }
+.fishbones-profile-activity-kind--puzzle,
+.fishbones-profile-activity-kind--cloze,
+.fishbones-profile-activity-kind--micropuzzle { background: #c79bff; }
 
 .fishbones-profile-activity-body {
   flex: 1;
@@ -338,4 +654,18 @@
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+}
+
+/* ---- Hero-section responsiveness ---------------------------------- */
+/* On narrow shells (settings dialog, half-pane layouts) the hero
+   stacks: title above rings instead of beside them. Keeps the rings
+   as the visual anchor on tight widths. */
+@media (max-width: 640px) {
+  .fishbones-profile-hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .fishbones-profile-rings {
+    justify-content: center;
+  }
 }

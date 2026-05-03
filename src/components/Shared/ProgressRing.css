@@ -46,8 +46,23 @@
 
 /* Light-theme track needs more contrast against the lighter surface
    since a white-on-white-ish track would disappear. */
-[data-theme-name="default-light"] .fishbones__progress-ring-track,
+[data-theme-name="ayu-light"] .fishbones__progress-ring-track,
 [data-theme-name="ayu-light"] .fishbones__progress-ring-track,
 [data-theme-name="catppuccin-latte"] .fishbones__progress-ring-track {
   stroke: rgba(0, 0, 0, 0.1);
+}
+
+/* 100% state: the centered checkmark inherits currentColor on its
+   stroke, set to white here so it reads against any course color
+   the ring picks up. The completed-ring fill stroke keeps the
+   theme color from the base rule above — only the inner glyph is
+   forced white. */
+.fishbones__progress-ring--complete {
+  color: #ffffff;
+}
+
+.fishbones__progress-ring-check {
+  /* Match the fill stroke's eased reveal so the tick draws in as
+     the ring finishes filling, not after a jarring frame jump. */
+  transition: opacity 0.4s ease 0.1s;
 }

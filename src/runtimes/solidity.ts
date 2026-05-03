@@ -49,7 +49,7 @@ type SolcCompile = (input: string) => string;
 /// is more honest than silently masking a network failure.
 let solcReady: Promise<SolcCompile> | null = null;
 
-function loadSolc(): Promise<SolcCompile> {
+export function loadSolc(): Promise<SolcCompile> {
   if (solcReady) return solcReady;
 
   solcReady = new Promise<SolcCompile>((resolve, reject) => {
@@ -129,7 +129,7 @@ function loadSolc(): Promise<SolcCompile> {
 /// `solc --standard-json` shape so our error messages + bytecode are
 /// byte-identical to what a learner would see if they piped the same
 /// sources through the CLI.
-function buildSolcInput(files: WorkbenchFile[]): string {
+export function buildSolcInput(files: WorkbenchFile[]): string {
   const sources: Record<string, { content: string }> = {};
   for (const f of files) {
     if (/\.sol$/i.test(f.name)) {

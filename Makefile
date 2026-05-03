@@ -7,6 +7,8 @@
 #   make install      — install notarized app to /Applications
 #   make release      — bump patch, commit, tag, push (no build)
 #   make local-release — bump + build + sign + notarize + upload DMG
+#   make deploy       — local-release + push fishbones.academy (site + /learn)
+#   make deploy-site  — push fishbones.academy only (skip the DMG rebuild)
 #   make dev          — run in dev mode
 #   make clean        — remove build artifacts
 
@@ -36,8 +38,16 @@ APP_BUNDLE    := $(TAURI)/target/release/bundle/macos/Fishbones.app
 DMG           := $(TAURI)/target/release/bundle/dmg/Fishbones_$(VERSION)_$(ARCH_TAG).dmg
 INSTALL_PATH  := /Applications/Fishbones.app
 
-.PHONY: all build sign notarize staple install dev release local-release clean help \
+.PHONY: all build sign notarize staple install dev release local-release \
+        deploy deploy-site clean help \
         run run-split run-phone run-watch pick-phone pick-watch run-clean
+
+# Marketing site checkout (separate repo). The site's `npm run deploy`
+# rebuilds Fishbones with FISHBONES_BASE=/learn/, stages dist-web/ under
+# its own public/learn/, builds the Vite site, and rsyncs the result to
+# /var/www/fishbones-academy on the VPS. Override if your laptop has the
+# academy repo somewhere else.
+ACADEMY_ROOT ?= $(ROOT)/../../Web/fishbones-academy
 
 # --- iOS / watchOS run config ---------------------------------------------
 WATCH_ROOT      := /Users/matt/Development/Apps/FishbonesWatch
@@ -147,6 +157,47 @@ local-release: build sign notarize
 	}; \
 	echo ""; \
 	echo "✓ v$(VERSION) released and uploaded"
+
+## Full ship: cut a GitHub release for the current version, then push
+## fishbones.academy (site copy + /learn/ embed). The download buttons on
+## the site fetch GitHub Releases at runtime, so step 1 is what
+## "updates the download link" — step 2 just makes sure the embedded
+## /learn/ build and any marketing copy you changed go live.
+##
+## Idempotent: `local-release` clobbers an existing release asset for the
+## same version (so re-running after a hot-fix just replaces the DMG),
+## and the site rsync uses --delete so stale assets get pruned.
+##
+## Skip the DMG step entirely with `make deploy-site` (e.g. when you only
+## edited /learn/ source or marketing copy and there's nothing new to
+## sign).
+deploy: local-release deploy-site
+	@echo ""
+	@echo "✓ Fishbones v$(VERSION) shipped end-to-end."
+	@echo "  Release: https://github.com/InfamousVague/Fishbones/releases/tag/v$(VERSION)"
+	@echo "  Site:    https://fishbones.academy/"
+	@echo "  Learn:   https://fishbones.academy/learn/"
+
+## Site-only deploy: rebuild Fishbones for /learn/, build the academy
+## site, rsync to VPS. Use after editing marketing copy or when the
+## current version's release on GitHub is already up-to-date.
+##
+## The academy's deploy.mjs reads VPS_PASSWORD from this repo's
+## api/.env automatically, so there's no extra credential setup.
+deploy-site:
+	@echo "=== Deploying fishbones.academy (site + /learn/ embed) ==="
+	@if [ ! -d "$(ACADEMY_ROOT)" ]; then \
+		echo "ERROR: academy site not found at $(ACADEMY_ROOT)"; \
+		echo "       Set ACADEMY_ROOT=/path/to/fishbones-academy and re-run,"; \
+		echo "       or clone the academy repo there."; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ROOT)/api/.env" ]; then \
+		echo "WARN: api/.env missing — academy deploy.mjs will prompt you for"; \
+		echo "      VPS_SSH_PASSWORD. Set it in env or in api/.env to avoid the"; \
+		echo "      prompt next time."; \
+	fi
+	cd "$(ACADEMY_ROOT)" && FISHBONES_SRC="$(ROOT)" npm run deploy
 
 ## Remove build artifacts
 clean:
@@ -282,6 +333,10 @@ help:
 	@echo "  make install      — install to /Applications"
 	@echo "  make release      — bump patch ($(VERSION) → next), tag, push (no build)"
 	@echo "  make local-release — full local build + sign + notarize + upload to GitHub"
+	@echo ""
+	@echo "Web deploy targets (fishbones.academy):"
+	@echo "  make deploy       — local-release + rsync site + /learn/ to VPS"
+	@echo "  make deploy-site  — site only (skip the DMG rebuild)"
 	@echo ""
 	@echo "iOS / watchOS run targets (interactive device picker):"
 	@echo "  make run          — pick + run phone AND watch (sequential, this window)"

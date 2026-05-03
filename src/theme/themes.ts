@@ -9,7 +9,6 @@
 
 export type ThemeName =
   | "default-dark"
-  | "default-light"
   | "synthwave"
   | "claude-code-dark"
   | "ayu-light"
@@ -44,12 +43,6 @@ export const THEMES: ThemeMeta[] = [
     monacoTheme: "vs-dark",
   },
   {
-    id: "default-light",
-    label: "Fishbones Light",
-    description: "System-matched light variant.",
-    monacoTheme: "vs",
-  },
-  {
     id: "synthwave",
     label: "Synesthesia Synthwave",
     description: "Neon magenta + cyan on deep violet. Loud and happy.",
@@ -64,8 +57,13 @@ export const THEMES: ThemeMeta[] = [
   {
     id: "ayu-light",
     label: "Ayu Light",
-    description: "Clean off-white with saturated orange + green syntax.",
-    monacoTheme: "vs",
+    description: "Clean off-white app chrome with dark code editor for contrast.",
+    // Light themes intentionally pair with the DARK Monaco theme:
+    // syntax-highlighting palettes designed for white backgrounds
+    // tend to be low-saturation pastels that wash out next to the
+    // app's chrome, while a dark editor frames the code as a
+    // distinct surface and keeps tokens crisp.
+    monacoTheme: "vs-dark",
   },
   {
     id: "ayu-mirage",
@@ -82,8 +80,10 @@ export const THEMES: ThemeMeta[] = [
   {
     id: "catppuccin-latte",
     label: "Catppuccin Latte",
-    description: "Pastel lavender + green on cream. Catppuccin's light flavor.",
-    monacoTheme: "vs",
+    description: "Pastel lavender + green app chrome with dark code editor.",
+    // Light app chrome paired with dark Monaco — see the comment on
+    // ayu-light for the rationale.
+    monacoTheme: "vs-dark",
   },
   {
     id: "catppuccin-frappe",
@@ -144,7 +144,8 @@ export const THEMES: ThemeMeta[] = [
 const STORAGE_KEY = "kata:theme";
 
 /// Read the user's stored theme choice. Falls back to the system preference
-/// between the two default variants, so first-run still feels right.
+/// between dark (Fishbones Dark) and light (Ayu Light) so first-run still
+/// feels right.
 export function loadTheme(): ThemeName {
   try {
     const stored = localStorage.getItem(STORAGE_KEY) as ThemeName | null;
@@ -153,8 +154,16 @@ export function loadTheme(): ThemeName {
     /* private mode / SSR — fall through */
   }
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  return prefersDark ? "default-dark" : "default-light";
+  return prefersDark ? "default-dark" : "ayu-light";
 }
+
+/// Theme IDs that render as a LIGHT app surface. Used to flip the
+/// legacy `data-theme="light"` attribute the base-UI kit reads, and
+/// to gate any other "is this a light theme?" logic in the app.
+const LIGHT_THEMES: ReadonlySet<ThemeName> = new Set([
+  "ayu-light",
+  "catppuccin-latte",
+]);
 
 /// Apply a theme by setting attributes on <html>. We set BOTH the legacy
 /// `data-theme` (light|dark — base kit reads this) and a new
@@ -164,7 +173,7 @@ export function applyTheme(name: ThemeName) {
   const doc = document.documentElement;
   doc.setAttribute("data-theme-name", meta.id);
   // Keep the base kit happy by also setting the light/dark attribute.
-  const isLight = meta.id === "default-light";
+  const isLight = LIGHT_THEMES.has(meta.id);
   doc.setAttribute("data-theme", isLight ? "light" : "dark");
   try {
     localStorage.setItem(STORAGE_KEY, meta.id);

@@ -41,7 +41,14 @@ interface PlaygroundResponse {
 
 export async function runGo(code: string, testCode?: string): Promise<RunResult> {
   const start = performance.now();
-  const merged = testCode ? joinCodeAndTests(code, testCode) : code;
+  // When the lesson has no tests, the user's solution still has to
+  // compile + link as `package main`. If they didn't write a
+  // `func main() {}`, the Go linker errors with
+  // `runtime.main_main·f: function main is undeclared`. Add an
+  // empty fallback so compile-only solutions just work — it parallels
+  // the same fallback in the Rust runtime.
+  const codeForRun = testCode ? code : ensureMain(code);
+  const merged = testCode ? joinCodeAndTests(code, testCode) : codeForRun;
   const isTest = !!testCode;
 
   let body: PlaygroundResponse;
@@ -130,11 +137,67 @@ function joinCodeAndTests(userCode: string, testCode: string): string {
     s.replace(/^\s*package\s+\w+\s*$/m, "");
   const { imports: userImports, rest: userRest } = extractImports(stripMain(stripPackage(userCode)));
   const { imports: testImports, rest: testRest } = extractImports(stripPackage(testCode));
-  const allImports = dedupeImports([...userImports, ...testImports]);
+  // Auto-derive imports from usage. LLM-generated tests routinely
+  // call `fmt.Errorf` / `strings.Contains` / `errors.New` etc.
+  // without declaring `import "fmt"` etc. — usually because the
+  // import block lived inside a Rust-style preamble that we
+  // stripped earlier. Detect symbol usage and add the matching
+  // standard-library import. Dedupe takes care of overlaps.
+  const allUsed = `${userRest}\n${testRest}`;
+  const autoImports = inferStdlibImports(allUsed, [...userImports, ...testImports]);
+  const allImports = dedupeImports([...userImports, ...testImports, ...autoImports]);
   const importBlock = allImports.length
     ? `import (\n${allImports.map((i) => `\t${i}`).join("\n")}\n)\n\n`
     : "";
   return `package main\n\n${importBlock}${userRest.trim()}\n\n${testRest.trim()}\n`;
+}
+
+/// Add a minimal `func main() {}` if the source doesn't already
+/// declare one. `package main` requires a main function to link;
+/// without this fallback, lessons whose solution is purely
+/// helper-function declarations fail with
+/// `runtime.main_main·f: function main is undeclared`.
+function ensureMain(src: string): string {
+  if (/\bfunc\s+main\s*\(\s*\)/.test(src)) return src;
+  return `${src.trimEnd()}\n\nfunc main() {}\n`;
+}
+
+/// Stdlib package usage detector. Each entry is { import-spec,
+/// regex-that-matches-symbol-use }. We add the import only if
+/// (a) the regex hits the source AND (b) it isn't already imported
+/// (to avoid `imported and not used` errors when the user already
+/// declared it). Conservative — only the packages we've actually
+/// seen LLM-generated tests reach for. Easy to extend.
+const STDLIB_PROBES: Array<{ spec: string; re: RegExp }> = [
+  { spec: '"fmt"', re: /\bfmt\.\w/ },
+  { spec: '"errors"', re: /\berrors\.\w/ },
+  { spec: '"strings"', re: /\bstrings\.\w/ },
+  { spec: '"strconv"', re: /\bstrconv\.\w/ },
+  { spec: '"testing"', re: /\btesting\.\w/ },
+  { spec: '"io"', re: /\bio\.\w/ },
+  { spec: '"os"', re: /\bos\.\w/ },
+  { spec: '"bytes"', re: /\bbytes\.\w/ },
+  { spec: '"context"', re: /\bcontext\.\w/ },
+  { spec: '"time"', re: /\btime\.\w/ },
+  { spec: '"sync"', re: /\bsync\.\w/ },
+  { spec: '"sync/atomic"', re: /\batomic\.\w/ },
+  { spec: '"path/filepath"', re: /\bfilepath\.\w/ },
+  { spec: '"compress/gzip"', re: /\bgzip\.\w/ },
+  { spec: '"encoding/json"', re: /\bjson\.\w/ },
+  { spec: '"net/http"', re: /\bhttp\.\w/ },
+  { spec: '"net/http/httptest"', re: /\bhttptest\.\w/ },
+  { spec: '"unsafe"', re: /\bunsafe\.\w/ },
+  { spec: '"reflect"', re: /\breflect\.\w/ },
+];
+
+function inferStdlibImports(code: string, existing: string[]): string[] {
+  const have = new Set(existing.map((i) => i.trim()));
+  const out: string[] = [];
+  for (const probe of STDLIB_PROBES) {
+    if (have.has(probe.spec)) continue;
+    if (probe.re.test(code)) out.push(probe.spec);
+  }
+  return out;
 }
 
 /// Remove the top-level `func main() { ... }` block from a Go source. Used

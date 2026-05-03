@@ -12,13 +12,10 @@ export type MonacoThemeName =
   | "vs"
   | "vs-dark"
   | "fishbones-dark"
-  | "fishbones-light"
   | "fishbones-synthwave"
   | "fishbones-claude-code-dark"
-  | "fishbones-ayu-light"
   | "fishbones-ayu-mirage"
   | "fishbones-ayu-dark"
-  | "fishbones-catppuccin-latte"
   | "fishbones-catppuccin-frappe"
   | "fishbones-catppuccin-macchiato"
   | "fishbones-catppuccin-mocha"
@@ -30,17 +27,18 @@ export type MonacoThemeName =
   | "fishbones-word";
 
 /// Map each app theme to the Monaco theme name we want the editor to load.
-/// The two defaults use Monaco's built-ins (no need to redefine). The custom
-/// themes have their own palettes below.
+/// The light app themes (ayu-light, catppuccin-latte) intentionally pair
+/// with the DARK Monaco theme — light syntax-highlighting palettes wash
+/// out next to the app's chrome, while a dark editor frames the code as a
+/// distinct surface. See the matching note on `monacoTheme` in themes.ts.
 export const MONACO_THEME_BY_APP_THEME: Record<ThemeName, MonacoThemeName> = {
   "default-dark": "fishbones-dark",
-  "default-light": "fishbones-light",
   synthwave: "fishbones-synthwave",
   "claude-code-dark": "fishbones-claude-code-dark",
-  "ayu-light": "fishbones-ayu-light",
+  "ayu-light": "fishbones-dark",
   "ayu-mirage": "fishbones-ayu-mirage",
   "ayu-dark": "fishbones-ayu-dark",
-  "catppuccin-latte": "fishbones-catppuccin-latte",
+  "catppuccin-latte": "fishbones-dark",
   "catppuccin-frappe": "fishbones-catppuccin-frappe",
   "catppuccin-macchiato": "fishbones-catppuccin-macchiato",
   "catppuccin-mocha": "fishbones-catppuccin-mocha",
@@ -108,59 +106,8 @@ const FISHBONES_DARK: editor.IStandaloneThemeData = {
   },
 };
 
-// ---- Fishbones Light -----------------------------------------------------------
-// The default light variant. Same monochrome aesthetic inverted — near-black
-// primary on a white canvas with a warmer amber for literals (darkened so it
-// stays readable on light bg).
-const FISHBONES_LIGHT: editor.IStandaloneThemeData = {
-  base: "vs",
-  inherit: true,
-  rules: [
-    { token: "comment", foreground: "9b9ba7", fontStyle: "italic" },
-    { token: "keyword", foreground: "09090b", fontStyle: "bold" },
-    { token: "keyword.control", foreground: "09090b", fontStyle: "bold" },
-    { token: "string", foreground: "8d6e3a" },
-    { token: "string.escape", foreground: "6a5028" },
-    { token: "number", foreground: "8d6e3a" },
-    { token: "regexp", foreground: "8d6e3a" },
-    { token: "type", foreground: "09090b", fontStyle: "bold" },
-    { token: "type.identifier", foreground: "09090b", fontStyle: "bold" },
-    { token: "identifier", foreground: "09090b" },
-    { token: "delimiter", foreground: "70707c" },
-    { token: "operator", foreground: "54545c" },
-    { token: "tag", foreground: "09090b", fontStyle: "bold" },
-    { token: "attribute.name", foreground: "54545c" },
-    { token: "attribute.value", foreground: "8d6e3a" },
-    { token: "function", foreground: "09090b" },
-    { token: "variable", foreground: "09090b" },
-    { token: "variable.parameter", foreground: "54545c" },
-    { token: "constant", foreground: "8d6e3a" },
-    { token: "constant.language", foreground: "09090b", fontStyle: "bold" },
-  ],
-  colors: {
-    "editor.background": "#ffffff",
-    "editor.foreground": "#09090b",
-    "editor.lineHighlightBackground": "#fafafa",
-    "editor.lineHighlightBorder": "#fafafa",
-    "editor.selectionBackground": "#e4e4e9",
-    "editor.inactiveSelectionBackground": "#ececef",
-    "editorCursor.foreground": "#09090b",
-    "editorLineNumber.foreground": "#b4b4be",
-    "editorLineNumber.activeForeground": "#54545c",
-    "editorIndentGuide.background": "#ececef",
-    "editorIndentGuide.activeBackground": "#b4b4be",
-    "editorBracketMatch.background": "#ececef",
-    "editorBracketMatch.border": "#70707c",
-    "editorGutter.background": "#ffffff",
-    "editorWidget.background": "#fafafa",
-    "editorWidget.border": "#ececef",
-    "editorSuggestWidget.background": "#fafafa",
-    "editorSuggestWidget.selectedBackground": "#ececef",
-    "scrollbarSlider.background": "#00000010",
-    "scrollbarSlider.hoverBackground": "#0000001f",
-    "scrollbarSlider.activeBackground": "#00000033",
-  },
-};
+// (Fishbones Light theme removed — light app themes now use the
+// dark Monaco editor; see MONACO_THEME_BY_APP_THEME above.)
 
 // ---- Synesthesia Synthwave ------------------------------------------------
 // Hot magenta + cyan accents against deep violet. Loud — lean into it.
@@ -375,56 +322,8 @@ const CATPPUCCIN_MOCHA: editor.IStandaloneThemeData = {
   },
 };
 
-// ---- Ayu Light ------------------------------------------------------------
-const AYU_LIGHT: editor.IStandaloneThemeData = {
-  base: "vs",
-  inherit: true,
-  rules: [
-    { token: "comment", foreground: "abb0b6", fontStyle: "italic" },
-    { token: "keyword", foreground: "fa8d3e" },
-    { token: "keyword.control", foreground: "fa8d3e" },
-    { token: "string", foreground: "86b300" },
-    { token: "string.escape", foreground: "4cbf99" },
-    { token: "number", foreground: "a37acc" },
-    { token: "regexp", foreground: "4cbf99" },
-    { token: "type", foreground: "399ee6" },
-    { token: "type.identifier", foreground: "399ee6" },
-    { token: "identifier", foreground: "5c6166" },
-    { token: "delimiter", foreground: "ed9366" },
-    { token: "operator", foreground: "ed9366" },
-    { token: "tag", foreground: "55b4d4" },
-    { token: "attribute.name", foreground: "f2ae49" },
-    { token: "attribute.value", foreground: "86b300" },
-    { token: "function", foreground: "f2ae49" },
-    { token: "variable", foreground: "5c6166" },
-    { token: "variable.parameter", foreground: "f2ae49" },
-    { token: "constant", foreground: "a37acc" },
-    { token: "constant.language", foreground: "fa8d3e" },
-  ],
-  colors: {
-    "editor.background": "#fcfcfc",
-    "editor.foreground": "#5c6166",
-    "editor.lineHighlightBackground": "#f2f2f2",
-    "editor.lineHighlightBorder": "#f2f2f2",
-    "editor.selectionBackground": "#036dd626",
-    "editor.inactiveSelectionBackground": "#036dd611",
-    "editorCursor.foreground": "#fa8d3e",
-    "editorLineNumber.foreground": "#d0d0d0",
-    "editorLineNumber.activeForeground": "#8a9199",
-    "editorIndentGuide.background": "#efefef",
-    "editorIndentGuide.activeBackground": "#d6d6d6",
-    "editorBracketMatch.background": "#036dd626",
-    "editorBracketMatch.border": "#55b4d4",
-    "editorGutter.background": "#fcfcfc",
-    "editorWidget.background": "#fafafa",
-    "editorWidget.border": "#e7ebed",
-    "editorSuggestWidget.background": "#fafafa",
-    "editorSuggestWidget.selectedBackground": "#f0f0f0",
-    "scrollbarSlider.background": "#8a919922",
-    "scrollbarSlider.hoverBackground": "#8a919944",
-    "scrollbarSlider.activeBackground": "#8a919966",
-  },
-};
+// (Ayu Light Monaco theme removed — ayu-light app theme uses
+// fishbones-dark; see MONACO_THEME_BY_APP_THEME above.)
 
 // ---- Ayu Dark -------------------------------------------------------------
 const AYU_DARK: editor.IStandaloneThemeData = {
@@ -477,56 +376,8 @@ const AYU_DARK: editor.IStandaloneThemeData = {
   },
 };
 
-// ---- Catppuccin Latte (light) --------------------------------------------
-const CATPPUCCIN_LATTE: editor.IStandaloneThemeData = {
-  base: "vs",
-  inherit: true,
-  rules: [
-    { token: "comment", foreground: "9ca0b0", fontStyle: "italic" },
-    { token: "keyword", foreground: "8839ef" },
-    { token: "keyword.control", foreground: "8839ef" },
-    { token: "string", foreground: "40a02b" },
-    { token: "string.escape", foreground: "ea76cb" },
-    { token: "number", foreground: "fe640b" },
-    { token: "regexp", foreground: "ea76cb" },
-    { token: "type", foreground: "df8e1d" },
-    { token: "type.identifier", foreground: "df8e1d" },
-    { token: "identifier", foreground: "4c4f69" },
-    { token: "delimiter", foreground: "04a5e5" },
-    { token: "operator", foreground: "04a5e5" },
-    { token: "tag", foreground: "8839ef" },
-    { token: "attribute.name", foreground: "179299" },
-    { token: "attribute.value", foreground: "40a02b" },
-    { token: "function", foreground: "1e66f5" },
-    { token: "variable", foreground: "4c4f69" },
-    { token: "variable.parameter", foreground: "e64553" },
-    { token: "constant", foreground: "fe640b" },
-    { token: "constant.language", foreground: "fe640b" },
-  ],
-  colors: {
-    "editor.background": "#eff1f5",
-    "editor.foreground": "#4c4f69",
-    "editor.lineHighlightBackground": "#e6e9ef",
-    "editor.lineHighlightBorder": "#e6e9ef",
-    "editor.selectionBackground": "#acb0be55",
-    "editor.inactiveSelectionBackground": "#acb0be33",
-    "editorCursor.foreground": "#dc8a78",
-    "editorLineNumber.foreground": "#9ca0b0",
-    "editorLineNumber.activeForeground": "#4c4f69",
-    "editorIndentGuide.background": "#ccd0da",
-    "editorIndentGuide.activeBackground": "#acb0be",
-    "editorBracketMatch.background": "#acb0be55",
-    "editorBracketMatch.border": "#1e66f5",
-    "editorGutter.background": "#eff1f5",
-    "editorWidget.background": "#e6e9ef",
-    "editorWidget.border": "#ccd0da",
-    "editorSuggestWidget.background": "#e6e9ef",
-    "editorSuggestWidget.selectedBackground": "#ccd0da",
-    "scrollbarSlider.background": "#acb0be55",
-    "scrollbarSlider.hoverBackground": "#acb0be77",
-    "scrollbarSlider.activeBackground": "#acb0be99",
-  },
-};
+// (Catppuccin Latte Monaco theme removed — catppuccin-latte app
+// theme uses fishbones-dark; see MONACO_THEME_BY_APP_THEME above.)
 
 // ---- Catppuccin Frappé ----------------------------------------------------
 const CATPPUCCIN_FRAPPE: editor.IStandaloneThemeData = {
@@ -974,13 +825,13 @@ const WORD: editor.IStandaloneThemeData = {
 /// times — `defineTheme` replaces by name.
 export function registerMonacoThemes(monaco: typeof import("monaco-editor")) {
   monaco.editor.defineTheme("fishbones-dark", FISHBONES_DARK);
-  monaco.editor.defineTheme("fishbones-light", FISHBONES_LIGHT);
   monaco.editor.defineTheme("fishbones-synthwave", SYNTHWAVE);
   monaco.editor.defineTheme("fishbones-claude-code-dark", CLAUDE_CODE_DARK);
-  monaco.editor.defineTheme("fishbones-ayu-light", AYU_LIGHT);
+  // Light app themes (ayu-light, catppuccin-latte) intentionally
+  // map to fishbones-dark via MONACO_THEME_BY_APP_THEME — no
+  // separate light Monaco palettes registered.
   monaco.editor.defineTheme("fishbones-ayu-mirage", AYU_MIRAGE);
   monaco.editor.defineTheme("fishbones-ayu-dark", AYU_DARK);
-  monaco.editor.defineTheme("fishbones-catppuccin-latte", CATPPUCCIN_LATTE);
   monaco.editor.defineTheme("fishbones-catppuccin-frappe", CATPPUCCIN_FRAPPE);
   monaco.editor.defineTheme("fishbones-catppuccin-macchiato", CATPPUCCIN_MACCHIATO);
   monaco.editor.defineTheme("fishbones-catppuccin-mocha", CATPPUCCIN_MOCHA);

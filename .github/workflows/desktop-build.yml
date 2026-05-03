@@ -1,0 +1,204 @@
+name: Desktop Build
+
+# Matrix-builds the Tauri desktop bundles on each target platform's
+# native runner. Cross-compiling from a single host (Mac → Windows
+# etc.) is technically possible with Tauri but flaky in practice —
+# MSVC linker emulation, AppIndicator/glib mismatches, signing
+# fights — so we just lean on GitHub Actions runners for each OS.
+#
+# Trigger model:
+#   - push to main          → builds on all 3 platforms, artefacts
+#                              attached to the workflow run. Smoke
+#                              test that every change still produces
+#                              installable bundles.
+#   - tag push (v*)         → ALSO builds on all 3 platforms AND
+#                              uploads bundles to a draft GitHub
+#                              release named after the tag.
+#   - workflow_dispatch     → ad-hoc build, artefacts only.
+#
+# COST WARNING: this fires on every push to main. macOS runners
+# bill at 10× the per-minute rate of Linux on GitHub Actions and
+# this workflow takes ~25-40 minutes per platform on first run
+# (~5-15 min when caches are warm). On a free-tier account budget
+# ~370 minutes per push (~5 pushes / month within the free quota).
+# If that's too much, narrow the trigger to:
+#   push:
+#     branches: [main]
+#     paths:
+#       - 'src-tauri/**'
+#       - 'src/**'
+#       - 'package*.json'
+# … so doc / CI-only changes don't burn macOS time.
+#
+# Out of scope here:
+#   - Code-signing / notarization (Apple Developer ID, Windows
+#     Authenticode). When ready, add signing certs as secrets and
+#     pass them via `TAURI_SIGNING_*` env vars to tauri-action.
+#   - The Linux runner is pinned to ubuntu-22.04, not 24.04 — newer
+#     glibc breaks AppImage portability on older user distros.
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write  # needed to draft a GitHub release on tag push
+
+concurrency:
+  group: desktop-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform's failure shouldn't kill the others — we want
+      # to see e.g. a Windows-only build error without losing the
+      # macOS + Linux artefacts.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: macOS (Universal)
+            # Universal binary covers both Apple Silicon and Intel
+            # in one .dmg. Doubles compile time but halves what we
+            # have to ship + support.
+            tauri-args: '--target universal-apple-darwin'
+            rust-targets: 'aarch64-apple-darwin,x86_64-apple-darwin'
+          - os: ubuntu-22.04
+            label: Linux (x64)
+            tauri-args: ''
+            rust-targets: ''
+          - os: windows-latest
+            label: Windows (x64)
+            tauri-args: ''
+            rust-targets: ''
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same Libs/base file: dep dance as ci.yml — package.json
+      # references @mattmattmattmatt/base as a sibling repo two
+      # levels up, so we materialise that layout on every runner.
+      - name: 'Checkout @mattmattmattmatt/base (file: dep)'
+        uses: actions/checkout@v4
+        with:
+          repository: InfamousVague/base
+          path: _base
+          ref: main
+
+      - name: 'Wire _base/ into ../../Libs/base for the file: dep'
+        shell: bash
+        run: |
+          mkdir -p ../../Libs
+          # Copy rather than symlink so this works identically on
+          # Linux, macOS, and Windows runners (Windows symlink
+          # creation needs admin rights or developer mode).
+          cp -r _base ../../Libs/base
+          # Sanity check: relative path from package.json should
+          # now resolve to a real directory.
+          test -d ../../Libs/base/primitives \
+            || (echo "Libs/base/primitives missing — wiring is wrong"; exit 1)
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      # Caches the entire src-tauri/target directory + the cargo
+      # registry. Without this every CI run recompiles the whole
+      # Rust dependency graph (~10 minutes per platform). Cache key
+      # is keyed off Cargo.lock so a dependency bump invalidates
+      # cleanly.
+      - name: Cache Rust target
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      # Linux needs the WebKitGTK + AppIndicator + GTK headers to
+      # compile Tauri's webview integration, plus patchelf to fix
+      # rpaths in the AppImage bundle.
+      - name: Install Linux build deps
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            imagemagick
+
+      # ImageMagick is what extract-starter-courses.mjs uses to
+      # resize cover art; the build's smoke checks expect covers
+      # in the dist, so it must be present on every host.
+      - name: Install ImageMagick (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install imagemagick
+
+      - name: Install ImageMagick (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install imagemagick.app -y --no-progress
+
+      - name: Install npm deps
+        run: npm ci
+
+      # Cache the vendor-staging output so consecutive runs don't
+      # re-bundle Babel + React + Three.js + Svelte. Mirrors ci.yml
+      # — same cache key so web + desktop CI share the artefact.
+      - name: Cache vendor assets
+        uses: actions/cache@v4
+        with:
+          path: src-tauri/resources/vendor
+          key: vendor-${{ hashFiles('package-lock.json', 'scripts/vendor-cdn-deps.mjs') }}
+          restore-keys: |
+            vendor-
+
+      # tauri-action wraps `tauri build`, runs the matrix args, and
+      # — when tagName is set — uploads the produced bundles to a
+      # draft GitHub release named after the tag. On manual dispatch
+      # we leave tagName empty so it just builds + uploads as a
+      # workflow artefact (handled by upload-artifact below).
+      - name: Build (Tauri bundle)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseName: ${{ github.ref_type == 'tag' && format('Fishbones {0}', github.ref_name) || '' }}
+          releaseBody: ${{ github.ref_type == 'tag' && format('Auto-generated draft release for {0}. Edit before publishing.', github.ref_name) || '' }}
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.tauri-args }}
+
+      # Always upload the bundle artefacts to the workflow run too,
+      # whether or not we created a release. Lets a maintainer grab
+      # a build off any dispatch run for ad-hoc QA.
+      - name: Upload bundle artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishbones-${{ matrix.os }}
+          path: |
+            src-tauri/target/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.app.tar.gz
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.rpm
+            src-tauri/target/universal-apple-darwin/release/bundle/**/*.dmg
+          retention-days: 14
+          if-no-files-found: warn

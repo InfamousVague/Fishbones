@@ -1,4 +1,4 @@
-/// Long-lived EVM chain singleton — the same in-process Ganache the
+/// Long-lived EVM chain singleton — the same in-process local chain the
 /// `runEvm` runtime spins up, but kept alive across multiple test
 /// runs so the UI can show a coherent picture (account balances,
 /// recently deployed contracts, last few transactions) instead of

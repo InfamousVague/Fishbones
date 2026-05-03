@@ -71,6 +71,35 @@ const LANG_DEFAULTS: Partial<Record<LanguageId, { name: string; language: FileLa
   // matches the convention `solc` expects for a self-contained
   // contract source.
   solidity: { name: "Contract.sol", language: "solidity" },
+  // Vyper — same family as Solidity, dedicated FileLanguage entry.
+  // Default filename `contract.vy` matches the vyper compiler convention.
+  vyper: { name: "contract.vy", language: "vyper" },
+  // ── 2026 expansion: native single-file fallbacks ──────────────
+  // Without these entries every Zig / Ruby / Lua / etc. lesson with
+  // a `starter` + `solution` (no `files` array) was opening as
+  // `user.txt / plaintext`. Monaco's grammar registration in
+  // monaco-setup.ts is in place for all of them, but `deriveStarterFiles`
+  // never asked for it because `LANG_DEFAULTS[lesson.language]` returned
+  // undefined. Adding each entry here picks the canonical file
+  // extension + the matching FileLanguage so Monaco applies the
+  // registered tokenizer.
+  zig: { name: "main.zig", language: "zig" },
+  ruby: { name: "main.rb", language: "ruby" },
+  lua: { name: "main.lua", language: "lua" },
+  dart: { name: "main.dart", language: "dart" },
+  haskell: { name: "Main.hs", language: "haskell" },
+  scala: { name: "main.scala", language: "scala" },
+  sql: { name: "query.sql", language: "sql" },
+  // `.exs` is the script form Elixir runs directly via `elixir main.exs`
+  // (vs `.ex` which is meant to be compiled into a release).
+  elixir: { name: "main.exs", language: "elixir" },
+  // Smart-contract languages on alternative chains. Each has a hand-
+  // rolled Monarch grammar in lib/monaco-<lang>.ts.
+  move: { name: "main.move", language: "move" },
+  cairo: { name: "main.cairo", language: "cairo" },
+  // Sway uses the `.sw` extension (matches the Fuel toolchain's
+  // forc convention).
+  sway: { name: "main.sw", language: "sway" },
 };
 
 /// Derive the editor's starting file set. When the lesson has explicit

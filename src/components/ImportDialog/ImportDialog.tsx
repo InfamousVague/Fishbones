@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { textToCourse } from "../../ingest/pdfParser";
@@ -39,6 +39,12 @@ interface Props {
   /// generate a course synchronously (deterministic splitter only) and
   /// save it directly.
   onSavedCourse: (courseId: string) => void;
+  /// Optional pre-picked file path. When provided, the dialog skips
+  /// the "pick" step + jumps straight to "meta" with the path
+  /// loaded. Used by the unified Add Course flow so the user
+  /// doesn't have to re-pick a PDF / EPUB they just selected from
+  /// the smart picker.
+  preselectedPath?: string;
 }
 
 interface DetectedMeta {
@@ -69,6 +75,7 @@ export default function ImportDialog({
   onDismiss,
   onStartAiIngest,
   onSavedCourse,
+  preselectedPath,
 }: Props) {
   const [step, setStep] = useState<"pick" | "meta">("pick");
   const [pdfPath, setPdfPath] = useState<string | null>(null);
@@ -93,6 +100,28 @@ export default function ImportDialog({
   const authorEditedRef = useRef(false);
   const courseIdEditedRef = useRef(false);
 
+  /// Shared post-pick logic — called from both `pickFile` (the
+  /// in-dialog picker button) AND the `preselectedPath` useEffect
+  /// below (the unified Add Course flow). Sets the path + derives
+  /// filename-based defaults + jumps to the metadata step + kicks
+  /// off background AI detection.
+  function acceptPath(picked: string) {
+    setError(null);
+    setDetectionError(null);
+    setPdfPath(picked);
+    const base = basename(picked).replace(/\.(pdf|epub)$/i, "");
+    titleEditedRef.current = false;
+    authorEditedRef.current = false;
+    courseIdEditedRef.current = false;
+    setTitle(toTitle(base));
+    setCourseId(slug(base));
+    setAuthor("");
+    setStep("meta");
+    detectMeta(picked).catch(() => {
+      /* handled inside detectMeta */
+    });
+  }
+
   async function pickFile() {
     setError(null);
     setDetectionError(null);
@@ -102,27 +131,23 @@ export default function ImportDialog({
         filters: [{ name: "Books", extensions: ["pdf", "epub"] }],
       });
       if (typeof picked !== "string") return;
-      setPdfPath(picked);
-      const base = basename(picked).replace(/\.(pdf|epub)$/i, "");
-      // Filename-based defaults so the form never looks empty. These
-      // get replaced by detection unless the learner types.
-      titleEditedRef.current = false;
-      authorEditedRef.current = false;
-      courseIdEditedRef.current = false;
-      setTitle(toTitle(base));
-      setCourseId(slug(base));
-      setAuthor("");
-      setStep("meta");
-      // Kick off detection in the background. Errors are surfaced as a
-      // dismissible hint — they don't block the import (the learner
-      // can still fill fields by hand).
-      detectMeta(picked).catch(() => {
-        /* handled inside detectMeta */
-      });
+      acceptPath(picked);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
   }
+
+  // Pre-pick: when the parent (the unified Add Course flow)
+  // already opened its own picker and chose a PDF/EPUB, jump
+  // straight to the metadata step instead of asking the user to
+  // re-pick. Fires once per `preselectedPath` value change.
+  useEffect(() => {
+    if (preselectedPath) acceptPath(preselectedPath);
+    // acceptPath is stable enough to omit (it closes over setters
+    // that React guarantees stable identity for); listing it here
+    // would just thrash the effect on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectedPath]);
 
   async function detectMeta(path: string) {
     setDetecting(true);

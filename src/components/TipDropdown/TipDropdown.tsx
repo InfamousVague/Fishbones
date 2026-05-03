@@ -455,10 +455,20 @@ export default function TipDropdown({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        title="Send a tip"
+        title="Support fishbones"
       >
-        <Icon icon={heart} size="xs" color="currentColor" />
-        <span className="fishbones__tip-trigger-label">Tip</span>
+        {/* The Icon component only accepts the semantic IconColor enum,
+            so we paint the heart red by setting `color` on a wrapping
+            span — the icon's `currentColor` fill picks it up without
+            affecting the adjacent label. */}
+        <span
+          className="fishbones__tip-trigger-heart"
+          style={{ color: "#ef4444", display: "inline-flex" }}
+          aria-hidden
+        >
+          <Icon icon={heart} size="xs" color="currentColor" />
+        </span>
+        <span className="fishbones__tip-trigger-label">Support</span>
       </button>
 
       {open && (
