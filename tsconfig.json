@@ -33,7 +33,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vitest/globals", "node"],
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "@base/*": ["node_modules/@mattmattmattmatt/base/*"]
