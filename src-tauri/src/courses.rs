@@ -73,7 +73,13 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 ///       them removed on next launch. Mirrors the web seeder's V6
 ///       LEGACY_STARTER_IDS prune (Apps/Fishbones/src/data/webSeedCourses.ts)
 ///       so all three platforms drop the same retirees in lockstep.
-const SEED_VERSION: u32 = 8;
+/// V9 — Library curation: introduces `should_seed_pack` allow-list
+/// (see below). On version bump, ensure_seed prunes any auto-seeded
+/// pack whose filename no longer passes the filter, so existing dev
+/// installs converge to the new "TRPL + Mastering Ethereum +
+/// challenges" default. User-imported packs are preserved (only ids
+/// in seed_ids get the prune).
+const SEED_VERSION: u32 = 9;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
@@ -92,6 +98,33 @@ const RETIRED_PACK_IDS: &[&str] = &[
     "javascript-crash-course",
     "challenges-reactnative-visual",
 ];
+
+/// Whether a `.fishbones` file in `resources/bundled-packs/` should be
+/// auto-seeded into a fresh install. The default library is small —
+/// just two foundational books plus every challenge pack — and the
+/// user discovers + installs everything else from the in-app catalog
+/// browser (CatalogBrowser modal, served from
+/// mattssoftware.com/fishbones/catalog/manifest.json).
+///
+/// In dev mode, `app.path().resource_dir()` resolves to the source
+/// `src-tauri/resources/` directory, which contains every
+/// `.fishbones` we've ever shipped (60+ files). Without this filter,
+/// every dev launch would seed the full catalog into a fresh install
+/// — wrong for the curated default-library spec and wrong for
+/// matching production behaviour during dev.
+///
+/// Files NOT matching this filter still ship in the build (they
+/// exist on disk for the catalog), but only ids that pass get
+/// auto-imported on first launch. Keep in lockstep with the
+/// LEGACY_STARTER_IDS allow-list in src/data/webSeedCourses.ts so
+/// desktop + web seed the same minimal default set.
+fn should_seed_pack(filename: &str) -> bool {
+    let stem = filename.trim_end_matches(".fishbones").trim_end_matches(".kata");
+    matches!(
+        stem,
+        "the-rust-programming-language" | "mastering-ethereum"
+    ) || stem.contains("challenge")
+}
 
 /// Import any `.fishbones` / `.kata` archives bundled under
 /// `resources/bundled-packs/` into the user's courses dir on first launch.
@@ -154,6 +187,51 @@ pub fn ensure_seed(app: &tauri::AppHandle) -> anyhow::Result<()> {
                 }
             }
         }
+
+        // V9 prune: any auto-seeded pack whose source filename is
+        // NOT in the should_seed_pack allow-list gets removed too.
+        // Catches the long-tail of books that shipped via earlier
+        // versions of the bundled-packs/ directory but are no
+        // longer in the curated default seed (Eloquent JavaScript,
+        // Composing Programs, Mastering Bitcoin, …). User-imported
+        // ids (not in seed_ids) are untouched.
+        let allowed_ids: std::collections::HashSet<String> = fs::read_dir(&resource_dir)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(|e| e.ok())
+            .filter_map(|e| {
+                let p = e.path();
+                let name = p.file_name()?.to_str()?.to_string();
+                if !should_seed_pack(&name) {
+                    return None;
+                }
+                peek_archive_id(&p).ok()
+            })
+            .collect();
+        let to_prune: Vec<String> = packs
+            .seed_ids
+            .iter()
+            .filter(|id| !allowed_ids.contains(id.as_str()))
+            .cloned()
+            .collect();
+        for id in to_prune {
+            let dir = courses_root.join(&id);
+            if dir.exists() {
+                match fs::remove_dir_all(&dir) {
+                    Ok(()) => {
+                        pruned_this_run += 1;
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "[fishbones:seed] failed to prune deseeded pack {:?}: {}",
+                            dir, e
+                        );
+                    }
+                }
+            }
+            packs.seed_ids.retain(|x| x != &id);
+        }
     }
 
     let mut imported_this_run = 0u32;
@@ -167,6 +245,18 @@ pub fn ensure_seed(app: &tauri::AppHandle) -> anyhow::Result<()> {
         match path.extension().and_then(|s| s.to_str()) {
             Some("fishbones") | Some("kata") => {}
             _ => continue,
+        }
+
+        // Allow-list filter (see should_seed_pack above). Files
+        // outside the curated default set ship with the binary but
+        // don't auto-seed; the user installs them from the catalog
+        // browser when they want them.
+        let filename = match path.file_name().and_then(|s| s.to_str()) {
+            Some(n) => n,
+            None => continue,
+        };
+        if !should_seed_pack(filename) {
+            continue;
         }
 
         // Peek at the course id in the archive so we can decide BEFORE
