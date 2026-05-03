@@ -93,6 +93,10 @@ import { grid3x3 } from "@base/primitives/icon/icons/grid-3x3";
 import { target } from "@base/primitives/icon/icons/target";
 import { triangle } from "@base/primitives/icon/icons/triangle";
 import { circle } from "@base/primitives/icon/icons/circle";
+import { lock as lockIcon } from "@base/primitives/icon/icons/lock";
+import { check as checkIcon } from "@base/primitives/icon/icons/check";
+import { arrowLeft } from "@base/primitives/icon/icons/arrow-left";
+import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import "./TreesView.css";
 
@@ -361,7 +365,14 @@ function TreeDetail({
           className="fishbones-trees__back"
           onClick={onBack}
         >
-          ← All trees
+          <svg
+            className="fishbones-trees__back-icon"
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            dangerouslySetInnerHTML={{ __html: arrowLeft }}
+          />
+          All trees
         </button>
         <div className="fishbones-trees__detail-meta">
           <h1 className="fishbones-trees__detail-title">{tree.title}</h1>
@@ -376,17 +387,53 @@ function TreeDetail({
         </div>
       </header>
 
-      <div className="fishbones-trees__web-scroll" ref={containerRef}>
+      <div
+        className="fishbones-trees__web-scroll"
+        ref={containerRef}
+        // Single source of hover truth: an SVG-level pointer move
+        // handler that finds the nearest node within the hit radius.
+        // Per-node onMouseEnter caused flicker on the boundary
+        // between siblings — moving from one node toward the next
+        // would briefly fall through "empty" space and re-trigger
+        // mouseleave/mouseenter. With a global pointer tracker the
+        // hovered id changes monotonically as the user moves around.
+        onPointerMove={(e) => {
+          const svg = e.currentTarget.querySelector("svg");
+          if (!svg) return;
+          const rect = svg.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          let bestId: string | null = null;
+          let bestD = Infinity;
+          for (const n of positioned) {
+            const p = posMap.get(n.id);
+            if (!p) continue;
+            const d = Math.hypot(p.x - x, p.y - y);
+            if (d < NODE_RADIUS + 6 && d < bestD) {
+              bestD = d;
+              bestId = n.id;
+            }
+          }
+          setHover((h) => {
+            if (!bestId) return h ? null : h;
+            if (h?.nodeId === bestId) return h;
+            const p = posMap.get(bestId)!;
+            return { nodeId: bestId, x: p.x, y: p.y };
+          });
+        }}
+        onPointerLeave={() => setHover(null)}
+      >
         <svg
           className="fishbones-trees__web"
           width={Math.max(width, 600)}
           height={height}
           viewBox={`0 0 ${Math.max(width, 600)} ${height}`}
         >
-          {/* Edges first — drawn under the circles. Cubic bezier
-              with control points pulled toward the row midpoint
-              gives the curves an organic, "skill-tree" feel rather
-              than diagonal straight lines. */}
+          {/* Edges — drawn under the circles. Orthogonal "tree
+              line" shape (drop down → cross horizontally → drop
+              down) instead of the previous bezier curve. Cleaner
+              read for a hierarchy: parents stack above children
+              with right-angle joints, no swooping S-curves. */}
           {tree.nodes.flatMap((n) => {
             const childPos = posMap.get(n.id);
             if (!childPos) return [];
@@ -399,12 +446,13 @@ function TreeDetail({
               const parentComplete = parentNode
                 ? isSkillComplete(parentNode, completed)
                 : false;
-              // Active edge = both ends complete (the path the
-              // learner has already walked). Inert otherwise.
               const active = parentComplete && childComplete;
               const reachable = parentComplete && childUnlocked;
+              // Bend the line at the row midpoint so all the
+              // verticals from a single parent stack on top of
+              // each other before fanning out.
               const midY = (parentPos.y + childPos.y) / 2;
-              const d = `M ${parentPos.x} ${parentPos.y + NODE_RADIUS} C ${parentPos.x} ${midY}, ${childPos.x} ${midY}, ${childPos.x} ${childPos.y - NODE_RADIUS}`;
+              const d = `M ${parentPos.x} ${parentPos.y + NODE_RADIUS} V ${midY} H ${childPos.x} V ${childPos.y - NODE_RADIUS}`;
               return (
                 <path
                   key={`${pid}->${n.id}`}
@@ -423,7 +471,9 @@ function TreeDetail({
           })}
 
           {/* Nodes — circle + lucide icon, with state-based class
-              modifiers for complete / locked / next-up / gap. */}
+              modifiers for complete / locked / next-up / gap. No
+              per-node mouse handlers; the single pointermove on
+              the scroll container drives the hover state. */}
           {positioned.map((n) => {
             const pos = posMap.get(n.id)!;
             const complete = isSkillComplete(n, completed);
@@ -446,12 +496,6 @@ function TreeDetail({
                   .filter(Boolean)
                   .join(" ")}
                 transform={`translate(${pos.x} ${pos.y})`}
-                onMouseEnter={() =>
-                  setHover({ nodeId: n.id, x: pos.x, y: pos.y })
-                }
-                onMouseLeave={() =>
-                  setHover((h) => (h?.nodeId === n.id ? null : h))
-                }
                 onClick={() => setSelectedId(n.id)}
               >
                 <circle
@@ -461,8 +505,6 @@ function TreeDetail({
                   cy={0}
                 />
                 {isNext && !complete && (
-                  /* Pulsing accent ring so the learner's eye lands
-                     on the recommended-next node first. */
                   <circle
                     className="fishbones-trees__node-pulse"
                     r={NODE_RADIUS + 4}
@@ -473,13 +515,9 @@ function TreeDetail({
                 )}
                 <g
                   className="fishbones-trees__node-icon"
-                  /* lucide path strings live in a 24×24 box; centre
-                     by translating -12,-12 inside the group. */
                   transform="translate(-12 -12)"
                   dangerouslySetInnerHTML={{ __html: iconPaths }}
                 />
-                {/* Label below the circle. Truncated to 20 chars
-                    so wide labels don't crash into neighbours. */}
                 <text
                   className="fishbones-trees__node-text"
                   y={NODE_RADIUS + 16}
@@ -487,23 +525,34 @@ function TreeDetail({
                 >
                   {n.label.length > 20 ? n.label.slice(0, 18) + "…" : n.label}
                 </text>
-                {complete && (
-                  <text
-                    className="fishbones-trees__node-mark"
-                    y={-NODE_RADIUS - 6}
-                    textAnchor="middle"
-                  >
-                    ✓
-                  </text>
-                )}
+                {/* State badges — small circles with lucide icons
+                    sit on the line where it joins the node's top.
+                    Lock = locked, Check = complete. Drawing them
+                    at (0, -R) puts them directly on the joint
+                    between the connecting line and the circle. */}
                 {!unlocked && (
-                  <text
-                    className="fishbones-trees__node-mark fishbones-trees__node-mark--lock"
-                    y={-NODE_RADIUS - 6}
-                    textAnchor="middle"
+                  <g
+                    className="fishbones-trees__node-badge fishbones-trees__node-badge--lock"
+                    transform={`translate(0 ${-NODE_RADIUS})`}
                   >
-                    🔒
-                  </text>
+                    <circle r={9} cx={0} cy={0} />
+                    <g
+                      transform="translate(-7 -7) scale(0.58)"
+                      dangerouslySetInnerHTML={{ __html: lockIcon }}
+                    />
+                  </g>
+                )}
+                {complete && (
+                  <g
+                    className="fishbones-trees__node-badge fishbones-trees__node-badge--check"
+                    transform={`translate(0 ${-NODE_RADIUS})`}
+                  >
+                    <circle r={9} cx={0} cy={0} />
+                    <g
+                      transform="translate(-7 -7) scale(0.58)"
+                      dangerouslySetInnerHTML={{ __html: checkIcon }}
+                    />
+                  </g>
                 )}
               </g>
             );
@@ -625,7 +674,12 @@ function SkillPanel({
           onClick={onClose}
           aria-label="Close skill"
         >
-          ✕
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            dangerouslySetInnerHTML={{ __html: xIcon }}
+          />
         </button>
       </header>
       <h2 className="fishbones-trees__panel-title">{node.label}</h2>
@@ -681,7 +735,12 @@ function SkillPanel({
                 </div>
                 {done && (
                   <span className="fishbones-trees__panel-lesson-check" aria-hidden>
-                    ✓
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      dangerouslySetInnerHTML={{ __html: checkIcon }}
+                    />
                   </span>
                 )}
               </button>

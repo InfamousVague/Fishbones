@@ -168,6 +168,33 @@
   font-size: 12px;
   cursor: pointer;
   transition: all 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fishbones-trees__back-icon {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fishbones-trees__panel-close svg {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fishbones-trees__panel-lesson-check svg {
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .fishbones-trees__back:hover {
@@ -214,7 +241,12 @@
   position: relative;
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  /* Vertical scroll only — horizontal overflow caused tooltip
+   * placement to nudge the layout (showing a horizontal scrollbar
+   * during hover, which shifted everything by ~16px and triggered
+   * the next pointermove → flicker loop). */
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 0 32px;
 }
 
@@ -252,18 +284,12 @@
 
 .fishbones-trees__node {
   cursor: pointer;
-  transition: transform 140ms ease;
 }
 
-.fishbones-trees__node:hover {
-  transform: translate(var(--node-x, 0px), var(--node-y, 0px)) scale(1.04);
-  /* note: SVG `transform` on <g> isn't directly composable with CSS
-   * transforms in all engines — we set a per-node `--node-x/--node-y`
-   * via inline style WHEN we want the hover scale; otherwise the
-   * inline transform from React already places the group correctly.
-   * Skipping the scale on hover for simplicity is fine — the
-   * circle stroke + tooltip already convey hover. */
-}
+/* Hover state is handled by the global pointermove tracker; we
+ * don't need a CSS :hover style on the node group itself. The
+ * circle's stroke change keyed on .--selected covers click-state
+ * feedback; the tooltip + accent stroke change comes from JS. */
 
 .fishbones-trees__node-circle {
   fill: var(--color-bg-secondary);
@@ -364,15 +390,38 @@
   fill: var(--color-text-primary);
 }
 
-.fishbones-trees__node-mark {
-  font-size: 12px;
-  font-weight: 700;
-  fill: var(--tree-accent);
-  pointer-events: none;
+/* State badge — small circle with a lucide icon inside, sits at
+ * the top of the node where the connecting line meets the circle.
+ * Lock = locked (line "ends" at the lock); Check = complete. */
+.fishbones-trees__node-badge circle {
+  fill: var(--color-bg-secondary);
+  stroke: var(--color-border-default);
+  stroke-width: 1.5;
 }
 
-.fishbones-trees__node-mark--lock {
-  fill: var(--color-text-tertiary);
+.fishbones-trees__node-badge g {
+  pointer-events: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.fishbones-trees__node-badge--lock circle {
+  fill: var(--color-bg-tertiary);
+}
+
+.fishbones-trees__node-badge--lock g {
+  stroke: var(--color-text-tertiary);
+}
+
+.fishbones-trees__node-badge--check circle {
+  fill: var(--tree-accent);
+  stroke: var(--tree-accent);
+}
+
+.fishbones-trees__node-badge--check g {
+  stroke: var(--color-bg-primary);
 }
 
 /* ── hover tooltip ───────────────────────────────────────────── */
