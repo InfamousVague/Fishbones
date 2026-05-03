@@ -258,10 +258,15 @@
 /* ── edges (cubic bezier curves between connected nodes) ─────── */
 
 .fishbones-trees__edge {
-  stroke: var(--color-border-default);
-  stroke-width: 1.5;
+  /* Slightly accented border-default so the inert lines still
+   * read against the panel surface. Round joins on the L-bends
+   * give them a softer feel than perfect right angles. */
+  stroke: color-mix(in srgb, var(--color-text-tertiary) 65%, var(--color-border-default));
+  stroke-width: 3;
   fill: none;
-  transition: stroke 200ms ease;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: stroke 200ms ease, stroke-width 200ms ease;
 }
 
 /* Edge whose source node is complete AND target is also complete
@@ -269,15 +274,15 @@
  * accent so the completed sub-graph stands out. */
 .fishbones-trees__edge--active {
   stroke: var(--tree-accent);
-  stroke-width: 2;
+  stroke-width: 3.5;
 }
 
 /* Edge whose source is complete but target is still incomplete —
  * the "wavefront" of available next steps. Slightly accented so
  * the learner can trace where to go next visually. */
 .fishbones-trees__edge--reachable {
-  stroke: color-mix(in srgb, var(--tree-accent) 50%, var(--color-border-default));
-  stroke-width: 1.5;
+  stroke: color-mix(in srgb, var(--tree-accent) 50%, var(--color-text-tertiary));
+  stroke-width: 3;
 }
 
 /* ── nodes (circle + icon + label below) ─────────────────────── */

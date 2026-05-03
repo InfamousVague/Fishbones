@@ -431,44 +431,87 @@ function TreeDetail({
         >
           {/* Edges — drawn under the circles. Orthogonal "tree
               line" shape (drop down → cross horizontally → drop
-              down) instead of the previous bezier curve. Cleaner
-              read for a hierarchy: parents stack above children
-              with right-angle joints, no swooping S-curves. */}
-          {tree.nodes.flatMap((n) => {
-            const childPos = posMap.get(n.id);
-            if (!childPos) return [];
-            const childComplete = isSkillComplete(n, completed);
-            const childUnlocked = isSkillUnlocked(n, byId, completed);
-            return n.prereqs.map((pid) => {
+              down). Bend Y is staggered per edge so multiple
+              horizontals from the same parent (or arriving at the
+              same row) sit on different rows instead of fully
+              overlapping. The stagger ranks each parent's
+              children by horizontal distance, so the closest
+              child bends earliest and the furthest bends last. */}
+          {(() => {
+            // Pre-compute the bend Y per edge so we can assign
+            // unique slots without re-sorting inside the JSX loop.
+            const bendY = new Map<string, number>();
+            // Group edges by parent id — each parent's outgoing
+            // edges stagger across its own row of slots.
+            const edgesByParent = new Map<string, string[]>();
+            for (const n of tree.nodes) {
+              for (const pid of n.prereqs) {
+                const arr = edgesByParent.get(pid) ?? [];
+                arr.push(n.id);
+                edgesByParent.set(pid, arr);
+              }
+            }
+            const STAGGER_PX = 8;
+            for (const [pid, childIds] of edgesByParent) {
               const parentPos = posMap.get(pid);
-              if (!parentPos) return null;
-              const parentNode = byId.get(pid);
-              const parentComplete = parentNode
-                ? isSkillComplete(parentNode, completed)
-                : false;
-              const active = parentComplete && childComplete;
-              const reachable = parentComplete && childUnlocked;
-              // Bend the line at the row midpoint so all the
-              // verticals from a single parent stack on top of
-              // each other before fanning out.
-              const midY = (parentPos.y + childPos.y) / 2;
-              const d = `M ${parentPos.x} ${parentPos.y + NODE_RADIUS} V ${midY} H ${childPos.x} V ${childPos.y - NODE_RADIUS}`;
-              return (
-                <path
-                  key={`${pid}->${n.id}`}
-                  className={[
-                    "fishbones-trees__edge",
-                    active && "fishbones-trees__edge--active",
-                    !active && reachable && "fishbones-trees__edge--reachable",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  d={d}
-                  fill="none"
-                />
-              );
+              if (!parentPos) continue;
+              // Sort by absolute horizontal distance from the
+              // parent — closest child bends at the smallest Y,
+              // furthest bends at the largest Y. Looks like a
+              // fan opening up.
+              const sorted = [...childIds].sort((a, b) => {
+                const ax = posMap.get(a)?.x ?? 0;
+                const bx = posMap.get(b)?.x ?? 0;
+                return (
+                  Math.abs(ax - parentPos.x) -
+                  Math.abs(bx - parentPos.x)
+                );
+              });
+              sorted.forEach((cid, i) => {
+                const childPos = posMap.get(cid);
+                if (!childPos) return;
+                const baseMidY = (parentPos.y + childPos.y) / 2;
+                // Centre the stagger band on baseMidY: rank 0 →
+                // -((n-1)/2), rank n-1 → +((n-1)/2).
+                const offset = (i - (sorted.length - 1) / 2) * STAGGER_PX;
+                bendY.set(`${pid}->${cid}`, baseMidY + offset);
+              });
+            }
+            return tree.nodes.flatMap((n) => {
+              const childPos = posMap.get(n.id);
+              if (!childPos) return [];
+              const childComplete = isSkillComplete(n, completed);
+              const childUnlocked = isSkillUnlocked(n, byId, completed);
+              return n.prereqs.map((pid) => {
+                const parentPos = posMap.get(pid);
+                if (!parentPos) return null;
+                const parentNode = byId.get(pid);
+                const parentComplete = parentNode
+                  ? isSkillComplete(parentNode, completed)
+                  : false;
+                const active = parentComplete && childComplete;
+                const reachable = parentComplete && childUnlocked;
+                const by =
+                  bendY.get(`${pid}->${n.id}`) ??
+                  (parentPos.y + childPos.y) / 2;
+                const d = `M ${parentPos.x} ${parentPos.y + NODE_RADIUS} V ${by} H ${childPos.x} V ${childPos.y - NODE_RADIUS}`;
+                return (
+                  <path
+                    key={`${pid}->${n.id}`}
+                    className={[
+                      "fishbones-trees__edge",
+                      active && "fishbones-trees__edge--active",
+                      !active && reachable && "fishbones-trees__edge--reachable",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    d={d}
+                    fill="none"
+                  />
+                );
+              });
             });
-          })}
+          })()}
 
           {/* Nodes — circle + lucide icon, with state-based class
               modifiers for complete / locked / next-up / gap. No
