@@ -17,11 +17,7 @@ import { rows3 } from "@base/primitives/icon/icons/rows-3";
 import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
 import { isChallengePack } from "../../data/types";
-import BookCover, {
-  releaseStatusFor,
-  releaseStatusIcon,
-  type ReleaseStatus,
-} from "./BookCover";
+import BookCover from "./BookCover";
 import CourseContextMenu, { useCourseMenu } from "../Shared/CourseContextMenu";
 import LanguageChip from "../LanguageChip/LanguageChip";
 import { prefetchCovers } from "../../hooks/useCourseCover";
@@ -485,50 +481,38 @@ export default function CourseLibrary({
     query,
   ]);
 
-  // Group filtered courses by release-status tier so the shelf/grid
-  // can render labelled sections. Reading order top → bottom mirrors
-  // editorial readiness: BETA first (final polish for release), ALPHA
-  // next (next up in the queue), UNREVIEWED last (drafts at the
-  // bottom of the library so they don't crowd reviewed work).
-  // Each section preserves the order of `filtered`, so the user's
-  // chosen sort still applies within a tier.
-  const SECTION_ORDER: ReadonlyArray<{
-    status: ReleaseStatus;
-    label: string;
-    blurb: string;
-  }> = [
-    {
-      status: "BETA",
-      label: "Final polish",
-      blurb: "One pass from release — final polish underway.",
-    },
-    {
-      status: "ALPHA",
-      label: "Next up",
-      blurb: "Queued for editorial review — content stable, polish in progress.",
-    },
-    {
-      status: "UNREVIEWED",
-      label: "Unreviewed",
-      blurb: "Drafts that haven't been editorially reviewed yet.",
-    },
-  ];
-
+  // Group filtered courses by KIND — "Books" (chapter-major prose
+  // with exercises) up top, "Challenges" (flat list of
+  // increasing-difficulty exercises) at the bottom. The split is
+  // visual + structural: a learner browsing the library sees
+  // courses-they-will-read first, code-katas second. We dropped the
+  // earlier release-status bucketing (BETA / ALPHA / UNREVIEWED)
+  // here — that's editorial chrome, not reader-facing structure.
   const sections = useMemo(() => {
-    const buckets = new Map<ReleaseStatus, typeof filtered>();
+    const books: typeof filtered = [];
+    const challenges: typeof filtered = [];
     for (const e of filtered) {
-      const status = releaseStatusFor(e.course);
-      const bucket = buckets.get(status);
-      if (bucket) bucket.push(e);
-      else buckets.set(status, [e]);
+      if (isChallengePack(e.course)) challenges.push(e);
+      else books.push(e);
     }
-    // Materialize in the declared order; drop empty sections so we
-    // don't render headings with no books underneath.
-    return SECTION_ORDER.flatMap((s) => {
-      const rows = buckets.get(s.status) ?? [];
-      if (rows.length === 0) return [];
-      return [{ ...s, rows }];
-    });
+    const out: Array<{ key: string; label: string; blurb: string; rows: typeof filtered }> = [];
+    if (books.length > 0) {
+      out.push({
+        key: "books",
+        label: "Books",
+        blurb: "Long-form courses with chapters and exercises.",
+        rows: books,
+      });
+    }
+    if (challenges.length > 0) {
+      out.push({
+        key: "challenges",
+        label: "Challenges",
+        blurb: "Per-language exercise packs — short coding problems sorted easy → hard.",
+        rows: challenges,
+      });
+    }
+    return out;
   }, [filtered]);
 
   // Count courses per category so the top-level toggle can show
@@ -825,24 +809,11 @@ export default function CourseLibrary({
             <div className="fishbones-library-sections">
               {sections.map((sec) => (
                 <section
-                  key={sec.status}
-                  className={`fishbones-library-section fishbones-library-section--${sec.status.toLowerCase()}`}
+                  key={sec.key}
+                  className={`fishbones-library-section fishbones-library-section--${sec.key}`}
                   aria-label={sec.label}
                 >
                   <header className="fishbones-library-section-head">
-                    <span
-                      className={`fishbones-library-section-pill fishbones-book-status fishbones-book-status--${sec.status.toLowerCase()}`}
-                    >
-                      <Icon
-                        icon={releaseStatusIcon(sec.status)}
-                        size="xs"
-                        color="currentColor"
-                        className="fishbones-book-status-icon"
-                      />
-                      <span className="fishbones-book-status-label">
-                        {sec.status}
-                      </span>
-                    </span>
                     <h2 className="fishbones-library-section-title">
                       {sec.label}
                     </h2>
@@ -904,24 +875,11 @@ export default function CourseLibrary({
             <div className="fishbones-library-sections">
               {sections.map((sec) => (
                 <section
-                  key={sec.status}
-                  className={`fishbones-library-section fishbones-library-section--${sec.status.toLowerCase()}`}
+                  key={sec.key}
+                  className={`fishbones-library-section fishbones-library-section--${sec.key}`}
                   aria-label={sec.label}
                 >
                   <header className="fishbones-library-section-head">
-                    <span
-                      className={`fishbones-library-section-pill fishbones-book-status fishbones-book-status--${sec.status.toLowerCase()}`}
-                    >
-                      <Icon
-                        icon={releaseStatusIcon(sec.status)}
-                        size="xs"
-                        color="currentColor"
-                        className="fishbones-book-status-icon"
-                      />
-                      <span className="fishbones-book-status-label">
-                        {sec.status}
-                      </span>
-                    </span>
                     <h2 className="fishbones-library-section-title">
                       {sec.label}
                     </h2>

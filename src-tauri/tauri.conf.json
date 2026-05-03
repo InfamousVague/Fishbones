@@ -48,8 +48,7 @@
     ],
     "resources": [
       "resources/bundled-packs/the-rust-programming-language.fishbones",
-      "resources/bundled-packs/learning-go.fishbones",
-      "resources/bundled-packs/learning-zig.fishbones",
+      "resources/bundled-packs/mastering-ethereum.fishbones",
       "resources/bundled-packs/rust-challenges.fishbones",
       "resources/bundled-packs/go-challenges.fishbones",
       "resources/bundled-packs/javascript-challenges.fishbones",

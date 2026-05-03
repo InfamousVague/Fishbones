@@ -51,7 +51,40 @@ const MANIFEST_PATH = "/starter-courses/manifest.json";
 /// packs are never in this list, so the prune step still leaves
 /// them alone.
 const LEGACY_STARTER_IDS: ReadonlyArray<string> = [
+  // Default library curation (V9): just two books + every challenge
+  // pack. Slimmed from ~30 books so a fresh visitor sees an
+  // opinionated starter set instead of the full catalog. Other
+  // books are still importable from the catalog browser; they
+  // just don't auto-seed on first launch.
   "the-rust-programming-language",
+  "mastering-ethereum",
+  // Challenge packs — flat list of increasing-difficulty exercises
+  // per language. These render in their own "Challenges" section
+  // at the bottom of the library, not mixed with the books above.
+  "challenges-javascript-handwritten",
+  "challenges-typescript-mo9c9k2o",
+  "challenges-python-handwritten",
+  "challenges-go-handwritten",
+  "challenges-rust-handwritten",
+  "challenges-reactnative-handwritten",
+  "challenges-ruby-handwritten",
+  "challenges-lua-handwritten",
+  "challenges-dart-handwritten",
+  "challenges-haskell-handwritten",
+  "challenges-scala-handwritten",
+  "challenges-sql-handwritten",
+  "challenges-elixir-handwritten",
+  "challenges-zig-handwritten",
+  "challenges-move-handwritten",
+  "challenges-cairo-handwritten",
+  "challenges-sway-handwritten",
+  // Retired — explicitly listed so they're pruned on migration.
+  // V9 dropped a large book set (Eloquent JavaScript, Composing
+  // Programs, Python Crash Course, Mastering Bitcoin, Solidity
+  // Complete, etc.) — those got moved here so returning visitors
+  // who had them seeded in V8 see them removed on next launch.
+  // Anything ever in the seed set should stay in this list
+  // forever; never trim it.
   "rust-by-example",
   "rust-async-book",
   "rustonomicon",
@@ -77,38 +110,12 @@ const LEGACY_STARTER_IDS: ReadonlyArray<string> = [
   "interactive-web-development-with-three-js-and-a-frame",
   "mastering-bitcoin",
   "programming-bitcoin",
-  "mastering-ethereum",
   "mastering-lightning-network",
   "solidity-complete",
   "vyper-fundamentals",
   "solana-programs",
   "viem-ethers",
   "cryptography-fundamentals",
-  "challenges-javascript-handwritten",
-  "challenges-typescript-mo9c9k2o",
-  "challenges-python-handwritten",
-  "challenges-go-handwritten",
-  "challenges-rust-handwritten",
-  "challenges-reactnative-handwritten",
-  // 2026 expansion — eleven new language packs (Easy/Medium/Hard
-  // bulk-generated via Claude). Web build seeds them from the
-  // manifest just like the older challenge packs.
-  "challenges-ruby-handwritten",
-  "challenges-lua-handwritten",
-  "challenges-dart-handwritten",
-  "challenges-haskell-handwritten",
-  "challenges-scala-handwritten",
-  "challenges-sql-handwritten",
-  "challenges-elixir-handwritten",
-  "challenges-zig-handwritten",
-  "challenges-move-handwritten",
-  "challenges-cairo-handwritten",
-  "challenges-sway-handwritten",
-  // Retired — explicitly listed so they're pruned on migration.
-  // Includes anything we shipped in any prior PACK_IDS revision but
-  // since dropped. Don't trim this list when adding new retirees;
-  // visitors who never made it past V1 are still out there with old
-  // ids in their IndexedDB.
   "bun-complete",
   "bun-fundamentals",
   "svelte-5-complete",
@@ -171,7 +178,14 @@ function starterUrl(path: string): string {
 /// dart, haskell, scala, sql, elixir, zig, move, cairo, sway), all
 /// bulk-generated via the in-app Claude pipeline. Returning visitors
 /// get the new packs on next page load.
-const SEED_VERSION = 8;
+///
+/// V9 — Library curation: trimmed default seed to The Rust
+/// Programming Language + Mastering Ethereum + the 17 challenge
+/// packs. The other ~25 books are still available via the catalog
+/// browser but no longer auto-seed on first visit. Returning
+/// visitors who had the V8 seed get the dropped books removed
+/// (they're in the retired list now) on next launch.
+const SEED_VERSION = 9;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +
