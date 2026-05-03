@@ -189,6 +189,7 @@ pub fn run() {
             courses::delete_course,
             courses::export_course,
             courses::import_course,
+            courses::list_bundled_catalog_entries,
             courses::download_and_install_course,
             courses::refresh_bundled_courses,
             ingest::extract_pdf_text,

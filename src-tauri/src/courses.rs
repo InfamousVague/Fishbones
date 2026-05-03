@@ -544,6 +544,124 @@ pub fn import_course(app: tauri::AppHandle, archive_path: String) -> Result<Stri
     Ok(course_id)
 }
 
+/// One catalog entry — what the CatalogBrowser modal uses to render
+/// a row. `local_path` lets the JS install handler call back into
+/// `import_course` without needing a server fetch.
+#[derive(Debug, Serialize)]
+pub struct BundledCatalogEntry {
+    pub id: String,
+    pub title: String,
+    pub author: Option<String>,
+    pub language: String,
+    pub pack_type: Option<String>,
+    pub lesson_count: u32,
+    pub size_bytes: u64,
+    /// Filesystem path to the .fishbones archive in
+    /// resources/bundled-packs/. The frontend passes this back to
+    /// `import_course` to install without a network round-trip.
+    pub local_path: String,
+}
+
+/// Lists every `.fishbones` archive shipped under
+/// `resources/bundled-packs/` along with peek-extracted metadata.
+/// Powers the in-app CatalogBrowser on desktop — no server needed,
+/// since the catalog IS the bundled archives. Web uses a fetched
+/// manifest.json instead (see lib/catalog.ts).
+#[tauri::command]
+pub fn list_bundled_catalog_entries(
+    app: tauri::AppHandle,
+) -> Result<Vec<BundledCatalogEntry>, String> {
+    let resource_dir = match app.path().resource_dir() {
+        Ok(p) => p.join("resources").join("bundled-packs"),
+        Err(_) => return Ok(Vec::new()),
+    };
+    if !resource_dir.exists() {
+        return Ok(Vec::new());
+    }
+    let mut out = Vec::new();
+    for entry in fs::read_dir(&resource_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        match path.extension().and_then(|s| s.to_str()) {
+            Some("fishbones") | Some("kata") => {}
+            _ => continue,
+        }
+        let size_bytes = entry.metadata().map(|m| m.len()).unwrap_or(0);
+        match peek_archive_metadata(&path) {
+            Ok((id, title, author, language, pack_type, lesson_count)) => {
+                out.push(BundledCatalogEntry {
+                    id,
+                    title,
+                    author,
+                    language,
+                    pack_type,
+                    lesson_count,
+                    size_bytes,
+                    local_path: path.to_string_lossy().into_owned(),
+                });
+            }
+            Err(e) => {
+                eprintln!(
+                    "[fishbones:catalog] could not read metadata from {:?}: {}",
+                    path, e
+                );
+            }
+        }
+    }
+    // Stable order so the JS list doesn't shuffle between calls.
+    out.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+    Ok(out)
+}
+
+/// Same idea as `peek_archive_id` but pulls the full metadata set
+/// the catalog UI needs — title, author, language, packType, lesson
+/// count. Done in a single zip pass per archive so listing 60 packs
+/// stays fast.
+fn peek_archive_metadata(
+    archive: &Path,
+) -> anyhow::Result<(String, String, Option<String>, String, Option<String>, u32)> {
+    let file = fs::File::open(archive)?;
+    let mut zip = zip::ZipArchive::new(file)?;
+    for i in 0..zip.len() {
+        let mut entry = zip.by_index(i)?;
+        if entry.name().ends_with("course.json") && !entry.is_dir() {
+            let mut buf = String::new();
+            entry.read_to_string(&mut buf)?;
+            let v: CourseJson = serde_json::from_str(&buf)?;
+            let id = str_field(&v, "id");
+            let title = str_field(&v, "title");
+            let author = opt_str_field(&v, "author");
+            let language = str_field(&v, "language");
+            let pack_type = opt_str_field(&v, "packType");
+            // Walk chapters/lessons to get a count. CourseJson is
+            // serde_json::Value so we just grab the array lengths.
+            let mut lesson_count = 0u32;
+            if let Some(chapters) = v.get("chapters").and_then(|c| c.as_array()) {
+                for ch in chapters {
+                    if let Some(lessons) = ch.get("lessons").and_then(|l| l.as_array()) {
+                        lesson_count += lessons.len() as u32;
+                    }
+                }
+            }
+            return Ok((id, title, author, language, pack_type, lesson_count));
+        }
+    }
+    anyhow::bail!("course.json not found in archive");
+}
+
+/// Like `str_field` but returns None for missing / non-string values
+/// instead of an empty string. Used for optional fields in the catalog
+/// metadata so missing-author renders blank rather than empty-string.
+fn opt_str_field(v: &CourseJson, key: &str) -> Option<String> {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+}
+
 /// Walk up from cwd + the running binary's dir looking for a folder
 /// that contains BOTH `package.json` and `public/starter-courses/`.
 /// That signature uniquely identifies the Fishbones repo root in dev

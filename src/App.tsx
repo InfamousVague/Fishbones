@@ -1742,6 +1742,7 @@ export default function App() {
     id: string;
     file: string;
     archiveUrl: string;
+    localPath?: string;
     title: string;
   }) {
     try {
@@ -1756,11 +1757,22 @@ export default function App() {
         const course = await res.json();
         const { storage } = await import("./lib/storage");
         await storage.saveCourse(entry.id, course);
+      } else if (entry.localPath) {
+        // Desktop bundled catalog: the .fishbones archive ships
+        // inside the binary at `entry.localPath`. Just unzip it
+        // into the courses dir — no network round-trip, no remote
+        // hosting required for the catalog to work.
+        const { invoke } = await import("@tauri-apps/api/core");
+        await invoke<string>("import_course", {
+          archivePath: entry.localPath,
+        });
       } else {
-        // Desktop: lazy-import the Tauri invoke helper so the web
-        // bundle doesn't pull it in. The native command fetches
-        // the .fishbones archive over HTTPS, writes to a temp
-        // file, and unzips into the courses dir.
+        // Desktop remote download: lazy-import the Tauri invoke
+        // helper. The native command fetches the .fishbones archive
+        // over HTTPS, writes to a temp file, and unzips into the
+        // courses dir. Used when the catalog source is a remote
+        // manifest (e.g. for over-the-air content updates) rather
+        // than the bundled set.
         const { invoke } = await import("@tauri-apps/api/core");
         await invoke<string>("download_and_install_course", {
           archiveUrl: entry.archiveUrl,
