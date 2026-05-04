@@ -62,10 +62,34 @@ all: build sign notarize install
 	@echo ""
 	@echo "✓ Done — Fishbones.app installed and notarized"
 
-## Build Tauri release
+## Build Tauri release.
+##
+## TAURI_SIGNING_* env vars trigger the updater plugin to also produce
+## `Fishbones.app.tar.gz` + `.sig` alongside the regular .dmg. These
+## are what the OTA updater downloads — without them, installed
+## clients can't auto-update. Default key path is the maintainer's
+## ~/.tauri/fishbones-updater.key; override TAURI_SIGNING_KEY_PATH if
+## you've stored the key elsewhere.
 build:
 	@echo "=== Building Tauri release ==="
-	cd $(ROOT) && npm run tauri build -- --bundles app,dmg
+	@if [ ! -f "$(TAURI_SIGNING_KEY_PATH)" ]; then \
+		echo "WARN: signing key not found at $(TAURI_SIGNING_KEY_PATH);"; \
+		echo "      OTA update artifacts won't be signed. Generate via:"; \
+		echo "      npx @tauri-apps/cli signer generate -w $(TAURI_SIGNING_KEY_PATH)"; \
+	fi
+	cd $(ROOT) && \
+		TAURI_SIGNING_PRIVATE_KEY="$$(cat $(TAURI_SIGNING_KEY_PATH) 2>/dev/null)" \
+		TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(TAURI_SIGNING_KEY_PASSWORD)" \
+		npm run tauri build -- --bundles app,dmg
+
+## Tauri OTA-update signing key. Generated once via
+## `npx @tauri-apps/cli signer generate -w ~/.tauri/fishbones-updater.key`;
+## the public half of this same keypair is committed to
+## `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`). Losing the
+## private key requires shipping a manual-install version with a
+## NEW pubkey to rotate the trust root — keep it backed up.
+TAURI_SIGNING_KEY_PATH      ?= $(HOME)/.tauri/fishbones-updater.key
+TAURI_SIGNING_KEY_PASSWORD  ?=
 
 ## Post-build: sign everything with hardened runtime + rebuild DMG
 sign:
@@ -149,6 +173,8 @@ release:
 ##   visit https://github.com/InfamousVague/Fishbones/releases/latest
 local-release: build sign notarize
 	@DMG_CURRENT="$(TAURI)/target/release/bundle/dmg/Fishbones_$(VERSION)_$(ARCH_TAG).dmg"; \
+	UPDATER_TARBALL="$(TAURI)/target/release/bundle/macos/Fishbones.app.tar.gz"; \
+	UPDATER_SIG="$$UPDATER_TARBALL.sig"; \
 	if [ ! -f "$$DMG_CURRENT" ]; then \
 		echo "ERROR: DMG not found at $$DMG_CURRENT"; exit 1; \
 	fi; \
@@ -168,8 +194,41 @@ local-release: build sign notarize
 			--notes "Signed and notarized macOS release." \
 			--latest; \
 	}; \
+	if [ -f "$$UPDATER_TARBALL" ] && [ -f "$$UPDATER_SIG" ]; then \
+		echo "Uploading OTA updater artefacts (Mac):"; \
+		cp "$$UPDATER_TARBALL" "/tmp/Fishbones_$(VERSION)_aarch64.app.tar.gz"; \
+		cp "$$UPDATER_SIG" "/tmp/Fishbones_$(VERSION)_aarch64.app.tar.gz.sig"; \
+		gh release upload "v$(VERSION)" \
+			"/tmp/Fishbones_$(VERSION)_aarch64.app.tar.gz" \
+			"/tmp/Fishbones_$(VERSION)_aarch64.app.tar.gz.sig" \
+			--clobber; \
+		rm -f "/tmp/Fishbones_$(VERSION)_aarch64.app.tar.gz" "/tmp/Fishbones_$(VERSION)_aarch64.app.tar.gz.sig"; \
+	else \
+		echo "WARN: OTA updater tarball missing at $$UPDATER_TARBALL"; \
+		echo "      Either TAURI_SIGNING_PRIVATE_KEY isn't set or the build"; \
+		echo "      didn't produce updater artefacts. Mac users will not be"; \
+		echo "      able to OTA-update from this version."; \
+	fi; \
 	echo ""; \
 	echo "✓ v$(VERSION) released and uploaded"
+	@$(MAKE) --no-print-directory update-manifest
+
+## Build + upload `latest.json` (the Tauri OTA updater manifest) for
+## the current version. Walks the release's assets, pairs each
+## updater bundle with its `.sig` file, and emits the manifest shape
+## the updater plugin expects. Idempotent — re-running just clobbers
+## the existing latest.json.
+##
+## Usually invoked automatically as the final step of `local-release`.
+## Run by hand when you've manually fixed up a release's assets.
+update-manifest:
+	@echo ""
+	@echo "=== Assembling latest.json for v$(VERSION) ==="
+	@node $(ROOT)/scripts/build-updater-manifest.mjs "v$(VERSION)" || { \
+		echo "WARN: latest.json build failed (probably some platform's"; \
+		echo "      .sig is missing). Re-run after CI finishes uploading."; \
+		exit 0; \
+	}
 
 ## Full ship: cut a GitHub release for the current version, then push
 ## fishbones.academy (site copy + /learn/ embed). The download buttons on

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Icon } from "@base/primitives/icon";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
@@ -30,7 +30,7 @@ interface Settings {
   openai_api_key: string | null;
 }
 
-type SectionId = "ai" | "theme" | "data" | "account";
+type SectionId = "ai" | "theme" | "data" | "diagnostics" | "account";
 
 interface SectionDef {
   id: SectionId;
@@ -42,6 +42,7 @@ const BASE_SECTIONS: SectionDef[] = [
   { id: "ai", label: "AI & API", hint: "Anthropic key + model" },
   { id: "theme", label: "Theme", hint: "App + editor colors" },
   { id: "data", label: "Data", hint: "Caches + courses" },
+  { id: "diagnostics", label: "Diagnostics", hint: "What's installed + what's not" },
 ];
 
 const ACCOUNT_SECTION: SectionDef = {
@@ -460,6 +461,8 @@ export default function SettingsDialog({ onDismiss, cloud, onRequestSignIn }: Pr
               </section>
             )}
 
+            {section === "diagnostics" && <DiagnosticsPanel />}
+
             {section === "account" &&
               onRequestSignIn &&
               !(cloud.signedIn && typeof cloud.user === "object" && cloud.user) && (
@@ -692,6 +695,135 @@ function AccountSection({
           </button>
         )}
       </div>
+    </section>
+  );
+}
+
+// ─── Diagnostics ──────────────────────────────────────────────────
+//
+// Probes the desktop app's bundled assets + user-data dirs and
+// surfaces a Pass/Warn/Fail report grouped by category. Drives the
+// "Settings → Diagnostics" pane.
+//
+// Backend: `run_diagnostics` Tauri command (see
+// src-tauri/src/diagnostics.rs). All checks are read-only so it's
+// safe to run repeatedly — UI offers a "Re-run" button that just
+// re-invokes the command.
+
+interface CheckResult {
+  id: string;
+  category: string;
+  label: string;
+  status: "pass" | "warn" | "fail";
+  detail: string;
+  remedy?: string | null;
+}
+
+function DiagnosticsPanel(): React.ReactElement {
+  const [checks, setChecks] = useState<CheckResult[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const run = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Lazy-import the Tauri invoke API so the web build (which
+      // doesn't have Tauri) doesn't choke on a top-level import.
+      const { invoke } = await import("@tauri-apps/api/core");
+      const result = await invoke<CheckResult[]>("run_diagnostics");
+      setChecks(result);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void run();
+  }, [run]);
+
+  // Group results by category for the section headers.
+  const byCategory = useMemo(() => {
+    const m = new Map<string, CheckResult[]>();
+    for (const c of checks ?? []) {
+      const list = m.get(c.category) ?? [];
+      list.push(c);
+      m.set(c.category, list);
+    }
+    return m;
+  }, [checks]);
+
+  const failCount = (checks ?? []).filter((c) => c.status === "fail").length;
+  const warnCount = (checks ?? []).filter((c) => c.status === "warn").length;
+
+  return (
+    <section>
+      <h3 className="fishbones-settings-section">Diagnostics</h3>
+      <p className="fishbones-settings-blurb">
+        Read-only probes for bundled assets and user data. If something on
+        the app is missing or broken, the cause usually shows up here as a
+        red row with a remedy hint. Send a screenshot of this pane when
+        filing a bug.
+      </p>
+
+      <div className="fishbones-settings-data-row">
+        <div>
+          <div className="fishbones-settings-data-label">
+            {loading
+              ? "Running checks…"
+              : checks
+                ? failCount > 0
+                  ? `${failCount} ${failCount === 1 ? "check" : "checks"} failing`
+                  : warnCount > 0
+                    ? `${warnCount} ${warnCount === 1 ? "warning" : "warnings"}`
+                    : "Everything looks good"
+                : ""}
+          </div>
+          {error && (
+            <div className="fishbones-settings-data-hint">
+              Diagnostics failed to run: {error}
+            </div>
+          )}
+        </div>
+        <button
+          className="fishbones-settings-secondary"
+          onClick={() => void run()}
+          disabled={loading}
+        >
+          {loading ? "…" : "Re-run"}
+        </button>
+      </div>
+
+      {checks &&
+        Array.from(byCategory.entries()).map(([cat, items]) => (
+          <div key={cat} className="fishbones-diagnostics-group">
+            <div className="fishbones-diagnostics-group-title">{cat}</div>
+            <ul className="fishbones-diagnostics-list">
+              {items.map((c) => (
+                <li
+                  key={c.id}
+                  className={`fishbones-diagnostics-item fishbones-diagnostics-item--${c.status}`}
+                >
+                  <span
+                    className={`fishbones-diagnostics-dot fishbones-diagnostics-dot--${c.status}`}
+                    aria-hidden
+                  />
+                  <div className="fishbones-diagnostics-body">
+                    <div className="fishbones-diagnostics-label">{c.label}</div>
+                    <div className="fishbones-diagnostics-detail">{c.detail}</div>
+                    {c.remedy && c.status !== "pass" && (
+                      <div className="fishbones-diagnostics-remedy">
+                        → {c.remedy}
+                      </div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
     </section>
   );
 }

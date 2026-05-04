@@ -13,6 +13,9 @@
     "core:window:allow-set-focus",
     "core:window:allow-close",
     "core:window:allow-start-dragging",
-    "core:webview:allow-webview-close"
+    "core:webview:allow-webview-close",
+    "updater:default",
+    "process:default",
+    "process:allow-restart"
   ]
 }

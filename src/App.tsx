@@ -75,6 +75,7 @@ import MobileMicroPuzzle from "./mobile/MobileMicroPuzzle";
 import AiAssistant from "./components/AiAssistant/AiAssistant";
 import MobileApp from "./mobile/MobileApp";
 import { InstallBanner } from "./components/InstallBanner/InstallBanner";
+import { UpdateBanner } from "./components/UpdateBanner/UpdateBanner";
 import CommandPalette from "./components/CommandPalette/CommandPalette";
 import { VerifyCourseOverlay, type VerifySessionView } from "./components/VerifyCourse";
 import FixApplierDialog from "./components/FixApplier/FixApplierDialog";
@@ -1502,6 +1503,11 @@ export default function App() {
           component self-gates on `isWeb` and a 30-day localStorage
           dismissal, so on desktop this is a no-op render. */}
       <InstallBanner />
+
+      {/* OTA update toast — desktop-only. Self-gates on `isDesktop`
+          + the result of a Tauri-updater check. Idle state renders
+          null so this is invisible when there's nothing to install. */}
+      <UpdateBanner />
 
       {/* First-launch sign-in nudge. Self-gates on
           `cloud.user === false` (= no token, not signed in) and on

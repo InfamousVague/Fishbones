@@ -66,6 +66,8 @@ tiny_http = "0.12"
 # are off — we don't need TIFF/BMP/HDR/etc., just the formats people
 # actually have cover images in.
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif"] }
+tauri-plugin-updater = "2.10.1"
+tauri-plugin-process = "2.3.1"
 
 [profile.release]
 opt-level = 3

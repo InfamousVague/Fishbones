@@ -36,6 +36,8 @@
     "@tauri-apps/plugin-deep-link": "^2.4.8",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "@types/markdown-it": "^14.1.2",
     "@types/qrcode": "^1.5.6",
     "fengari": "^0.1.5",

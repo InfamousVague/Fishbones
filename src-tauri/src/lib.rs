@@ -9,6 +9,7 @@
 
 mod ai_chat;
 mod courses;
+mod diagnostics;
 mod docs_crawl;
 mod epub_ingest;
 mod image_gen;
@@ -150,6 +151,18 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
+        // Updater: pulls a `latest.json` from the configured endpoint
+        // (see `tauri.conf.json` plugins.updater) on demand and verifies
+        // the bundle signature against the embedded public key. The
+        // private key lives ONLY in the maintainer's keychain + the CI
+        // secrets vault — losing it means rotating the public key and
+        // shipping a manual-install version. Plugin is config-only on
+        // the Rust side; all flow control happens from the JS via
+        // `@tauri-apps/plugin-updater`.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        // Process: needed by the updater UI to call `relaunch()` after
+        // the update is staged. Tiny plugin, no config required.
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let db_path = progress_db::resolve_path(app.handle())?;
             let db = progress_db::open(db_path)?;
@@ -190,6 +203,7 @@ pub fn run() {
             courses::export_course,
             courses::import_course,
             courses::list_bundled_catalog_entries,
+            diagnostics::run_diagnostics,
             courses::read_bundled_course,
             courses::download_and_install_course,
             courses::refresh_bundled_courses,

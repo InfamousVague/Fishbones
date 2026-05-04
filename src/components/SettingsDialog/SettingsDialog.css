@@ -472,3 +472,81 @@
   color: var(--color-text-tertiary);
   letter-spacing: 0.2px;
 }
+
+/* ─── Diagnostics panel ─────────────────────────────────────────
+ * Grouped read-only health checks. Each item is a colored dot +
+ * label + detail + (on fail) a remedy hint. Categories are bucketed
+ * with subtle dividers so the list scans top-down. */
+
+.fishbones-diagnostics-group {
+  margin-top: 18px;
+}
+
+.fishbones-diagnostics-group-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.fishbones-diagnostics-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fishbones-diagnostics-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--color-bg-tertiary);
+  border-radius: 6px;
+}
+
+.fishbones-diagnostics-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 999px;
+}
+
+.fishbones-diagnostics-dot--pass { background: #4ade80; }
+.fishbones-diagnostics-dot--warn { background: #facc15; }
+.fishbones-diagnostics-dot--fail { background: #ef4444; }
+
+.fishbones-diagnostics-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fishbones-diagnostics-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.005em;
+}
+
+.fishbones-diagnostics-detail {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono, ui-monospace), monospace;
+  word-break: break-all;
+}
+
+.fishbones-diagnostics-remedy {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--color-text-primary);
+  font-style: italic;
+}

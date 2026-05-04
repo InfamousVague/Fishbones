@@ -222,12 +222,27 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # OTA-updater signing. Both vars MUST be set as repo
+          # secrets — without them tauri-action skips signing the
+          # update artifacts (`*.app.tar.gz`, `*.msi.zip`, `*.AppImage.tar.gz`)
+          # and DOESN'T emit a `latest.json` manifest, breaking the
+          # OTA flow entirely. See README / docs for the one-time
+          # secret-setup steps; the keypair lives in the maintainer's
+          # `~/.tauri/fishbones-updater.key` and was generated via
+          # `tauri signer generate`.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           releaseName: ${{ github.ref_type == 'tag' && format('Fishbones {0}', github.ref_name) || '' }}
           releaseBody: ${{ github.ref_type == 'tag' && format('Signed and notarized macOS release. Linux + Windows builds attached automatically by CI.', github.ref_name) || '' }}
           releaseDraft: false
           prerelease: false
+          # `updaterJsonPreferNsis: true` makes the generated
+          # latest.json point at the NSIS .exe-installer for Windows
+          # rather than the .msi (smaller delta + supports silent
+          # background install which the updater needs).
+          updaterJsonPreferNsis: true
           args: ${{ matrix.tauri-args }}
 
       # Always upload the bundle artefacts to the workflow run too,
@@ -242,11 +257,47 @@ jobs:
           path: |
             src-tauri/target/release/bundle/**/*.dmg
             src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.msi.zip
+            src-tauri/target/release/bundle/**/*.nsis.zip
             src-tauri/target/release/bundle/**/*.exe
             src-tauri/target/release/bundle/**/*.app.tar.gz
             src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.AppImage.tar.gz
             src-tauri/target/release/bundle/**/*.deb
             src-tauri/target/release/bundle/**/*.rpm
+            src-tauri/target/release/bundle/**/*.sig
             src-tauri/target/universal-apple-darwin/release/bundle/**/*.dmg
+            src-tauri/target/universal-apple-darwin/release/bundle/**/*.app.tar.gz
+            src-tauri/target/universal-apple-darwin/release/bundle/**/*.sig
           retention-days: 14
           if-no-files-found: warn
+
+  # Post-matrix step: assemble a unified latest.json that lists every
+  # platform's updater bundle. tauri-action's per-job latest.json
+  # output gets clobbered by whichever matrix entry uploads last —
+  # this job runs ONCE after the matrix and rebuilds the manifest
+  # from the release's actual assets, so all 3 platforms appear.
+  # Tag-push only; smoke-test runs (push-to-main) skip it because
+  # there's no release to attach a manifest to.
+  build-update-manifest:
+    name: Build OTA updater manifest
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Best-effort: the script tolerates Mac assets not being there
+      # yet (local-release uploads them on its own cadence). On a fresh
+      # tag-push, we'd typically run after CI's Linux + Windows assets
+      # have landed and BEFORE local-release's Mac upload finishes —
+      # the local-release Makefile target re-runs `make update-manifest`
+      # at the end so the final manifest includes Mac too.
+      - name: Assemble latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/build-updater-manifest.mjs "${{ github.ref_name }}"
