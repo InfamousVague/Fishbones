@@ -5,7 +5,32 @@ import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
 import { THEMES, applyTheme, loadTheme, type ThemeName } from "../../theme/themes";
 import type { UseFishbonesCloud } from "../../hooks/useFishbonesCloud";
+import LanguageChip from "../LanguageChip/LanguageChip";
 import "./SettingsDialog.css";
+
+/// Map a Resources-panel check id back to a `LanguageId`-shaped string so
+/// the row can render a brand chip. Only language-bound checks return a
+/// value; bundled-asset / user-data / network checks return null and the
+/// row renders chip-less. Kept in sync with the toolchain entries in
+/// `src-tauri/src/diagnostics.rs::run_diagnostics`.
+function languageForCheckId(id: string): string | null {
+  switch (id) {
+    case "toolchain-clang": return "cpp";
+    case "toolchain-java": return "java";
+    case "toolchain-kotlinc": return "kotlin";
+    case "toolchain-dotnet": return "csharp";
+    case "toolchain-swift": return "swift";
+    case "toolchain-as": return "assembly";
+    case "toolchain-go": return "go";
+    case "toolchain-rustc": return "rust";
+    case "toolchain-zig": return "zig";
+    case "toolchain-elixir": return "elixir";
+    case "toolchain-ruby": return "ruby";
+    case "toolchain-runghc": return "haskell";
+    case "solc-cdn": return "solidity";
+    default: return null;
+  }
+}
 
 interface Props {
   onDismiss: () => void;
@@ -42,7 +67,7 @@ const BASE_SECTIONS: SectionDef[] = [
   { id: "ai", label: "AI & API", hint: "Anthropic key + model" },
   { id: "theme", label: "Theme", hint: "App + editor colors" },
   { id: "data", label: "Data", hint: "Caches + courses" },
-  { id: "diagnostics", label: "Diagnostics", hint: "What's installed + what's not" },
+  { id: "diagnostics", label: "Resources", hint: "What's installed + what's not" },
 ];
 
 const ACCOUNT_SECTION: SectionDef = {
@@ -760,7 +785,7 @@ function DiagnosticsPanel(): React.ReactElement {
 
   return (
     <section>
-      <h3 className="fishbones-settings-section">Diagnostics</h3>
+      <h3 className="fishbones-settings-section">Resources</h3>
       <p className="fishbones-settings-blurb">
         Read-only probes for bundled assets and user data. If something on
         the app is missing or broken, the cause usually shows up here as a
@@ -783,7 +808,7 @@ function DiagnosticsPanel(): React.ReactElement {
           </div>
           {error && (
             <div className="fishbones-settings-data-hint">
-              Diagnostics failed to run: {error}
+              Resource probes failed to run: {error}
             </div>
           )}
         </div>
@@ -801,26 +826,39 @@ function DiagnosticsPanel(): React.ReactElement {
           <div key={cat} className="fishbones-diagnostics-group">
             <div className="fishbones-diagnostics-group-title">{cat}</div>
             <ul className="fishbones-diagnostics-list">
-              {items.map((c) => (
-                <li
-                  key={c.id}
-                  className={`fishbones-diagnostics-item fishbones-diagnostics-item--${c.status}`}
-                >
-                  <span
-                    className={`fishbones-diagnostics-dot fishbones-diagnostics-dot--${c.status}`}
-                    aria-hidden
-                  />
-                  <div className="fishbones-diagnostics-body">
-                    <div className="fishbones-diagnostics-label">{c.label}</div>
-                    <div className="fishbones-diagnostics-detail">{c.detail}</div>
-                    {c.remedy && c.status !== "pass" && (
-                      <div className="fishbones-diagnostics-remedy">
-                        → {c.remedy}
+              {items.map((c) => {
+                const lang = languageForCheckId(c.id);
+                return (
+                  <li
+                    key={c.id}
+                    className={`fishbones-diagnostics-item fishbones-diagnostics-item--${c.status}`}
+                  >
+                    <span
+                      className={`fishbones-diagnostics-dot fishbones-diagnostics-dot--${c.status}`}
+                      aria-hidden
+                    />
+                    <div className="fishbones-diagnostics-body">
+                      <div className="fishbones-diagnostics-label">
+                        {lang && (
+                          <LanguageChip
+                            language={lang}
+                            size="xs"
+                            iconOnly
+                            className="fishbones-diagnostics-langchip"
+                          />
+                        )}
+                        <span>{c.label}</span>
                       </div>
-                    )}
-                  </div>
-                </li>
-              ))}
+                      <div className="fishbones-diagnostics-detail">{c.detail}</div>
+                      {c.remedy && c.status !== "pass" && (
+                        <div className="fishbones-diagnostics-remedy">
+                          → {c.remedy}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

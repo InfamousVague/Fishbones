@@ -185,6 +185,50 @@ function categorizeCourse(course: Course): CourseCategory {
   return "programming";
 }
 
+/// Library-side dedupe for installed challenge packs. The
+/// gen-challenges script used to mint nanoid-suffixed packs
+/// (`challenges-go-mo9kijkd`) when the now-canonical
+/// `challenges-go-handwritten` versions were promoted; users who
+/// generated locally before the rename ended up with both on disk.
+/// Both have `packType: "challenges"` and the same `language`, and
+/// both render as separate Library tiles → visible duplicates.
+///
+/// Strategy: group by `(language, packType==="challenges")`. When a
+/// group has more than one course, prefer the one whose id ends in
+/// `-handwritten` (the canonical naming). Among ties, keep the one
+/// whose id sorts first — stable + deterministic.
+///
+/// Books (`packType !== "challenges"`) and challenge groups with
+/// only one entry pass through untouched. The dedupe runs in
+/// O(n) on the courses array.
+function dedupeChallengePacks(courses: Course[]): Course[] {
+  // Group challenge packs by language. Books pass through.
+  const challengeGroups = new Map<string, Course[]>();
+  const books: Course[] = [];
+  for (const c of courses) {
+    if (isChallengePack(c)) {
+      const list = challengeGroups.get(c.language) ?? [];
+      list.push(c);
+      challengeGroups.set(c.language, list);
+    } else {
+      books.push(c);
+    }
+  }
+  const dedupedChallenges: Course[] = [];
+  for (const [, group] of challengeGroups) {
+    if (group.length === 1) {
+      dedupedChallenges.push(group[0]);
+      continue;
+    }
+    // Prefer canonical *-handwritten id; fallback to alphabetical.
+    const canonical =
+      group.find((c) => c.id.endsWith("-handwritten")) ??
+      group.slice().sort((a, b) => a.id.localeCompare(b.id))[0];
+    dedupedChallenges.push(canonical);
+  }
+  return [...books, ...dedupedChallenges];
+}
+
 /// Returns true when the chain-pill row should render — at least two
 /// distinct chains are present in the crypto subset. With only one
 /// chain there's nothing to switch between, so the row hides.
@@ -442,7 +486,15 @@ export default function CourseLibrary({
         pct: 0,
       }));
     }
-    return courses.map((c) => {
+    // Library-side dedupe by (language, packType) for challenge packs.
+    // The auto-gen-challenges flow used to mint nanoID-suffixed packs
+    // (`challenges-go-mo9kijkd`) that survived alongside the canonical
+    // `challenges-go-handwritten` ones, producing visible duplicates
+    // in the Library grid. Prefer the `-handwritten`-suffixed canonical
+    // version when both are installed; fall back to alphabetical id
+    // when neither matches the canonical naming.
+    const dedupedCourses = dedupeChallengePacks(courses);
+    return dedupedCourses.map((c) => {
       let total = 0;
       let done = 0;
       for (const ch of c.chapters) {

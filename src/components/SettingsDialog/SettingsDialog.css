@@ -530,10 +530,20 @@
 }
 
 .fishbones-diagnostics-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: -0.005em;
+}
+
+/* Brand-tinted chip beside language-bound resource rows (Rust /
+ * Swift / Solidity etc). Same chip the Library uses; the row's
+ * flex layout aligns it inline with the label text. */
+.fishbones-diagnostics-langchip {
+  flex: 0 0 auto;
 }
 
 .fishbones-diagnostics-detail {
