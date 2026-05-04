@@ -109,7 +109,9 @@ export default function OutputPane({
 }: Props) {
   const passedCount = result?.tests?.filter((t) => t.passed).length ?? 0;
   const totalTests = result?.tests?.length ?? 0;
-  const allPassed = totalTests > 0 && passedCount === totalTests && !result?.error;
+  // `allPassed` was used by the now-retired summary chip in the
+  // header right; the Tests tab badge ({passed}/{total}) carries the
+  // same signal. Kept counts above as plain numbers for the badge.
   const previewUrl = result?.previewUrl;
   const previewKind = result?.previewKind;
 
@@ -188,7 +190,14 @@ export default function OutputPane({
   const [activeTab, setActiveTab] = useState<OutputTab>("tests");
   const hasLogs = (result?.logs?.length ?? 0) > 0;
   const hasTests = (result?.tests?.length ?? 0) > 0;
-  const showTabs = hasLogs && hasTests;
+  // Show tabs whenever the run is a lesson run (testsExpected) OR
+  // either pane has content. This means even a "Console is empty"
+  // state still shows the Console tab — without it the user has no
+  // way to confirm "yes, my code didn't print anything" vs "the
+  // tab is just hidden". Earlier rule (`hasLogs && hasTests`) hid
+  // tabs whenever one bucket was empty, which made the split feel
+  // inconsistent.
+  const showTabs = !!testsExpected || hasLogs || hasTests;
   // Auto-pick a sensible default whenever a NEW result lands. Lessons
   // (testsExpected) start on Tests so the pass/fail badges are the
   // first thing you see; a failing run flips to Tests too even if
@@ -248,19 +257,66 @@ export default function OutputPane({
   return (
     <div className="fishbones-output">
       <div className="fishbones-output-header">
-        <span className="fishbones-output-label">
-          {previewUrl ? "preview" : "console"}
-        </span>
-        <div className="fishbones-output-header-right">
-          {totalTests > 0 && !running && (
-            <span
-              className={`fishbones-output-tests-summary ${
-                allPassed ? "fishbones-output-tests-summary--pass" : "fishbones-output-tests-summary--fail"
+        {/* Header left side: tabs when this is a multi-pane output
+            (Console + Tests), otherwise the static label. The
+            tabs-in-header treatment matches editors / browser
+            devtools where the active subview is the dominant chrome
+            element rather than tucked under a generic "output" word. */}
+        {showTabs && !previewUrl ? (
+          <div
+            className="fishbones-output-tabs"
+            role="tablist"
+            aria-label="Output"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "console"}
+              className={`fishbones-output-tab ${
+                activeTab === "console" ? "fishbones-output-tab--active" : ""
               }`}
+              onClick={() => setActiveTab("console")}
             >
-              {passedCount}/{totalTests} passed
-            </span>
-          )}
+              <span>Console</span>
+              {hasLogs && (
+                <span className="fishbones-output-tab-badge">
+                  {result?.logs?.length ?? 0}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "tests"}
+              className={`fishbones-output-tab ${
+                activeTab === "tests" ? "fishbones-output-tab--active" : ""
+              } ${
+                failingCount > 0
+                  ? "fishbones-output-tab--has-failures"
+                  : ""
+              }`}
+              onClick={() => setActiveTab("tests")}
+            >
+              <span>Tests</span>
+              {hasTests && (
+                <span
+                  className={`fishbones-output-tab-badge ${
+                    failingCount > 0
+                      ? "fishbones-output-tab-badge--fail"
+                      : "fishbones-output-tab-badge--pass"
+                  }`}
+                >
+                  {passedCount}/{totalTests}
+                </span>
+              )}
+            </button>
+          </div>
+        ) : (
+          <span className="fishbones-output-label">
+            {previewUrl ? "preview" : "console"}
+          </span>
+        )}
+        <div className="fishbones-output-header-right">
           {result && !running && (
             <span className="fishbones-output-duration">{result.durationMs.toFixed(0)}ms</span>
           )}
@@ -370,75 +426,43 @@ export default function OutputPane({
           </div>
         )}
 
-        {/* Tab bar — only renders when both Console AND Tests have
-            content. A run with logs-only or tests-only skips the
-            chrome and shows the single section straight. Same idea
-            as the editor's hint pane: chrome appears when there's
-            something to switch between. */}
-        {showTabs && (
-          <div className="fishbones-output-tabs" role="tablist" aria-label="Output">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "console"}
-              className={`fishbones-output-tab ${
-                activeTab === "console" ? "fishbones-output-tab--active" : ""
-              }`}
-              onClick={() => setActiveTab("console")}
-            >
-              <span>Console</span>
-              <span className="fishbones-output-tab-badge">
-                {result?.logs?.length ?? 0}
-              </span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "tests"}
-              className={`fishbones-output-tab ${
-                activeTab === "tests" ? "fishbones-output-tab--active" : ""
-              } ${
-                failingCount > 0
-                  ? "fishbones-output-tab--has-failures"
-                  : ""
-              }`}
-              onClick={() => setActiveTab("tests")}
-            >
-              <span>Tests</span>
-              <span
-                className={`fishbones-output-tab-badge ${
-                  failingCount > 0
-                    ? "fishbones-output-tab-badge--fail"
-                    : "fishbones-output-tab-badge--pass"
-                }`}
-              >
-                {passedCount}/{totalTests}
-              </span>
-            </button>
-          </div>
-        )}
-
-        {/* Console pane — visible when:
+        {/* Console pane. Visible when:
             - tabs not shown AND there are logs (single-section run)
-            - tabs shown AND user picked the Console tab */}
+            - tabs shown AND user picked the Console tab — even if
+              empty, so they can confirm "no output" rather than
+              wondering whether the section is hiding. */}
         {((!showTabs && hasLogs) || (showTabs && activeTab === "console")) && (
           <div className="fishbones-output-console">
-            {(result?.logs ?? []).map((line, i) => (
-              <div
-                key={`log-${i}`}
-                className={`fishbones-output-line fishbones-output-line--${line.level}`}
-              >
-                {line.text}
+            {hasLogs ? (
+              (result?.logs ?? []).map((line, i) => (
+                <div
+                  key={`log-${i}`}
+                  className={`fishbones-output-line fishbones-output-line--${line.level}`}
+                >
+                  {line.text}
+                </div>
+              ))
+            ) : (
+              <div className="fishbones-output-pane-empty">
+                No console output. Add{" "}
+                <code>std.debug.print(...)</code>{" "}
+                <span className="fishbones-output-pane-empty-hint">
+                  (or your language's print) inside your code to see
+                  output here.
+                </span>
               </div>
-            ))}
+            )}
           </div>
         )}
 
-        {/* Tests pane — same visibility rule mirrored. */}
-        {((!showTabs && hasTests) || (showTabs && activeTab === "tests")) &&
-          result?.tests && (
-            <div className="fishbones-output-tests">
-              {result.tests.map((t, i) => (
+        {/* Tests pane. Same visibility rule mirrored — render an
+            empty-state when tabs are visible and there are no tests
+            (e.g. a lesson where the runner returned no results) so
+            the tab isn't a dead end. */}
+        {((!showTabs && hasTests) || (showTabs && activeTab === "tests")) && (
+          <div className="fishbones-output-tests">
+            {hasTests ? (
+              result!.tests!.map((t, i) => (
                 <div
                   key={`t-${i}`}
                   className={`fishbones-output-test fishbones-output-test--${t.passed ? "pass" : "fail"}`}
@@ -456,9 +480,16 @@ export default function OutputPane({
                     <pre className="fishbones-output-test-error">{t.error}</pre>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <div className="fishbones-output-pane-empty">
+                {testsExpected
+                  ? "Run your code — test results will appear here."
+                  : "This lesson doesn't have automated tests."}
+              </div>
+            )}
+          </div>
+        )}
 
         {result?.desktopOnly && (
           // Web build: this language's runtime needs the desktop app.

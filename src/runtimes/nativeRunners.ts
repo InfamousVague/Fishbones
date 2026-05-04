@@ -316,15 +316,17 @@ export async function runZig(code: string, testCode?: string): Promise<RunResult
   const logs: LogLine[] = [];
   if (visibleStdout) logs.push({ level: "log", text: visibleStdout });
   if (visibleStderr) {
-    // For lesson runs we report stderr as a "log" line regardless of
-    // pass/fail. The test pills already show the red FAIL state; an
-    // additional "error"-level wrapper around the user's own debug
-    // prints is a category mismatch ("you printed to debug, here's
-    // an error"). Compile errors and panics still come through —
-    // they're visible as text, just not styled red by the log-level
-    // chrome.
+    // Tier the log level off `success`: a clean run (success=true)
+    // means stderr text is the user's own `debug.print` output,
+    // which renders as a normal log; a failed run (success=false)
+    // means stderr is a compile error / panic / leak trace, which
+    // renders red so the learner spots it without scanning. Same
+    // rule for both lesson and playground runs — the `isLessonRun`
+    // gate that used to live here forced compile errors to render
+    // black on lesson runs, which buried the failure inside what
+    // looked like normal output.
     logs.push({
-      level: isLessonRun ? "log" : raw.success ? "log" : "error",
+      level: raw.success ? "log" : "error",
       text: visibleStderr.trimEnd(),
     });
   }

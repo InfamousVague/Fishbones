@@ -561,6 +561,7 @@ pub(crate) fn find_binary_all(name: &str) -> Vec<String> {
     // because /opt/homebrew takes precedence over /usr/local on M-series
     // Macs even when both exist. JDK-adjacent paths last (they're only
     // relevant for `java`/`javac`) so they don't burden other binaries.
+    let home = std::env::var("HOME").unwrap_or_default();
     let candidates = [
         format!("/opt/homebrew/bin/{name}"),
         format!("/usr/local/bin/{name}"),
@@ -568,7 +569,13 @@ pub(crate) fn find_binary_all(name: &str) -> Vec<String> {
         format!("/opt/homebrew/opt/openjdk/bin/{name}"),
         format!("/usr/local/opt/openjdk/bin/{name}"),
         format!("/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home/bin/{name}"),
-        format!("{}/.cargo/bin/{}", std::env::var("HOME").unwrap_or_default(), name),
+        format!("{home}/.cargo/bin/{name}"),
+        // Solana CLI's standard install location. The Anza installer
+        // doesn't update PATH automatically — it only writes a rc-file
+        // snippet — so a `solana` (or `cargo-build-sbf`) binary
+        // installed via the curl-bash one-liner won't be found by
+        // `which` on a fresh shell. Look for it explicitly.
+        format!("{home}/.local/share/solana/install/active_release/bin/{name}"),
     ];
     for p in &candidates {
         if std::path::Path::new(p).exists() && !out.iter().any(|q| q == p) {
@@ -610,8 +617,15 @@ pub(crate) fn broadened_path() -> String {
     ];
     let home = std::env::var("HOME").unwrap_or_default();
     let cargo_bin = format!("{home}/.cargo/bin");
+    // Solana CLI installs to a non-PATH location by default
+    // (`sh -c "$(curl ...)"` only writes a shell-rc snippet).
+    // Add it explicitly so probe + native-runners can find
+    // `solana` / `cargo-build-sbf` regardless of whether the user
+    // sourced their rc file before launching the app.
+    let solana_bin = format!("{home}/.local/share/solana/install/active_release/bin");
     let mut parts: Vec<String> = extra.iter().map(|s| s.to_string()).collect();
     parts.push(cargo_bin);
+    parts.push(solana_bin);
     if !existing.is_empty() {
         parts.push(existing);
     }

@@ -8,7 +8,6 @@ import { code as codeIcon } from "@base/primitives/icon/icons/code";
 import { fileText } from "@base/primitives/icon/icons/file-text";
 import { helpCircle } from "@base/primitives/icon/icons/help-circle";
 import { libraryBig } from "@base/primitives/icon/icons/library-big";
-import { home as homeIcon } from "@base/primitives/icon/icons/home";
 import { compass as compassIcon } from "@base/primitives/icon/icons/compass";
 import { trees as treesIcon } from "@base/primitives/icon/icons/trees";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
@@ -146,11 +145,6 @@ interface Props {
   /// through. Separate from onSelectLesson so the carousel's click
   /// behavior is explicit rather than guessing a lesson id here.
   onSelectCourse?: (courseId: string) => void;
-  /// Home route — feature-showcase landing page that mounts real
-  /// components with mock data (skill trees, EVM dock, editor, book
-  /// covers). Optional so embeddings without a home pane (popped
-  /// workbench window, mobile companion) don't grow a dead chip.
-  onHome?: () => void;
   /// Opens the course library modal.
   onLibrary: () => void;
   /// Discover route — browse catalog books + challenge packs not
@@ -188,7 +182,6 @@ interface Props {
   /// "profile" stays a valid destination even though it's no longer in
   /// the sidebar — the top-bar streak pill's "View profile" CTA sets it.
   activeView?:
-    | "home"
     | "courses"
     | "profile"
     | "playground"
@@ -222,7 +215,6 @@ export default function Sidebar({
   recents = {},
   onSelectLesson,
   onSelectCourse,
-  onHome,
   onLibrary,
   onDiscover,
   onTrees,
@@ -345,14 +337,6 @@ export default function Sidebar({
           frequent one first matches how the learner actually uses the
           sidebar. */}
       <div className="fishbones__sidebar-nav">
-        {onHome && (
-          <SidebarNavItem
-            icon={homeIcon}
-            label="Home"
-            onClick={onHome}
-            active={activeView === "home"}
-          />
-        )}
         <SidebarNavItem
           icon={libraryBig}
           label="Library"

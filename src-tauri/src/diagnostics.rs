@@ -45,17 +45,58 @@ pub struct CheckResult {
     pub remedy: Option<String>,
 }
 
-/// Run every diagnostic check, return the full report. Cheap (no
-/// network calls) — safe to invoke on every Settings open.
+/// Run every diagnostic check, return the full report. Mostly cheap
+/// — bundle / data probes are filesystem-only (microseconds). Native
+/// toolchain probes spawn `<binary> --version` per language, which
+/// adds ~50ms per probe; with ~12 languages that's <1s total which
+/// is acceptable for an on-Settings-open call.
+///
+/// Made async because the language toolchain probes (`tokio::process`)
+/// require an async runtime to spawn — the rest of the checks are
+/// sync and just return their result directly.
 #[tauri::command]
-pub fn run_diagnostics(app: tauri::AppHandle) -> Vec<CheckResult> {
+pub async fn run_diagnostics(app: tauri::AppHandle) -> Vec<CheckResult> {
     let mut out = Vec::new();
+    // Bundled assets — what shipped inside the installer.
     out.push(check_resource_dir(&app));
     out.push(check_bundled_packs(&app));
     out.push(check_vendor_dir(&app));
     out.push(check_node_runtime(&app));
+    // User data — where progress / settings live.
     out.push(check_app_data_dir());
     out.push(check_progress_db(&app));
+    // Web runtimes — solc CDN reachability matters for the
+    // smart-contract lessons (Mastering Ethereum chapters 4-14).
+    out.push(check_solc_cdn().await);
+    // Blockchain SDKs — Solana CLI is needed for native-program
+    // exercises in Solana Programs (cargo-build-sbf).
+    out.push(check_solana_cli());
+    // Native toolchains — every desktop-only language Fishbones
+    // supports needs a real compiler/runtime on PATH. These are
+    // category "Native toolchains" and sit at the bottom of the
+    // panel.
+    out.push(check_native("C / C++", "clang", &["--version"], "xcode-select --install"));
+    out.push(check_native("Java", "java", &["-version"], "brew install openjdk"));
+    out.push(check_native("Kotlin", "kotlinc", &["-version"], "brew install kotlin"));
+    out.push(check_native("C# / .NET", "dotnet", &["--version"], "brew install --cask dotnet-sdk"));
+    out.push(check_native("Swift", "swift", &["--version"], "xcode-select --install"));
+    out.push(check_native(
+        "Assembly (as / ld)",
+        "as",
+        &["--version"],
+        "xcode-select --install",
+    ));
+    out.push(check_native("Go", "go", &["version"], "brew install go"));
+    out.push(check_native(
+        "Rust",
+        "rustc",
+        &["--version"],
+        "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh",
+    ));
+    out.push(check_native("Zig", "zig", &["version"], "brew install zig"));
+    out.push(check_native("Elixir", "elixir", &["--version"], "brew install elixir"));
+    out.push(check_native("Ruby", "ruby", &["--version"], "brew install ruby"));
+    out.push(check_native("Haskell (runghc)", "runghc", &["--version"], "brew install ghc"));
     out
 }
 
@@ -372,4 +413,144 @@ fn walk_for_named_file(start: &Path, name: &str, max_depth: usize) -> Option<Pat
         }
     }
     None
+}
+
+// ─── Native-toolchain probes ───────────────────────────────────────
+//
+// Reuses `crate::toolchain::find_working_binary` so the diagnostics
+// view + the missing-toolchain banner agree on what counts as
+// "installed". Both walk the same broadened-PATH search and reject
+// macOS stub binaries (the `/usr/bin/java` "please install Java"
+// stub passes `which` but fails `java -version`).
+
+fn check_native(
+    label: &str,
+    binary: &str,
+    version_args: &[&str],
+    install_hint: &str,
+) -> CheckResult {
+    let working = crate::toolchain::find_working_binary(binary, version_args);
+    let id = format!("toolchain-{}", binary);
+    match working {
+        Some(p) => CheckResult {
+            id,
+            category: "Native toolchains".into(),
+            label: label.into(),
+            status: CheckStatus::Pass,
+            detail: p,
+            remedy: None,
+        },
+        None => CheckResult {
+            id,
+            category: "Native toolchains".into(),
+            // Warn (not Fail) — most native toolchains are optional;
+            // a learner who doesn't touch C lessons doesn't care that
+            // clang isn't installed. The fail cases are bundled assets
+            // (see check_bundled_packs).
+            label: label.into(),
+            status: CheckStatus::Warn,
+            detail: format!("`{}` not found on PATH", binary),
+            remedy: Some(format!("Install: {}", install_hint)),
+        },
+    }
+}
+
+/// Solana CLI lives outside the toolchain.rs recipe table because
+/// it's needed for the SVM lessons (`cargo build-sbf` to compile
+/// Solana programs to BPF) but isn't a "language" Fishbones runs
+/// directly. find_working_binary already searches the standard
+/// `~/.local/share/solana/...` install dir thanks to the candidate
+/// list extension in toolchain.rs.
+fn check_solana_cli() -> CheckResult {
+    let working = crate::toolchain::find_working_binary("solana", &["--version"]);
+    match working {
+        Some(p) => CheckResult {
+            id: "solana-cli".into(),
+            category: "Blockchain SDKs".into(),
+            label: "Solana CLI (cargo-build-sbf)".into(),
+            status: CheckStatus::Pass,
+            detail: p,
+            remedy: None,
+        },
+        None => CheckResult {
+            id: "solana-cli".into(),
+            category: "Blockchain SDKs".into(),
+            label: "Solana CLI (cargo-build-sbf)".into(),
+            status: CheckStatus::Warn,
+            detail: "solana not on PATH or in standard install dir".into(),
+            remedy: Some(
+                "Solana lessons that compile native programs need it. Install via:\n  sh -c \"$(curl -sSfL https://release.anza.xyz/stable/install)\""
+                    .into(),
+            ),
+        },
+    }
+}
+
+/// Reach out to the solc compiler CDN to confirm Mastering Ethereum's
+/// in-browser EVM lessons can fetch the compiler. We don't download
+/// the full ~30MB file — just HEAD the resource so we know DNS +
+/// TLS + GitHub's-side existence are working. Network-bound; runs
+/// async with a 5s timeout to avoid hanging the Settings panel.
+async fn check_solc_cdn() -> CheckResult {
+    // Pinned to match `src/runtimes/solidity.ts`'s SOLC_VERSION.
+    // If the version drifts, the diagnostic's claim of "reachable"
+    // would be misleading — keep this in lockstep.
+    let url = "https://binaries.soliditylang.org/bin/soljson-v0.8.26+commit.8a97fa7a.js";
+    let probe = tokio::time::timeout(
+        std::time::Duration::from_secs(5),
+        async {
+            let client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(5))
+                .build()
+                .map_err(|e| e.to_string())?;
+            client
+                .head(url)
+                .send()
+                .await
+                .map_err(|e| e.to_string())
+        },
+    )
+    .await;
+    match probe {
+        Ok(Ok(resp)) if resp.status().is_success() => CheckResult {
+            id: "solc-cdn".into(),
+            category: "Web runtimes".into(),
+            label: "Solidity compiler CDN reachable".into(),
+            status: CheckStatus::Pass,
+            detail: format!("{} → HTTP {}", url, resp.status().as_u16()),
+            remedy: None,
+        },
+        Ok(Ok(resp)) => CheckResult {
+            id: "solc-cdn".into(),
+            category: "Web runtimes".into(),
+            label: "Solidity compiler CDN reachable".into(),
+            status: CheckStatus::Warn,
+            detail: format!("HTTP {} from {}", resp.status().as_u16(), url),
+            remedy: Some(
+                "EVM/Solidity lessons can't compile until this URL is reachable.".into(),
+            ),
+        },
+        Ok(Err(e)) => CheckResult {
+            id: "solc-cdn".into(),
+            category: "Web runtimes".into(),
+            label: "Solidity compiler CDN reachable".into(),
+            status: CheckStatus::Fail,
+            detail: format!("network error: {}", e),
+            remedy: Some(
+                "Check your internet connection or proxy settings. EVM/Solidity lessons need this CDN at run time."
+                    .into(),
+            ),
+        },
+        Err(_) => CheckResult {
+            id: "solc-cdn".into(),
+            category: "Web runtimes".into(),
+            label: "Solidity compiler CDN reachable".into(),
+            status: CheckStatus::Warn,
+            detail: "request timed out after 5s".into(),
+            remedy: Some(
+                "Slow network — EVM/Solidity lesson startup will be slow but should still work eventually."
+                    .into(),
+            ),
+        },
+    }
 }
