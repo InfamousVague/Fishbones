@@ -4,15 +4,15 @@ import "@base/primitives/icon/icon.css";
 import "./PhoneToggleButton.css";
 
 interface PhoneToggleButtonProps {
-  /// Called when the user clicks the button — the parent should flip
-  /// the floating phone modal back open.
+  /// Called when the user clicks the button — the parent should
+  /// re-open the phone popout window via `lib/phonePopout.ts`.
   onShow: () => void;
 }
 
-/// Small floating round button that brings the FloatingPhone modal
-/// back when it's been minimised. Lives in the bottom-right corner
-/// just above the AI orb (which sits at right: 20px / bottom: 20px),
-/// so the two coexist as a small stack without overlapping.
+/// Small floating round button that re-opens the phone popout window
+/// after it's been closed. Lives in the bottom-right corner just
+/// above the AI orb (which sits at right: 20px / bottom: 20px), so
+/// the two coexist as a small stack without overlapping.
 export default function PhoneToggleButton({ onShow }: PhoneToggleButtonProps) {
   return (
     <button

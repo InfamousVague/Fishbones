@@ -4,7 +4,7 @@ import { check } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
 import type { QuizLesson, QuizQuestion } from "../../data/types";
 import { normalizeAnswer } from "../../data/types";
-import { onCommand as onVerifierCommand } from "../../lib/verifierBus";
+import { onCommand as onVerifierCommand } from "../../lib/verify/bus";
 import "./QuizView.css";
 
 interface Props {

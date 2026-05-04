@@ -34,8 +34,9 @@ export async function runSvelte(files: WorkbenchFile[]): Promise<RunResult> {
   return {
     logs: [],
     previewUrl,
-    // Reuse the reactnative previewKind so OutputPane + FloatingPhone
-    // already-wired iframe path renders this without further plumbing.
+    // Reuse the reactnative previewKind so OutputPane + the phone
+    // popout window's already-wired iframe path renders this without
+    // further plumbing.
     // Svelte 5 isn't a "phone" runtime per se but the same iframe-
     // sandbox + URL-server approach applies, and the previewKind only
     // controls which dev-tools panel attaches alongside (we'd add a

@@ -153,13 +153,3 @@ export function useArchiveDrop({ onImport }: UseArchiveDropOptions): UseArchiveD
   // setters directly.
   return { isDragging, isImporting, progress };
 }
-
-/// Stable export so a future web-build implementation can re-use
-/// the extension list.
-export const FISHBONES_ARCHIVE_EXTENSIONS = ARCHIVE_EXTENSIONS;
-
-/// Public predicate so the overlay (or future wider drop targets)
-/// can use the same matching rule.
-export function isFishbonesArchivePath(path: string): boolean {
-  return isArchivePath(path);
-}

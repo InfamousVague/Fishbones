@@ -24,12 +24,12 @@
   padding: 6px 10px 6px 8px;
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-primary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
-  transition: background 0.12s ease;
+  transition: background var(--fb-motion-quick);
 }
 
 .m-lesson__outline-btn:active {
@@ -54,7 +54,7 @@
   color: var(--color-text-primary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
 }
 
 .m-lesson__back:active {
@@ -122,7 +122,7 @@
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: background var(--fb-motion-quick), border-color var(--fb-motion-quick);
 }
 
 .m-lesson__nav-btn:active {

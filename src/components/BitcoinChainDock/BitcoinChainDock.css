@@ -1,0 +1,214 @@
+/* Bitcoin chain dock — sits on top of the shared `chain-dock`
+   layout from `../ChainDock/ChainDock.css`. Anything here is
+   purely Bitcoin-specific: a different accent colour for the
+   chip + new mempool/blocks/UTXO panels. */
+
+/* The "Local Bitcoin" chip — pumpkin orange to distinguish from
+   the EVM dock's chip without clashing with our amber accent. */
+.btc-dock .btc-dock__chip {
+  background: rgba(247, 147, 26, 0.18);
+  color: #f7931a;
+  border-color: rgba(247, 147, 26, 0.42);
+}
+
+/* Tip-block hash next to the height. Monospace + dim so it reads
+   as identifier, not content. */
+.btc-dock__hash {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #6b7180);
+}
+
+/* The Bitcoin dock has 5 panels rather than the EVM dock's 3.
+   On wide layouts we stack them as 2 cols + 3 cols; on narrow
+   layouts they collapse to one column like the EVM dock. */
+.btc-dock__grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-rows: auto auto;
+}
+
+@media (max-width: 980px) {
+  .btc-dock__grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}
+
+/* Mempool sits in the middle column, top row. Recent confirmed
+   txs sit in the right column, top row. */
+.btc-dock__panel--mempool {
+  grid-column: 2;
+  grid-row: 1;
+}
+.chain-dock__panel--txs {
+  grid-column: 3;
+  grid-row: 1;
+}
+/* Accounts span both rows on the left so the column has the
+   tallest content. */
+.chain-dock__panel--accounts {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+/* Blocks + UTXOs share the bottom row across cols 2-3. */
+.btc-dock__panel--blocks {
+  grid-column: 2;
+  grid-row: 2;
+}
+.btc-dock__panel--utxos {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* On narrow layouts every panel takes a single column row. */
+@media (max-width: 980px) {
+  .btc-dock__panel--mempool,
+  .chain-dock__panel--txs,
+  .chain-dock__panel--accounts,
+  .btc-dock__panel--blocks,
+  .btc-dock__panel--utxos {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+/* ── Tx rows (mempool + recent) ───────────────────────────── */
+.btc-dock__tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btc-dock__tx-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--color-bg-primary, #0d1117);
+  font-size: 11.5px;
+  color: var(--color-text-secondary, #c9d1d9);
+}
+
+.btc-dock__tx-row--pending {
+  background: rgba(247, 147, 26, 0.06);
+  border: 1px dashed rgba(247, 147, 26, 0.32);
+}
+
+.btc-dock__tx-kind {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-bg-tertiary, #21262d);
+  color: var(--color-text-tertiary, #8b949e);
+  white-space: nowrap;
+}
+
+.btc-dock__tx-kind--p2wpkh,
+.btc-dock__tx-kind--p2wsh {
+  background: rgba(247, 147, 26, 0.18);
+  color: #f7931a;
+}
+
+.btc-dock__tx-kind--p2pkh {
+  background: rgba(143, 143, 200, 0.18);
+  color: #9090c8;
+}
+
+.btc-dock__tx-kind--p2sh {
+  background: rgba(99, 191, 158, 0.18);
+  color: #63bf9e;
+}
+
+.btc-dock__tx-kind--coinbase {
+  background: rgba(255, 215, 0, 0.16);
+  color: #d4af37;
+}
+
+.btc-dock__tx-id,
+.btc-dock__block-hash,
+.btc-dock__utxo-out {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #8b949e);
+}
+
+.btc-dock__tx-flow {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary, #8b949e);
+  font-size: 11px;
+}
+
+.btc-dock__tx-amount,
+.btc-dock__utxo-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--color-text-primary, #f0f6fc);
+  margin-left: auto;
+}
+
+.btc-dock__tx-fee,
+.btc-dock__tx-block,
+.btc-dock__block-txs,
+.btc-dock__block-height,
+.btc-dock__utxo-height {
+  font-size: 10.5px;
+  color: var(--color-text-tertiary, #8b949e);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Block rows ────────────────────────────────────────────── */
+.btc-dock__block-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btc-dock__block-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--color-bg-primary, #0d1117);
+  font-size: 11.5px;
+}
+
+.btc-dock__block-height {
+  font-weight: 600;
+  color: #f7931a;
+}
+
+/* ── UTXO rows ─────────────────────────────────────────────── */
+.btc-dock__utxo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btc-dock__utxo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--color-bg-primary, #0d1117);
+  font-size: 11.5px;
+}
+
+.btc-dock__utxo-addr {
+  font-size: 11px;
+  color: var(--color-text-secondary, #c9d1d9);
+}

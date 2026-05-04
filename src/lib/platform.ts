@@ -11,8 +11,7 @@
 ///   - Phase 2: `storage.ts` picks Tauri SQLite vs IndexedDB.
 ///   - Phase 3: `runtimes/index.ts` short-circuits desktop-only
 ///     languages to a `desktopOnly` `RunResult`; library hides
-///     ingest / Ollama / toolchain probes; vendor URLs route through
-///     `vendorUrl()`.
+///     ingest / Ollama / toolchain probes.
 ///   - Phase 4: `useAiChat` swaps Tauri streaming for a direct
 ///     `fetch` against `api.mattssoftware.com`.
 ///   - Phase 5: `<InstallBanner>` mounts and uses `downloadUrl()` to
@@ -101,34 +100,6 @@ export function languageSupport(lang: LanguageId): LanguageSupport {
 /// Phase 3 wires this up; Phase 1 just exports it ready to use.
 export function canRun(lang: LanguageId): boolean {
   return languageSupport(lang) === "full";
-}
-
-/// SvelteKit isn't a separate `LanguageId` — it's detected from file
-/// shape (`+page.svelte`, `svelte.config.js`, etc.) inside
-/// `runtimes/index.ts`. On web it requires the bundled Node sidecar
-/// we don't ship, so detected SvelteKit lessons should also short-
-/// circuit to the desktop upsell.
-export function canRunSvelteKitOnThisBuild(): boolean {
-  return isDesktop;
-}
-
-/// Vendor base URL — where the runtimes' generated HTML should reach
-/// for `babel.min.js` / `svelte-compiler.js` / `three.module.js` etc.
-///
-/// Desktop: the Tauri preview server resolves `/vendor/*` against
-/// `src-tauri/resources/vendor/`; the runtimes get the URL from
-/// `serve_web_preview`. This helper isn't on their hot path there.
-///
-/// Web: same files are copied into `public/vendor/` at build time
-/// (see `scripts/copy-vendor-to-public.mjs`) and served as static
-/// assets from the page's own origin. We return an absolute URL
-/// because the preview HTML is loaded into a `blob:` iframe whose
-/// relative-URL resolution doesn't reach the parent origin.
-export function vendorUrl(filename: string): string {
-  if (isWeb && typeof window !== "undefined") {
-    return `${window.location.origin}/vendor/${filename}`;
-  }
-  return `/vendor/${filename}`;
 }
 
 /// Detected user OS — drives which download button gets primary

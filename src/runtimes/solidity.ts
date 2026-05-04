@@ -37,34 +37,89 @@ import type { RunResult, LogLine, TestResult } from "./types";
 
 /// Pinned solc version. Match the docs the course is authored against —
 /// 0.8.26 is the latest stable as of authoring. Bumping is a one-line
-/// edit; CI tests will catch any new compiler diagnostics.
+/// edit; CI tests will catch any new compiler diagnostics. Keep this
+/// in lockstep with `SOLC_VERSION` in `scripts/vendor-soljson.mjs` so
+/// the bundled file's name matches what we look up at runtime.
 const SOLC_VERSION = "v0.8.26+commit.8a97fa7a";
-const SOLC_URL = `https://binaries.soliditylang.org/bin/soljson-${SOLC_VERSION}.js`;
+
+/// Where we look for the compiler, in priority order:
+///   1. Same-origin `<base>/vendor/soljson-<ver>.js` — the bundled
+///      copy shipped via `scripts/vendor-soljson.mjs`. Works offline,
+///      passes the `script-src 'self'` CSP, and avoids every flavour
+///      of "the user's network can't reach the CDN" failure.
+///   2. The official Solidity binaries CDN — fallback for stale
+///      installs that pre-date the vendored script. Only relevant if
+///      step 1 returns 404 because the file wasn't copied during
+///      build (shouldn't happen on shipped builds — `npm run vendor`
+///      runs as part of `npm run build`).
+function solcSources(): string[] {
+  const base = (import.meta.env.BASE_URL ?? "/").replace(/\/?$/, "/");
+  const filename = `soljson-${SOLC_VERSION}.js`;
+  return [
+    `${base}vendor/${filename}`,
+    `https://binaries.soliditylang.org/bin/${filename}`,
+  ];
+}
 
 type SolcCompile = (input: string) => string;
 
 /// Singleton compiler promise. Created on first call to `runSolidity`,
 /// reused thereafter. Reject states stay rejected (no auto-retry) — if
-/// the CDN was unreachable on first run, asking the learner to reload
-/// is more honest than silently masking a network failure.
+/// every source was unreachable on first run, asking the learner to
+/// reload is more honest than silently masking the failure.
 let solcReady: Promise<SolcCompile> | null = null;
 
 export function loadSolc(): Promise<SolcCompile> {
   if (solcReady) return solcReady;
 
-  solcReady = new Promise<SolcCompile>((resolve, reject) => {
+  const sources = solcSources();
+
+  solcReady = (async () => {
+    let lastError: unknown = null;
+    for (const url of sources) {
+      try {
+        return await loadSolcFrom(url);
+      } catch (e) {
+        lastError = e;
+        // Surface the failure to the console so a learner inspecting
+        // the dev tools sees which step blew up. We continue on to the
+        // next source — only the FINAL failure is propagated as the
+        // user-facing rejection.
+        console.warn(
+          `[solidity] compiler load failed for ${url}:`,
+          e instanceof Error ? e.message : e,
+        );
+      }
+    }
+    throw new Error(
+      `Couldn't load the Solidity compiler. Tried:\n` +
+        sources.map((s) => `  • ${s}`).join("\n") +
+        `\n\nThe shipped copy is bundled with the app — if you see this on a fresh install, the resource directory may be missing or your antivirus may have quarantined it. Reinstalling the app usually fixes it.\n` +
+        `\nUnderlying error: ${
+          lastError instanceof Error ? lastError.message : String(lastError)
+        }`,
+    );
+  })();
+
+  return solcReady;
+}
+
+function loadSolcFrom(url: string): Promise<SolcCompile> {
+  return new Promise<SolcCompile>((resolve, reject) => {
     // soljson-vX.Y.Z.js declares `var Module = ...` at the top level.
     // We piggy-back on the host page's globals so `cwrap` can reach into
     // the emscripten heap. Without `script.async = false` the script's
     // synchronous globals occasionally race with our access — keep it
     // sync to make the order deterministic.
     const script = document.createElement("script");
-    script.src = SOLC_URL;
+    script.src = url;
     script.async = false;
     script.onerror = () =>
       reject(
         new Error(
-          `Failed to download Solidity compiler from ${SOLC_URL}. Check your network connection.`,
+          `Failed to download Solidity compiler from ${url}. ` +
+            `Check that the file exists at that path (bundled copies ` +
+            `live under /vendor/) or that the network can reach the CDN.`,
         ),
       );
     script.onload = () => {
@@ -121,8 +176,6 @@ export function loadSolc(): Promise<SolcCompile> {
     };
     document.head.appendChild(script);
   });
-
-  return solcReady;
 }
 
 /// Build the standard JSON input solc accepts. Mirrors the official

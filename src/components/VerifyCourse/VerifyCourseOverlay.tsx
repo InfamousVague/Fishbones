@@ -12,13 +12,13 @@ import { copy } from "@base/primitives/icon/icons/copy";
 import { download } from "@base/primitives/icon/icons/download";
 import { check } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
-import type { VerifyTarget, LessonVerifyResult } from "../../lib/verifyCourse";
-import { tally } from "../../lib/verifyCourse";
+import type { VerifyTarget, LessonVerifyResult } from "../../lib/verify/course";
+import { tally } from "../../lib/verify/course";
 import {
   formatFixPrompt,
   formatJson,
   suggestExportFilename,
-} from "../../lib/verifyExport";
+} from "../../lib/verify/export";
 import "./VerifyCourseOverlay.css";
 
 /// Floating non-modal panel that reports progress as `verifyCourse`

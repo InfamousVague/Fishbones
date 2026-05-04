@@ -74,6 +74,11 @@ export default function AiChatPanel({
   }, [messages]);
 
   // Focus the input when the panel opens so the user can just type.
+  // 120ms matches the panel's 0.22s slide-up animation halfway point —
+  // focusing earlier lands on an off-screen input and the keyboard
+  // doesn't show on iOS Safari. 30ms (CommandPalette) and 60ms
+  // (MobileSearchPalette) are the equivalents for surfaces that
+  // animate on a tighter / different curve.
   useEffect(() => {
     if (!open) return;
     const t = window.setTimeout(() => inputRef.current?.focus(), 120);

@@ -1,0 +1,305 @@
+/* Backdrop chrome lives in `Shared/ModalBackdrop.css`. */
+
+.fishbones-bulk-panel {
+  width: min(720px, 94vw);
+  max-height: 88vh;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fishbones-bulk-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.fishbones-bulk-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-bulk-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-top: 2px;
+}
+
+.fishbones-bulk-close {
+  background: none;
+  border: 0;
+  color: var(--color-text-tertiary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+.fishbones-bulk-close:hover {
+  color: var(--color-text-primary);
+}
+
+.fishbones-bulk-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fishbones-bulk-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.fishbones-bulk-empty-blurb {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.fishbones-bulk-primary {
+  padding: 8px 16px;
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  border: 1px solid var(--color-text-primary);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fishbones-bulk-primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.fishbones-bulk-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fishbones-bulk-secondary {
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.fishbones-bulk-secondary:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+/* Summary strip above the list. */
+.fishbones-bulk-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.fishbones-bulk-summary-hint {
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-bulk-add {
+  margin-left: auto;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-sm);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.fishbones-bulk-add:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+/* List of rows — one per PDF. */
+.fishbones-bulk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fishbones-bulk-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-md);
+}
+
+.fishbones-bulk-row--detecting {
+  border-color: rgba(124, 193, 217, 0.35);
+}
+
+.fishbones-bulk-row--error {
+  border-color: rgba(217, 168, 0, 0.35);
+}
+
+.fishbones-bulk-row-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fishbones-bulk-row-filename {
+  flex: 1;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fishbones-bulk-row-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-bulk-row--detecting .fishbones-bulk-row-status {
+  color: #7cc1d9;
+}
+
+.fishbones-bulk-row-errtag {
+  color: #d9a800;
+}
+
+.fishbones-bulk-row-spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(124, 193, 217, 0.3);
+  border-top-color: #7cc1d9;
+  border-radius: 50%;
+  animation: fishbones-bulk-spin 0.9s linear infinite;
+}
+
+@keyframes fishbones-bulk-spin {
+  to { transform: rotate(360deg); }
+}
+
+.fishbones-bulk-row-remove {
+  background: none;
+  border: 0;
+  color: var(--color-text-tertiary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.fishbones-bulk-row-remove:hover {
+  color: #ef6f6f;
+}
+
+.fishbones-bulk-row-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.fishbones-bulk-row-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fishbones-bulk-row-field span {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-bulk-row-input {
+  padding: 6px 9px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 5px;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 12.5px;
+}
+
+.fishbones-bulk-row-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fishbones-bulk-row-langselect {
+  cursor: pointer;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.fishbones-bulk-row-field--narrow {
+  min-width: 72px;
+}
+
+.fishbones-bulk-error {
+  padding: 10px 12px;
+  background: rgba(239, 111, 111, 0.08);
+  border: 1px solid rgba(239, 111, 111, 0.35);
+  border-radius: var(--fb-radius-sm);
+  color: #f1b5b5;
+  font-size: 12px;
+}
+
+.fishbones-bulk-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.fishbones-bulk-footer-hint {
+  flex: 1;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.fishbones-bulk-footer-actions {
+  display: flex;
+  gap: 8px;
+}

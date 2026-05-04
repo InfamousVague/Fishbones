@@ -15,6 +15,7 @@ use std::sync::Arc;
 use super::middleware::UserId;
 use crate::db::ProgressRow;
 use crate::state::AppState;
+use crate::sync_bus::SyncEvent;
 
 pub async fn list(
     State(state): State<Arc<AppState>>,
@@ -46,5 +47,15 @@ pub async fn upsert(
         .db
         .upsert_progress(&user_id, &body.rows)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // Fan out to every other device this user has online. The
+    // upsert helper doesn't return the diffed-applied set (progress
+    // already merges via SQL `MAX`), so we forward the incoming rows
+    // verbatim — receivers idempotently fold them into their local
+    // store keyed by (course, lesson) so a no-op echo is harmless.
+    if !body.rows.is_empty() {
+        state
+            .sync_bus
+            .publish(&user_id, SyncEvent::Progress { rows: body.rows });
+    }
     Ok(StatusCode::NO_CONTENT)
 }

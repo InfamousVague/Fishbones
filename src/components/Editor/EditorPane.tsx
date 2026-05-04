@@ -1,9 +1,9 @@
 // Side-effect import: wires `self.MonacoEnvironment` and points
 // `@monaco-editor/react`'s loader at our bundled Monaco instance. MUST come
 // before the `@monaco-editor/react` import below so the loader is
-// configured before any Editor component mounts. See monaco-setup.ts for
-// the full rationale (signed-production CDN-load issue).
-import "../../lib/monaco-setup";
+// configured before any Editor component mounts. See lib/monaco/setup.ts
+// for the full rationale (signed-production CDN-load issue).
+import "../../lib/monaco/setup";
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
 import { Icon } from "@base/primitives/icon";
@@ -117,14 +117,14 @@ const MONACO_LANGUAGES: Record<FileLanguage, string> = {
   html: "html",
   css: "css",
   json: "json",
-  // Svelte uses our hand-rolled Monarch grammar (lib/monaco-svelte.ts)
-  // registered via lib/monaco-setup.ts. The id matches what
+  // Svelte uses our hand-rolled Monarch grammar (lib/monaco/svelte.ts)
+  // registered via lib/monaco/setup.ts. The id matches what
   // setMonarchTokensProvider was registered against — without this
   // mapping `.svelte` files render as plaintext even though the
   // grammar exists.
   svelte: "svelte",
-  // Solidity uses a hand-rolled Monarch grammar (lib/monaco-solidity.ts)
-  // registered via lib/monaco-setup.ts. Monaco doesn't ship a Solidity
+  // Solidity uses a hand-rolled Monarch grammar (lib/monaco/solidity.ts)
+  // registered via lib/monaco/setup.ts. Monaco doesn't ship a Solidity
   // language built in, so without this mapping `.sol` files would
   // render as plaintext.
   solidity: "solidity",
@@ -141,8 +141,8 @@ const MONACO_LANGUAGES: Record<FileLanguage, string> = {
   // tokenizer per language is a follow-up; this gets us readable
   // colouring on day one.
   // 2026 expansion — first six pull Monaco's bundled grammars, last
-  // five use the hand-rolled Monarchs in src/lib/monaco-{lang}.ts.
-  // All registered eagerly in monaco-setup.ts so production Tauri
+  // five use the hand-rolled Monarchs in src/lib/monaco/{lang}.ts.
+  // All registered eagerly in lib/monaco/setup.ts so production Tauri
   // webviews don't lose them to lazy-chunk resolution failures.
   ruby: "ruby",
   lua: "lua",

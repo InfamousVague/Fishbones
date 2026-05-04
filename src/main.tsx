@@ -4,6 +4,7 @@ import App from "./App";
 import PoppedWorkbench from "./components/Workbench/PoppedWorkbench";
 import PhonePopoutView from "./components/PhonePopout/PhonePopoutView";
 import { ChainDock } from "./components/ChainDock/ChainDock";
+import { BitcoinChainDock } from "./components/BitcoinChainDock/BitcoinChainDock";
 import { applyTheme, loadTheme } from "./theme/themes";
 import "./theme/themes.css";
 import "./App.css";
@@ -17,20 +18,25 @@ applyTheme(loadTheme());
 // - ?popped=1&course=…&lesson=…: standalone workbench only. Used by
 //   the pop-out window opened via window.open from the main window,
 //   so learners can drag the editor + console onto a second monitor.
-// - ?phone=1&scope=…: standalone phone simulator. Replaces the in-app
-//   FloatingPhone modal — RN previews now open in a separate OS
-//   window and the main editor pushes new preview URLs over a bus.
+// - ?phone=1&scope=…: standalone phone simulator window. RN previews
+//   open in a separate OS window and the main editor pushes new
+//   preview URLs over a bus.
 const params = new URLSearchParams(window.location.search);
 const isPopped = params.get("popped") === "1";
 const isPhone = params.get("phone") === "1";
-// Standalone local chain-style dock window. Mounts only the chain UI in
-// popout variant — see `evmDockPopout.ts` for the open-side helper.
+// Standalone local chain-style dock windows. Each mounts only the
+// matching chain UI in popout variant — see
+// `lib/evm/dockPopout.ts` and `lib/bitcoin/dockPopout.ts` for the
+// open-side helpers.
 const isEvmDock = params.get("evmDock") === "1";
+const isBtcDock = params.get("btcDock") === "1";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     {isEvmDock ? (
       <ChainDock variant="popout" />
+    ) : isBtcDock ? (
+      <BitcoinChainDock variant="popout" />
     ) : isPhone ? (
       <PhonePopoutView />
     ) : isPopped ? (

@@ -19,14 +19,14 @@
   padding: 0 10px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-secondary);
   font: inherit;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__tip-trigger:hover,
@@ -304,7 +304,7 @@
 .fishbones__tip-card-qr {
   background: #FFFFFF;
   padding: 5px;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.45),
     inset 0 0 0 1px rgba(0, 0, 0, 0.04);
@@ -325,7 +325,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
@@ -333,7 +333,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.10);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__tip-card-copy:hover {

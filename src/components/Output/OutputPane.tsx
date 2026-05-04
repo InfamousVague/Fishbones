@@ -9,8 +9,8 @@ import { refreshCw } from "@base/primitives/icon/icons/refresh-cw";
 import "@base/primitives/icon/icon.css";
 import type { RunResult } from "../../runtimes";
 import ReactNativeDevTools from "./ReactNativeDevTools";
-import MissingToolchainBanner from "../MissingToolchain/MissingToolchainBanner";
-import { DesktopUpsellBanner } from "../DesktopUpsell/DesktopUpsellBanner";
+import MissingToolchainBanner from "../banners/MissingToolchain/MissingToolchainBanner";
+import { DesktopUpsellBanner } from "../banners/DesktopUpsell/DesktopUpsellBanner";
 import { useToolchainStatus } from "../../hooks/useToolchainStatus";
 import "./OutputPane.css";
 

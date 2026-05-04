@@ -44,7 +44,7 @@
 
 .fishbones-loader-logo {
   background: url("/fishbones.png") no-repeat center / contain;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   animation: fishbones-loader-pulse 1.8s ease-in-out infinite;
 }
 

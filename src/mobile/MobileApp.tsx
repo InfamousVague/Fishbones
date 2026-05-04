@@ -21,7 +21,7 @@ import MobilePractice from "./MobilePractice";
 import MobileProfile from "./MobileProfile";
 import MobileSettings from "./MobileSettings";
 import MobileSearchPalette from "./MobileSearchPalette";
-import SignInDialog from "../components/SignInDialog/SignInDialog";
+import SignInDialog from "../components/dialogs/SignInDialog/SignInDialog";
 import MobileTabBar, { type MobileTab } from "../components/MobileTabBar/MobileTabBar";
 import FishbonesLoader from "../components/Shared/FishbonesLoader";
 import "./MobileApp.css";

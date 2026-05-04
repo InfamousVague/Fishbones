@@ -59,7 +59,7 @@
   cursor: pointer;
   color: var(--color-text-secondary, #a4a4ad);
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -114,7 +114,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   background: var(--color-bg-tertiary, #1f1f28);
@@ -171,7 +171,7 @@
 }
 
 .fishbones-verify-row {
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
 }
 
 .fishbones-verify-row--fail {
@@ -187,7 +187,7 @@
   border: 0;
   text-align: left;
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   cursor: pointer;
   color: inherit;
   font-size: 12px;
@@ -266,7 +266,7 @@
   margin: 0;
   padding: 6px 8px;
   background: var(--color-bg-primary, #0b0b10);
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   color: var(--color-text-secondary, #a4a4ad);
   font-size: 11px;
   white-space: pre-wrap;
@@ -293,7 +293,7 @@
   color: var(--color-text-primary, #f5f5f7);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   cursor: pointer;
   font-size: 12px;
   display: inline-flex;

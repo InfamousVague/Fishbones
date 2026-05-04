@@ -6,11 +6,18 @@ description = "Fishbones HTTP API — auth, course archives, progress sync"
 license = "MIT"
 
 [dependencies]
-# Web framework. Default features only — we don't need ws here; the
-# courses endpoint streams via response bodies, not sockets.
-axum = "0.7"
+# Web framework. The `ws` feature wires axum's WebSocket extractor —
+# the realtime sync endpoint subscribes connected clients to a per-user
+# broadcast channel so a completion / setting / solution edit on one
+# device fans out to every other authenticated device immediately.
+axum = { version = "0.7", features = ["ws"] }
 tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Stream / sink helpers used by the WebSocket handler to split the
+# bidirectional `WebSocket` into a sender + receiver half so we can
+# read pings on one task while broadcasting events on another.
+futures-util = "0.3"
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }

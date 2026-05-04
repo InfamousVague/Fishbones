@@ -83,12 +83,3 @@ export function runComingSoon(language: string): RunResult {
     },
   };
 }
-
-/// Whether `runComingSoon` will return a meaningful banner for this
-/// language. Used by `runtimes/index.ts` to gate which switch cases
-/// actually delegate here vs. fall through to the exhaustiveness
-/// guard. Adding a language to COMING_SOON above flips it to true
-/// without needing a separate registration step.
-export function hasComingSoonStub(language: string): boolean {
-  return language in COMING_SOON;
-}

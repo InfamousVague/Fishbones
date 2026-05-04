@@ -82,7 +82,7 @@
   border: 0;
   color: var(--color-text-tertiary);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -151,13 +151,13 @@
   padding: 10px 8px;
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   text-align: left;
   cursor: pointer;
   font: inherit;
   color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease;
+  transition: background var(--fb-motion-quick);
   position: relative;
 }
 

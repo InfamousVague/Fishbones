@@ -36,11 +36,11 @@
   background: var(--color-bg-elevated, #19191d);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
   color: var(--color-text-secondary);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background var(--fb-motion-quick), color var(--fb-motion-quick);
   margin-top: 6px;
 }
 
@@ -198,7 +198,7 @@
   padding: 12px 14px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   /* Toned accent strip on the left edge — gives each tile its own
      identity without a busy color background. */
   position: relative;
@@ -227,7 +227,7 @@
   height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   background: color-mix(in srgb, var(--stat-tone) 22%, transparent);
   color: var(--stat-tone);
   flex-shrink: 0;
@@ -263,7 +263,7 @@
   padding: 14px 16px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
 }
 
 .m-prof__level-meta {
@@ -327,13 +327,13 @@
   padding: 14px 16px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   text-align: left;
   cursor: pointer;
   font: inherit;
   color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease;
+  transition: background var(--fb-motion-quick);
 }
 
 .m-prof__continue-row:active {
@@ -400,7 +400,7 @@
   font: inherit;
   color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease;
+  transition: background var(--fb-motion-quick);
 }
 
 .m-prof__recent-row:active {
@@ -531,14 +531,14 @@
 .m-prof__lang-bar {
   height: 8px;
   background: var(--color-bg-inset, rgba(255, 255, 255, 0.06));
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   overflow: hidden;
 }
 
 .m-prof__lang-bar-fill {
   height: 100%;
   background: var(--color-text-primary);
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -593,7 +593,7 @@
   padding: 12px 8px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   text-align: center;
   opacity: 0.45;
   filter: grayscale(0.4);

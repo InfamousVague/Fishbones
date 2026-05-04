@@ -8,9 +8,15 @@
 
 use crate::db::Database;
 use crate::mailer::Mailer;
+use crate::sync_bus::SyncBus;
 
 pub struct AppState {
     pub db: Database,
+    /// Per-user broadcast bus for the WebSocket sync route. Lazily
+    /// allocates per-user channels; HTTP write handlers publish here
+    /// after a successful upsert, the WS handler drains the
+    /// subscriber half onto each connected client's socket.
+    pub sync_bus: SyncBus,
     /// Transactional email sender. Always present; falls back to a
     /// `tracing::warn!` log when Resend isn't configured so the
     /// password-reset flow still works on a fresh / dev deploy

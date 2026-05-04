@@ -26,6 +26,11 @@
 //!   DELETE /fishbones/auth/account                   — delete account
 //!   GET    /fishbones/progress                       — full dump
 //!   PUT    /fishbones/progress                       — bulk upsert
+//!   GET    /fishbones/solutions                      — full dump
+//!   PUT    /fishbones/solutions                      — bulk upsert (LWW)
+//!   GET    /fishbones/settings                       — full dump
+//!   PUT    /fishbones/settings                       — bulk upsert (LWW)
+//!   GET    /fishbones/sync/ws?token=…                — realtime fan-out
 //!   POST   /fishbones/courses                        — upload .fishbones
 //!   GET    /fishbones/courses                        — own courses
 //!   GET    /fishbones/courses/public                 — public feed
@@ -40,6 +45,7 @@ mod middleware;
 mod oauth;
 mod oauth_flow;
 mod progress;
+mod sync;
 mod well_known;
 
 pub use middleware::auth_middleware;
@@ -105,6 +111,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             post(oauth_flow::apple_callback_post).get(oauth_flow::apple_callback_get),
         )
         .route("/fishbones/courses/public", get(courses::list_public))
+        // Real-time sync WebSocket. Auth lives in the `?token=…`
+        // query param (browsers can't set headers on a WS upgrade)
+        // so this route stays in the public group; the handler
+        // verifies the bearer before completing the upgrade.
+        .route("/fishbones/sync/ws", get(sync::ws_upgrade))
         // Apple domain verification — must live at the literal root
         // path Apple fetches.
         .route(
@@ -119,6 +130,14 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route(
             "/fishbones/progress",
             get(progress::list).put(progress::upsert),
+        )
+        .route(
+            "/fishbones/solutions",
+            get(sync::list_solutions).put(sync::upsert_solutions),
+        )
+        .route(
+            "/fishbones/settings",
+            get(sync::list_settings).put(sync::upsert_settings),
         )
         .route(
             "/fishbones/courses",

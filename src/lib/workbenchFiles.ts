@@ -50,7 +50,7 @@ const LANG_DEFAULTS: Partial<Record<LanguageId, { name: string; language: FileLa
   // Svelte 5 single-file fallback. The Svelte 5 course usually ships
   // multi-file `files` arrays; this is the safety net for any lesson
   // that only has `starter` + `solution` strings. Uses our hand-rolled
-  // Monarch grammar registered in lib/monaco-svelte.ts.
+  // Monarch grammar registered in lib/monaco/svelte.ts.
   svelte: { name: "App.svelte", language: "svelte" },
   // SolidJS is JSX — Monaco's JS mode handles JSX syntax well enough
   // for highlighting purposes (no dedicated `solid` Monarch grammar).
@@ -67,7 +67,7 @@ const LANG_DEFAULTS: Partial<Record<LanguageId, { name: string; language: FileLa
   tauri: { name: "lib.rs", language: "rust" },
   // Solidity. Solidity has a dedicated FileLanguage entry so Monaco
   // gets our hand-rolled Monarch grammar (registered in
-  // lib/monaco-setup.ts). Default filename is `Contract.sol` —
+  // lib/monaco/setup.ts). Default filename is `Contract.sol` —
   // matches the convention `solc` expects for a self-contained
   // contract source.
   solidity: { name: "Contract.sol", language: "solidity" },
@@ -78,7 +78,7 @@ const LANG_DEFAULTS: Partial<Record<LanguageId, { name: string; language: FileLa
   // Without these entries every Zig / Ruby / Lua / etc. lesson with
   // a `starter` + `solution` (no `files` array) was opening as
   // `user.txt / plaintext`. Monaco's grammar registration in
-  // monaco-setup.ts is in place for all of them, but `deriveStarterFiles`
+  // lib/monaco/setup.ts is in place for all of them, but `deriveStarterFiles`
   // never asked for it because `LANG_DEFAULTS[lesson.language]` returned
   // undefined. Adding each entry here picks the canonical file
   // extension + the matching FileLanguage so Monaco applies the
@@ -94,7 +94,7 @@ const LANG_DEFAULTS: Partial<Record<LanguageId, { name: string; language: FileLa
   // (vs `.ex` which is meant to be compiled into a release).
   elixir: { name: "main.exs", language: "elixir" },
   // Smart-contract languages on alternative chains. Each has a hand-
-  // rolled Monarch grammar in lib/monaco-<lang>.ts.
+  // rolled Monarch grammar in lib/monaco/<lang>.ts.
   move: { name: "main.move", language: "move" },
   cairo: { name: "main.cairo", language: "cairo" },
   // Sway uses the `.sw` extension (matches the Fuel toolchain's
@@ -174,19 +174,4 @@ export function assembleRunnable(files: WorkbenchFile[], language: LanguageId): 
   return runnable
     .map((f) => `// ---- ${f.name} ----\n${f.content}`)
     .join("\n\n");
-}
-
-/// Whether the given files array differs from the lesson's starter set —
-/// used to enable/disable the Reset button so the learner can tell whether
-/// they're in "pristine starter" state.
-export function filesDifferFromStarter(
-  current: WorkbenchFile[],
-  starter: WorkbenchFile[],
-): boolean {
-  if (current.length !== starter.length) return true;
-  for (let i = 0; i < current.length; i++) {
-    if (current[i].name !== starter[i].name) return true;
-    if (current[i].content !== starter[i].content) return true;
-  }
-  return false;
 }

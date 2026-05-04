@@ -226,7 +226,7 @@ export async function syncBundledToInstalled(
 // ───────────────────────────────────────────────────────────────────
 
 /// Shape of one entry in the LLM's reply. Mirrors the JSON the
-/// `formatFixPrompt` instructions in `verifyExport.ts` ask for.
+/// `formatFixPrompt` instructions in `verify/export.ts` ask for.
 export interface LessonFixPatch {
   id: string;
   diagnosis?: string;

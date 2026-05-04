@@ -358,7 +358,7 @@ export interface ExerciseLesson extends LessonBase {
    * `deploy`, `read`, `write`, `expectRevert`); "solana" for LiteSVM
    * lessons. See docs/evm-solana-runtime-design.md.
    */
-  harness?: "evm" | "solana";
+  harness?: "evm" | "solana" | "bitcoin";
 }
 
 /**
@@ -376,7 +376,7 @@ export interface MixedLesson extends LessonBase {
   solutionFiles?: WorkbenchFile[];
   difficulty?: Difficulty;
   topic?: string;
-  harness?: "evm" | "solana";
+  harness?: "evm" | "solana" | "bitcoin";
 }
 
 /**

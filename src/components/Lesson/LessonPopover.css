@@ -21,7 +21,7 @@
      state (null → computed). A CSS keyframe would stomp the inline
      `transform: translateX(-50%)` we rely on for horizontal centering,
      so we animate opacity only. */
-  transition: opacity 0.12s ease-out;
+  transition: opacity var(--fb-motion-quick)-out;
 }
 
 .fishbones-popover--symbol {
@@ -45,7 +45,7 @@
   color: var(--color-text-secondary);
   background: var(--color-bg-primary);
   padding: 4px 7px;
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   overflow-x: auto;
   white-space: nowrap;
   margin: 2px 0;
@@ -107,7 +107,7 @@
 .fishbones-inline-term {
   cursor: help;
   border-bottom: 1px dotted rgba(199, 155, 255, 0.5);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones-inline-term:hover {

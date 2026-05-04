@@ -353,7 +353,6 @@ const LEGACY_PACK_IDS = [
   "programming-bitcoin",
   "mastering-ethereum",
   "mastering-lightning-network",
-  "solidity-smart-contracts-from-first-principles",
   "vyper-fundamentals-pythonic-smart-contracts",
   "solana-programs-rust-on-the-svm",
   "viem-and-ethers-js-talking-to-ethereum-from-typescript",

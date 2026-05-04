@@ -27,6 +27,26 @@ pub struct ProgressRow {
     pub completed_at: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SolutionRow {
+    pub course_id: String,
+    pub lesson_id: String,
+    pub content: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub language: Option<String>,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SettingRow {
+    pub key: String,
+    /// JSON-encoded value. Carried over the wire as a string and
+    /// re-parsed by callers on either side — keeps the schema stable
+    /// regardless of what the setting actually holds.
+    pub value: String,
+    pub updated_at: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct CourseMeta {
     pub id: String,
@@ -400,6 +420,137 @@ impl Database {
         }
         tx.commit()?;
         Ok(())
+    }
+
+    // ── Solutions ────────────────────────────────────────────
+
+    pub fn list_solutions(
+        &self,
+        user_id: &str,
+    ) -> anyhow::Result<Vec<SolutionRow>> {
+        let conn = self.conn_lock();
+        let mut stmt = conn.prepare(
+            "SELECT course_id, lesson_id, content, language, updated_at \
+             FROM solutions WHERE user_id = ?1 ORDER BY updated_at DESC",
+        )?;
+        let rows = stmt
+            .query_map(params![user_id], |row| {
+                Ok(SolutionRow {
+                    course_id: row.get(0)?,
+                    lesson_id: row.get(1)?,
+                    content: row.get(2)?,
+                    language: row.get(3)?,
+                    updated_at: row.get(4)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    /// Bulk upsert solutions. Newer `updated_at` wins per (course,
+    /// lesson) so a stale device pushing back later can't clobber a
+    /// fresher edit from another machine. Returns the rows that
+    /// actually changed (incoming row beat the existing one) so the
+    /// caller can broadcast only the deltas — keeps the WS payload
+    /// small even when a client pushes its full local set.
+    pub fn upsert_solutions(
+        &self,
+        user_id: &str,
+        rows: &[SolutionRow],
+    ) -> anyhow::Result<Vec<SolutionRow>> {
+        let conn = self.conn_lock();
+        let tx = conn.unchecked_transaction()?;
+        let mut applied: Vec<SolutionRow> = Vec::new();
+        for r in rows {
+            let n = tx.execute(
+                "INSERT INTO solutions (user_id, course_id, lesson_id, content, language, updated_at) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6) \
+                 ON CONFLICT(user_id, course_id, lesson_id) DO UPDATE \
+                 SET content = excluded.content, \
+                     language = excluded.language, \
+                     updated_at = excluded.updated_at \
+                 WHERE excluded.updated_at > solutions.updated_at",
+                params![
+                    user_id,
+                    r.course_id,
+                    r.lesson_id,
+                    r.content,
+                    r.language,
+                    r.updated_at
+                ],
+            )?;
+            if n > 0 {
+                applied.push(r.clone());
+            }
+        }
+        tx.commit()?;
+        Ok(applied)
+    }
+
+    // ── Settings ─────────────────────────────────────────────
+
+    pub fn list_settings(
+        &self,
+        user_id: &str,
+    ) -> anyhow::Result<Vec<SettingRow>> {
+        let conn = self.conn_lock();
+        let mut stmt = conn.prepare(
+            "SELECT key, value, updated_at FROM settings WHERE user_id = ?1",
+        )?;
+        let rows = stmt
+            .query_map(params![user_id], |row| {
+                Ok(SettingRow {
+                    key: row.get(0)?,
+                    value: row.get(1)?,
+                    updated_at: row.get(2)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    /// Same conflict semantics as `upsert_solutions`: newer
+    /// `updated_at` wins, returns only the rows that changed.
+    pub fn upsert_settings(
+        &self,
+        user_id: &str,
+        rows: &[SettingRow],
+    ) -> anyhow::Result<Vec<SettingRow>> {
+        let conn = self.conn_lock();
+        let tx = conn.unchecked_transaction()?;
+        let mut applied: Vec<SettingRow> = Vec::new();
+        for r in rows {
+            let n = tx.execute(
+                "INSERT INTO settings (user_id, key, value, updated_at) \
+                 VALUES (?1, ?2, ?3, ?4) \
+                 ON CONFLICT(user_id, key) DO UPDATE \
+                 SET value = excluded.value, \
+                     updated_at = excluded.updated_at \
+                 WHERE excluded.updated_at > settings.updated_at",
+                params![user_id, r.key, r.value, r.updated_at],
+            )?;
+            if n > 0 {
+                applied.push(r.clone());
+            }
+        }
+        tx.commit()?;
+        Ok(applied)
+    }
+
+    /// Verify a Bearer token directly (no per-request middleware) and
+    /// return the resulting user id. Used by the WebSocket upgrade
+    /// handler, which can't go through the standard middleware
+    /// because browsers don't let JS set headers on `new WebSocket()`
+    /// — the token rides as a query param instead.
+    pub fn verify_bearer(&self, token: &str) -> anyhow::Result<Option<String>> {
+        let hashes = self.all_token_hashes()?;
+        for (id, user_id, hash) in hashes {
+            if crate::auth::verify_token(token, &hash) {
+                let _ = self.update_token_last_used(&id);
+                return Ok(Some(user_id));
+            }
+        }
+        Ok(None)
     }
 
     // ── Courses ──────────────────────────────────────────────

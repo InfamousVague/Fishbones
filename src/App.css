@@ -1,6 +1,43 @@
 /* Pull in base kit design tokens (colors, radius, typography). */
 @import "@mattmattmattmatt/base/site/styles/tokens.css";
 
+/* ─────────────────────────────────────────────────────────────────
+ * Fishbones-specific design tokens.
+ *
+ * These are NOT theme-dependent — they describe the app's motion
+ * + corner-radius vocabulary, which is consistent across every
+ * theme. Theme-dependent tokens (`--color-*`, `--color-glass-*`)
+ * live in `theme/themes.css`.
+ *
+ * Tokens are namespaced `--fb-*` so they don't collide with the
+ * base kit's `--radius-*` / `--duration-*` / `--text-*-size`
+ * (which use a different set of values + a Tailwind-style scale).
+ * The base-kit tokens are still imported above and remain
+ * available; the `--fb-*` ones below codify the in-between values
+ * Fishbones actually uses across its 67 component stylesheets.
+ *
+ * Migrating to tokens lets us re-tune the entire app's motion or
+ * corner radius from one place — and prevents the next "this card
+ * has a 7px radius and that one has 8px" drift.
+ * ───────────────────────────────────────────────────────────── */
+:root {
+  /* Motion. The 0.15s "snappy" curve is the project default — used
+     everywhere a hover or focus transition needs to feel responsive
+     without being jumpy. 0.12s is the slightly-tighter "click feedback"
+     variant; 0.2s is for larger panels (dialog open, popovers). */
+  --fb-motion-snappy: var(--fb-motion-snappy);
+  --fb-motion-quick: var(--fb-motion-quick);
+  --fb-motion-smooth: 0.2s ease;
+
+  /* Border radius. Discrete tiers so cards / chips / pills stay in
+     visual lockstep regardless of who wrote the component. */
+  --fb-radius-xs: 4px;
+  --fb-radius-sm: 6px;
+  --fb-radius-md: 8px;
+  --fb-radius-lg: 12px;
+  --fb-radius-pill: 999px;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -35,7 +72,7 @@
 
 *::-webkit-scrollbar-thumb {
   background: var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   /* 2px transparent border = padding inside the track, so the thumb
      reads as a thin floating capsule rather than a wall-to-wall slab. */
   border: 2px solid transparent;
@@ -62,7 +99,7 @@ html, body, #root {
 }
 
 button {
-  transition: opacity 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: opacity var(--fb-motion-snappy), box-shadow var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 /* Root layout: custom top bar (houses tabs + traffic lights) across the top,
@@ -193,7 +230,7 @@ button {
 }
 
 /* Floating-phone path for RN lessons: editor takes the full workbench
-   width without a paired output pane (the FloatingPhone modal IS the
+   width without a paired output pane (the phone popout window IS the
    output surface). We mimic the Workbench's card chrome (border,
    radius, surface) so swapping into this layout doesn't visually
    demote the editor — same shape, same depth, just one column. */
@@ -205,7 +242,7 @@ button {
   flex-direction: column;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   overflow: hidden;
 }
 
@@ -281,13 +318,13 @@ button {
   padding: 5px 10px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 .fishbones__workbench-popped-pill:hover {
@@ -323,7 +360,7 @@ button {
   background: var(--color-bg-secondary);
   margin: 10px 10px 10px 0;
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
 }
 
 .fishbones__welcome-inner {
@@ -369,7 +406,7 @@ button {
   background: var(--color-text-primary);
   color: var(--color-bg-primary);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -385,7 +422,7 @@ button {
   background: transparent;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   font-family: inherit;
   font-size: 13px;
   cursor: pointer;

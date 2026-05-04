@@ -1,0 +1,205 @@
+/* Backdrop chrome lives in `Shared/ModalBackdrop.css`. */
+
+.fishbones-import-panel {
+  width: min(560px, 90vw);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-lg);
+  overflow: hidden;
+}
+
+.fishbones-import-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.fishbones-import-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.fishbones-import-close {
+  background: none;
+  border: 0;
+  color: var(--color-text-tertiary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.fishbones-import-close:hover {
+  color: var(--color-text-primary);
+}
+
+.fishbones-import-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fishbones-import-blurb {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.fishbones-import-primary,
+.fishbones-import-secondary {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
+}
+
+.fishbones-import-primary {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.fishbones-import-primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.fishbones-import-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fishbones-import-secondary {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-default);
+}
+
+.fishbones-import-secondary:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.fishbones-import-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.fishbones-import-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fishbones-import-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-import-input {
+  padding: 8px 10px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-sm);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.fishbones-import-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.fishbones-import-path {
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-primary);
+  padding: 6px 8px;
+  border-radius: var(--fb-radius-xs);
+  overflow-wrap: anywhere;
+  display: block;
+}
+
+.fishbones-import-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-sm);
+  font-size: 12.5px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.fishbones-import-checkbox input[type="checkbox"] {
+  margin-top: 2px;
+}
+
+.fishbones-import-hint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
+  line-height: 1.45;
+}
+
+.fishbones-import-error {
+  padding: 10px 12px;
+  background: rgba(239, 111, 111, 0.08);
+  border: 1px solid rgba(239, 111, 111, 0.35);
+  border-radius: var(--fb-radius-sm);
+  color: #f1b5b5;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+/* Metadata auto-detection status — non-blocking hint that sits above the
+   form fields while the detector runs, then disappears on success or
+   flips to an error variant if it couldn't identify the book. */
+.fishbones-import-detecting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--fb-radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+}
+
+.fishbones-import-detecting--error {
+  background: rgba(217, 168, 0, 0.08);
+  border-color: rgba(217, 168, 0, 0.35);
+  color: #d9a800;
+}
+
+.fishbones-import-detecting-spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--color-text-primary);
+  border-radius: 50%;
+  animation: fishbones-import-spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes fishbones-import-spin {
+  to { transform: rotate(360deg); }
+}

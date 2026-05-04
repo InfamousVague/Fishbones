@@ -20,14 +20,6 @@ import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "fishbones-practice-history-v1";
 
-/// One practice attempt. Cards may have many attempts logged over
-/// time — the schedule pulls the most-recent for due-date math.
-export interface PracticeAttempt {
-  cardId: string;
-  attemptedAt: number; // epoch seconds
-  correct: boolean;
-}
-
 /// Tracks per-card attempt history + computes the next-due date
 /// using a tiny Anki-flavoured schedule.
 export interface PracticeHistory {

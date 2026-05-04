@@ -34,7 +34,8 @@
   --orb-c-left: #b056ff;
   --orb-c-right: #ff7eb6;
   --orb-glow: rgba(176, 86, 255, 0.55);
-  --orb-shift: 22s;        /* gradient hue-rotation period */
+  --orb-shift: 22s;
+  /* gradient hue-rotation period */
   background:
     linear-gradient(135deg, var(--orb-c-left) 0%, var(--orb-c-right) 100%);
   box-shadow:
@@ -110,11 +111,9 @@
   inset: 3px;
   border-radius: 50%;
   background:
-    radial-gradient(
-      ellipse 60% 40% at 50% 25%,
+    radial-gradient(ellipse 60% 40% at 50% 25%,
       rgba(255, 255, 255, 1) 0%,
-      rgba(244, 244, 250, 1) 70%
-    );
+      rgba(244, 244, 250, 1) 70%);
   box-shadow:
     inset 1px 2px 0 rgba(255, 255, 255, 0.95),
     inset -2px -3px 8px rgba(120, 110, 180, 0.18);
@@ -189,23 +188,32 @@
 /* ---- Keyframes ------------------------------------------------- */
 
 @keyframes fishbones-ai-hue {
+
   /* Subtle hue rotation on the gradient ring. The inner white face
      is unaffected so the icon contrast stays constant. */
-  0%   { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  0% {
+    filter: hue-rotate(0deg);
+  }
+
+  100% {
+    filter: hue-rotate(360deg);
+  }
 }
 
 @keyframes fishbones-ai-thinking {
+
   /* Breathing pulse: the orb gently scales + the glow swells with
      each beat so it reads as an active, living "thinking" state.
      Smaller scale range (1 → 1.06) than hover so it doesn't feel
      like the user is hovering in a loop. */
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow:
       0 14px 24px -10px rgba(0, 0, 0, 0.45),
       0 0 36px -8px var(--orb-glow);
   }
+
   50% {
     transform: scale(1.06);
     box-shadow:

@@ -15,7 +15,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   /* `color-mix` is supported in every browser Tauri's webview runs
      against (Safari 16.2+, Chromium 111+). Falls back gracefully to
      the solid colour on much older webviews — still legible just
@@ -31,7 +31,7 @@
   user-select: none;
   /* Quiet entry transition so re-renders (e.g. swapping the active tab)
      don't feel jarring. */
-  transition: background 0.12s ease;
+  transition: background var(--fb-motion-quick);
 }
 
 /* ── Sizes ─────────────────────────────────────────────────────── */

@@ -22,7 +22,7 @@
 ///
 /// Usage:
 ///   node scripts/verify-evm-lessons.mjs                   # all
-///   node scripts/verify-evm-lessons.mjs --course solidity-complete
+///   node scripts/verify-evm-lessons.mjs --course mastering-ethereum
 ///   node scripts/verify-evm-lessons.mjs --json            # machine-readable
 
 import { existsSync, readFileSync } from "node:fs";

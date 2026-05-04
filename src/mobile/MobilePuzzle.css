@@ -80,7 +80,7 @@
   line-height: 1.55;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   padding: 12px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -135,7 +135,7 @@
   padding: 8px;
   background: var(--color-bg-secondary);
   border: 1px dashed var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
 }
 
 .m-puzzle__empty {
@@ -155,7 +155,7 @@
   font: inherit;
   color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.08s ease, background 0.12s ease;
+  transition: transform 0.08s ease, background var(--fb-motion-quick);
 }
 
 .m-puzzle__block:active {
@@ -206,7 +206,7 @@
 .m-puzzle__btn {
   flex: 1;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;

@@ -119,7 +119,9 @@ export default function MobileSearchPalette({
   // Reset on open + auto-focus the input. The 60ms delay lets the
   // sheet finish its slide-in transition before the keyboard slides
   // up — focusing too early causes the keyboard to pop while the
-  // sheet is mid-animation, which feels jittery on iOS.
+  // sheet is mid-animation, which feels jittery on iOS. 60ms covers
+  // the bottom-sheet rise; CommandPalette uses 30ms (plain fade) and
+  // AiChatPanel uses 120ms (longer slide-up).
   useEffect(() => {
     if (!open) return;
     setQuery("");

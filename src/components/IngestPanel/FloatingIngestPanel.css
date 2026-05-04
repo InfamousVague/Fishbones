@@ -10,7 +10,7 @@
   max-height: calc(100vh - 40px);
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -110,7 +110,7 @@
   margin-right: 4px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -289,7 +289,7 @@
   padding: 5px 10px;
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11.5px;
@@ -370,7 +370,7 @@
   padding: 8px 14px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 12px;

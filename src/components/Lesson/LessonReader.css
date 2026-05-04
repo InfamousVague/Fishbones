@@ -81,13 +81,13 @@
   padding: 4px 10px;
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 .fishbones-reader-meta-glossary:hover {
@@ -112,7 +112,7 @@
 
 .fishbones-reader-meta-glossary-count {
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   background: var(--color-bg-tertiary);
   color: var(--color-text-tertiary);
   font-size: 10px;
@@ -134,7 +134,7 @@
   background: rgba(232, 196, 107, 0.06);
   border: 1px solid rgba(232, 196, 107, 0.3);
   border-left: 3px solid #e8c46b;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
 }
 
 .fishbones-reader-retry-head {
@@ -202,7 +202,7 @@
   font-weight: 700;
   letter-spacing: 0.2px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--fb-motion-snappy);
 }
 
 .fishbones-reader-retry-btn:hover {
@@ -216,7 +216,7 @@
   background: rgba(124, 193, 217, 0.06);
   border: 1px solid rgba(124, 193, 217, 0.3);
   border-left: 3px solid #7cc1d9;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
 }
 
 .fishbones-reader-objectives-label {
@@ -264,7 +264,7 @@
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid var(--color-glass-border);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -342,7 +342,7 @@
   padding: 10px 14px;
   border: 1px solid var(--color-border-default);
   border-left-width: 3px;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   background: var(--color-bg-secondary);
 }
 
@@ -466,7 +466,7 @@
 .fishbones-code-block {
   position: relative;
   margin: 16px 0;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   overflow: hidden;
   border: 1px solid var(--color-border-default);
 }
@@ -607,7 +607,7 @@
 
 .fishbones-code-plain {
   color: var(--color-text-primary);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   border: 1px solid var(--color-border-default);
 }
 

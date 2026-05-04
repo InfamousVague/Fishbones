@@ -110,7 +110,6 @@ export const ALL_PACK_IDS = [
   "programming-bitcoin",
   "mastering-ethereum",
   "mastering-lightning-network",
-  "solidity-smart-contracts-from-first-principles",
   "vyper-fundamentals-pythonic-smart-contracts",
   "solana-programs-rust-on-the-svm",
   "viem-and-ethers-js-talking-to-ethereum-from-typescript",
@@ -180,9 +179,6 @@ export const REMOTE_ARCHIVE_BASE =
 /// pack id from this map.
 export const RELEASE_STATUS_OVERRIDES = {
   // ── Books bumped to BETA after substantive validation ─────────
-  // Counter exercise + EVM harness now run end-to-end; lessons
-  // exercise the solc-js / @ethereumjs/vm path directly.
-  "solidity-smart-contracts-from-first-principles": "BETA",
   // Updated to use viem-style runtime + verified passing through
   // the cmd+K verifier.
   "mastering-ethereum": "BETA",

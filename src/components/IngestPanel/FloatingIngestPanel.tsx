@@ -4,7 +4,7 @@ import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import type { IngestRunState } from "../../hooks/useIngestRun";
-import StatsBar from "../ImportDialog/StatsBar";
+import StatsBar from "../dialogs/ImportDialog/StatsBar";
 import "./FloatingIngestPanel.css";
 
 interface Props {

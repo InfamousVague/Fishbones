@@ -12,7 +12,7 @@
 ///   - Recent transactions (last 30).
 ///   - "Reset chain" button to drop all state.
 ///
-/// The dock attaches to the `evmChainService` singleton — there's
+/// The dock attaches to the `lib/evm/chainService` singleton — there's
 /// exactly one chain and one snapshot, regardless of how many
 /// places mount this component (banner + popout window will both
 /// see the same numbers).
@@ -31,7 +31,7 @@ import {
   type EvmChainSnapshot,
   type AccountSnapshot,
   type TxSnapshot,
-} from "../../lib/evmChainService";
+} from "../../lib/evm/chainService";
 import "./ChainDock.css";
 
 interface Props {

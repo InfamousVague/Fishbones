@@ -18,7 +18,7 @@
 /// Usage:
 ///   node scripts/bulk-generate-evm-lessons.mjs                 # 20 new
 ///   COUNT=10 node scripts/bulk-generate-evm-lessons.mjs        # 10 new
-///   COURSE_ID=solidity-complete node scripts/...               # other course
+///   COURSE_ID=mastering-ethereum node scripts/...              # other course
 ///   DRY_RUN=1 node scripts/...                                 # plan only
 ///   CONCURRENCY=4 node scripts/...                             # default 4
 

@@ -13,7 +13,7 @@
 
 .fishbones-download-split {
   display: inline-flex;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   /* Solid fill so the CTA pops on a translucent banner / hero
@@ -63,7 +63,7 @@
   z-index: 50;
   background: var(--color-bg-secondary, #15151c);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   box-shadow:
     0 8px 20px rgba(0, 0, 0, 0.45),
     0 2px 6px rgba(0, 0, 0, 0.25);
@@ -80,7 +80,7 @@
   padding: 8px 10px;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-primary);
   text-decoration: none;
   font-family: inherit;
@@ -119,7 +119,7 @@
   letter-spacing: 0.7px;
   color: var(--color-text-tertiary);
   background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   padding: 2px 8px;
   flex-shrink: 0;
 }

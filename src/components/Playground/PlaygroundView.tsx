@@ -8,6 +8,7 @@ import "@base/primitives/icon/icon.css";
 import type { LanguageId } from "../../data/types";
 import { usePlaygroundFiles } from "../../hooks/usePlaygroundFiles";
 import { useToolchainStatus } from "../../hooks/useToolchainStatus";
+import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import { runFiles, isPassing, type RunResult } from "../../runtimes";
 import EditorPane from "../Editor/EditorPane";
 import OutputPane from "../Output/OutputPane";
@@ -18,7 +19,7 @@ import {
   makePhonePreviewBus,
 } from "../../lib/phonePopout";
 import Workbench from "../Workbench/Workbench";
-import MissingToolchainBanner from "../MissingToolchain/MissingToolchainBanner";
+import MissingToolchainBanner from "../banners/MissingToolchain/MissingToolchainBanner";
 import "./PlaygroundView.css";
 
 /// Fire a `fishbones:ask-ai` event the way LessonReader / QuizView do.
@@ -183,24 +184,15 @@ export default function PlaygroundView() {
   // immediately without the learner having to switch views.
   const [viewMode, setViewMode] = useState<ViewMode>("split");
 
-  // Floating phone preference: remembered in localStorage so the
-  // user's "I want the popout" intent sticks across reloads. Only
-  // meaningful when the active language can show a phone simulator
-  // (RN / Swift); for everything else neither the popout nor the
-  // toggle is rendered.
-  const [floatingPhoneOpen, setFloatingPhoneOpen] = useState<boolean>(() => {
-    if (typeof localStorage === "undefined") return true;
-    const v = localStorage.getItem("fishbones:floating-phone-open");
-    if (v === null) return true;
-    return v === "true";
-  });
-  useEffect(() => {
-    if (typeof localStorage === "undefined") return;
-    localStorage.setItem(
-      "fishbones:floating-phone-open",
-      floatingPhoneOpen ? "true" : "false",
-    );
-  }, [floatingPhoneOpen]);
+  // Floating phone preference: persisted so the user's "I want the
+  // popout" intent sticks across reloads. The actual popout window
+  // lives in `lib/phonePopout.ts`; only the persistence is owned
+  // here, so the current value goes unread (the hook handles the
+  // write-through on every set).
+  const [, setFloatingPhoneOpen] = useLocalStorageState<boolean>(
+    "fishbones:floating-phone-open",
+    true,
+  );
 
   // Phone popout scope keyed on the active language so RN and Swift
   // each have their own popout window + bus channel — a learner can

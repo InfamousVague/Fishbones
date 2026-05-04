@@ -120,7 +120,7 @@
   color: var(--tree-accent);
   background: color-mix(in srgb, var(--tree-accent) 14%, transparent);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
 }
 
 .fishbones-trees__card-pct {
@@ -155,7 +155,7 @@
 .fishbones-trees__card-bar {
   height: 4px;
   background: var(--color-bg-tertiary);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   overflow: hidden;
 }
 
@@ -184,7 +184,7 @@
   background: transparent;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   padding: 5px 10px;
   font-size: 12px;
   cursor: pointer;
@@ -601,7 +601,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--color-glass-border);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   overflow: hidden;
   box-shadow: 0 4px 16px var(--color-glass-shadow);
   z-index: 25;
@@ -644,7 +644,7 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
   border-left: 3px solid var(--tree-accent);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   padding: 10px 12px;
   max-width: 260px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.32);
@@ -737,7 +737,7 @@
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid var(--color-glass-border);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   padding: 20px 22px;
   overflow-y: auto;
   z-index: 30;
@@ -770,7 +770,7 @@
   color: var(--tree-accent);
   background: color-mix(in srgb, var(--tree-accent) 14%, transparent);
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
 }
 
 .fishbones-trees__panel-flag--done {
@@ -806,7 +806,7 @@
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -820,6 +820,58 @@
 .fishbones-trees__panel-track--active {
   border-color: var(--color-text-primary);
   background: color-mix(in srgb, var(--color-text-primary) 12%, var(--color-bg-tertiary));
+}
+
+/* Install-missing-courses panel. Sits between the goal toggle and
+ * the path checklist; only renders when the active path references
+ * books the user hasn't installed yet. The button itself is the
+ * primary affordance — solid fill so it reads as "do this next." */
+.fishbones-trees__panel-install {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed color-mix(in srgb, var(--color-text-primary) 40%, transparent);
+  border-radius: var(--fb-radius-sm);
+  background: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+}
+
+.fishbones-trees__panel-install-btn {
+  appearance: none;
+  font: inherit;
+  width: 100%;
+  border: 1px solid var(--color-text-primary);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  padding: 9px 12px;
+  border-radius: var(--fb-radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.fishbones-trees__panel-install-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.fishbones-trees__panel-install-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.fishbones-trees__panel-install-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-tertiary);
+}
+
+.fishbones-trees__panel-install-error {
+  margin: 0;
+  font-size: 11px;
+  color: #ef6f6f;
 }
 
 /* Path-to-goal checklist. Numbered list (root → goal), with each
@@ -858,7 +910,7 @@
 .fishbones-trees__panel-track-step-tick {
   width: 14px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   border: 1px solid var(--color-border-default);
   display: inline-flex;
   align-items: center;
@@ -923,7 +975,7 @@
   font-size: 12px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   padding: 10px 12px;
   color: var(--color-text-secondary);
   line-height: 1.4;
@@ -957,7 +1009,7 @@
   text-align: left;
   border: 1px solid var(--color-border-default);
   background: var(--color-bg-tertiary);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   padding: 8px 10px;
   cursor: pointer;
   font-family: inherit;

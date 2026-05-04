@@ -1,11 +1,11 @@
 /// Phone-simulator popout window plumbing.
 ///
-/// Replaces the in-app `<FloatingPhone>` modal for React Native (and
-/// other phone-shaped) previews. Instead of rendering the simulator
-/// chrome over the main editor, we open a SEPARATE OS window that
-/// holds just the phone frame + the preview iframe. The user can
-/// drag it to a second monitor, snap it next to the editor, or just
-/// move it out of the way.
+/// React Native (and other phone-shaped) previews open in a SEPARATE
+/// OS window — instead of rendering the simulator chrome over the
+/// main editor, we hand off to a window that holds just the phone
+/// frame + the preview iframe. The user can drag it to a second
+/// monitor, snap it next to the editor, or just move it out of the
+/// way.
 ///
 /// Shape mirrors `workbenchSync.ts` which already does this for the
 /// editor pop-out — same single-bundle pattern (the popped window

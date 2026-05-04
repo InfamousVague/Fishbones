@@ -58,7 +58,7 @@ const DESKTOP_ONLY_REASONS: Record<string, string> = {
 /// Each switch case's `return` becomes a `return await ...` to keep
 /// the Promise<RunResult> contract intact.
 
-export type { RunResult, LogLine, TestResult } from "./types";
+export type { RunResult } from "./types";
 export { isPassing } from "./types";
 
 /// Dispatch to the right in-browser runtime for a language.
@@ -211,9 +211,12 @@ export async function runFiles(
   /// Opts in to a richer test harness for chain-aware lessons.
   /// "evm" routes Solidity / Vyper through @ethereumjs/vm so tests
   /// can deploy + call contracts; "solana" (planned) routes Rust
-  /// through LiteSVM. Undefined keeps the legacy compile-and-check
-  /// behavior so existing exercises don't regress.
-  harness?: "evm" | "solana",
+  /// through LiteSVM; "bitcoin" routes JavaScript through an
+  /// in-process UTXO chain shell with @scure/btc-signer for tx
+  /// construction and @bitauth/libauth for Script execution.
+  /// Undefined keeps the legacy compile-and-check behavior so
+  /// existing exercises don't regress.
+  harness?: "evm" | "solana" | "bitcoin",
 ): Promise<RunResult> {
   // Web build gate — same logic as runCode, applied here too because
   // runFiles can be entered directly from the workbench (which
@@ -294,7 +297,26 @@ export async function runFiles(
   // Pyodide + micropip and either reports compile output or hands
   // the artifacts to the EVM harness.
   if (language === "vyper") {
-    return (await import("./vyper")).runVyper(files, testCode, { harness });
+    // Vyper only knows about the EVM-side harnesses today; widen
+    // here to drop "bitcoin" (Vyper can't target Bitcoin) before
+    // forwarding so the called signature stays narrow.
+    const vyperHarness =
+      harness === "evm" || harness === "solana" ? harness : undefined;
+    return (await import("./vyper")).runVyper(files, testCode, {
+      harness: vyperHarness,
+    });
+  }
+  // Bitcoin harness — opt-in for JavaScript / TypeScript lessons
+  // that want a UTXO chain in the test scope. Same pattern as the
+  // EVM harness on Solidity: lesson sets `harness: "bitcoin"` and
+  // the runtime wraps tests with a live `chain` global plus
+  // `btc` (= @scure/btc-signer) so test code can broadcast,
+  // mine, and assert against the resulting state.
+  if (
+    harness === "bitcoin" &&
+    (language === "javascript" || language === "typescript")
+  ) {
+    return (await import("./bitcoin")).runBitcoin(files, testCode);
   }
   // Auto-route: the LLM sometimes tags a React Native lesson's
   // `language` as "javascript" / "typescript" because JSX transpiles

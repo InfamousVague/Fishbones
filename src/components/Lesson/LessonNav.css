@@ -28,13 +28,13 @@
   padding: 10px 14px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: color var(--fb-motion-snappy), background var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 .fishbones-lesson-nav-btn:hover:not(:disabled) {

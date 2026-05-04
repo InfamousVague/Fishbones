@@ -1,7 +1,6 @@
 /* Popped phone-simulator window. Fills its OS window with a
    centered PhoneFrame — the OS chrome supplies the title bar +
-   close button, so no draggable header here (unlike the in-app
-   FloatingPhone we replaced). */
+   close button, so no draggable header here. */
 
 .fishbones-phone-popout-root {
   position: fixed;

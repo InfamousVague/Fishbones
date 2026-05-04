@@ -209,6 +209,26 @@ export function useWorkbenchFiles(
         storageKey(courseId, lesson.id),
         JSON.stringify(payload),
       );
+      // Notify any cloud-sync listener so the same edit fans out to
+      // the user's other devices via the realtime sync bus. Decoupled
+      // through a CustomEvent so this hook stays unaware of network
+      // concerns — the only listener today is `App`'s `useRealtimeSync`
+      // glue, but anything else can subscribe (e.g. an analytics
+      // sink) without re-wiring the hook signature.
+      try {
+        window.dispatchEvent(
+          new CustomEvent("fishbones:workbench-persisted", {
+            detail: {
+              courseId,
+              lessonId: lesson.id,
+              files: latestFilesRef.current,
+              savedAt: Date.now(),
+            },
+          }),
+        );
+      } catch {
+        /* CustomEvent unsupported (some headless harnesses) — drop */
+      }
     } catch {
       /* QuotaExceeded or private-mode — drop silently; in-memory state
          is still correct for the current session. */

@@ -12,7 +12,7 @@
 
 mod users;
 
-pub use users::{CourseMeta, ProgressRow, User};
+pub use users::{CourseMeta, ProgressRow, SettingRow, SolutionRow, User};
 
 use rusqlite::Connection;
 use std::path::Path;
@@ -151,4 +151,37 @@ CREATE TABLE IF NOT EXISTS password_resets (
 
 CREATE INDEX IF NOT EXISTS idx_password_resets_user
     ON password_resets(user_id);
+
+-- Per-lesson solution snapshots. Stores the learner's last-saved
+-- code for each lesson in plain text; conflict resolution is
+-- last-writer-wins via `updated_at`. We don't version history here
+-- (no diff log) — the marketing claim is "your code follows you
+-- across devices," not "every keystroke replicated."
+CREATE TABLE IF NOT EXISTS solutions (
+    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    course_id   TEXT NOT NULL,
+    lesson_id   TEXT NOT NULL,
+    /// The active file's content. Solidity / Rust / etc. — single
+    /// blob to keep the row format stable; a multi-file lesson packs
+    /// its files into a serialized JSON wrapper before write.
+    content     TEXT NOT NULL,
+    language    TEXT,
+    /// Source-of-truth timestamp from the WRITING device, ISO 8601.
+    /// Used in the conflict resolver: only overwrite if incoming
+    /// `updated_at` is strictly newer.
+    updated_at  TEXT NOT NULL,
+    PRIMARY KEY (user_id, course_id, lesson_id)
+);
+
+-- User settings. Free-form key/value table — value is JSON-encoded
+-- so a setting can hold a scalar, an object, or a small array
+-- without schema churn. Per (user, key) primary key keeps it
+-- idempotent across devices.
+CREATE TABLE IF NOT EXISTS settings (
+    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key         TEXT NOT NULL,
+    value       TEXT NOT NULL,
+    updated_at  TEXT NOT NULL,
+    PRIMARY KEY (user_id, key)
+);
 "#;

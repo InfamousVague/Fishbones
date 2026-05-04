@@ -71,7 +71,7 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.12s ease, background-color 0.12s ease;
+  transition: border-color var(--fb-motion-quick), background-color var(--fb-motion-quick);
   min-width: 0;
 }
 .fishbones-docs-footer-chip:hover {

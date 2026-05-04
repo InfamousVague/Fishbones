@@ -20,7 +20,7 @@
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid var(--color-glass-border);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -129,7 +129,7 @@
   font-size: 12.5px;
   font-family: inherit;
   padding: 5px 10px;
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   cursor: pointer;
   line-height: 1.4;
   transition: background-color 0.1s ease, color 0.1s ease;
@@ -167,7 +167,7 @@
   cursor: pointer;
   position: relative;
   z-index: 1;
-  transition: color 0.2s ease, background 0.15s ease;
+  transition: color 0.2s ease, background var(--fb-motion-snappy);
   width: 100%;
 }
 
@@ -245,14 +245,14 @@
   padding: 6px 10px;
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__course-row:hover {
@@ -328,7 +328,7 @@
   border: 1px solid var(--color-border-default);
   border-radius: 10px;
   overflow: hidden;
-  transition: border-color 0.2s ease, background 0.15s ease;
+  transition: border-color 0.2s ease, background var(--fb-motion-snappy);
 }
 
 .fishbones__course-card--expanded {
@@ -372,7 +372,7 @@
   background: #ffffff;
   color: #000000;
   flex-shrink: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--fb-motion-snappy), transform var(--fb-motion-snappy);
 }
 
 .fishbones__course-title:hover .fishbones__course-caret {
@@ -470,7 +470,7 @@
   padding: 6px 8px 6px 6px;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   /* Slightly louder than chapter-title so the eye lands on section
      headers first when scanning a long course outline. */
   color: var(--color-text-primary);
@@ -480,7 +480,7 @@
   letter-spacing: 0.2px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__section-title:hover {
@@ -546,7 +546,7 @@
   padding: 5px 8px 5px 6px;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11.5px;
@@ -554,7 +554,7 @@
   letter-spacing: 0.1px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__chapter-title:hover {
@@ -648,7 +648,7 @@
   height: 20px;
   flex-shrink: 0;
   border-radius: 50%;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.15s ease,
+  transition: background 0.2s ease, border-color 0.2s ease, color var(--fb-motion-snappy),
     box-shadow 0.2s ease;
 }
 
@@ -748,14 +748,14 @@
   padding: 7px 10px;
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__sidebar-nav-item:hover {
@@ -851,13 +851,13 @@
   background: var(--color-text-primary);
   color: var(--color-bg-primary);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   font: inherit;
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.1px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--fb-motion-snappy);
 }
 .fishbones__nav-empty-cta:hover {
   opacity: 0.9;
@@ -882,7 +882,7 @@
   min-width: 180px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   padding: 4px;
   display: flex;
   flex-direction: column;
@@ -1001,7 +1001,7 @@
   padding: 0;
   background: var(--color-bg-tertiary);
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   /* Clip the cover + progress strip to the rounded corners. The strip
      sits flush to the bottom edge of the cover; without clipping its
      fill would square off the corners. */
@@ -1033,7 +1033,7 @@
 /* Cover <img> still needs to respect the card's rounded corners since
    the button itself no longer clips. */
 .fishbones__carousel-cover {
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
 }
 
 /* Dark gradient fading from transparent (top) to near-opaque (bottom)
@@ -1122,7 +1122,7 @@
   .fishbones__carousel-item,
   .fishbones__carousel-item:hover {
     transform: none;
-    transition: outline-color 0.15s ease, box-shadow 0.15s ease;
+    transition: outline-color var(--fb-motion-snappy), box-shadow var(--fb-motion-snappy);
   }
 }
 

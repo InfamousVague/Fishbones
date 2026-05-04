@@ -147,6 +147,9 @@ export function useCourses() {
           const slice = summaries.slice(i, i + BATCH);
           await Promise.all(slice.map((s) => hydrateCourse(s.id)));
           if (i + BATCH < summaries.length) {
+            // Yield to the event loop between batches so the UI can
+            // paint progress and stay responsive to clicks while we
+            // chew through the rest.
             await new Promise((r) => setTimeout(r, 0));
           }
         }

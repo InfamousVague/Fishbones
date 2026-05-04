@@ -16,85 +16,28 @@
 /// window while Claude thinks.
 
 import { invoke } from "@tauri-apps/api/core";
-import { runCode, isPassing } from "../runtimes";
+import type { Course, Lesson, ExerciseLesson } from "../data/types";
 import type {
-  Course,
-  Lesson,
-  LanguageId,
-  ReadingLesson,
-  ExerciseLesson,
-} from "../data/types";
-import { splitChapters } from "./pdfParser";
+  IngestEvent,
+  PipelineOptions,
+  PipelineStats,
+} from "./pipeline/types";
+import { costFor } from "./pipeline/types";
+import { cacheRead, cacheWrite } from "./pipeline/cache";
+import { validateExerciseWithRetry } from "./pipeline/validation";
+import {
+  fitReference,
+  splitForCleaning,
+  splitChaptersIntoRaw,
+  parseJson,
+  slug,
+  pad,
+  buildFilteredPlaceholder,
+  formatBytes,
+  MAX_REFERENCE_CHARS,
+} from "./pipeline/helpers";
 
-// Local shape for stage-1 input (per-chapter blob). Distinct from pdfParser's
-// RawChapter which carries section-level metadata we flatten down.
-interface ChapterBlob {
-  title: string;
-  body: string;
-}
-
-export interface PipelineOptions {
-  pdfPath: string;
-  bookId: string;       // slugified id used for cache directory + course id
-  title: string;
-  author?: string;
-  language: LanguageId;
-  /** High-level stage label for the main progress line. */
-  onProgress: (stage: string, detail?: string) => void;
-  /** Optional fine-grained event stream for the verbose log panel. */
-  onEvent?: (event: IngestEvent) => void;
-  /** Cumulative stats snapshot pushed after each material update. */
-  onStats?: (stats: PipelineStats) => void;
-  /**
-   * When aborted, the pipeline throws at the next cancel checkpoint (between
-   * stages / API calls). The per-stage cache means the user can re-run and
-   * pick up right where they stopped.
-   */
-  signal?: AbortSignal;
-}
-
-export interface IngestEvent {
-  timestamp: number;
-  level: "info" | "warn" | "error" | "cache";
-  stage: "extract" | "clean" | "outline" | "generate" | "validate" | "retry" | "save" | "meta";
-  chapter?: number;
-  lesson?: string;
-  message: string;
-}
-
-/// Rolling counters rendered as a stats bar above the running progress row.
-/// Frontend caches the latest value and re-renders it whenever onStats fires.
-export interface PipelineStats {
-  startedAt: number;        // Date.now() at pipeline start
-  elapsedMs: number;
-  totalChapters: number;
-  chaptersDone: number;
-  lessonsTotal: number;     // sum of all outlined stubs across planned chapters
-  lessonsDone: number;      // lessons fully generated (and for exercises, validated)
-  lessonsByKind: Record<string, number>;
-  apiCalls: number;         // Anthropic calls this run (cache hits don't count)
-  cacheHits: number;
-  validationAttempts: number;
-  validationFailures: number; // non-final failures (pre-retry)
-  demotedExercises: number;   // exercises that used up all retries → reading
-  inputTokens: number;
-  outputTokens: number;
-  /// Per-million-token cost at the selected model. Unit: USD.
-  estimatedCostUsd: number;
-  model: string;
-}
-
-// Pricing in USD per 1M tokens. Update if Anthropic's prices change.
-const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  "claude-sonnet-4-5": { input: 3, output: 15 },
-  "claude-opus-4-5":   { input: 15, output: 75 },
-  "claude-haiku-4-5":  { input: 1, output: 5 },
-};
-
-function costFor(model: string, inputTokens: number, outputTokens: number): number {
-  const p = MODEL_PRICING[model] ?? MODEL_PRICING["claude-sonnet-4-5"];
-  return (inputTokens / 1_000_000) * p.input + (outputTokens / 1_000_000) * p.output;
-}
+export type { PipelineOptions, IngestEvent, PipelineStats } from "./pipeline/types";
 
 export class IngestAborted extends Error {
   constructor() {
@@ -110,6 +53,21 @@ interface LlmResponseTS {
   output_tokens: number;
   elapsed_ms: number;
 }
+
+interface LessonStub {
+  id: string;
+  kind: "reading" | "exercise" | "quiz" | "mixed";
+  title: string;
+  intent: string;
+}
+
+/// Max raw-text characters per clean_code call. Anthropic's 200K input-token
+/// ceiling is ~800K chars of English, but clean_code also has to fit the
+/// system prompt AND produce a cleaned markdown output (which can be nearly
+/// as long as the input). Keeping each chunk at ~180K chars (~45K input
+/// tokens) leaves comfortable headroom on both sides and keeps individual
+/// calls fast enough to retry on 429s without losing much progress.
+const MAX_CLEAN_CHARS = 180_000;
 
 export async function runPipeline(opts: PipelineOptions): Promise<Course> {
   const { pdfPath, bookId, title, author, language, onProgress, onEvent, onStats, signal } = opts;
@@ -785,358 +743,4 @@ export async function runPipeline(opts: PipelineOptions): Promise<Course> {
     language,
     chapters,
   };
-}
-
-// ---- Stage 4 helper --------------------------------------------------------
-
-const MAX_RETRIES = 3;
-
-async function validateExerciseWithRetry(
-  lesson: ExerciseLesson,
-  ctx: {
-    bookId: string;
-    chapterIndex: number;
-    stubId: string;
-    onProgress: PipelineOptions["onProgress"];
-    emit: (e: Omit<IngestEvent, "timestamp">) => void;
-    checkAbort: () => void;
-    stats: PipelineStats;
-    pushStats: () => void;
-    callLlm: (
-      cmd: string,
-      args: Record<string, unknown>,
-      label: string,
-      ectx: { stage: IngestEvent["stage"]; chapter?: number; lesson?: string },
-    ) => Promise<string>;
-  },
-): Promise<Lesson> {
-  let current = lesson;
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    ctx.checkAbort();
-    ctx.stats.validationAttempts += 1;
-    ctx.pushStats();
-    ctx.onProgress(
-      `Validating exercise (attempt ${attempt + 1}/${MAX_RETRIES + 1})`,
-      current.title,
-    );
-
-    const failure = await validateOnce(current);
-    if (!failure) {
-      ctx.emit({
-        level: "info",
-        stage: "validate",
-        chapter: ctx.chapterIndex + 1,
-        lesson: ctx.stubId,
-        message: `done: validated "${current.title}"`,
-      });
-      return current;
-    }
-
-    ctx.stats.validationFailures += 1;
-    ctx.pushStats();
-    ctx.emit({
-      level: "warn",
-      stage: "validate",
-      chapter: ctx.chapterIndex + 1,
-      lesson: ctx.stubId,
-      message: `fail attempt ${attempt + 1}: ${failure}`,
-    });
-
-    if (attempt === MAX_RETRIES) {
-      ctx.onProgress(
-        `warn: exercise couldn't be validated, demoting to reading`,
-        current.title,
-      );
-      ctx.stats.demotedExercises += 1;
-      ctx.pushStats();
-      ctx.emit({
-        level: "error",
-        stage: "validate",
-        chapter: ctx.chapterIndex + 1,
-        lesson: ctx.stubId,
-        message: `demoted to reading after ${MAX_RETRIES} failures`,
-      });
-      return demoteToReading(current, failure);
-    }
-
-    // Ask the LLM to fix it. Parse BEFORE caching so a truncated or malformed
-    // retry doesn't become a permanent bad cache entry.
-    const retryKey = `lessons/chapter-${pad(ctx.chapterIndex + 1)}/${slug(
-      ctx.stubId,
-    )}.retry-${attempt + 1}.json`;
-    const rawFixed = await ctx.callLlm(
-      "retry_exercise",
-      {
-        originalLesson: JSON.stringify(current),
-        failureReason: failure,
-      },
-      `retry_exercise attempt ${attempt + 1}`,
-      { stage: "retry", chapter: ctx.chapterIndex + 1, lesson: ctx.stubId },
-    );
-    current = parseJson<ExerciseLesson>(rawFixed, `${current.id} retry ${attempt + 1}`);
-    await cacheWrite(ctx.bookId, retryKey, rawFixed);
-  }
-
-  return current;
-}
-
-/// Returns null if the exercise passes BOTH gates (solution passes every test,
-/// starter fails at least one). Otherwise returns a human-readable reason.
-async function validateOnce(lesson: ExerciseLesson): Promise<string | null> {
-  // Non-JS/TS/Python exercises can't run in-browser for full validation yet.
-  // Trust the LLM on those for now; Rust uses the Playground and Swift is
-  // run-only. Validation is still a huge quality lift for the languages we
-  // *can* run.
-  const runnable =
-    lesson.language === "javascript" ||
-    lesson.language === "typescript" ||
-    lesson.language === "python";
-  if (!runnable) return null;
-
-  // Gate 1: solution must pass every test.
-  const solRes = await runCode(lesson.language, lesson.solution, lesson.tests);
-  if (!isPassing(solRes)) {
-    const failingTests = solRes.tests?.filter((t) => !t.passed) ?? [];
-    const first = failingTests[0];
-    const errText = solRes.error ? ` [runtime error] ${solRes.error}` : "";
-    const testText = first
-      ? ` [first failing test] "${first.name}": ${first.error ?? "(no message)"}`
-      : "";
-    return `Reference solution failed validation.${errText}${testText}`;
-  }
-
-  // Gate 2: starter must fail at least one test (otherwise the task is trivial).
-  const startRes = await runCode(lesson.language, lesson.starter, lesson.tests);
-  if (isPassing(startRes)) {
-    return "Starter code already passes every test — there's nothing for the user to solve. Add TODOs to the starter.";
-  }
-
-  return null;
-}
-
-function demoteToReading(lesson: ExerciseLesson, reason: string): ReadingLesson {
-  return {
-    id: lesson.id,
-    kind: "reading",
-    title: lesson.title + " (demoted)",
-    body:
-      lesson.body +
-      `\n\n---\n\n*(This exercise was demoted to a reading lesson after ${MAX_RETRIES} validation failures: ${reason})*` +
-      "\n\n## Reference solution\n\n```" +
-      lesson.language +
-      "\n" +
-      lesson.solution +
-      "\n```",
-  };
-}
-
-// ---- Helpers ---------------------------------------------------------------
-
-interface LessonStub {
-  id: string;
-  kind: "reading" | "exercise" | "quiz" | "mixed";
-  title: string;
-  intent: string;
-}
-
-/// Max raw-text characters per clean_code call. Anthropic's 200K input-token
-/// ceiling is ~800K chars of English, but clean_code also has to fit the
-/// system prompt AND produce a cleaned markdown output (which can be nearly
-/// as long as the input). Keeping each chunk at ~180K chars (~45K input
-/// tokens) leaves comfortable headroom on both sides and keeps individual
-/// calls fast enough to retry on 429s without losing much progress.
-const MAX_CLEAN_CHARS = 180_000;
-
-/// Max cleaned-markdown characters we'll feed to outline_chapter or
-/// generate_lesson as reference context. A concatenated multi-chunk
-/// chapter can otherwise approach the cleaning input size (~720K chars
-/// for a 4-chunk chapter) which busts the 200K-token input ceiling once
-/// the system prompt is added. Cap at ~500K chars (~125K tokens) so the
-/// API request stays under 200K with room for the system prompt and
-/// the response.
-const MAX_REFERENCE_CHARS = 500_000;
-
-/// Truncate markdown for use as reference context in downstream LLM calls.
-/// Prefers cutting at a heading or blank-line boundary so sections aren't
-/// chopped mid-sentence; falls back to a hard cut. Returns the original
-/// string untouched when it already fits.
-function fitReference(md: string): { text: string; truncated: boolean } {
-  if (md.length <= MAX_REFERENCE_CHARS) return { text: md, truncated: false };
-  const window = md.slice(0, MAX_REFERENCE_CHARS);
-  // Prefer a heading break; then a blank-line break; else hard cut.
-  let idx = window.lastIndexOf("\n## ");
-  if (idx < MAX_REFERENCE_CHARS * 0.7) idx = window.lastIndexOf("\n\n");
-  if (idx < MAX_REFERENCE_CHARS * 0.7) idx = MAX_REFERENCE_CHARS;
-  return {
-    text:
-      window.slice(0, idx) +
-      `\n\n*(Reference truncated — chapter was ${Math.round(md.length / 1000)}KB, cap is ${Math.round(MAX_REFERENCE_CHARS / 1000)}KB. Later sections aren't visible to this call.)*\n`,
-    truncated: true,
-  };
-}
-
-/// Split a raw chapter body into chunks small enough for clean_code. Walks
-/// from the end of the window backward looking for the cleanest boundary —
-/// form feeds (PDF page breaks) are best, then big whitespace gaps, then
-/// sentence breaks, finally a hard cut. The last-resort hard cut should
-/// rarely fire; pdftotext output is peppered with form feeds.
-function splitForCleaning(text: string, maxChars: number): string[] {
-  if (text.length <= maxChars) return [text];
-  const chunks: string[] = [];
-  let remaining = text;
-  while (remaining.length > maxChars) {
-    // Only search the last quarter of the window for a boundary so chunks
-    // stay roughly balanced — splitting way earlier than maxChars would
-    // waste capacity and blow up the chunk count.
-    const searchStart = Math.floor(maxChars * 0.75);
-    const window = remaining.slice(searchStart, maxChars);
-    let relIdx = -1;
-    for (const boundary of ["\f", "\n\n\n", "\n\n", "\n", ". "]) {
-      const idx = window.lastIndexOf(boundary);
-      if (idx >= 0) {
-        relIdx = idx + boundary.length;
-        break;
-      }
-    }
-    const splitAt = relIdx >= 0 ? searchStart + relIdx : maxChars;
-    chunks.push(remaining.slice(0, splitAt));
-    remaining = remaining.slice(splitAt);
-  }
-  if (remaining.length > 0) chunks.push(remaining);
-  return chunks;
-}
-
-function splitChaptersIntoRaw(rawText: string): ChapterBlob[] {
-  // Re-use the deterministic splitter from pdfParser — it's good enough at
-  // partitioning the raw text into per-chapter chunks for the LLM to work on.
-  // We flatten the section-level structure into a single body per chapter
-  // since Stage 1 (clean_code) re-finds headings on its own.
-  const fullChapters = splitChapters(rawText);
-  return fullChapters.map((c) => ({
-    title: c.title,
-    body:
-      (c.intro ? c.intro + "\n\n" : "") +
-      c.sections
-        .map((s) => `## ${s.title}\n\n${s.body}`)
-        .join("\n\n"),
-  }));
-}
-
-function parseJson<T>(raw: string, context: string): T {
-  // Fast path: well-behaved response parses directly.
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    /* fall through to recovery heuristics */
-  }
-
-  // Recovery 1: response is wrapped in a markdown code fence.
-  //   ```json
-  //   { ... }
-  //   ```
-  const fence = raw.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
-  if (fence) {
-    try {
-      return JSON.parse(fence[1]) as T;
-    } catch {
-      /* fall through */
-    }
-  }
-
-  // Recovery 2: Claude prefaced with prose ("Looking at the failure…") before
-  // the JSON. Find the first `{` or `[` and the matching closer, then try
-  // parsing that slice. This is obviously heuristic — if the prose itself
-  // contains braces it could misfire — but in practice Claude's preamble
-  // is pure English and the fallback is a clear error message.
-  for (const [open, close] of [
-    ["{", "}"],
-    ["[", "]"],
-  ] as const) {
-    const start = raw.indexOf(open);
-    const end = raw.lastIndexOf(close);
-    if (start >= 0 && end > start) {
-      try {
-        return JSON.parse(raw.slice(start, end + 1)) as T;
-      } catch {
-        /* fall through */
-      }
-    }
-  }
-
-  // Give up — surface a clear error with the first chunk so the operator
-  // can see what the LLM actually said.
-  const snippet = raw.slice(0, 300);
-  throw new Error(
-    `LLM returned invalid JSON for ${context}. First 300 chars:\n${snippet}`,
-  );
-}
-
-function slug(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    || "x";
-}
-
-function pad(n: number): string {
-  return n.toString().padStart(2, "0");
-}
-
-/// Substitute lesson used when Anthropic's content filter blocks generation.
-/// Renders as a reading with a clear note about what happened so the
-/// learner isn't staring at an unexplained gap in the course. Intentionally
-/// NOT cached — leaving the cache slot empty means a future re-run can
-/// retry (maybe with a different model, or after you tweak the stub).
-function buildFilteredPlaceholder(
-  stub: { id: string; kind: string; title: string; intent?: string },
-  chapterTitle: string,
-): ReadingLesson {
-  const body = [
-    `## ${stub.title}`,
-    "",
-    "> This lesson was skipped during automated generation — Anthropic's safety filter blocked the draft response. The rest of the course imported normally.",
-    "",
-    stub.intent ? `**Planned intent:** ${stub.intent}` : "",
-    "",
-    `**Where to find it in the book:** see the "${chapterTitle}" chapter for this section.`,
-    "",
-    "Re-run the import from Settings → Data (Clear cache) if you want to try generation again, optionally with a different model.",
-  ]
-    .filter(Boolean)
-    .join("\n");
-  return {
-    kind: "reading",
-    id: stub.id,
-    title: stub.title,
-    body,
-  };
-}
-
-/// Human-readable byte count, used in ingest progress events. Pipe output
-/// like "142 MB" or "2.1 MB" reads better than the raw number — the user
-/// is glancing at a log line, not counting digits.
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
-  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
-
-async function cacheRead(bookId: string, key: string): Promise<string | null> {
-  try {
-    const v = await invoke<string | null>("cache_read", { bookId, key });
-    return v ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function cacheWrite(bookId: string, key: string, contents: string): Promise<void> {
-  try {
-    await invoke("cache_write", { bookId, key, contents });
-  } catch {
-    /* ignore — cache is best-effort */
-  }
 }

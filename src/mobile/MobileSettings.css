@@ -46,7 +46,7 @@
   padding: 14px 16px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   text-decoration: none;
   color: var(--color-text-primary);
 }
@@ -61,7 +61,7 @@
   font: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: background var(--fb-motion-quick), border-color var(--fb-motion-quick);
 }
 
 .m-set__row--button:active {

@@ -2,8 +2,8 @@
 // the locally-bundled Monaco instance + wires `self.MonacoEnvironment`
 // for worker spawning. Same import EditorPane uses; the file's
 // side-effects are idempotent so importing it from both places is safe
-// (modules are evaluated once per graph). See monaco-setup.ts.
-import "../../lib/monaco-setup";
+// (modules are evaluated once per graph). See lib/monaco/setup.ts.
+import "../../lib/monaco/setup";
 import { useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { runCode, type RunResult } from "../../runtimes";

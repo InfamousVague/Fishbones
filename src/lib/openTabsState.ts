@@ -1,17 +1,12 @@
-/// Persists which tabs the learner had open across app launches.
+/// Persists which tabs the learner had open at the moment of the
+/// last write. Currently the app boots with `openTabs = []` (Library
+/// route) every time, so we don't *re-hydrate* from this snapshot —
+/// but we keep writing it so a future "Resume last session" button
+/// (or telemetry) has something to read.
 ///
-/// The desktop app boots with `openTabs = []`, then an auto-open effect
-/// in App.tsx fires that lands the learner on `courses[0]`'s first
-/// lesson. That's the wrong behaviour for returning users — they want
-/// to pick up where they left off, not get yanked back to whatever the
-/// catalog sorted to the front of the shelf.
-///
-/// This module owns the persistence boundary:
-///   - `loadPersistedTabs()` is called as the initial state for
-///     `useState(openTabs)`. Returns the snapshot if one exists, or a
-///     sentinel `null` when there's no persisted state at all (so
-///     first-launch users still get the auto-open convenience).
-///   - `savePersistedTabs()` is called from a useEffect on every change.
+/// `validateTabsAgainstCourses` is exported because callers that DO
+/// want to consume a snapshot (e.g. a future resume flow) need to
+/// drop tabs whose course/lesson was uninstalled before re-mounting.
 ///
 /// Storage key is versioned (`v1`) so a future change to the snapshot
 /// shape can ship without tripping on an old shape's leftovers — bump
@@ -19,11 +14,8 @@
 ///
 /// We deliberately use `localStorage` (synchronous, available before
 /// React paints) rather than going through `lib/storage.ts` (async,
-/// SQLite/IndexedDB-backed). The state is small (< 1 KB), tolerates
-/// loss, and reading it on the first paint matters more than
-/// durability — synchronous availability lets us hydrate before the
-/// auto-open effect runs, avoiding a flash of "library → auto-open
-/// courses[0] → restore actual saved tabs" thrash.
+/// SQLite/IndexedDB-backed). The state is small (< 1 KB) and tolerates
+/// loss.
 
 export interface OpenCourse {
   courseId: string;
@@ -36,35 +28,6 @@ export interface PersistedTabsSnapshot {
 }
 
 const STORAGE_KEY = "fishbones:open-tabs:v1";
-
-/// Read the saved snapshot. Returns `null` when the key is missing
-/// (first launch — caller should run its existing auto-open default)
-/// or when the stored value fails to parse / validate (corruption —
-/// caller falls back to the same auto-open default).
-///
-/// An empty `tabs: []` snapshot is intentional, NOT null: it means the
-/// learner explicitly closed every tab last session and wanted the
-/// library view. Returning `null` only in the truly-no-data case keeps
-/// the "first run" path distinct from the "user chose library" path.
-export function loadPersistedTabs(): PersistedTabsSnapshot | null {
-  if (typeof localStorage === "undefined") return null;
-  let raw: string | null;
-  try {
-    raw = localStorage.getItem(STORAGE_KEY);
-  } catch {
-    // Private-mode Safari throws on getItem when storage is full.
-    // Treat as "no data" — same outcome as a missing key.
-    return null;
-  }
-  if (raw === null) return null;
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!isValidSnapshot(parsed)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
 
 /// Write the current open-tabs state. Silently no-ops when storage is
 /// unavailable or write fails — losing one update doesn't break the
@@ -101,17 +64,3 @@ export function validateTabsAgainstCourses(
   return { tabs: valid, activeIndex };
 }
 
-function isValidSnapshot(value: unknown): value is PersistedTabsSnapshot {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Partial<PersistedTabsSnapshot>;
-  if (!Array.isArray(v.tabs)) return false;
-  if (typeof v.activeIndex !== "number") return false;
-  if (!Number.isInteger(v.activeIndex) || v.activeIndex < 0) return false;
-  for (const tab of v.tabs) {
-    if (!tab || typeof tab !== "object") return false;
-    const t = tab as Partial<OpenCourse>;
-    if (typeof t.courseId !== "string" || t.courseId.length === 0) return false;
-    if (typeof t.lessonId !== "string" || t.lessonId.length === 0) return false;
-  }
-  return true;
-}

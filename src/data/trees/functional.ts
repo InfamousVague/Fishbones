@@ -1,0 +1,140 @@
+/// Auto-split from the original `src/data/trees.ts` monolith — see
+/// `scripts/split-trees.mjs` for the splitter. The shape of the data
+/// is unchanged; only the file boundaries moved.
+import type { SkillTree } from "./_core";
+export const FUNCTIONAL: SkillTree = {
+  id: "functional",
+  title: "Functional Programming",
+  short: "FP",
+  audience: "specialty",
+  accent: "#9bd87c",
+  description:
+    "Pure functions and recursion as a base, then specialty branches into Haskell types, Scala traits, and the Elixir / OTP actor model.",
+  nodes: [
+    {
+      id: "pure-functions",
+      label: "Pure Functions",
+      summary: "Same input → same output, no hidden state.",
+      prereqs: [],
+      matches: [
+        { courseId: "eloquent-javascript", lessonId: "ch04-reading" },
+        { courseId: "composing-programs", lessonId: "ch02-reading" },
+      ],
+    },
+    {
+      id: "higher-order",
+      label: "Higher-Order Functions",
+      summary: "Functions taking / returning functions.",
+      prereqs: ["pure-functions"],
+      matches: [
+        { courseId: "eloquent-javascript", lessonId: "ch04-reading" },
+        { courseId: "composing-programs", lessonId: "ch02-reading" },
+        { courseId: "rust-by-example", lessonId: "ch04-functions-closures-reading" },
+      ],
+    },
+    {
+      id: "recursion-deep",
+      label: "Recursion (Deep)",
+      summary: "Tree-recursive functions, the recursion-fairy mindset.",
+      prereqs: ["pure-functions"],
+      matches: [
+        { courseId: "composing-programs", lessonId: "ch01-reading" },
+        { courseId: "composing-programs", lessonId: "ch04-reading" },
+        { courseId: "algorithms-erickson", lessonId: "ch01-reading" },
+      ],
+    },
+    {
+      id: "immutable-data",
+      label: "Immutable Data",
+      summary: "The discipline of not mutating in place.",
+      prereqs: ["pure-functions"],
+      matches: [
+        { courseId: "fluent-react", lessonId: "immutable-state" },
+        { courseId: "composing-programs", lessonId: "ch05-reading" },
+      ],
+    },
+    {
+      id: "folds-maps-filters",
+      label: "Folds / Maps / Filters",
+      summary: "Standard collection combinators.",
+      prereqs: ["higher-order"],
+      matches: [
+        { courseId: "eloquent-javascript", lessonId: "ch04-reading" },
+        { courseId: "composing-programs", lessonId: "ch02-reading" },
+        { courseId: "javascript-info", lessonId: "ch04-reading" },
+      ],
+    },
+    {
+      id: "haskell-types",
+      label: "Haskell Types",
+      summary: "Algebraic data types, type signatures.",
+      prereqs: ["pure-functions"],
+      matches: [],
+      gapNote: "Only `challenges-haskell-handwritten` (drill bank). Host in a new `haskell-fundamentals`.",
+    },
+    {
+      id: "haskell-pattern-matching",
+      label: "Haskell Pattern Matching",
+      summary: "Destructuring ADTs, exhaustiveness checks.",
+      prereqs: ["haskell-types"],
+      matches: [],
+      gapNote: "Pair with haskell-fundamentals.",
+    },
+    {
+      id: "haskell-typeclasses",
+      label: "Haskell Type Classes",
+      summary: "Eq, Ord, Show, Functor — interface-style polymorphism.",
+      prereqs: ["haskell-types"],
+      matches: [],
+      gapNote: "Pair with haskell-fundamentals.",
+    },
+    {
+      id: "haskell-monads",
+      label: "Monads",
+      summary: "IO, Maybe, Either, do-notation.",
+      prereqs: ["haskell-typeclasses"],
+      matches: [],
+      gapNote: "Pair with haskell-fundamentals.",
+    },
+    {
+      id: "scala-traits",
+      label: "Scala Traits",
+      summary: "Mixin composition, self-types.",
+      prereqs: ["pure-functions"],
+      matches: [],
+      gapNote: "Only `challenges-scala-handwritten`. Host in a new `scala-fundamentals`.",
+    },
+    {
+      id: "scala-pattern-match",
+      label: "Scala Pattern Matching",
+      summary: "Case classes, sealed traits, exhaustiveness.",
+      prereqs: ["scala-traits"],
+      matches: [],
+      gapNote: "Pair with scala-fundamentals.",
+    },
+    {
+      id: "elixir-pattern-match",
+      label: "Elixir Pattern Match",
+      summary: "Match operator, function clauses, guards.",
+      prereqs: ["pure-functions"],
+      matches: [],
+      gapNote: "Only `challenges-elixir-handwritten`. Host in a new `elixir-fundamentals`.",
+    },
+    {
+      id: "elixir-pipes",
+      label: "Elixir Pipes",
+      summary: "|> chaining, Enum / Stream.",
+      prereqs: ["elixir-pattern-match"],
+      matches: [],
+      gapNote: "Pair with elixir-fundamentals.",
+    },
+    {
+      id: "elixir-genserver",
+      label: "GenServer",
+      summary: "OTP actor model, handle_call / handle_cast.",
+      prereqs: ["elixir-pipes"],
+      matches: [],
+      gapNote: "Pair with elixir-fundamentals.",
+    },
+  ],
+};

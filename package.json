@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "dev:web": "FISHBONES_TARGET=web npm run vendor:web && FISHBONES_TARGET=web vite",
-    "build": "npm run vendor && npm run fetch:node && tsc && vite build",
+    "build": "npm run vendor && npm run vendor:web && npm run fetch:node && tsc && vite build",
     "build:web": "npm run vendor && npm run vendor:web && npm run starter:web && tsc && FISHBONES_TARGET=web vite build",
-    "vendor": "node scripts/vendor-cdn-deps.mjs",
+    "vendor": "node scripts/vendor-cdn-deps.mjs && node scripts/vendor-soljson.mjs",
+    "vendor:soljson": "node scripts/vendor-soljson.mjs",
     "vendor:web": "node scripts/copy-vendor-to-public.mjs",
     "starter:web": "node scripts/extract-starter-courses.mjs && node scripts/generate-puzzles.mjs",
     "puzzles:gen": "node scripts/generate-puzzles.mjs",
@@ -26,12 +27,14 @@
     "library:promote-status": "node scripts/set-release-statuses.mjs"
   },
   "dependencies": {
+    "@bitauth/libauth": "^3.0.0",
     "@ethereumjs/common": "^4.4.0",
     "@ethereumjs/tx": "^5.4.0",
     "@ethereumjs/util": "^9.1.0",
     "@ethereumjs/vm": "^8.1.1",
     "@mattmattmattmatt/base": "file:../../Libs/base",
     "@monaco-editor/react": "^4.7.0",
+    "@scure/btc-signer": "^2.2.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-deep-link": "^2.4.8",
     "@tauri-apps/plugin-dialog": "^2.7.0",

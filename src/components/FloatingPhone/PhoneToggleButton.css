@@ -1,7 +1,7 @@
-/* Floating "show phone" button. Pops the FloatingPhone modal back
-   when it's minimised. Stacks above the AI orb (which sits at
-   right: 20px, bottom: 20px) so both stay reachable from the same
-   corner without overlapping. */
+/* Floating "show phone" button. Re-opens the phone popout window
+   (lib/phonePopout.ts) after it's been closed. Stacks above the AI
+   orb (which sits at right: 20px, bottom: 20px) so both stay
+   reachable from the same corner without overlapping. */
 .fishbones-phone-toggle-button {
   position: fixed;
   right: 20px;
@@ -26,10 +26,10 @@
     0 6px 14px rgba(0, 0, 0, 0.3),
     0 2px 4px rgba(0, 0, 0, 0.2);
   transition:
-    transform 0.12s ease,
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
+    transform var(--fb-motion-quick),
+    background var(--fb-motion-quick),
+    color var(--fb-motion-quick),
+    border-color var(--fb-motion-quick);
 }
 
 .fishbones-phone-toggle-button:hover {

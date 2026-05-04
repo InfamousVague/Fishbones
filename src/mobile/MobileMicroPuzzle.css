@@ -188,7 +188,7 @@
   background: var(--color-text-primary);
   color: var(--color-bg-primary);
   border: 1.5px solid var(--color-text-primary);
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 /* Empty slot: hollow rectangle with a soft accent border. The
@@ -227,7 +227,7 @@
   color: var(--color-text-primary);
   background: rgba(124, 217, 124, 0.08);
   border-left: 2px solid rgba(124, 217, 124, 0.45);
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -282,12 +282,12 @@
   place-items: center;
   background: var(--color-bg-secondary, #15151a);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-secondary);
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background var(--fb-motion-quick), color var(--fb-motion-quick);
 }
 
 .m-mp__bank-btn:active:not(:disabled) {
@@ -314,12 +314,12 @@
   padding: 10px 14px;
   background: var(--color-bg-secondary, #15151a);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-primary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, transform 0.08s ease, opacity 0.12s ease,
-    border-color 0.12s ease;
+  transition: background var(--fb-motion-quick), transform 0.08s ease, opacity var(--fb-motion-quick),
+    border-color var(--fb-motion-quick);
   min-width: 44px;
   text-align: center;
   /* Large hit target on small screens. The 8px border-radius keeps

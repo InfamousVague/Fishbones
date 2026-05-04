@@ -61,7 +61,7 @@
   font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.1px;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--fb-motion-snappy);
 }
 .fishbones__topbar-brand:hover {
   opacity: 0.78;
@@ -116,10 +116,10 @@
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__topbar-sidebar-toggle:hover,
@@ -172,13 +172,13 @@
   max-width: 240px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   color: var(--color-text-tertiary);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__topbar-search:hover,
@@ -211,7 +211,7 @@
   font-size: 10px;
   letter-spacing: 0.4px;
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: var(--fb-radius-xs);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--color-text-tertiary);
@@ -254,7 +254,7 @@
   padding: 3px 8px 3px 10px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11px;
@@ -262,7 +262,7 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones__topbar-stats-trigger:hover,
@@ -277,7 +277,7 @@
   align-items: center;
   gap: 3px;
   color: var(--color-text-tertiary);
-  transition: color 0.15s ease;
+  transition: color var(--fb-motion-snappy);
 }
 
 .fishbones__topbar-streak--active {
@@ -552,7 +552,7 @@
   padding: 8px 12px;
   background: linear-gradient(90deg, rgba(252, 211, 77, 0.08), transparent 90%);
   border: 1px solid rgba(252, 211, 77, 0.2);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   font-size: 12px;
 }
 
@@ -597,13 +597,13 @@
   background: var(--color-text-primary);
   color: var(--color-bg-primary);
   border: 1px solid var(--color-text-primary);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.1px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--fb-motion-snappy);
 }
 
 .fishbones__topbar-stats-view-profile:hover {
@@ -726,7 +726,7 @@
   color: var(--color-bg-primary);
   border: 1px solid var(--color-text-primary);
   font-weight: 600;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--fb-motion-snappy);
 }
 .fishbones__topbar-stats-signin:hover {
   opacity: 0.9;
@@ -739,7 +739,7 @@
   color: var(--color-text-secondary, rgba(127, 127, 127, 0.85));
   border: 1px solid var(--color-border, rgba(127, 127, 127, 0.3));
   font-weight: 500;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 .fishbones__topbar-stats-signout:hover {
   background: var(--color-bg-hover, rgba(127, 127, 127, 0.08));
@@ -759,7 +759,7 @@
   font-size: 12.5px;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: color var(--fb-motion-snappy), background var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 .fishbones__tab:hover {

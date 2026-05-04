@@ -30,8 +30,6 @@ use crate::progress_db::ProgressDb;
 /// need to re-deploy the native side.
 pub type CourseJson = serde_json::Value;
 
-pub struct CourseRoots(pub Vec<PathBuf>);
-
 /// Resolve the directories we scan for courses. Currently just the app data
 /// dir's `courses/` folder; bundled defaults are copied here on first launch.
 pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {

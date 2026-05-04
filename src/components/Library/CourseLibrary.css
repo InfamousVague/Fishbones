@@ -117,7 +117,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -172,28 +172,6 @@
    label explains the action once and each segment says only WHAT is being
    imported. The first segment (PDF) is the default / filled treatment
    because AI-ingesting a book is the 95% path. */
-.fishbones-library-import-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.fishbones-library-import-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
-
-.fishbones-library-import-segmented {
-  display: inline-flex;
-  background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
-  overflow: hidden;
-}
-
 .fishbones-library-import-seg {
   padding: 7px 12px;
   background: transparent;
@@ -204,7 +182,7 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 /* First segment has no left border — the outer group border already owns
@@ -235,12 +213,12 @@
   background: transparent;
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones-library-bulk-export:hover:not(:disabled) {
@@ -289,14 +267,6 @@
   flex-wrap: wrap;
 }
 
-/* Chain sub-row (Bitcoin / Ethereum / Solana / …) sits between the
- * top-level category toggle and the language pills. Slightly tighter
- * top spacing so the two rows read as a stack, not as two separate
- * controls. */
-.fishbones-library-chain-pills {
-  margin-top: 4px;
-}
-
 .fishbones-library-pill {
   display: inline-flex;
   align-items: center;
@@ -304,12 +274,12 @@
   padding: 5px 10px;
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 .fishbones-library-pill:hover {
@@ -323,74 +293,6 @@
   border-color: var(--color-text-primary);
 }
 
-.fishbones-library-pill-count {
-  font-size: 10.5px;
-  font-weight: 600;
-  opacity: 0.7;
-  font-variant-numeric: tabular-nums;
-}
-
-.fishbones-library-pill--active .fishbones-library-pill-count {
-  opacity: 1;
-}
-
-/* Books / Challenges segmented toggle. Sits below the language pills
-   in the controls bar. Visually a 3-segment pill (All · Books ·
-   Challenges) with the active segment filled — same primary-fill
-   treatment as the View-profile button so the affordance reads as
-   "this is a switch, click to flip". */
-.fishbones-library-kind-toggle {
-  display: inline-flex;
-  align-items: stretch;
-  gap: 0;
-  padding: 3px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
-  align-self: flex-start;
-  margin-top: 6px;
-}
-
-.fishbones-library-kind {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  color: var(--color-text-secondary);
-  font: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.fishbones-library-kind:hover {
-  color: var(--color-text-primary);
-}
-
-.fishbones-library-kind--active,
-.fishbones-library-kind--active:hover {
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
-}
-
-.fishbones-library-kind-count {
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.7;
-  font-variant-numeric: tabular-nums;
-  padding: 0 4px;
-  border-radius: 4px;
-}
-
-.fishbones-library-kind--active .fishbones-library-kind-count {
-  opacity: 1;
-}
-
 .fishbones-library-tools {
   display: flex;
   align-items: center;
@@ -401,7 +303,7 @@
   padding: 6px 10px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 12px;
@@ -421,17 +323,11 @@
   font-size: 11px;
 }
 
-.fishbones-library-sort-label {
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
 .fishbones-library-sort-select {
   padding: 5px 8px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 12px;
@@ -476,7 +372,7 @@
   padding: 3px 4px 3px 10px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-primary);
   font-size: 11.5px;
   font-weight: 500;
@@ -491,11 +387,11 @@
   height: 18px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   background: transparent;
   color: var(--color-text-tertiary);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones-library-filter-chip-x:hover {
@@ -512,14 +408,14 @@
   padding: 5px 12px;
   background: transparent;
   border: 1px dashed var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.1px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones-library-filter-trigger:hover,
@@ -578,12 +474,12 @@
   padding: 4px 10px;
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 11.5px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy), border-color var(--fb-motion-snappy);
 }
 
 .fishbones-library-filter-opt:hover {
@@ -624,9 +520,9 @@
   padding: 4px 10px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-tertiary);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones-library-search-wrap:focus-within {
@@ -660,7 +556,7 @@
   padding: 4px 8px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-tertiary);
 }
 
@@ -742,17 +638,6 @@
   border-bottom: 1px solid var(--color-border-default);
 }
 
-.fishbones-library-section-pill {
-  /* Override the absolute-positioning the same class uses inside a
-     BookCover. In a section heading we want it inline. */
-  position: static;
-  top: auto;
-  left: auto;
-  z-index: auto;
-  pointer-events: auto;
-  font-size: 9.5px;
-}
-
 .fishbones-library-section-title {
   margin: 0;
   font-size: 16px;
@@ -768,7 +653,7 @@
   min-width: 22px;
   height: 20px;
   padding: 0 7px;
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--color-border-default);
   color: var(--color-text-tertiary);
@@ -791,7 +676,7 @@
   display: inline-flex;
   align-items: stretch;
   border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   overflow: hidden;
   background: var(--color-bg-primary);
 }
@@ -806,7 +691,7 @@
   font-weight: 600;
   letter-spacing: 0.2px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--fb-motion-snappy), color var(--fb-motion-snappy);
 }
 
 .fishbones-library-viewmode-btn + .fishbones-library-viewmode-btn {
@@ -833,7 +718,7 @@
   border: 1px solid var(--color-border-default);
   border-radius: 10px;
   overflow: hidden;
-  transition: border-color 0.15s ease, transform 0.1s ease;
+  transition: border-color var(--fb-motion-snappy), transform 0.1s ease;
 }
 
 .fishbones-library-card:hover {
@@ -914,7 +799,7 @@
   gap: 4px;
   padding: 0 10px 10px;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--fb-motion-snappy);
 }
 
 .fishbones-library-card:hover .fishbones-library-card-actions {

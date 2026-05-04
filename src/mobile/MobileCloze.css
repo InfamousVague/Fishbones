@@ -22,7 +22,7 @@
   line-height: 1.55;
   background: var(--color-bg-elevated, #19191d);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
+  border-radius: var(--fb-radius-lg);
   padding: 14px 12px;
   margin: 0;
   /* Horizontal scroll for wide lines + preserved whitespace so
@@ -61,11 +61,11 @@
   margin: 0 1px;
   background: var(--color-bg-secondary, #15151a);
   border: 1.5px dashed var(--color-border-strong, rgba(255, 255, 255, 0.2));
-  border-radius: 6px;
+  border-radius: var(--fb-radius-sm);
   color: var(--color-text-tertiary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  transition: background var(--fb-motion-quick), border-color var(--fb-motion-quick), color var(--fb-motion-quick);
   min-height: 22px;
   /* `vertical-align: baseline` keeps the chip inline with the
      surrounding monospace text — without it the chip would sit
@@ -198,7 +198,7 @@
   font: inherit;
   color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: background var(--fb-motion-quick), border-color var(--fb-motion-quick);
 }
 
 .m-cloze-sheet__opt code {

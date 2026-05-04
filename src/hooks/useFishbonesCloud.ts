@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /// Optional cloud-sync hook for the Fishbones relay.
 ///
@@ -37,6 +37,34 @@ export interface ProgressRow {
   /// ISO 8601 timestamp.
   completed_at: string;
 }
+
+export interface SolutionRow {
+  course_id: string;
+  lesson_id: string;
+  /// JSON-stringified array of files for multi-file lessons, or the
+  /// raw editor content for single-file harnesses. The hook keeps
+  /// this opaque — callers serialize / deserialize at their layer.
+  content: string;
+  language?: string;
+  updated_at: string;
+}
+
+export interface SettingRow {
+  key: string;
+  /// JSON-encoded value. Stays a string on the wire so the table is
+  /// agnostic to scalar-vs-object shape.
+  value: string;
+  updated_at: string;
+}
+
+/// Server→client sync event tag. Mirrors the Rust `SyncEvent` enum
+/// rendered as `{"type": "...", "rows": [...]}` on the WebSocket.
+export type SyncEvent =
+  | { type: "hello" }
+  | { type: "resync" }
+  | { type: "progress"; rows: ProgressRow[] }
+  | { type: "solutions"; rows: SolutionRow[] }
+  | { type: "settings"; rows: SettingRow[] };
 
 export interface CourseMeta {
   id: string;
@@ -94,6 +122,27 @@ export interface UseFishbonesCloud {
   /// Push the local progress array as a bulk upsert. Server-side
   /// merge keeps the newer `completed_at` per (course, lesson).
   pushProgress: (rows: ProgressRow[]) => Promise<void>;
+
+  /// Pull every solution row (the learner's last-saved code per
+  /// lesson) the server knows about for this user.
+  pullSolutions: () => Promise<SolutionRow[]>;
+  /// Push solutions; server keeps the row with the newer
+  /// `updated_at` per (course, lesson).
+  pushSolutions: (rows: SolutionRow[]) => Promise<void>;
+
+  /// Pull every settings row (free-form user preferences keyed by a
+  /// short string).
+  pullSettings: () => Promise<SettingRow[]>;
+  /// Push settings; LWW per `key`.
+  pushSettings: (rows: SettingRow[]) => Promise<void>;
+
+  /// Open a WebSocket to the relay's `/sync/ws` route and stream
+  /// every cross-device sync event into `handler`. Auto-reconnects
+  /// with exponential backoff (capped at ~10s) so a flaky network
+  /// doesn't permanently de-sync the device. Returns a teardown
+  /// function the caller invokes on unmount or sign-out. No-ops
+  /// (returns a noop teardown) when the user isn't signed in yet.
+  subscribeSync: (handler: (event: SyncEvent) => void) => () => void;
 
   /// Upload a `.fishbones` archive (Uint8Array) tagged with metadata.
   uploadCourse: (input: {
@@ -452,6 +501,137 @@ export function useFishbonesCloud(): UseFishbonesCloud {
     [authFetch],
   );
 
+  const pullSolutions = useCallback(async (): Promise<SolutionRow[]> => {
+    const res = await authFetch("/fishbones/solutions");
+    if (!res.ok) throw new Error(`pull-solutions failed (${res.status})`);
+    return (await res.json()) as SolutionRow[];
+  }, [authFetch]);
+
+  const pushSolutions = useCallback(
+    async (rows: SolutionRow[]) => {
+      if (rows.length === 0) return;
+      for (let i = 0; i < rows.length; i += 200) {
+        const slice = rows.slice(i, i + 200);
+        const res = await authFetch("/fishbones/solutions", {
+          method: "PUT",
+          body: JSON.stringify({ rows: slice }),
+        });
+        if (!res.ok && res.status !== 204) {
+          throw new Error(`push-solutions failed (${res.status})`);
+        }
+      }
+    },
+    [authFetch],
+  );
+
+  const pullSettings = useCallback(async (): Promise<SettingRow[]> => {
+    const res = await authFetch("/fishbones/settings");
+    if (!res.ok) throw new Error(`pull-settings failed (${res.status})`);
+    return (await res.json()) as SettingRow[];
+  }, [authFetch]);
+
+  const pushSettings = useCallback(
+    async (rows: SettingRow[]) => {
+      if (rows.length === 0) return;
+      const res = await authFetch("/fishbones/settings", {
+        method: "PUT",
+        body: JSON.stringify({ rows }),
+      });
+      if (!res.ok && res.status !== 204) {
+        throw new Error(`push-settings failed (${res.status})`);
+      }
+    },
+    [authFetch],
+  );
+
+  // Latest token in a ref so subscribeSync's reconnect closure
+  // always reads the current value — without this the closure caps
+  // the token at sign-in time and a refresh-after-OAuth re-issue
+  // would reconnect with a stale bearer.
+  const tokenRef = useRef<string | null>(token);
+  tokenRef.current = token;
+  const relayUrlRef = useRef<string>(relayUrl);
+  relayUrlRef.current = relayUrl;
+
+  const subscribeSync = useCallback(
+    (handler: (event: SyncEvent) => void): (() => void) => {
+      if (!tokenRef.current) return () => {};
+
+      let socket: WebSocket | null = null;
+      let stopped = false;
+      let backoff = 500;
+      let reconnectTimer: number | null = null;
+
+      const wsUrl = (): string => {
+        // http(s) → ws(s); always preserve TLS so we don't downgrade.
+        const base = relayUrlRef.current.replace(/^http/, "ws");
+        const tok = encodeURIComponent(tokenRef.current ?? "");
+        return `${base}/fishbones/sync/ws?token=${tok}`;
+      };
+
+      const connect = (): void => {
+        if (stopped) return;
+        try {
+          socket = new WebSocket(wsUrl());
+        } catch (e) {
+          console.warn("[fishbones-sync] WS construct failed:", e);
+          schedule();
+          return;
+        }
+        socket.addEventListener("open", () => {
+          // Reset backoff on a clean connect; the server's `hello`
+          // event arrives shortly after.
+          backoff = 500;
+        });
+        socket.addEventListener("message", (ev) => {
+          try {
+            const data = JSON.parse(ev.data as string) as SyncEvent;
+            handler(data);
+          } catch (e) {
+            console.warn("[fishbones-sync] bad WS payload:", e);
+          }
+        });
+        socket.addEventListener("close", () => {
+          if (!stopped) schedule();
+        });
+        socket.addEventListener("error", () => {
+          // `close` fires after `error` so we let the close handler
+          // do the reconnect dance.
+        });
+      };
+
+      const schedule = (): void => {
+        if (stopped) return;
+        if (reconnectTimer !== null) return;
+        const delay = Math.min(backoff, 10_000);
+        reconnectTimer = window.setTimeout(() => {
+          reconnectTimer = null;
+          backoff = Math.min(backoff * 2, 10_000);
+          connect();
+        }, delay);
+      };
+
+      connect();
+
+      return () => {
+        stopped = true;
+        if (reconnectTimer !== null) {
+          window.clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+        if (socket) {
+          try {
+            socket.close();
+          } catch {
+            /* swallow */
+          }
+          socket = null;
+        }
+      };
+    },
+    [],
+  );
+
   const uploadCourse = useCallback(
     async (input: {
       courseSlug: string;
@@ -550,6 +730,11 @@ export function useFishbonesCloud(): UseFishbonesCloud {
       deleteAccount,
       pullProgress,
       pushProgress,
+      pullSolutions,
+      pushSolutions,
+      pullSettings,
+      pushSettings,
+      subscribeSync,
       uploadCourse,
       listMyCourses,
       listPublicCourses,
@@ -573,6 +758,11 @@ export function useFishbonesCloud(): UseFishbonesCloud {
       deleteAccount,
       pullProgress,
       pushProgress,
+      pullSolutions,
+      pushSolutions,
+      pullSettings,
+      pushSettings,
+      subscribeSync,
       uploadCourse,
       listMyCourses,
       listPublicCourses,

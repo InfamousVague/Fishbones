@@ -42,3 +42,81 @@ export function convertFileSrc(filePath: string, _protocol?: string): string {
   // should already be using a public URL.
   return filePath;
 }
+
+/// Resource — needed by `@tauri-apps/plugin-updater`'s `Update` class
+/// (it extends Resource for its rid-based lifecycle). On the web
+/// build the updater plugin is never reached at runtime (the
+/// auto-update flow is gated on Tauri presence), but the stub still
+/// has to compile cleanly through Rollup's static analysis.
+///
+/// Real Resource manages a Tauri-side resource id with `close()`.
+/// We give the stub the same shape: any `rid` field + a no-op
+/// close. Anything that hits `_doClose()` on the web throws via
+/// `invoke` above, which is the right loud-fail behaviour for an
+/// unintended path.
+export class Resource {
+  protected _rid: number;
+
+  constructor(rid: number) {
+    this._rid = rid;
+  }
+
+  get rid(): number {
+    return this._rid;
+  }
+
+  async close(): Promise<void> {
+    // No real resource exists on the web build, so close() has
+    // nothing to release. Resolve so callers' `defer`-style cleanup
+    // logic completes without surfacing a noisy reject.
+  }
+}
+
+/// PluginListener — surface area for `@tauri-apps/api/core`'s event
+/// listener helpers when called via plugin packages. The web build
+/// returns a no-op stop handle; nothing fires anyway because
+/// invoke() throws.
+export class PluginListener {
+  plugin: string;
+  event: string;
+  channelId: number;
+
+  constructor(plugin: string, event: string, channelId: number) {
+    this.plugin = plugin;
+    this.event = event;
+    this.channelId = channelId;
+  }
+
+  async unregister(): Promise<void> {
+    // No-op — nothing was registered.
+  }
+}
+
+/// addPluginListener — used by some plugins. On web, return a
+/// PluginListener with channelId=0 and never fire.
+export async function addPluginListener<T>(
+  plugin: string,
+  event: string,
+  cb: (payload: T) => void,
+): Promise<PluginListener> {
+  void cb;
+  return new PluginListener(plugin, event, 0);
+}
+
+/// SERIALIZE_TO_IPC_FN — internal sentinel symbol Tauri uses to mark
+/// objects with a custom IPC serialiser. Stub it as a real Symbol so
+/// `[SERIALIZE_TO_IPC_FN]?: () => unknown` member declarations on
+/// classes (e.g. plugin types) compile.
+export const SERIALIZE_TO_IPC_FN = Symbol("__TAURI_TO_IPC_KEY__");
+
+/// transformCallback — used by Channel / event listener wiring on
+/// desktop. On web we just return -1 so the call site sees an
+/// "invalid" id and bails before trying to fire IPC.
+export function transformCallback<T>(
+  callback?: (response: T) => void,
+  once?: boolean,
+): number {
+  void callback;
+  void once;
+  return -1;
+}

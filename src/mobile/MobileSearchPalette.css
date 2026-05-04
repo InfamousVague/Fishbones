@@ -87,7 +87,7 @@
   border: 0;
   color: var(--color-text-tertiary);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -141,7 +141,7 @@
   font: inherit;
   color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease;
+  transition: background var(--fb-motion-quick);
 }
 
 .m-search__row:active {
@@ -154,7 +154,7 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   background: var(--color-bg-secondary, #15151a);
   color: var(--color-text-secondary);
 }

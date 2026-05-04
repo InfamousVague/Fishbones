@@ -20,6 +20,7 @@ mod db;
 mod mailer;
 mod routes;
 mod state;
+mod sync_bus;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -140,6 +141,7 @@ async fn main() -> anyhow::Result<()> {
     let state = Arc::new(AppState {
         db,
         mailer,
+        sync_bus: crate::sync_bus::SyncBus::new(),
         web_base_url,
         apple_audience,
         google_audience,

@@ -49,11 +49,11 @@
   background: var(--color-bg-elevated, #19191d);
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
   color: var(--color-text-secondary);
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background var(--fb-motion-quick), color var(--fb-motion-quick);
   /* Nudge it down so it visually centers against the title baseline
      rather than the title's top. Header uses align-items: flex-start
      so we adjust here instead of changing the whole row's alignment. */
@@ -91,14 +91,14 @@
   padding: 7px 12px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-radius-pill);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition: background var(--fb-motion-quick), color var(--fb-motion-quick), border-color var(--fb-motion-quick);
 }
 
 .m-lib__pill:active {
@@ -205,7 +205,7 @@
   background-color: var(--color-bg-secondary);
   background-size: cover;
   background-position: center;
-  border-radius: 8px;
+  border-radius: var(--fb-radius-md);
   border: 1px solid var(--color-border-default);
   overflow: hidden;
   /* Subtle inset shadow gives the cover that printed-page feel. */
