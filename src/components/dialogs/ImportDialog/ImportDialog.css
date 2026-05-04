@@ -63,9 +63,9 @@
 }
 
 .fishbones-import-primary {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
+  background: var(--color-text-primary, #ffffff);
+  color: var(--color-bg-primary, #000000);
+  border-color: var(--color-text-primary, #ffffff);
 }
 
 .fishbones-import-primary:hover:not(:disabled) {

@@ -57,9 +57,9 @@
 }
 
 .fishbones-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
+  background: var(--color-text-primary, #ffffff);
+  color: var(--color-bg-primary, #000000);
+  border-color: var(--color-text-primary, #ffffff);
 }
 
 .fishbones-lesson-nav-arrow {

@@ -122,9 +122,12 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  background: rgba(108, 140, 255, 0.18);
-  color: #6c8cff;
-  border: 1px solid rgba(108, 140, 255, 0.4);
+  /* Theme-driven accent. Default-dark resolves --color-accent to
+     the bone-amber palette; previously this row hard-coded the
+     legacy periwinkle so changing themes had no visual effect. */
+  background: color-mix(in srgb, var(--color-accent, #6c8cff) 18%, transparent);
+  color: var(--color-accent, #6c8cff);
+  border: 1px solid color-mix(in srgb, var(--color-accent, #6c8cff) 40%, transparent);
   transition:
     background 120ms ease,
     transform 120ms ease,

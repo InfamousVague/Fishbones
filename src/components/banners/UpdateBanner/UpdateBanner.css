@@ -46,8 +46,11 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--fb-radius-md);
-  background: rgba(108, 140, 255, 0.18);
-  color: #6c8cff;
+  /* Accent-tinted icon plate. Reads from --color-accent (bone-amber
+     on default-dark) so the banner picks up the active theme palette
+     instead of the legacy periwinkle that was hard-coded here. */
+  background: color-mix(in srgb, var(--color-accent, #6c8cff) 18%, transparent);
+  color: var(--color-accent, #6c8cff);
 }
 
 .fishbones-update-banner__body {
@@ -83,7 +86,7 @@
 
 .fishbones-update-banner__progress-bar {
   height: 100%;
-  background: #6c8cff;
+  background: var(--color-accent, #6c8cff);
   border-radius: var(--fb-radius-pill);
   transition: width 120ms ease-out;
 }

@@ -57,7 +57,7 @@
   flex-shrink: 0;
 }
 .fishbones-floating-status-dot--running {
-  background: #fff;
+  background: var(--color-text-primary, #fff);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
   animation: fishbones-floating-pulse 1.4s ease-in-out infinite;
 }

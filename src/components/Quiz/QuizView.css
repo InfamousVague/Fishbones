@@ -211,8 +211,8 @@
 
 .fishbones-quiz-short-submit {
   padding: 0 14px;
-  background: #ffffff;
-  color: #000000;
+  background: var(--color-text-primary, #ffffff);
+  color: var(--color-bg-primary, #000000);
   border: 0;
   border-radius: var(--fb-radius-sm);
   font-size: 12px;

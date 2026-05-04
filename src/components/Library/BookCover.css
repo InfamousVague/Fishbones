@@ -107,7 +107,10 @@
   right: 0;
   bottom: 0;
   padding: 10px 12px 14px;
-  color: #fff;
+  /* Sits over the dark gradient (`.fishbones-book-shadow`); the
+     bone-tinted text-primary keeps the title legible AND on-brand
+     instead of stark white that fights the warm wordmark. */
+  color: var(--color-text-primary, #fff);
 }
 
 .fishbones-book-title {
@@ -145,7 +148,7 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 18px 16px 16px;
-  color: #fff;
+  color: var(--color-text-primary, #fff);
 }
 
 .fishbones-book-fallback-lang {
@@ -161,7 +164,7 @@
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.01em;
-  color: #fff;
+  color: var(--color-text-primary, #fff);
   display: -webkit-box;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
@@ -209,7 +212,7 @@
 
 .fishbones-book-progress-fill {
   height: 100%;
-  background: #fff;
+  background: var(--color-text-primary, #fff);
   opacity: 0.92;
   transition: width 0.3s ease;
 }
@@ -241,7 +244,7 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  color: #fff;
+  color: var(--color-text-primary, #fff);
   pointer-events: none;
   animation: fishbones-book-loading-fade 0.2s ease-out both;
 }
@@ -442,8 +445,8 @@
   text-transform: uppercase;
   cursor: pointer;
   background: rgba(15, 15, 22, 0.78);
-  color: #6c8cff;
-  border: 1px solid rgba(108, 140, 255, 0.45);
+  color: var(--color-accent, #6c8cff);
+  border: 1px solid color-mix(in srgb, var(--color-accent, #6c8cff) 45%, transparent);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
   backdrop-filter: blur(8px) saturate(140%);
   box-shadow:
@@ -512,7 +515,7 @@
   padding: 12px 18px;
   border-radius: 10px;
   background: rgba(15, 15, 22, 0.85);
-  color: #ffffff;
+  color: var(--color-text-primary, #ffffff);
   border: 1px solid rgba(255, 255, 255, 0.18);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
   backdrop-filter: blur(8px) saturate(140%);

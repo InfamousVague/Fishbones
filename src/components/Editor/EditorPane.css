@@ -47,15 +47,20 @@
 }
 
 .fishbones-editor-run {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
+  /* Primary "Run" button — the most prominent action in the editor.
+     Theme-driven via --color-text-primary so the bone-tinted dark
+     theme paints it bone-white, light themes paint it the light
+     theme's primary text colour. Pre-bone-palette versions
+     hard-coded #ffffff which fought the warm wordmark. */
+  background: var(--color-text-primary, #ffffff);
+  color: var(--color-bg-primary, #000000);
+  border-color: var(--color-text-primary, #ffffff);
   font-weight: 600;
 }
 
 .fishbones-editor-run:hover:not(:disabled) {
   opacity: 0.9;
-  background: #ffffff;
+  background: var(--color-text-primary, #ffffff);
 }
 
 .fishbones-editor-button--danger {
