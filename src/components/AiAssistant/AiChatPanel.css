@@ -69,11 +69,13 @@
 }
 
 .fishbones-ai-panel-logo {
-  width: 18px;
-  height: 18px;
+  /* Same brand asset the AiCharacter button uses — keeps the panel
+   * header in lockstep with the floating orb that opened it. */
+  width: 22px;
+  height: 22px;
   background: currentColor;
-  -webkit-mask: url("/ai-fish-skeleton.svg") no-repeat center / contain;
-  mask: url("/ai-fish-skeleton.svg") no-repeat center / contain;
+  -webkit-mask: url("/fishbones_skinny_white.png") no-repeat center / contain;
+  mask: url("/fishbones_skinny_white.png") no-repeat center / contain;
   color: var(--color-text-secondary);
 }
 

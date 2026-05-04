@@ -247,12 +247,34 @@ export async function runZig(code: string, testCode?: string): Promise<RunResult
   // bound from std), so we strip from the test side.
   const dedupedTests = dedupeZigStdImport(code, testCode);
   const merged = dedupedTests ? `${code}\n${dedupedTests}\n` : code;
-  // Pick the Zig subcommand based on whether this is a lesson run
-  // (test cases attached) or a playground run (script with main).
-  // `zig test` only invokes `test "..." {}` blocks and never calls
-  // `pub fn main`; running playground sources through it is what
-  // produced "All 0 tests passed." with no Hello-world output.
-  const mode: "test" | "run" = testCode !== undefined ? "test" : "run";
+  // Choose Zig subcommand:
+  //   - Playground (no testCode): `zig run` so `pub fn main` executes.
+  //   - Modern lesson (`test "name" {}` blocks present): `zig test` so
+  //     each block runs as an independent assertion. Output format is
+  //     `1/N slug.test.name...OK|FAIL`.
+  //   - Legacy lesson (`pub fn main` + `runTest()` helper that emits
+  //     `KATA_TEST::name::PASS|FAIL` to stdout): `zig run` so the
+  //     harness's main fn actually executes. Used by every lesson in
+  //     the Learning Zig book (24 cases) and any other course that
+  //     pre-dates the native-test refactor — without this branch they
+  //     all reported "All 0 tests passed." because zig test ignores
+  //     non-`test "..."` declarations.
+  //
+  // The detection is intentionally syntactic — checking for `test "`
+  // matches the modern style without false-positives on string
+  // literals containing the word "test".
+  let mode: "test" | "run";
+  let harness: "modern" | "legacy" | "playground";
+  if (testCode === undefined) {
+    mode = "run";
+    harness = "playground";
+  } else if (hasModernZigTests(merged)) {
+    mode = "test";
+    harness = "modern";
+  } else {
+    mode = "run";
+    harness = "legacy";
+  }
   const raw = await invoke<{
     stdout: string;
     stderr: string;
@@ -272,28 +294,35 @@ export async function runZig(code: string, testCode?: string): Promise<RunResult
   }
 
   const isLessonRun = testCode !== undefined;
-  // Single pass: extract test results AND the user's `std.debug.print`
-  // output (which intermixes with the test runner's protocol on
-  // stderr). The console pane shows the prints + any leak / error
-  // traces; the test pills handle pass/fail. Without this split, a
-  // lesson with debug prints rendered an empty console (the prints
-  // were swallowed by the protocol-strip filter).
-  const parsed = isLessonRun
-    ? parseZigTestRun(raw.stderr)
-    : { tests: undefined, console: raw.stderr.replace(/\n+$/, "") };
-  const visibleStdout = raw.stdout.replace(/\n+$/, "");
+  // Parse output based on which harness path we took. Modern lessons
+  // emit per-test lines on stderr (with debug.print intermixed);
+  // legacy lessons emit `KATA_TEST::name::PASS|FAIL` lines on stdout
+  // and any user output via `std.debug.print` on stderr.
+  let parsed: { tests?: TestResult[]; console: string; consoleStderr?: string };
+  if (harness === "modern") {
+    parsed = parseZigTestRun(raw.stderr);
+  } else if (harness === "legacy") {
+    parsed = parseZigKataTestRun(raw.stdout, raw.stderr);
+  } else {
+    parsed = {
+      tests: undefined,
+      console: raw.stderr.replace(/\n+$/, ""),
+    };
+  }
+  const visibleStdout =
+    harness === "legacy" ? "" : raw.stdout.replace(/\n+$/, "");
   const visibleStderr = parsed.console;
 
   const logs: LogLine[] = [];
   if (visibleStdout) logs.push({ level: "log", text: visibleStdout });
   if (visibleStderr) {
-    // For lesson runs we report the stderr stream as a "log" line
-    // regardless of pass/fail. The test pills already show the red
-    // FAIL state; an additional "error"-level wrapper around the
-    // user's own debug prints is a category mismatch ("you printed
-    // to debug, here's an error"). Compile errors and panics still
-    // come through — they're visible as text, just not styled red
-    // by the log-level chrome.
+    // For lesson runs we report stderr as a "log" line regardless of
+    // pass/fail. The test pills already show the red FAIL state; an
+    // additional "error"-level wrapper around the user's own debug
+    // prints is a category mismatch ("you printed to debug, here's
+    // an error"). Compile errors and panics still come through —
+    // they're visible as text, just not styled red by the log-level
+    // chrome.
     logs.push({
       level: isLessonRun ? "log" : raw.success ? "log" : "error",
       text: visibleStderr.trimEnd(),
@@ -305,6 +334,56 @@ export async function runZig(code: string, testCode?: string): Promise<RunResult
     tests: parsed.tests,
     durationMs: performance.now() - start,
     testsExpected: isLessonRun,
+  };
+}
+
+/// True when the merged source contains at least one `test "name" {}`
+/// block — the modern Zig test style introduced in the native-test
+/// refactor. Drives the "should we use `zig test` or `zig run`"
+/// dispatch in `runZig`.
+///
+/// Intentionally syntactic — checks for `test "` at line-start
+/// position (with optional leading whitespace), which `test "..." {}`
+/// always satisfies and string literals never do.
+function hasModernZigTests(source: string): boolean {
+  return /(^|\n)\s*test\s+"/.test(source);
+}
+
+/// Parse a legacy Zig harness run. The lesson's `tests` field
+/// declares a `pub fn main` that calls `runTest(out, "name", &fn)`
+/// for each case; `runTest` writes `KATA_TEST::<name>::PASS` (or
+/// `FAIL::<reason>`) to stdout. We pull those out as `TestResult`s
+/// and route any user `std.debug.print` output (which lands on
+/// stderr) plus other stdout text to the console.
+function parseZigKataTestRun(
+  stdout: string,
+  stderr: string,
+): { tests: TestResult[]; console: string } {
+  const tests: TestResult[] = [];
+  const consoleLines: string[] = [];
+  const protocolRe = /^KATA_TEST::([^:]+)::(PASS|FAIL)(?:::(.+))?\s*$/;
+  for (const rawLine of stdout.split("\n")) {
+    const line = rawLine.replace(/\r$/, "");
+    const m = protocolRe.exec(line);
+    if (m) {
+      const [, name, status, reason] = m;
+      if (status === "PASS") tests.push({ name, passed: true });
+      else tests.push({ name, passed: false, error: reason || "test failed" });
+      continue;
+    }
+    if (line.length > 0) consoleLines.push(line);
+  }
+  // Stderr almost always carries useful info on a legacy run — debug
+  // prints from the user's solution, plus zig's own panic / leak
+  // diagnostics on a crash. Pass it through verbatim.
+  const stderrTrimmed = stderr.replace(/\n+$/, "");
+  if (stderrTrimmed.length > 0) {
+    if (consoleLines.length > 0) consoleLines.push("");
+    consoleLines.push(stderrTrimmed);
+  }
+  return {
+    tests,
+    console: consoleLines.join("\n").replace(/\n+$/, ""),
   };
 }
 

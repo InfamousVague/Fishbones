@@ -80,7 +80,7 @@ build:
 	cd $(ROOT) && \
 		TAURI_SIGNING_PRIVATE_KEY="$$(cat $(TAURI_SIGNING_KEY_PATH) 2>/dev/null)" \
 		TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(TAURI_SIGNING_KEY_PASSWORD)" \
-		npm run tauri build -- --bundles app,dmg,updater
+		npm run tauri build -- --bundles app,dmg
 
 ## Tauri OTA-update signing key. Generated once via
 ## `npx @tauri-apps/cli signer generate -w ~/.tauri/fishbones-updater.key`;

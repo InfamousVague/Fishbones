@@ -121,16 +121,21 @@
   pointer-events: none;
 }
 
-/* Generic fish-skeleton silhouette tinted dark slate so it pops against
-   the bright orb face. SVG used as a CSS mask so the colour stays
-   theme-controllable independent of the asset. */
+/* Brand fish-skeleton silhouette tinted dark slate so it pops against
+   the bright orb face. Uses `/fishbones_skinny_white.png` — the same
+   asset the TopBar logo and the FishbonesLoader spinner pull, so the
+   AI button speaks the same visual vocabulary as the rest of the
+   chrome. The previous `/ai-fish-skeleton.svg` was a one-off stick-
+   figure variant that looked off next to the brand mark. We mask the
+   PNG (alpha-channel) so the orb's gradient stays the visible
+   surface and we tint the fish silhouette via background-color. */
 .fishbones-ai-character-icon {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   background: #1f2330;
-  -webkit-mask: url("/ai-fish-skeleton.svg") no-repeat center / contain;
-  mask: url("/ai-fish-skeleton.svg") no-repeat center / contain;
+  -webkit-mask: url("/fishbones_skinny_white.png") no-repeat center / contain;
+  mask: url("/fishbones_skinny_white.png") no-repeat center / contain;
   z-index: 2;
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.06));
 }

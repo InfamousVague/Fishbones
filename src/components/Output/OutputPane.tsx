@@ -178,6 +178,38 @@ export default function OutputPane({
   const [reloadTick, setReloadTick] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  // ── Console / Tests tab split ─────────────────────────────────────
+  // Two tabs in the body when the run produced both: console output
+  // (logs / debug prints / error traces) and test pills. Tabs only
+  // render when both buckets exist — a logs-only run (playground) or
+  // tests-only run (no debug output) skips the chrome and shows the
+  // single section directly.
+  type OutputTab = "console" | "tests";
+  const [activeTab, setActiveTab] = useState<OutputTab>("tests");
+  const hasLogs = (result?.logs?.length ?? 0) > 0;
+  const hasTests = (result?.tests?.length ?? 0) > 0;
+  const showTabs = hasLogs && hasTests;
+  // Auto-pick a sensible default whenever a NEW result lands. Lessons
+  // (testsExpected) start on Tests so the pass/fail badges are the
+  // first thing you see; a failing run flips to Tests too even if
+  // the user was looking at Console (so they don't miss the red
+  // pill). Logs-only / playground runs land on Console.
+  const failingCount = result?.tests?.filter((t) => !t.passed).length ?? 0;
+  useEffect(() => {
+    if (!result) return;
+    if (hasTests && (testsExpected || failingCount > 0)) {
+      setActiveTab("tests");
+    } else if (hasLogs && !hasTests) {
+      setActiveTab("console");
+    } else if (hasTests && !hasLogs) {
+      setActiveTab("tests");
+    }
+    // Intentionally only re-run on the result identity (durationMs
+    // is monotonically distinct per run); switching tab via the user
+    // shouldn't re-fire this default-picker.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.durationMs]);
+
   // Whenever the result flips to a new timestamp, reload the iframe
   // so the user sees the latest render without needing to reach for
   // the reload button manually. We key off durationMs as a cheap
@@ -338,35 +370,95 @@ export default function OutputPane({
           </div>
         )}
 
-        {(result?.logs ?? []).map((line, i) => (
-          <div key={`log-${i}`} className={`fishbones-output-line fishbones-output-line--${line.level}`}>
-            {line.text}
-          </div>
-        ))}
-
-        {result?.tests && result.tests.length > 0 && (
-          <div className="fishbones-output-tests">
-            {result.tests.map((t, i) => (
-              <div
-                key={`t-${i}`}
-                className={`fishbones-output-test fishbones-output-test--${t.passed ? "pass" : "fail"}`}
+        {/* Tab bar — only renders when both Console AND Tests have
+            content. A run with logs-only or tests-only skips the
+            chrome and shows the single section straight. Same idea
+            as the editor's hint pane: chrome appears when there's
+            something to switch between. */}
+        {showTabs && (
+          <div className="fishbones-output-tabs" role="tablist" aria-label="Output">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "console"}
+              className={`fishbones-output-tab ${
+                activeTab === "console" ? "fishbones-output-tab--active" : ""
+              }`}
+              onClick={() => setActiveTab("console")}
+            >
+              <span>Console</span>
+              <span className="fishbones-output-tab-badge">
+                {result?.logs?.length ?? 0}
+              </span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "tests"}
+              className={`fishbones-output-tab ${
+                activeTab === "tests" ? "fishbones-output-tab--active" : ""
+              } ${
+                failingCount > 0
+                  ? "fishbones-output-tab--has-failures"
+                  : ""
+              }`}
+              onClick={() => setActiveTab("tests")}
+            >
+              <span>Tests</span>
+              <span
+                className={`fishbones-output-tab-badge ${
+                  failingCount > 0
+                    ? "fishbones-output-tab-badge--fail"
+                    : "fishbones-output-tab-badge--pass"
+                }`}
               >
-                <span className="fishbones-output-test-glyph">
-                  <Icon
-                    icon={t.passed ? check : xIcon}
-                    size="xs"
-                    color="currentColor"
-                    weight="bold"
-                  />
-                </span>
-                <span className="fishbones-output-test-name">{t.name}</span>
-                {!t.passed && t.error && (
-                  <pre className="fishbones-output-test-error">{t.error}</pre>
-                )}
+                {passedCount}/{totalTests}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Console pane — visible when:
+            - tabs not shown AND there are logs (single-section run)
+            - tabs shown AND user picked the Console tab */}
+        {((!showTabs && hasLogs) || (showTabs && activeTab === "console")) && (
+          <div className="fishbones-output-console">
+            {(result?.logs ?? []).map((line, i) => (
+              <div
+                key={`log-${i}`}
+                className={`fishbones-output-line fishbones-output-line--${line.level}`}
+              >
+                {line.text}
               </div>
             ))}
           </div>
         )}
+
+        {/* Tests pane — same visibility rule mirrored. */}
+        {((!showTabs && hasTests) || (showTabs && activeTab === "tests")) &&
+          result?.tests && (
+            <div className="fishbones-output-tests">
+              {result.tests.map((t, i) => (
+                <div
+                  key={`t-${i}`}
+                  className={`fishbones-output-test fishbones-output-test--${t.passed ? "pass" : "fail"}`}
+                >
+                  <span className="fishbones-output-test-glyph">
+                    <Icon
+                      icon={t.passed ? check : xIcon}
+                      size="xs"
+                      color="currentColor"
+                      weight="bold"
+                    />
+                  </span>
+                  <span className="fishbones-output-test-name">{t.name}</span>
+                  {!t.passed && t.error && (
+                    <pre className="fishbones-output-test-error">{t.error}</pre>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
         {result?.desktopOnly && (
           // Web build: this language's runtime needs the desktop app.
