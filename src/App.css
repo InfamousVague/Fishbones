@@ -58,10 +58,13 @@
  * ───────────────────────────────────────────────────────────── */
 * {
   scrollbar-width: thin;
-  /* Bone-white thumb at low alpha — same cool tone as the
-     FishbonesLoader ring and the wordmark mid-stroke. The track
-     stays transparent so the surface behind it shows through. */
-  scrollbar-color: rgba(212, 197, 161, 0.42) transparent;
+  /* Default: barely-there ALPHA-tier amber (#f5b13a at ~9% alpha).
+     The track stays transparent. The thumb fades up to a strong
+     amber on hover via the webkit rules below; modern Firefox
+     reads `scrollbar-color` and doesn't have a hover state, so
+     we keep its default at the visible-but-subtle level so it
+     doesn't disappear entirely. */
+  scrollbar-color: rgba(245, 177, 58, 0.18) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -74,19 +77,39 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  /* Bone-white thumb — matches --fb-bone-color (#d4c5a1) at
-     ~42% alpha. Hover state below bumps it to ~78% for tactile
-     feedback without flipping the hue. */
-  background: rgba(212, 197, 161, 0.42);
+  /* Default state: nearly invisible amber — `#f5b13a` (the ALPHA
+     tier badge / book progress amber) at ~9% alpha. Just enough
+     to hint at scrollability without competing with content. */
+  background: rgba(245, 177, 58, 0.09);
   border-radius: var(--fb-radius-pill);
   /* 2px transparent border = padding inside the track, so the thumb
      reads as a thin floating capsule rather than a wall-to-wall slab. */
   border: 2px solid transparent;
   background-clip: padding-box;
+  /* Smooth fade between idle and hover states. CSS doesn't expose
+     "actively scrolling" as a pseudo-class — `:hover` is the closest
+     proxy. When the cursor leaves the surface, the thumb fades back
+     to the idle near-invisible alpha. */
+  transition: background-color 220ms ease;
 }
 
+/* Hover state on the scrollable surface (not just the thumb itself).
+   Catches "user is engaged with this region" — typical scrolling
+   behavior moves the cursor over the surface first. */
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(245, 177, 58, 0.55);
+  background-clip: padding-box;
+}
+
+/* Hovering the thumb directly: full amber, tactile. */
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 197, 161, 0.78);
+  background: rgba(245, 177, 58, 0.85);
+  background-clip: padding-box;
+}
+
+/* Active drag (mousedown): a touch warmer/brighter for the press. */
+*::-webkit-scrollbar-thumb:active {
+  background: #f5b13a;
   background-clip: padding-box;
 }
 
