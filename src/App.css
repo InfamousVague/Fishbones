@@ -58,13 +58,13 @@
  * ───────────────────────────────────────────────────────────── */
 * {
   scrollbar-width: thin;
-  /* Default: barely-there ALPHA-tier amber (#f5b13a at ~9% alpha).
+  /* Default: barely-there bone-white tint (#d4c5a1 at ~9% alpha).
      The track stays transparent. The thumb fades up to a strong
-     amber on hover via the webkit rules below; modern Firefox
-     reads `scrollbar-color` and doesn't have a hover state, so
-     we keep its default at the visible-but-subtle level so it
-     doesn't disappear entirely. */
-  scrollbar-color: rgba(245, 177, 58, 0.18) transparent;
+     bone-white on hover via the webkit rules below; Firefox reads
+     `scrollbar-color` and doesn't have a hover state, so we keep
+     its default slightly more visible (~18% alpha) since it
+     can't fade up. */
+  scrollbar-color: rgba(212, 197, 161, 0.18) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -77,10 +77,11 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  /* Default state: nearly invisible amber — `#f5b13a` (the ALPHA
-     tier badge / book progress amber) at ~9% alpha. Just enough
-     to hint at scrollability without competing with content. */
-  background: rgba(245, 177, 58, 0.09);
+  /* Default state: nearly invisible bone-white — `#d4c5a1`
+     (--fb-bone-color, the wordmark mid-stroke) at ~9% alpha.
+     Just enough to hint at scrollability without competing
+     with content. */
+  background: rgba(212, 197, 161, 0.09);
   border-radius: var(--fb-radius-pill);
   /* 2px transparent border = padding inside the track, so the thumb
      reads as a thin floating capsule rather than a wall-to-wall slab. */
@@ -97,19 +98,19 @@
    Catches "user is engaged with this region" — typical scrolling
    behavior moves the cursor over the surface first. */
 *:hover::-webkit-scrollbar-thumb {
-  background: rgba(245, 177, 58, 0.55);
+  background: rgba(212, 197, 161, 0.55);
   background-clip: padding-box;
 }
 
-/* Hovering the thumb directly: full amber, tactile. */
+/* Hovering the thumb directly: stronger bone-white, tactile. */
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 177, 58, 0.85);
+  background: rgba(212, 197, 161, 0.85);
   background-clip: padding-box;
 }
 
-/* Active drag (mousedown): a touch warmer/brighter for the press. */
+/* Active drag (mousedown): solid bone-white. */
 *::-webkit-scrollbar-thumb:active {
-  background: #f5b13a;
+  background: #d4c5a1;
   background-clip: padding-box;
 }
 

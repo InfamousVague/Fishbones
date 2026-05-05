@@ -62,12 +62,13 @@
   --color-text-primary: #f4eedd;     /* was ~#fafafa, now bone-tinted */
   --color-text-secondary: #c5bfae;   /* was ~#a4a4ad, slightly warmed */
   --color-text-tertiary: #8a8576;    /* was ~#71717a, slightly warmed */
-  /* Default-dark didn't ship its own --color-accent token, so any
-     component falling back to that variable (notably the
-     AddCourseButton's split-button row) was hard-coding the legacy
-     periwinkle #6c8cff. Define it here as the bone-amber so the
-     button reads as part of the brand. */
-  --color-accent: var(--fb-bone-amber);
+  /* --color-accent: route to the bone mid-stroke (#d4c5a1) so every
+     accent consumer (UpdateBanner icon plate + progress, the
+     CourseLibrary callout, the BookCover update badge, etc.) reads
+     as bone-white tinted. Pre-fix this was the warmer bone-amber
+     #c9a76b which felt too yellow against the rest of the bone-white
+     UI. Bone-white keeps the brand palette uniform. */
+  --color-accent: var(--fb-bone-color);
   --color-accent-fg: #1a1410; /* deep brown for text-on-accent contrast */
 }
 
