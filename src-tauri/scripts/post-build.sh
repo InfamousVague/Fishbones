@@ -112,6 +112,63 @@ if [ -d "$DMG_DIR" ]; then
     echo "DMG rebuilt and signed: $DMG_PATH"
 fi
 
+# --- Regenerate the OTA updater bundle from the freshly signed .app -
+#
+# Tauri's build creates `Libre.app.tar.gz` + `.sig` during the
+# initial bundle step, BEFORE the nested-binary signing pass above.
+# If we ship that build-time tarball as the OTA bundle, existing
+# users who auto-update receive an .app whose nested Mach-O
+# binaries lack hardened runtime / secure timestamp / Developer ID
+# — Gatekeeper rejects them on next launch.
+#
+# Fix: re-tar the now-signed .app and re-sign the tarball with
+# Tauri's updater key so the OTA bundle matches the DMG's signed
+# contents. Without this step, the local-release pipeline ships a
+# DMG that installs cleanly but an OTA bundle that breaks existing
+# installs on update — an asymmetry that's hard to debug because
+# fresh installs always succeed.
+UPDATER_KEY="${TAURI_SIGNING_KEY_PATH:-$HOME/.tauri/fishbones-updater.key}"
+UPDATER_TARBALL="$TAURI_DIR/target/release/bundle/macos/Libre.app.tar.gz"
+
+if [ ! -f "$UPDATER_KEY" ]; then
+    echo ""
+    echo "WARN: OTA updater key not found at $UPDATER_KEY"
+    echo "      Skipping OTA bundle regeneration. Existing users will"
+    echo "      not be able to auto-update to this release."
+elif [ ! -d "$APP_BUNDLE" ]; then
+    echo ""
+    echo "WARN: signed .app missing at $APP_BUNDLE — skipping OTA regen"
+else
+    echo ""
+    echo "=== Regenerating OTA updater bundle ==="
+    rm -f "$UPDATER_TARBALL" "$UPDATER_TARBALL.sig"
+    # tar from the .app's parent dir so the archive contains
+    # `Libre.app/...` and not the full absolute path. The Tauri
+    # updater expects the archive to extract to a single .app at
+    # the top level, which is what `Libre.app` here gives us.
+    (cd "$(dirname "$APP_BUNDLE")" && tar czf "$UPDATER_TARBALL" "$(basename "$APP_BUNDLE")")
+    echo "Tarball: $UPDATER_TARBALL ($(ls -lh "$UPDATER_TARBALL" | awk '{print $5}'))"
+
+    # Sign the tarball with Tauri's updater key. The matching public
+    # key is committed to tauri.conf.json's `plugins.updater.pubkey`,
+    # so the installed updater verifies this signature against that
+    # fixed pubkey at update-apply time. Run from the project root so
+    # npx finds the local @tauri-apps/cli.
+    PROJECT_ROOT="$(dirname "$TAURI_DIR")"
+    (cd "$PROJECT_ROOT" && \
+        npx --yes @tauri-apps/cli signer sign \
+            --private-key "$(cat "$UPDATER_KEY")" \
+            --password "${TAURI_SIGNING_KEY_PASSWORD:-}" \
+            "$UPDATER_TARBALL" >/dev/null 2>&1)
+
+    if [ -f "$UPDATER_TARBALL.sig" ]; then
+        echo "Signature: $UPDATER_TARBALL.sig"
+    else
+        echo "WARN: OTA signature was not created — auto-update will fail"
+        echo "      signature verification on the installed client side."
+    fi
+fi
+
 echo ""
 echo "=== Post-build complete ==="
 echo ""
