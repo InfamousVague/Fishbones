@@ -146,7 +146,31 @@ else
     # `Libre.app/...` and not the full absolute path. The Tauri
     # updater expects the archive to extract to a single .app at
     # the top level, which is what `Libre.app` here gives us.
-    (cd "$(dirname "$APP_BUNDLE")" && tar czf "$UPDATER_TARBALL" "$(basename "$APP_BUNDLE")")
+    #
+    # CRITICAL: COPYFILE_DISABLE + --no-mac-metadata.
+    # macOS bsdtar's DEFAULT behaviour is to embed AppleDouble
+    # metadata for every file with extended attributes (which is
+    # every file in a signed .app — codesign adds
+    # `com.apple.provenance` to all of them). Those embeds appear
+    # in the archive as two kinds of phantom entries:
+    #   - sibling `._<name>` files for each real entry
+    #   - `PaxHeader/...` pax-extension records
+    # `bsdtar tf` silently HIDES both in its listing, so the
+    # tarball *looks* clean — but Rust's `tar` crate (used by
+    # tauri-plugin-updater) doesn't filter them. It sees
+    # `._Libre.app` as a regular file, the updater's
+    # `iter().skip(1).collect()` reduces that one-segment path to
+    # an empty PathBuf, and `entry.unpack(<tmp_dir>)` then errors
+    # trying to write a file to the temp DIRECTORY path. Result:
+    # every OTA update install dies with
+    #   "failed to unpack `._Libre.app` into `/var/folders/.../`"
+    # COPYFILE_DISABLE=1 disables Apple's copyfile metadata
+    # capture for the child process; --no-mac-metadata tells
+    # bsdtar to omit AppleDouble embedding even if a stray xattr
+    # slips through. Belt + braces — either alone is enough, both
+    # makes the intent explicit.
+    (cd "$(dirname "$APP_BUNDLE")" && \
+        COPYFILE_DISABLE=1 tar --no-mac-metadata -czf "$UPDATER_TARBALL" "$(basename "$APP_BUNDLE")")
     echo "Tarball: $UPDATER_TARBALL ($(ls -lh "$UPDATER_TARBALL" | awk '{print $5}'))"
 
     # Sign the tarball with Tauri's updater key. The matching public
