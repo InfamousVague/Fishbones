@@ -134,6 +134,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
                     .put(progress::upsert)
                     .delete(progress::clear),
             )
+            // Per-course / per-lesson wipe. Body is optional; empty
+            // body = whole course, `{ "lesson_ids": [...] }` = scoped.
+            // Fans out a `progress_cleared` SyncEvent so other live
+            // sockets converge to the reset state.
+            .route("/progress/:course_id", delete(progress::clear_course))
             .route(
                 "/solutions",
                 get(sync::list_solutions).put(sync::upsert_solutions),

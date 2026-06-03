@@ -65,8 +65,15 @@ interface ActiveLesson {
 
 export default function MobileApp() {
   const { courses: coursesAll, loaded, hydrateCourse } = useCourses();
-  const { completed, history, markCompleted, markCompletedBatch, resetProgress } =
-    useProgress();
+  const {
+    completed,
+    history,
+    markCompleted,
+    markCompletedBatch,
+    resetProgress,
+    clearCourseCompletions,
+    clearChapterCompletions,
+  } = useProgress();
   const cloud = useLibreCloud();
 
   /// Cross-device library allowlist. Hydrated from localStorage on
@@ -300,6 +307,25 @@ export default function MobileApp() {
         }
       },
       [markCompletedBatch],
+    ),
+    applyProgressCleared: useCallback(
+      (courseId: string, lessonIds: string[] | null) => {
+        // Mirror desktop App.tsx — when a sibling device sends a
+        // scoped reset (sidebar "Reset progress", chapter reset,
+        // single-lesson mark-incomplete), drop matching rows here
+        // so mobile converges instead of showing stale completions
+        // for content the user already cleared elsewhere.
+        // Mobile's own UI only exposes the whole-library "Reset
+        // local progress" (handled by `resetProgress`), so we
+        // never originate `progress_cleared` from this client —
+        // we only ever HONOUR it.
+        if (lessonIds && lessonIds.length > 0) {
+          clearChapterCompletions(courseId, lessonIds);
+        } else {
+          clearCourseCompletions(courseId);
+        }
+      },
+      [clearCourseCompletions, clearChapterCompletions],
     ),
     applySolutions: useCallback(
       (

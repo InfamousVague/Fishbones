@@ -101,6 +101,7 @@ export type SyncEvent =
   | { type: "hello" }
   | { type: "resync" }
   | { type: "progress"; rows: ProgressRow[] }
+  | { type: "progress_cleared"; course_id: string; lesson_ids: string[] | null }
   | { type: "solutions"; rows: SolutionRow[] }
   | { type: "settings"; rows: SettingRow[] };
 
@@ -168,6 +169,19 @@ export interface UseLibreCloud {
   /// caller isn't signed in — the local-side reset still goes
   /// through, the cross-device sync just falls back to manual.
   resetProgress: () => Promise<boolean>;
+  /// Per-course / per-lesson scoped wipe. Backs the sidebar's "Reset
+  /// progress" course menu, the chapter-reset menu, and the
+  /// per-lesson "mark incomplete" affordance. Without this the local
+  /// reset gets undone on the next pull / WS event because the relay
+  /// still has the row. `lessonIds = null/undefined/[]` means the
+  /// whole course; passing a non-empty array scopes the wipe to
+  /// those specific lessons. Returns the same true/false signal as
+  /// `resetProgress` so callers can fall back to local-only on
+  /// older relays.
+  deleteCourseProgress: (
+    courseId: string,
+    lessonIds?: string[] | null,
+  ) => Promise<boolean>;
 
   /// Pull every solution row (the learner's last-saved code per
   /// lesson) the server knows about for this user.
@@ -586,6 +600,44 @@ export function useLibreCloud(): UseLibreCloud {
     }
   }, [token, authFetch]);
 
+  /// Per-course / per-lesson scoped wipe. See the interface docstring
+  /// for the rationale (the original `clearCourseCompletions` was
+  /// local-only and got undone on the next pull). Mirrors
+  /// `resetProgress`'s degradation semantics so a relay without this
+  /// endpoint deployed (404/405) reports back to the caller, which
+  /// keeps the local reset and just logs the cross-device gap.
+  const deleteCourseProgress = useCallback(
+    async (
+      courseId: string,
+      lessonIds?: string[] | null,
+    ): Promise<boolean> => {
+      if (!token) return false;
+      if (!courseId) return false;
+      try {
+        const hasLessonScope = !!lessonIds && lessonIds.length > 0;
+        const init: RequestInit = { method: "DELETE" };
+        if (hasLessonScope) {
+          init.body = JSON.stringify({ lesson_ids: lessonIds });
+        }
+        const res = await authFetch(
+          `/progress/${encodeURIComponent(courseId)}`,
+          init,
+        );
+        if (res.ok || res.status === 204) return true;
+        if (res.status === 404 || res.status === 405) return false;
+        throw new Error(`delete-course-progress failed (${res.status})`);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "[cloud] deleteCourseProgress fell back to local-only:",
+          e,
+        );
+        return false;
+      }
+    },
+    [token, authFetch],
+  );
+
   const pullSolutions = useCallback(async (): Promise<SolutionRow[]> => {
     const res = await authFetch("/solutions");
     if (!res.ok) throw new Error(`pull-solutions failed (${res.status})`);
@@ -847,6 +899,7 @@ export function useLibreCloud(): UseLibreCloud {
       pullProgress,
       pushProgress,
       resetProgress,
+      deleteCourseProgress,
       pullSolutions,
       pushSolutions,
       pullSettings,
@@ -876,6 +929,7 @@ export function useLibreCloud(): UseLibreCloud {
       pullProgress,
       pushProgress,
       resetProgress,
+      deleteCourseProgress,
       pullSolutions,
       pushSolutions,
       pullSettings,

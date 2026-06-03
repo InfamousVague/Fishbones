@@ -30,6 +30,17 @@ use tokio::sync::broadcast;
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SyncEvent {
     Progress { rows: Vec<ProgressRow> },
+    /// Per-course / per-lesson progress wipe. `lesson_ids = None`
+    /// means the whole course was reset (sidebar "Reset progress",
+    /// Challenges grid right-click); `Some(ids)` means specific
+    /// lessons (chapter reset, single-lesson "mark incomplete").
+    /// Receivers drop matching rows from their local store so the
+    /// reset converges across devices instead of getting echoed
+    /// back by a sibling device's stale bulk push.
+    ProgressCleared {
+        course_id: String,
+        lesson_ids: Option<Vec<String>>,
+    },
     Solutions { rows: Vec<SolutionRow> },
     Settings { rows: Vec<SettingRow> },
 }

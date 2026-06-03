@@ -470,6 +470,23 @@ export default function App() {
       },
       [markCompletedBatch],
     ),
+    applyProgressCleared: useCallback(
+      (courseId: string, lessonIds: string[] | null) => {
+        // Scoped progress wipe broadcast from the relay — either
+        // another device just reset, or the relay echoed back this
+        // device's own reset. Either way drop matching local rows so
+        // the next render reflects the cleared state. Idempotent on
+        // missing rows. When `lessonIds` is null the whole course
+        // gets reset; otherwise just the listed lessons. The local
+        // useProgress reducers handle both shapes.
+        if (lessonIds && lessonIds.length > 0) {
+          clearChapterCompletions(courseId, lessonIds);
+        } else {
+          clearCourseCompletions(courseId);
+        }
+      },
+      [clearCourseCompletions, clearChapterCompletions],
+    ),
     applySolutions: useCallback(
       (
         rows: Array<{ course_id: string; lesson_id: string; content: string }>,
@@ -1679,6 +1696,41 @@ export default function App() {
     setPendingDelete({ courseId, courseTitle });
   }
 
+  /// Cloud-aware reset wrappers. Earlier versions wired the
+  /// `useProgress` reset helpers (`clearCourseCompletions` etc.)
+  /// straight through to the Sidebar / Challenges right-click menus.
+  /// Local-only — which meant the next pull / WS event from the
+  /// relay happily echoed every "completed" row back, undoing the
+  /// reset every time the signed-in user touched the network. Wrap
+  /// each reset in a sibling `cloud.deleteCourseProgress` call so
+  /// the relay forgets the rows AND fans out a `progress_cleared`
+  /// SyncEvent to other devices. Local reducer runs first for
+  /// instant UI feedback; cloud push is fire-and-forget (the local
+  /// state is already correct, the relay catches up async). When
+  /// the relay echoes the event back, `applyProgressCleared` above
+  /// re-runs the local reducer — idempotent, harmless.
+  const clearCourseCompletionsSynced = useCallback(
+    (courseId: string) => {
+      clearCourseCompletions(courseId);
+      void cloud.deleteCourseProgress(courseId);
+    },
+    [clearCourseCompletions, cloud],
+  );
+  const clearChapterCompletionsSynced = useCallback(
+    (courseId: string, lessonIds: string[]) => {
+      clearChapterCompletions(courseId, lessonIds);
+      void cloud.deleteCourseProgress(courseId, lessonIds);
+    },
+    [clearChapterCompletions, cloud],
+  );
+  const clearLessonCompletionSynced = useCallback(
+    (courseId: string, lessonId: string) => {
+      clearLessonCompletion(courseId, lessonId);
+      void cloud.deleteCourseProgress(courseId, [lessonId]);
+    },
+    [clearLessonCompletion, cloud],
+  );
+
   /// `libre:sandbox-focus` from the AI agent's sandbox tools.
   /// When the agent creates a project / writes a file / applies a
   /// patch, the tool fires this event with the project id + an
@@ -2208,9 +2260,9 @@ export default function App() {
               onExportCourse={exportCourse}
               onDeleteCourse={deleteCourseFromLibrary}
               onCourseSettings={(id) => setCourseSettingsId(id)}
-              onResetLesson={clearLessonCompletion}
-              onResetChapter={clearChapterCompletions}
-              onResetCourse={clearCourseCompletions}
+              onResetLesson={clearLessonCompletionSynced}
+              onResetChapter={clearChapterCompletionsSynced}
+              onResetCourse={clearCourseCompletionsSynced}
               onCertificates={() => setView("certificates")}
             />
           )}
@@ -2235,7 +2287,7 @@ export default function App() {
                 selectLesson(courseId, lessonId);
                 setView("courses");
               }}
-              onResetCourse={clearCourseCompletions}
+              onResetCourse={clearCourseCompletionsSynced}
             />
           ) : view === "practice" ? (
             <PracticeView

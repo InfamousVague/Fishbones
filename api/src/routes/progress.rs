@@ -8,7 +8,11 @@
 //!   already keeps the newer `completed_at` on conflict, so this is
 //!   commutative across multiple devices syncing in any order.
 
-use axum::{extract::State, http::StatusCode, Extension, Json};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    Extension, Json,
+};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -80,5 +84,67 @@ pub async fn clear(
         .db
         .clear_progress(&user_id)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Optional body for `DELETE /progress/:course_id`. Empty body (the
+/// common case) wipes the whole course; supplying `lesson_ids` narrows
+/// the wipe to those specific lessons so the sidebar's chapter-reset
+/// + single-lesson "mark incomplete" affordances can share the same
+/// endpoint instead of needing a separate route.
+#[derive(Deserialize, Default)]
+pub struct ClearScopeBody {
+    #[serde(default)]
+    pub lesson_ids: Option<Vec<String>>,
+}
+
+/// `DELETE /progress/:course_id` — per-course / per-lesson wipe.
+/// Without this, the desktop "Reset progress" flow only cleared the
+/// local SQLite + IDB store, leaving the relay's row intact. The next
+/// pull / WS event then echoed the row back and undid the reset.
+///
+/// Body shape:
+///   - empty → wipe every row for (user, course_id)
+///   - { "lesson_ids": ["a","b"] } → wipe only those lesson rows
+///
+/// Fans out a `progress_cleared` SyncEvent to every other live socket
+/// the user has open. Receivers drop matching rows from their in-
+/// memory state so a sibling device that was mid-pull doesn't push
+/// the cleared rows back up on its next debounced flush.
+pub async fn clear_course(
+    State(state): State<Arc<AppState>>,
+    Extension(UserId(user_id)): Extension<UserId>,
+    Path(course_id): Path<String>,
+    body: Option<Json<ClearScopeBody>>,
+) -> Result<StatusCode, StatusCode> {
+    let scoped_lessons = body.and_then(|Json(b)| b.lesson_ids);
+
+    match &scoped_lessons {
+        Some(ids) if !ids.is_empty() => {
+            state
+                .db
+                .clear_progress_lessons(&user_id, &course_id, ids)
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        }
+        _ => {
+            state
+                .db
+                .clear_progress_course(&user_id, &course_id)
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        }
+    }
+
+    // Always publish, even when zero rows were removed. The receiving
+    // device might still have the in-memory row from a prior push that
+    // hasn't been flushed back to its local store yet — the event
+    // tells it to drop it, idempotently. Fan-out cost is negligible.
+    state.sync_bus.publish(
+        &user_id,
+        SyncEvent::ProgressCleared {
+            course_id,
+            lesson_ids: scoped_lessons,
+        },
+    );
+
     Ok(StatusCode::NO_CONTENT)
 }

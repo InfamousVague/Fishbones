@@ -411,6 +411,53 @@ impl Database {
         Ok(n)
     }
 
+    /// Wipe every progress row for `user_id` in a single course.
+    /// Backs `DELETE /progress/:course_id` — the per-course "Reset
+    /// progress" affordance in the desktop sidebar / Challenges
+    /// page. Without this, the client's local reset gets undone on
+    /// the next pull because the relay still has the rows and
+    /// happily echoes them back.
+    pub fn clear_progress_course(
+        &self,
+        user_id: &str,
+        course_id: &str,
+    ) -> anyhow::Result<usize> {
+        let conn = self.conn_lock();
+        let n = conn.execute(
+            "DELETE FROM progress WHERE user_id = ?1 AND course_id = ?2",
+            params![user_id, course_id],
+        )?;
+        Ok(n)
+    }
+
+    /// Wipe specific lesson rows for `user_id` in a course. Covers
+    /// the per-lesson "mark incomplete" sidebar action and the
+    /// per-chapter "Reset chapter" action; both pass the exact
+    /// lesson_id list to wipe. Wrapped in one transaction so a
+    /// connection blip can't leave half-cleared state.
+    pub fn clear_progress_lessons(
+        &self,
+        user_id: &str,
+        course_id: &str,
+        lesson_ids: &[String],
+    ) -> anyhow::Result<usize> {
+        if lesson_ids.is_empty() {
+            return Ok(0);
+        }
+        let conn = self.conn_lock();
+        let tx = conn.unchecked_transaction()?;
+        let mut total = 0usize;
+        for lid in lesson_ids {
+            total += tx.execute(
+                "DELETE FROM progress \
+                 WHERE user_id = ?1 AND course_id = ?2 AND lesson_id = ?3",
+                params![user_id, course_id, lid],
+            )?;
+        }
+        tx.commit()?;
+        Ok(total)
+    }
+
     /// Bulk upsert. Newer `completed_at` wins on conflict so two
     /// devices that finish the same lesson on different days don't
     /// undo each other's progress on sync.

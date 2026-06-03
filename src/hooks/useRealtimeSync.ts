@@ -41,6 +41,18 @@ export interface RealtimeSyncOpts {
   /// is server-ordered (most-recent first); the applier should fold
   /// each row idempotently.
   applyProgress?: (rows: ProgressRow[]) => void;
+  /// Apply a per-course / per-lesson progress wipe pushed from another
+  /// device (or echoed back from this device's own scoped reset).
+  /// `lessonIds === null` means the whole course was reset; a non-null
+  /// array means those specific lessons. Reducer should drop matching
+  /// completion rows from the in-memory + on-disk store the same way
+  /// `clearCourseCompletions` / `clearChapterCompletions` /
+  /// `clearLessonCompletion` would for a local trigger. Idempotent —
+  /// if the rows aren't there, do nothing.
+  applyProgressCleared?: (
+    courseId: string,
+    lessonIds: string[] | null,
+  ) => void;
   applySolutions?: (rows: SolutionRow[]) => void;
   applySettings?: (rows: SettingRow[]) => void;
   /// Optional debounce window for coalescing local writes before
@@ -91,6 +103,7 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
   const {
     cloud,
     applyProgress,
+    applyProgressCleared,
     applySolutions,
     applySettings,
     pushDebounceMs = 600,
@@ -109,6 +122,8 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
   // would otherwise churn the dep arrays.
   const applyProgressRef = useRef(applyProgress);
   applyProgressRef.current = applyProgress;
+  const applyProgressClearedRef = useRef(applyProgressCleared);
+  applyProgressClearedRef.current = applyProgressCleared;
   const applySolutionsRef = useRef(applySolutions);
   applySolutionsRef.current = applySolutions;
   const applySettingsRef = useRef(applySettings);
@@ -348,6 +363,13 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
         }
         case "progress":
           applyProgressRef.current?.(event.rows);
+          break;
+        case "progress_cleared":
+          // Scoped wipe broadcast by another device (or echoed back
+          // from this device's own reset, idempotent). Drop matching
+          // rows so the local view converges to the cleared state
+          // instead of the next bulk push re-filling them.
+          applyProgressClearedRef.current?.(event.course_id, event.lesson_ids);
           break;
         case "solutions":
           applySolutionsRef.current?.(event.rows);
