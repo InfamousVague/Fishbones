@@ -203,7 +203,7 @@ $SSH "command -v caddy >/dev/null 2>&1 || {
 #
 # IMPORTANT: this Caddyfile must include EVERY host this VPS serves,
 # not just the API. Caddy is a single-process router; any host
-# omitted here goes dark on the next reload. We list four hosts:
+# omitted here goes dark on the next reload. We list these hosts:
 #
 #   - libre.academy + www.libre.academy   — Libre marketing + /learn
 #                                           embed + /courses archives
@@ -214,6 +214,9 @@ $SSH "command -v caddy >/dev/null 2>&1 || {
 #                                           libre.academy; no embed)
 #   - tap.mattssoftware.com               — Tap relay (separate
 #                                           product, same VPS)
+#   - stats.mattssoftware.com + stats.libre.academy
+#                                         — self-hosted Plausible
+#                                           analytics (Docker, :8000)
 #
 # Static-site hosts use `try_files` for SPA fallback so client-side
 # routes (`/reset-password`, `/oauth/done`, `/courses/:id`, …) hit
@@ -294,7 +297,7 @@ libre.academy, www.libre.academy {
     # CORS for /starter-courses/* (manifest.json, <id>.json,
     # <id>.jpg). The desktop Tauri shell fetches the catalog
     # manifest + per-course JSON + cover JPEGs cross-origin from
-    # the WebView's `tauri://localhost` origin, just like the
+    # the WebView's \`tauri://localhost\` origin, just like the
     # audio CDN. Without CORS the manifest fetch returns
     # transparently but the JS layer can't see the body, so
     # Discover renders empty.
@@ -335,6 +338,17 @@ ${TAP_DOMAIN:-tap.mattssoftware.com} {
 # block above (h1 + h3, no h2) so the WS handshake works.
 ${API_DOMAIN:-api.libre.academy} {
     reverse_proxy 127.0.0.1:${API_PORT:-9443}
+}
+
+# Plausible analytics (self-hosted Community Edition, Docker on
+# 127.0.0.1:8000). Both hostnames proxy the SAME instance; the
+# dashboard BASE_URL is stats.libre.academy, while mattssoftware.com
+# just loads the tracking script + posts events. This block is
+# load-bearing: it was once absent from this heredoc, so a deploy
+# silently dropped it and both subdomains went dark with a TLS
+# "internal error" (no site = no cert). Keep it here.
+stats.mattssoftware.com, stats.libre.academy {
+    reverse_proxy 127.0.0.1:8000
 }
 EOF
 
