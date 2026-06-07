@@ -29,17 +29,30 @@
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
+/* Support-red hover paint, mirroring the Discord button's blurple
+   treatment (TopBar.css `--discord:hover`): the whole chip lights
+   up the brand colour on hover — label + heart both go red (the
+   heart follows `currentColor`), with a red-tinted border + fill.
+   Neutral at rest so it doesn't compete with the lesson surface;
+   `--open` holds the lit state while the tip deck is showing. */
 .libre__tip-trigger:hover,
 .libre__tip-trigger:focus-visible,
 .libre__tip-trigger--open {
-  color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.5);
   outline: none;
 }
 
 .libre__tip-trigger-label {
   white-space: nowrap;
+}
+
+/* Heart sits inline with the label and inherits the trigger's
+   `currentColor` (was an inline `color` on the span before — moved
+   here so the hover rule above can recolour it). */
+.libre__tip-trigger-heart {
+  display: inline-flex;
 }
 
 /* ──────────────── Panel (chrome-less) ──────────────── */

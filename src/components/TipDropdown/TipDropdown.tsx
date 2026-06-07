@@ -459,15 +459,13 @@ export default function TipDropdown({
         aria-haspopup="dialog"
         title={t("tooltips.support")}
       >
-        {/* The Icon component only accepts the semantic IconColor enum,
-            so we paint the heart red by setting `color` on a wrapping
-            span — the icon's `currentColor` fill picks it up without
-            affecting the adjacent label. */}
-        <span
-          className="libre__tip-trigger-heart"
-          style={{ color: "#ef4444", display: "inline-flex" }}
-          aria-hidden
-        >
+        {/* Heart inherits the button's `currentColor` (the Icon's
+            `color="currentColor"` fill picks it up) so it lights up
+            in lockstep with the label on hover — the same mechanism
+            the Discord button uses to flood blurple. Neutral at
+            rest, support-red on hover (see `.libre__tip-trigger`
+            hover rule in the CSS). */}
+        <span className="libre__tip-trigger-heart" aria-hidden>
           <Icon icon={heart} size="xs" color="currentColor" />
         </span>
         <span className="libre__tip-trigger-label">{t("topBar.support")}</span>
