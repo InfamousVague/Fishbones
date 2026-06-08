@@ -126,10 +126,13 @@ const RETIRED_PACK_IDS: ReadonlySet<string> = new Set([
   "bun-fundamentals",
   "javascript-crash-course",
   "challenges-reactnative-visual",
-  // 2026-05-07 cleanup
-  "eloquent-javascript",
+  // 2026-05-07 cleanup. NOTE: eloquent-javascript and
+  // you-dont-know-js-yet were re-authored (covers + per-exercise
+  // hints) and returned to the active catalog on 2026-06-07 — kept
+  // OUT of this set so Discover renders them again. Mirrors the same
+  // un-retire in courses.rs RETIRED_PACK_IDS. The old mis-slugged
+  // "you-don-t-know-js-yet" alias stays retired.
   "the-modern-javascript-tutorial-fundamentals",
-  "you-dont-know-js-yet",
   "you-don-t-know-js-yet",
   "python-crash-course",
   "crafting-interpreters-javascript",
@@ -146,10 +149,11 @@ const RETIRED_PACK_IDS: ReadonlySet<string> = new Set([
   // 2026-05-28 cleanup — pruned from bundled-packs in v1.3.8. Filter
   // them client-side too so any v1.3.7 install whose localStorage
   // catalog cache has them won't keep rendering the tiles until SWR
-  // revalidation kicks in.
+  // revalidation kicks in. (pro-git was re-authored + re-bundled on
+  // 2026-06-07 and is back in the active catalog — kept out so it
+  // renders in Discover; matches courses.rs, which never retired it.)
   "hellotrade",
   "open-data-structures",
-  "pro-git",
   "svelte-tutorial",
   "tauri-2-fundamentals",
 ]);
