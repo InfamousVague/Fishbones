@@ -99,7 +99,7 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // extracted copies on disk — bumping forces re-extraction so the
 // "this exercise hasn't been authored for blocks mode yet" message
 // stops appearing on every challenge.
-const SEED_VERSION: u32 = 12;
+const SEED_VERSION: u32 = 13;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
@@ -112,12 +112,16 @@ const SEED_VERSION: u32 = 12;
 /// been dormant since the very first version still needs the older
 /// ids cleaned up on its next launch.
 const RETIRED_PACK_IDS: &[&str] = &[
-    // bun-complete, svelte-5-complete, learning-react-native and
+    // bun-complete, svelte-5-complete and
     // solidity-smart-contracts-from-first-principles were briefly
     // retired but came back into the active catalog on 2026-05-10
     // (Discover-cache strays the team decided to keep + author
     // covers for). Keep them OUT of this list — anything here is
     // pruned wholesale on next launch.
+    // learning-react-native: retired again 2026-06-08. It was a stray
+    // that got swept into the v1.3.24 bundle; removed from Discover and
+    // pruned from every library on next launch (SEED_VERSION 12 → 13).
+    "learning-react-native",
     "bun-fundamentals",
     "javascript-crash-course",
     "challenges-reactnative-visual",
