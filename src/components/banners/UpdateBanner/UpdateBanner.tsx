@@ -177,27 +177,26 @@ export function UpdateBanner({
   }, [state]);
 
   const onRestart = useCallback(async () => {
-    // When the host provides an `onOpenSettings` hook, hand off to
-    // the Settings → General "Restart now" button instead of
-    // relaunching directly. This keeps the canonical restart
-    // affordance in one place (the Settings pane has more space
-    // for an "are you sure / what's about to happen" confirmation
-    // surface, plus it's where the user goes when something looks
-    // wrong with the update). Falls back to the direct relaunch
-    // when no host wiring is present (e.g. legacy callers).
-    if (onOpenSettings) {
-      onOpenSettings();
-      return;
-    }
+    // RELAUNCH DIRECTLY. This used to hand off to the Settings →
+    // General "Restart now" button when `onOpenSettings` was wired,
+    // for "one canonical restart affordance" — but that broke the
+    // update flow: the post-install banner is ALWAYS rendered with
+    // `onOpenSettings` (App.tsx), so clicking "Restart now" just
+    // opened Settings and never relaunched, and Settings' own
+    // restart button only renders in ITS own update-check "ready"
+    // state (which a banner-driven install never sets) — a
+    // dead-end. A button that says "Restart now" must restart.
     try {
       const { relaunch } = await import("@tauri-apps/plugin-process");
       await relaunch();
     } catch (e) {
-      // If relaunch fails the user can quit + reopen manually. The
-      // update is already staged on disk at this point, so the next
-      // launch picks it up automatically.
+      // If relaunch genuinely fails (rare), fall back to opening
+      // Settings so the user still has a path forward, then surface
+      // the error. The update is already staged on disk, so a
+      // manual quit + reopen also applies it.
       // eslint-disable-next-line no-console
       console.error("[updater] relaunch failed:", e);
+      onOpenSettings?.();
     }
   }, [onOpenSettings]);
 
