@@ -880,6 +880,7 @@ export default function LessonView({
                   suppressToolchainBanner={showLessonToolchainBanner}
                   language={lesson.language}
                   testsExpected={"tests" in lesson && !!lesson.tests?.trim()}
+                  testSource={"tests" in lesson ? lesson.tests : undefined}
                 />
               }
             />

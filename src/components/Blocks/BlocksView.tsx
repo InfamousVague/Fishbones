@@ -827,6 +827,7 @@ function BlocksViewInner({
             running={running}
             language={lesson.language}
             testsExpected={!!lesson.tests}
+            testSource={lesson.tests}
           />
         }
       />

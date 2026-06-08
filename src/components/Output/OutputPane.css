@@ -246,6 +246,82 @@
   white-space: pre-wrap;
 }
 
+/* Header row of a test result: the name on the left, the "view test"
+   toggle on the right. Lives in grid column 2 (next to the pass/fail glyph). */
+.libre-output-test-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.libre-output-test-head .libre-output-test-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* "view test" toggle — reveals the exact source this test runs. Quiet by
+   default (it sits next to every result row); brightens on hover/focus. */
+.libre-output-test-view {
+  flex: none;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 0 6px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3px;
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.libre-output-test-view:hover,
+.libre-output-test-view:focus-visible {
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  background: rgba(127, 127, 127, 0.1);
+}
+
+/* Revealed test source — the actual code the test runs, so the learner can
+   see exactly what's being asserted. Monospace, horizontally scrollable. */
+.libre-output-test-source {
+  grid-column: 2 / -1;
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  background: var(--color-code-surface);
+  border-left: 2px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text-primary);
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.libre-output-test-source code {
+  font-family: inherit;
+}
+
+/* Highlighted (Shiki) variant of the revealed test source. Reuses the
+   reader's `.libre-code-block` chrome + theme-aware token colors, compacted
+   to sit inside the test list (the reader's default code-block margin +
+   font size are too large here). */
+.libre-output-test-codeblock.libre-code-block {
+  grid-column: 2 / -1;
+  margin: 4px 0 8px;
+}
+
+.libre-output-test-codeblock .shiki {
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
 .libre-output-body {
   flex: 1;
   padding: 10px 14px;

@@ -202,7 +202,13 @@ export default function PoppedWorkbench() {
             }}
           />
         }
-        output={<OutputPane result={result} running={running} />}
+        output={
+          <OutputPane
+            result={result}
+            running={running}
+            testSource={"tests" in lesson ? lesson.tests : undefined}
+          />
+        }
       />
     </div>
   );

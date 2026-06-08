@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Icon } from "@base/primitives/icon";
 import { check } from "@base/primitives/icon/icons/check";
@@ -8,6 +8,8 @@ import { copy as copyIcon } from "@base/primitives/icon/icons/copy";
 import { refreshCw } from "@base/primitives/icon/icons/refresh-cw";
 import "@base/primitives/icon/icon.css";
 import type { RunResult } from "../../runtimes";
+import { testSourceByName } from "../../lib/parseTestSource";
+import { highlightCode } from "../../lib/highlightCode";
 import ReactNativeDevTools from "./ReactNativeDevTools";
 import MissingToolchainBanner from "../banners/MissingToolchain/MissingToolchainBanner";
 import { DesktopUpsellBanner } from "../banners/DesktopUpsell/DesktopUpsellBanner";
@@ -35,6 +37,12 @@ interface Props {
   /// tests…" label at the tail of the progress sequence so a slow test
   /// harness doesn't feel stuck on "running…".
   testsExpected?: boolean;
+  /// The lesson's raw test source (its `tests` string). When provided, each
+  /// test result gets a "view test" button that reveals the exact code that
+  /// test runs — matched to the result by NAME (async results settle out of
+  /// definition order, so index matching would be wrong). Omitted for runs
+  /// without tests.
+  testSource?: string;
 }
 
 // Progress-label tuning. We don't have real phase events from the
@@ -107,6 +115,7 @@ export default function OutputPane({
   suppressToolchainBanner = false,
   language,
   testsExpected,
+  testSource,
 }: Props) {
   const t = useT();
   const passedCount = result?.tests?.filter((t) => t.passed).length ?? 0;
@@ -244,6 +253,39 @@ export default function OutputPane({
   // single section directly.
   type OutputTab = "console" | "tests";
   const [activeTab, setActiveTab] = useState<OutputTab>("tests");
+
+  // Per-test source, keyed by test name, so each result row can reveal the
+  // exact code it runs. Parsed once per lesson (testSource changes).
+  const testSourceMap = useMemo(() => testSourceByName(testSource), [testSource]);
+  // Which test rows are currently showing their source. Reset when the
+  // lesson's tests change so a stale index can't reveal the wrong test.
+  const [openTests, setOpenTests] = useState<Set<number>>(() => new Set());
+  // Lazily Shiki-highlighted test sources, keyed by the source string so
+  // identical snippets share one render and re-opening a row is instant.
+  const [highlightedSrc, setHighlightedSrc] = useState<Map<string, string>>(
+    () => new Map(),
+  );
+  useEffect(() => {
+    // New lesson → collapse rows + drop cached highlights.
+    setOpenTests(new Set());
+    setHighlightedSrc(new Map());
+  }, [testSource]);
+  const toggleTest = (i: number, source?: string) => {
+    const willOpen = !openTests.has(i);
+    setOpenTests((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+    // Highlight on first open — async, so the row shows plain text until the
+    // Shiki render resolves (instant after the first call warms the grammar).
+    if (willOpen && source && !highlightedSrc.has(source)) {
+      void highlightCode(source).then((html) => {
+        if (html) setHighlightedSrc((prev) => new Map(prev).set(source, html));
+      });
+    }
+  };
   const hasLogs = (result?.logs?.length ?? 0) > 0;
   const hasTests = (result?.tests?.length ?? 0) > 0;
   // Show tabs whenever the run is a lesson run (testsExpected) OR
@@ -625,25 +667,59 @@ export default function OutputPane({
         {((!showTabs && hasTests) || (showTabs && activeTab === "tests")) && (
           <div className="libre-output-tests">
             {hasTests ? (
-              result!.tests!.map((t, i) => (
-                <div
-                  key={`t-${i}`}
-                  className={`libre-output-test libre-output-test--${t.passed ? "pass" : "fail"}`}
-                >
-                  <span className="libre-output-test-glyph">
-                    <Icon
-                      icon={t.passed ? check : xIcon}
-                      size="xs"
-                      color="currentColor"
-                      weight="bold"
-                    />
-                  </span>
-                  <span className="libre-output-test-name">{t.name}</span>
-                  {!t.passed && t.error && (
-                    <pre className="libre-output-test-error">{t.error}</pre>
-                  )}
-                </div>
-              ))
+              result!.tests!.map((t, i) => {
+                // Match the source to this result by NAME (async results
+                // settle out of definition order). Fall back to the whole
+                // test file if a specific block couldn't be isolated.
+                const source = testSourceMap.get(t.name) ?? testSource;
+                const open = openTests.has(i);
+                return (
+                  <div
+                    key={`t-${i}`}
+                    className={`libre-output-test libre-output-test--${t.passed ? "pass" : "fail"}`}
+                  >
+                    <span className="libre-output-test-glyph">
+                      <Icon
+                        icon={t.passed ? check : xIcon}
+                        size="xs"
+                        color="currentColor"
+                        weight="bold"
+                      />
+                    </span>
+                    <div className="libre-output-test-head">
+                      <span className="libre-output-test-name">{t.name}</span>
+                      {source && (
+                        <button
+                          type="button"
+                          className="libre-output-test-view"
+                          aria-expanded={open}
+                          onClick={() => toggleTest(i, source)}
+                          title="Show the code this test runs"
+                        >
+                          {open ? "hide test" : "view test"}
+                        </button>
+                      )}
+                    </div>
+                    {!t.passed && t.error && (
+                      <pre className="libre-output-test-error">{t.error}</pre>
+                    )}
+                    {open &&
+                      source &&
+                      (highlightedSrc.has(source) ? (
+                        <div
+                          className="libre-output-test-codeblock libre-code-block"
+                          dangerouslySetInnerHTML={{
+                            __html: highlightedSrc.get(source)!,
+                          }}
+                        />
+                      ) : (
+                        <pre className="libre-output-test-source">
+                          <code>{source}</code>
+                        </pre>
+                      ))}
+                  </div>
+                );
+              })
             ) : (
               <div className="libre-output-pane-empty">
                 {testsExpected
