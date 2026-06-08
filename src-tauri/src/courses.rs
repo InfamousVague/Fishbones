@@ -121,10 +121,14 @@ const RETIRED_PACK_IDS: &[&str] = &[
     "bun-fundamentals",
     "javascript-crash-course",
     "challenges-reactnative-visual",
-    // 2026-05-07 cleanup
-    "eloquent-javascript",
+    // 2026-05-07 cleanup. NOTE: `eloquent-javascript` and
+    // `you-dont-know-js-yet` were re-authored (covers + per-exercise
+    // hints) and returned to the active Discover catalog on
+    // 2026-06-07 — same story as bun-complete/svelte-5-complete
+    // above, so they're deliberately kept OUT of this list. The old
+    // mis-slugged "you-don-t-know-js-yet" alias stays retired so any
+    // stale install carrying it still gets pruned.
     "the-modern-javascript-tutorial-fundamentals",
-    "you-dont-know-js-yet",
     "you-don-t-know-js-yet",
     "python-crash-course",
     "crafting-interpreters-javascript",
