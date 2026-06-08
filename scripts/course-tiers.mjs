@@ -229,6 +229,12 @@ export const RELEASE_STATUS_OVERRIDES = {
   "mastering-ethereum": "BETA",
   "mastering-bitcoin": "BETA",
   "solana-programs-rust-on-the-svm": "BETA",
+  // Eloquent JavaScript (Marijn Haverbeke, CC BY-NC) — un-retired and
+  // brought to BETA: every inline example converted to a runnable
+  // sandbox playground (59) and validated, 19 exercises pass
+  // solution-vs-tests, 9 inline SVG diagrams. Ships in the v1.2.2 bundle
+  // alongside the markdown renderer's data:image/svg+xml allowance.
+  "eloquent-javascript": "BETA",
   // HelloTrade authored hand-on at BETA — every prose lesson
   // proofread, every dock-driven exercise pinned to a real preset
   // in the API tester. Lessons compile cleanly with the placeholder

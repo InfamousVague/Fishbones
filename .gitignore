@@ -47,6 +47,13 @@ public/starter-courses/*
 # silent until you run the script. The visual tour works either way.
 public/tour-audio/
 
+# Agent scratch — Eloquent JavaScript refinement working dir (validators,
+# staged diagrams + converted bodies, per-chapter agent outputs). Not
+# release content; the .academy in bundled-packs is the source of truth.
+.ejs-work/
+# Stash runtime lock files (created at runtime, never committed).
+.stash.lock
+
 # macOS
 .DS_Store
 

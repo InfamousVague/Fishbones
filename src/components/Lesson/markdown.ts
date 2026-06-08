@@ -64,6 +64,20 @@ const md = new MarkdownIt({
   breaks: false, // require a blank line for hard breaks, matching GFM behavior
 });
 
+// Allow inline `data:image/svg+xml` diagrams in lesson bodies. markdown-it's
+// default `validateLink` permits `data:image/png|gif|jpeg|webp` but blocks
+// `svg+xml`. Course content is trusted (curated, not user-generated), and an SVG
+// loaded via `<img src="data:…">` is non-interactive — the browser does NOT run
+// scripts/`onload` inside an image-context SVG — so this is safe. Letting it
+// through means courses can ship crisp, scalable, tiny diagrams inline in the
+// single course.json instead of hosting external asset files. The CSP already
+// allows `img-src … data:`. All other URLs keep the default validation.
+const defaultValidateLink = md.validateLink.bind(md);
+md.validateLink = (url: string): boolean => {
+  if (/^data:image\/svg\+xml[;,]/i.test(url.trim())) return true;
+  return defaultValidateLink(url);
+};
+
 // Render code blocks with a data attribute + escaped raw so we can find them
 // post-render and re-emit with Shiki. Using `data-libre-lang` so Shiki's own
 // output class doesn't collide if we ever swap the theme at runtime.
