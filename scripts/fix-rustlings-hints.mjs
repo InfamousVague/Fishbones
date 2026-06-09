@@ -119,6 +119,92 @@ function reorderQuizzes(course) {
   }
 }
 
+/// Four exercises whose entire task lives INSIDE the upstream test module
+/// (slicing, tuple indexing, borrow reordering, if-let/while-let). Libre's
+/// model has a non-editable `tests` field, so the importer left their starters
+/// empty and dropped the already-SOLVED test in — nothing for the learner to
+/// do, and it auto-passes ("primitive_types4 has nothing"). Restructure each so
+/// the editable work is a function in the starter, graded by the test. All four
+/// are compile-verified (rustc --test). Also refresh the body's stale
+/// empty-main preview block to show the new starter.
+const BROKEN_EXERCISES = {
+  "primitive-types4": {
+    starter:
+      "// TODO: Return the slice `[2, 3, 4]` out of the array `a`.\n" +
+      "// Replace `todo!()` with a slice expression — e.g. `&a[start..end]`\n" +
+      "// (the end index is excluded).\n" +
+      "pub fn middle_three(a: &[i32; 5]) -> &[i32] {\n    todo!()\n}\n\n" +
+      "fn main() {\n    // You can optionally experiment here.\n}\n",
+    tests:
+      "#[test]\nfn slice_out_of_array() {\n    let a = [1, 2, 3, 4, 5];\n" +
+      "    assert_eq!(middle_three(&a), &[2, 3, 4]);\n}\n",
+    solution:
+      "pub fn middle_three(a: &[i32; 5]) -> &[i32] {\n    &a[1..4]\n}\n\nfn main() {}\n",
+  },
+  "primitive-types6": {
+    starter:
+      "// TODO: Return the second element of the tuple using tuple indexing\n" +
+      "// (e.g. `t.0`, `t.1`, ...).\n" +
+      "pub fn second_of(t: (i32, i32, i32)) -> i32 {\n    todo!()\n}\n\n" +
+      "fn main() {\n    // You can optionally experiment here.\n}\n",
+    tests:
+      "#[test]\nfn indexing_tuple() {\n    let second = second_of((1, 2, 3));\n" +
+      "    assert_eq!(second, 2, \"This is not the 2nd number in the tuple!\");\n}\n",
+    solution:
+      "pub fn second_of(t: (i32, i32, i32)) -> i32 {\n    t.1\n}\n\nfn main() {}\n",
+  },
+  "move-semantics4": {
+    starter:
+      "// TODO: Make this compile by REORDERING the lines — don't add, change, or\n" +
+      "// remove any. Two `&mut` borrows of `x` can't be alive at once, so finish\n" +
+      "// using `y` before creating `z`.\n" +
+      "pub fn build() -> Vec<i32> {\n    let mut x = Vec::new();\n    let y = &mut x;\n" +
+      "    let z = &mut x;\n    y.push(42);\n    z.push(13);\n    x\n}\n\n" +
+      "fn main() {\n    // You can optionally experiment here.\n}\n",
+    tests:
+      "#[test]\nfn move_semantics4() {\n    assert_eq!(build(), [42, 13]);\n}\n",
+    solution:
+      "pub fn build() -> Vec<i32> {\n    let mut x = Vec::new();\n    let y = &mut x;\n" +
+      "    y.push(42);\n    let z = &mut x;\n    z.push(13);\n    x\n}\n\nfn main() {}\n",
+  },
+  "options2": {
+    starter:
+      "// options2 — practice `if let` and `while let`.\n\n" +
+      "// TODO: Use an `if let` to return the inner value when `opt` is `Some`,\n" +
+      "// or `-1` when it's `None`.\n" +
+      "pub fn first(opt: Option<i32>) -> i32 {\n    todo!()\n}\n\n" +
+      "// TODO: Use a `while let` to pop every `Some(_)` off `stack` and collect\n" +
+      "// the inner values in pop order, stopping at the first `None`. `Vec::pop`\n" +
+      "// adds another `Option` layer, so match `Some(Some(value))`.\n" +
+      "pub fn drain(mut stack: Vec<Option<i32>>) -> Vec<i32> {\n    todo!()\n}\n\n" +
+      "fn main() {\n    // You can optionally experiment here.\n}\n",
+    tests:
+      "#[test]\nfn simple_option() {\n    assert_eq!(first(Some(7)), 7);\n" +
+      "    assert_eq!(first(None), -1);\n}\n\n" +
+      "#[test]\nfn layered_option() {\n    let stack = vec![None, Some(1), Some(2), Some(3)];\n" +
+      "    assert_eq!(drain(stack), vec![3, 2, 1]);\n}\n",
+    solution:
+      "pub fn first(opt: Option<i32>) -> i32 {\n    if let Some(v) = opt { v } else { -1 }\n}\n\n" +
+      "pub fn drain(mut stack: Vec<Option<i32>>) -> Vec<i32> {\n    let mut out = Vec::new();\n" +
+      "    while let Some(Some(v)) = stack.pop() {\n        out.push(v);\n    }\n    out\n}\n\nfn main() {}\n",
+  },
+};
+
+function fixBrokenExercises(course) {
+  const EMPTY_MAIN =
+    "```rust\nfn main() {\n    // You can optionally experiment here.\n}\n```";
+  for (const ch of course.chapters)
+    for (const l of ch.lessons || []) {
+      const fx = BROKEN_EXERCISES[l.id];
+      if (!fx) continue;
+      if (l.body && l.body.includes(EMPTY_MAIN))
+        l.body = l.body.replace(EMPTY_MAIN, "```rust\n" + fx.starter.trimEnd() + "\n```");
+      l.starter = fx.starter;
+      l.tests = fx.tests;
+      l.solution = fx.solution;
+    }
+}
+
 // --- extract, fix, re-bake ---
 const work = mkdtempSync(join(tmpdir(), "rustlings-fix-"));
 try {
@@ -140,12 +226,13 @@ try {
   if (quiz2) quiz2.tests = QUIZ2_TEST;
 
   reorderQuizzes(course);
+  fixBrokenExercises(course);
 
   writeFileSync(coursePath, JSON.stringify(course, null, 2));
   const cover = readdirSync(work).find((f) => /^cover\.(jpg|png)$/.test(f));
   execFileSync("zip", ["-q", "-X", ARCHIVE, "course.json", cover], { cwd: work });
 
-  console.log(`✓ rustlings.academy: ${redone}/94 lessons given official hints` + (unmatched.length ? `, unmatched: ${unmatched.join(", ")}` : "") + `; quiz2 test restored to single-function; quizzes moved to their checkpoints.`);
+  console.log(`✓ rustlings.academy: ${redone}/94 lessons given official hints` + (unmatched.length ? `, unmatched: ${unmatched.join(", ")}` : "") + `; quiz2 test restored to single-function; quizzes moved to their checkpoints; 4 empty exercises (primitive_types4/6, move_semantics4, options2) restructured to be solvable.`);
 } finally {
   rmSync(work, { recursive: true, force: true });
 }
