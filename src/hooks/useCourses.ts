@@ -261,6 +261,33 @@ export function useCourses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /// Desktop: the Rust side now seeds bundled packs on a background
+  /// thread instead of blocking window creation (lib.rs setup), and
+  /// emits `libre:courses-seeded` when it finishes. If that lands
+  /// after our mount-refresh above, the first fetch saw a partial
+  /// library — re-fetch so the seeded packs appear without the user
+  /// having to refocus the window. If the seed finished before we
+  /// attached (the common warm-launch case), the event never fires
+  /// and the mount-refresh already saw the full set.
+  useEffect(() => {
+    if (isWeb) return;
+    let unlisten: (() => void) | null = null;
+    let cancelled = false;
+    void import("@tauri-apps/api/event").then(({ listen }) =>
+      listen("libre:courses-seeded", () => {
+        void refresh();
+      }).then((fn) => {
+        if (cancelled) fn();
+        else unlisten = fn;
+      }),
+    );
+    return () => {
+      cancelled = true;
+      if (unlisten) unlisten();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /// Auto-refresh whenever the app window regains focus or becomes
   /// visible. Cheap (one IPC + N file reads, ~50-200ms total for a
   /// few-dozen-course library) and catches the common "I edited a

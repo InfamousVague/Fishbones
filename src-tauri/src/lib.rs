@@ -55,7 +55,7 @@ use std::process::Command;
 use std::time::Instant;
 
 use serde::Serialize;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_opener::OpenerExt;
 
 #[derive(Debug, Serialize)]
@@ -215,7 +215,28 @@ pub fn run() {
             let db_path = progress_db::resolve_path(app.handle())?;
             let db = progress_db::open(db_path)?;
             app.manage(db);
-            courses::ensure_seed(app.handle())?;
+            // Seed bundled course packs OFF the setup-blocking path.
+            // On a SEED_VERSION bump this loop unzips + rewrites up to
+            // a couple hundred packs synchronously — running it inside
+            // `setup()` stalled the event loop and delayed first paint
+            // by seconds on those launches. spawn_blocking moves the
+            // IO to a worker thread so the window shows immediately;
+            // the `libre:courses-seeded` event tells the frontend to
+            // re-fetch its course list once the seed lands (useCourses
+            // listens, and also refreshes on focus as a fallback).
+            // Worst case during the overlap window is a briefly
+            // partial library that fills in on the event. Seeding only
+            // touches the courses dir + seeded-packs.json — fully
+            // independent of the db/settings state managed here.
+            {
+                let handle = app.handle().clone();
+                tauri::async_runtime::spawn_blocking(move || {
+                    if let Err(e) = courses::ensure_seed(&handle) {
+                        eprintln!("[libre:seed] background seed failed: {e:#}");
+                    }
+                    let _ = handle.emit("libre:courses-seeded", ());
+                });
+            }
 
             // Load settings + expose as state so llm::structure_with_llm can
             // read the API key without the frontend passing it in every call.
