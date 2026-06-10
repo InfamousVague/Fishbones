@@ -14,13 +14,11 @@
 
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
-import QRCode from "qrcode";
 import { Icon } from "@base/primitives/icon";
 import { heart } from "@base/primitives/icon/icons/heart";
 import { copy as copyIcon } from "@base/primitives/icon/icons/copy";
@@ -172,21 +170,40 @@ export const DEFAULT_TIP_METHODS: TipMethod[] = [
 // markup themable and avoids a second async render path.
 
 function QrCode({ value, size = 116 }: { value: string; size?: number }) {
-  const { count, dark } = useMemo(() => {
-    const qr = QRCode.create(value, { errorCorrectionLevel: "M" });
-    const n = qr.modules.size;
-    const data = qr.modules.data;
-    const cells: { x: number; y: number }[] = [];
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        if (data[r * n + c]) cells.push({ x: c, y: r });
+  // `qrcode` is dynamically imported so the lib stays out of the
+  // first-load chunk (the tip deck is a rarely-opened dropdown). The
+  // bitmap modules land in state one tick after mount; until then we
+  // render the same-sized white SVG so the card layout never shifts.
+  const [grid, setGrid] = useState<{
+    count: number;
+    dark: { x: number; y: number }[];
+  } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void import("qrcode").then(({ default: QRCode }) => {
+      if (cancelled) return;
+      const qr = QRCode.create(value, { errorCorrectionLevel: "M" });
+      const n = qr.modules.size;
+      const data = qr.modules.data;
+      const cells: { x: number; y: number }[] = [];
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (data[r * n + c]) cells.push({ x: c, y: r });
+        }
       }
-    }
-    return { count: n, dark: cells };
+      setGrid({ count: n, dark: cells });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [value]);
 
+  const count = grid?.count ?? 0;
+  const dark = grid?.dark ?? [];
   const margin = 2;
-  const total = count + margin * 2;
+  // Pre-load placeholder viewBox: 29 = a version-3 QR's module count
+  // + margins, close enough that the white square reads identically.
+  const total = grid ? count + margin * 2 : 29;
 
   return (
     <svg

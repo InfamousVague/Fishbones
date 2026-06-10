@@ -20,7 +20,9 @@
 /// laptop camera — useful for testing the parser without a phone.
 
 import { useEffect, useRef, useState } from "react";
-import jsQR from "jsqr";
+// `jsqr` (~50KB of DSP) is dynamically imported when the camera
+// starts — see `start()` below — so it stays out of the chunk of
+// whichever surface mounts the scanner.
 import "./QrScanner.css";
 
 interface Props {
@@ -91,6 +93,12 @@ export function QrScanner({ onResult, onCancel, title, hint }: Props) {
           throw new Error(`Couldn't start the camera preview: ${e?.message ?? e}`);
         });
         setReady(true);
+
+        // Load the decoder while the camera spins up — the stream
+        // warm-up masks the chunk fetch, so by the first tick the
+        // decoder is ready.
+        const { default: jsQR } = await import("jsqr");
+        if (cancelled) return;
 
         // Decode loop — runs against an offscreen canvas painted
         // from the video. We avoid `requestVideoFrameCallback` so
