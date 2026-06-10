@@ -29,6 +29,11 @@ import {
 } from "./streaming";
 import { parseConfidence, isLowConfidence } from "./confidence";
 import { accumulateUsage, EMPTY_RUN_USAGE, type RunUsage } from "./usage";
+import { compactWireMessages } from "../ai/compaction";
+import {
+  analyzeBuildState,
+  buildContinuationNudge,
+} from "../ai/buildState";
 import type {
   AgentMessage,
   AgentTransport,
@@ -69,6 +74,11 @@ export interface AgentLoopHooks {
   /// the transport just minted. The hook saves the id so the
   /// user's Stop button can fire `ai_chat_stop` against it.
   onStreamId?: (streamId: string) => void;
+  /// Called when the loop injects an auto-continuation nudge for
+  /// an unfinished build. The host appends it to the visible
+  /// message log (rendered as a muted system breadcrumb, not a
+  /// user bubble).
+  onNudge?: (nudge: string) => void;
   /// Approval gate for a gated tool. Returns "approved" or
   /// "denied" — denial appends a tool result the model can read
   /// to decide what to do next.
@@ -152,6 +162,22 @@ export interface AgentLoopOptions {
     num_ctx?: number;
     num_predict?: number;
   };
+  /// Auto-continuation for unfinished builds. When the model goes
+  /// terminal (no tool calls) but the build-state machine says the
+  /// build is incomplete (project created but files missing, files
+  /// written but never run, or last run failed), the loop injects
+  /// a synthetic user nudge and keeps going instead of stopping.
+  /// Bounded by `maxNudges` so a hopelessly stuck model can't
+  /// loop forever. Default true — this is THE fix for "the agent
+  /// wrote one file and asked what to do next".
+  autoContinue?: boolean;
+  /// Max auto-continuation nudges per run. Default 2.
+  maxNudges?: number;
+  /// Optional post-processor applied to terminal assistant content
+  /// before it's stored (e.g. the libre:// link guard that strips
+  /// hallucinated lesson links). Applied AFTER tool-call recovery
+  /// and confidence stripping.
+  postProcessAssistant?: (content: string) => string;
   /// Mark messages produced this run with a tag the UI can use
   /// to render "new in this run" indicators. Optional — defaults
   /// to undefined (no tagging).
@@ -159,6 +185,7 @@ export interface AgentLoopOptions {
 }
 
 const DEFAULT_MAX_SAME_CALL_RETRIES = 3;
+const DEFAULT_MAX_NUDGES = 2;
 
 /// Drive one user-message → terminal-reply agent run. Returns
 /// when the model writes a text-only reply (or we hit a safety
@@ -180,6 +207,9 @@ export async function runAgentLoop(
     maxTurns,
     maxSameCallRetries = DEFAULT_MAX_SAME_CALL_RETRIES,
     effortParams,
+    autoContinue = true,
+    maxNudges = DEFAULT_MAX_NUDGES,
+    postProcessAssistant,
   } = options;
 
   const toolMap = new Map<string, ToolDef>();
@@ -208,6 +238,7 @@ export async function runAgentLoop(
   let usage = EMPTY_RUN_USAGE;
   let lastCallSignature: string | null = null;
   let consecutiveSameCount = 0;
+  let nudgesUsed = 0;
   let endedBy: RunSummary["endedBy"] = "maxTurns";
   let finalConfidence: number | null = null;
 
@@ -225,7 +256,12 @@ export async function runAgentLoop(
     try {
       response = await transport.send({
         model,
-        messages: toWireMessages(conversation),
+        // Compaction keeps the payload small as agent runs grow:
+        // old tool results truncate, ancient rows drop, while the
+        // system prompt (KV-cache prefix) + the live request stay
+        // verbatim. Smaller prompts = faster prompt-eval on local
+        // models = snappier turns.
+        messages: compactWireMessages(toWireMessages(conversation)),
         tools: tools.map((t) => ({
           type: "function" as const,
           function: {
@@ -357,7 +393,9 @@ export async function runAgentLoop(
 
     const assistant: Extract<AgentMessage, { role: "assistant" }> = {
       role: "assistant",
-      content: conf.cleaned,
+      content: postProcessAssistant
+        ? postProcessAssistant(conf.cleaned)
+        : conf.cleaned,
       rawContent,
       toolCalls,
       confidence: conf.confidence,
@@ -367,15 +405,62 @@ export async function runAgentLoop(
     hooks.onTurnEnd?.(turnIdx, assistant);
     finalConfidence = conf.confidence;
 
-    // Terminal: no tool calls — the model produced the final
-    // reply.
+    // Terminal: no tool calls — the model thinks it's done.
     if (!toolCalls || toolCalls.length === 0) {
+      // Auto-continuation. Before accepting the terminal turn,
+      // fold the timeline into the build-state machine: if the
+      // model started a build but didn't finish it (created with
+      // no files / wrote files but never ran / last run failed),
+      // inject a synthetic user nudge and keep looping instead of
+      // stopping. Bounded by maxNudges; suppressed entirely when
+      // the user clicked Stop.
+      if (autoContinue && nudgesUsed < maxNudges && !hooks.shouldStop?.()) {
+        const state = analyzeBuildState(timeline);
+        const nudge = buildContinuationNudge(state);
+        if (nudge) {
+          nudgesUsed += 1;
+          const nudgeMsg: AgentMessage = {
+            role: "user",
+            content: nudge,
+            isNudge: true,
+          };
+          conversation = [...conversation, nudgeMsg];
+          hooks.onNudge?.(nudge);
+          continue;
+        }
+      }
       endedBy = "terminal";
       break;
     }
 
-    // Otherwise: dispatch each tool, append its result, loop.
+    // Otherwise: dispatch the turn's tool calls, append results,
+    // loop.
+    //
+    // Fast path — PARALLEL dispatch. When every call in the batch
+    // is auto-approved AND read-only-safe (not the clarification
+    // tool, not elevated by low confidence) the calls have no
+    // ordering dependency: the model emitted them together, none
+    // gates on user input, and the registry's auto tools are
+    // reads (list/search/read) by design. Dispatching them
+    // concurrently turns N sequential IPC round-trips into one
+    // wall-clock wait on the slowest. Mutating/gated calls keep
+    // the sequential path so approval chips appear one at a time
+    // and writes never race each other.
     let stuckThisTurn = false;
+    const lowConf = isLowConfidence(assistant.confidence ?? null);
+    const canParallelize =
+      toolCalls.length > 1 &&
+      !lowConf &&
+      toolCalls.every((c) => {
+        if (c.name === "request_user_input") return false;
+        const t = toolMap.get(c.name);
+        return t?.auto === true;
+      });
+
+    // Repeat-call bookkeeping runs over the batch in order either
+    // way, so the stuck-retry detector sees the same sequence the
+    // model emitted regardless of dispatch strategy.
+    const plans: Array<{ call: ToolCall; halt: ToolResult | null }> = [];
     for (const call of toolCalls) {
       const sig = `${call.name}|${normaliseArgs(call.arguments)}`;
       if (sig === lastCallSignature) {
@@ -384,26 +469,53 @@ export async function runAgentLoop(
         consecutiveSameCount = 0;
         lastCallSignature = sig;
       }
-      let result: ToolResult;
       if (consecutiveSameCount >= maxSameCallRetries) {
-        result = {
-          toolCallId: call.id,
-          name: call.name,
-          content: JSON.stringify({
-            error: true,
-            message: `Stop repeating ${call.name} with identical arguments — you've called it ${consecutiveSameCount} times in a row and it failed each time. Either: (a) inspect the previous error and change your arguments, (b) call a DIFFERENT tool first to fix the underlying issue, or (c) request user input via request_user_input.`,
-          }),
-          ok: false,
-        };
+        plans.push({
+          call,
+          halt: {
+            toolCallId: call.id,
+            name: call.name,
+            content: JSON.stringify({
+              error: true,
+              message: `Stop repeating ${call.name} with identical arguments — you've called it ${consecutiveSameCount} times in a row and it failed each time. Either: (a) inspect the previous error and change your arguments, (b) call a DIFFERENT tool first to fix the underlying issue, or (c) request user input via request_user_input.`,
+            }),
+            ok: false,
+          },
+        });
         stuckThisTurn = true;
       } else {
-        result = await dispatchOneToolCall(
-          call,
-          toolMap,
-          hooks,
-          assistant.confidence ?? null,
+        plans.push({ call, halt: null });
+      }
+    }
+
+    let results: ToolResult[];
+    if (canParallelize && !stuckThisTurn) {
+      results = await Promise.all(
+        plans.map((p) =>
+          dispatchOneToolCall(
+            p.call,
+            toolMap,
+            hooks,
+            assistant.confidence ?? null,
+          ),
+        ),
+      );
+    } else {
+      results = [];
+      for (const p of plans) {
+        results.push(
+          p.halt ??
+            (await dispatchOneToolCall(
+              p.call,
+              toolMap,
+              hooks,
+              assistant.confidence ?? null,
+            )),
         );
       }
+    }
+
+    for (const result of results) {
       timeline.push(result);
       hooks.onToolResult?.(result);
       const toolMsg: AgentMessage = {

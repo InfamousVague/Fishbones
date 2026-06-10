@@ -200,11 +200,59 @@ pub struct ChatMessage {
     pub tool_calls: Option<Vec<ToolCallSpec>>,
 }
 
+/// How long Ollama keeps the model loaded in memory after a
+/// request completes. The default is a 5-minute idle unload — too
+/// short for an agent run where the user reads the reply, thinks,
+/// and asks a follow-up 10 minutes later: the next turn would pay
+/// the full multi-second model-load cost again. 30m keeps the
+/// model warm across a whole study session while still releasing
+/// RAM if the user walks away.
+const OLLAMA_KEEP_ALIVE: &str = "30m";
+
+/// Shared HTTP client for every Ollama call. reqwest's `Client`
+/// holds a connection pool — building a fresh one per command (the
+/// previous pattern) threw the pool away every call, so every turn
+/// paid a new TCP handshake to localhost. One static client means
+/// turn N+1 reuses turn N's connection. The timeout strategy
+/// matches what the per-call builders used: connect_timeout for
+/// fail-fast on a dead daemon, read_timeout as a per-read idle
+/// window that a healthy token stream never trips.
+static HTTP: LazyLock<reqwest::Client> = LazyLock::new(|| {
+    reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .read_timeout(std::time::Duration::from_secs(60))
+        .build()
+        .expect("reqwest client init")
+});
+
+/// Per-request model options forwarded from the frontend's
+/// "effort" setting (fast / balanced / thorough →
+/// temperature + context window + output budget). Serialised into
+/// Ollama's `options` block. All fields optional so older callers
+/// that omit them keep the model's own defaults.
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct ModelOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub num_ctx: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub num_predict: Option<i64>,
+}
+
+impl ModelOptions {
+    fn is_empty(&self) -> bool {
+        self.temperature.is_none() && self.num_ctx.is_none() && self.num_predict.is_none()
+    }
+}
+
 #[derive(Debug, Serialize)]
 struct OllamaChatRequest<'a> {
     model: &'a str,
     messages: &'a [ChatMessage],
     stream: bool,
+    /// Keep the model resident between calls — see OLLAMA_KEEP_ALIVE.
+    keep_alive: &'a str,
 }
 
 /// Outbound request shape for the agent-turn (non-streaming)
@@ -220,6 +268,12 @@ struct OllamaAgentRequest<'a> {
     stream: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     tools: Option<&'a serde_json::Value>,
+    /// Keep the model resident between calls — see OLLAMA_KEEP_ALIVE.
+    keep_alive: &'a str,
+    /// Effort-derived sampling/context knobs. Omitted entirely
+    /// when the frontend didn't send any (None → Ollama defaults).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    options: Option<&'a ModelOptions>,
 }
 
 /// Tool-call payload the assistant emits. The `function.arguments`
@@ -339,25 +393,17 @@ pub async fn ai_chat_stream(
     // fast on a hung daemon while letting a healthy generation
     // run to completion.
     //
-    // - connect_timeout(5s)  → unreachable daemon surfaces in <5s
-    // - read_timeout(60s)    → if Ollama produces no tokens for a
-    //                          full minute, treat as stalled and
-    //                          bail; a healthy run emits tokens at
-    //                          minimum every few hundred ms
-    let client = reqwest::Client::builder()
-        .connect_timeout(std::time::Duration::from_secs(5))
-        .read_timeout(std::time::Duration::from_secs(60))
-        .build()
-        .map_err(|e| format!("client init: {e}"))?;
-
+    // Shared pooled client (see HTTP) — connection reuse across
+    // turns instead of a per-call TCP handshake.
     let payload = OllamaChatRequest {
         model: &model,
         messages: &messages,
         stream: true,
+        keep_alive: OLLAMA_KEEP_ALIVE,
     };
 
     let url = format!("{OLLAMA_URL}/api/chat");
-    let resp = client
+    let resp = HTTP
         .post(&url)
         .json(&payload)
         .send()
@@ -470,28 +516,32 @@ pub async fn ai_chat_agent_turn(
     // (e.g. agent intermediate turns that are pure tool-call
     // negotiations with no user-visible text).
     stream_id: Option<String>,
+    // Effort-derived model knobs (temperature / num_ctx /
+    // num_predict). The frontend's "effort" setting maps to these;
+    // they were previously sent by the TS transport but silently
+    // dropped here because the command never declared the params.
+    // Tauri's camelCase↔snake_case conversion means the TS side
+    // sends `temperature`/`numCtx`/`numPredict` — declare each as
+    // its own optional param and assemble the options block.
+    temperature: Option<f64>,
+    num_ctx: Option<u32>,
+    num_predict: Option<i64>,
 ) -> Result<AgentTurnResponse, String> {
     let model = model.unwrap_or_else(|| DEFAULT_MODEL.to_string());
 
-    // No total request timeout — `reqwest::ClientBuilder::timeout`
-    // covers the WHOLE request including every streamed read, so
-    // a multi-minute generation (e.g. "build me a blackjack game"
-    // produces 2-4k tokens at ~10 tok/s = 200-400s on a 7B model)
-    // gets killed mid-stream with a confusing
-    // "stream read error: error decoding response body".
-    //
-    // Instead we use:
-    //   - connect_timeout: fail fast on an unreachable daemon
-    //   - read_timeout: per-read idle window. As long as Ollama
-    //     is still producing tokens it stays under the window;
-    //     a stalled daemon trips it within 60s.
-    //
-    // This is the standard reqwest pattern for streaming clients.
-    let client = reqwest::Client::builder()
-        .connect_timeout(std::time::Duration::from_secs(5))
-        .read_timeout(std::time::Duration::from_secs(60))
-        .build()
-        .map_err(|e| format!("failed to build http client: {e}"))?;
+    // Shared pooled client (see HTTP): connection reuse across
+    // agent turns. The per-read 60s idle window + 5s connect
+    // timeout strategy lives on the static builder.
+    let options = ModelOptions {
+        temperature,
+        num_ctx,
+        num_predict,
+    };
+    let options_ref = if options.is_empty() {
+        None
+    } else {
+        Some(&options)
+    };
 
     let streaming = stream_id.is_some();
     let payload = OllamaAgentRequest {
@@ -499,9 +549,11 @@ pub async fn ai_chat_agent_turn(
         messages: &messages,
         stream: streaming,
         tools: tools.as_ref(),
+        keep_alive: OLLAMA_KEEP_ALIVE,
+        options: options_ref,
     };
 
-    let response = client
+    let response = HTTP
         .post(format!("{OLLAMA_URL}/api/chat"))
         .json(&payload)
         .send()

@@ -120,8 +120,14 @@ export function useAiAgent(params: {
   tools: readonly ToolDef[];
   model?: string;
   initialMessages?: AgentMessage[];
+  /// Optional per-turn assistant-content post-processor (e.g. the
+  /// libre:// link guard that strips hallucinated lesson links).
+  /// Runs in the loop after tool-call recovery + confidence
+  /// stripping, before the message is stored or rendered.
+  postProcessAssistant?: (content: string) => string;
 }): UseAiAgent {
-  const { systemPrompt, tools, model, initialMessages } = params;
+  const { systemPrompt, tools, model, initialMessages, postProcessAssistant } =
+    params;
   const [messages, setMessages] = useState<AgentMessage[]>(
     () => initialMessages ?? [],
   );
@@ -356,6 +362,7 @@ export function useAiAgent(params: {
           augmented,
           transport,
           maxTurns: settingsRef.current.maxTurns,
+          postProcessAssistant,
           // Forward the user's `effort` rung as concrete model
           // params. `resolveEffortParams` maps fast/balanced/
           // thorough → temperature + num_ctx + num_predict.
@@ -366,6 +373,17 @@ export function useAiAgent(params: {
               // Save the Rust-side stream id so `stop()` can
               // target the right `bytes_stream().next()` to bail.
               activeStreamIdRef.current = sid;
+            },
+            onNudge: (nudge) => {
+              // Auto-continuation: the loop injected a synthetic
+              // user message because the model stopped with an
+              // unfinished build. Mirror it into the visible log
+              // tagged isNudge so the panel renders it as a muted
+              // "auto-continue" breadcrumb, not a learner bubble.
+              setMessages((prev) => [
+                ...prev,
+                { role: "user", content: nudge, isNudge: true },
+              ]);
             },
             onTurnStart: (idx) => {
               // Each new turn starts a fresh live-content window

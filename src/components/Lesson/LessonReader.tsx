@@ -16,7 +16,9 @@ import { bookOpen } from "@base/primitives/icon/icons/book-open";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import { renderMarkdown } from "./markdown";
+import { SkeletonText } from "../Shared/Skeleton";
 import LessonPopover, { type PopoverContent } from "./LessonPopover";
+import AskAiSelectionPopover from "./AskAiSelectionPopover";
 import InlineSandbox from "./InlineSandbox";
 import TTSButton from "./TTSButton";
 import { estimateReadingMinutes } from "./readingTime";
@@ -73,6 +75,12 @@ export default function LessonReader({
 }: Props) {
   const t = useT();
   const [html, setHtml] = useState<string>("");
+  // Flips true once the first markdown render for this reader has
+  // resolved. Gates the loading skeleton so (a) the placeholder only
+  // covers the initial render, not every state tick, and (b) a
+  // genuinely empty body never shows a perpetual skeleton —
+  // renderMarkdown("") still resolves and marks ready.
+  const [bodyReady, setBodyReady] = useState(false);
 
   // Detect demoted-exercise state so we can render the inline retry CTA.
   // The note appears in the body for every lesson the pipeline demoted;
@@ -123,7 +131,10 @@ export default function LessonReader({
     // equality, because generator passes occasionally normalise titles.
     source = stripLeadingTitleHeading(source, lesson.title);
     renderMarkdown(source, { enrichment }).then((rendered) => {
-      if (!cancelled) setHtml(rendered);
+      if (!cancelled) {
+        setHtml(rendered);
+        setBodyReady(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -755,6 +766,9 @@ export default function LessonReader({
             </div>
           )}
 
+          {!bodyReady && (
+            <SkeletonText lines={7} className="libre-reader-body-skeleton" />
+          )}
           <div
             ref={setArticleEl}
             className="libre-reader-body"
@@ -767,6 +781,15 @@ export default function LessonReader({
             // hydrated InlineSandbox / popover handler) on every audio
             // timeupdate. The imperative path runs once per html
             // identity change and leaves the children alone otherwise.
+          />
+          {/* Inline Ask AI — floating chip over text selections in
+              the body above. Fixed-position, so mounting here has
+              no layout effect; it needs the lesson coordinates to
+              stamp the libre:ask-ai event with course context. */}
+          <AskAiSelectionPopover
+            courseId={courseId}
+            lessonId={lesson.id}
+            lessonTitle={lesson.title}
           />
           {footer}
         </div>

@@ -150,6 +150,9 @@ describe("model emits a long monologue between turns", () => {
       transport,
       hooks: { approveToolCall: async () => "approved" },
       maxTurns: 20,
+      // Isolates monologue handling — the post-create stall would
+      // otherwise trigger an auto-continue nudge.
+      autoContinue: false,
     });
     expect(result.endedBy).toBe("terminal");
     // Assistant message from turn 1 should retain the long text.

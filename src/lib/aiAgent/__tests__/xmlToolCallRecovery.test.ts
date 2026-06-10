@@ -311,6 +311,9 @@ describe("loop integration: XML tool call dispatches end-to-end", () => {
         transport,
         hooks: { approveToolCall: async () => "approved" },
         maxTurns: 20,
+        // Isolates XML recovery — post-create stall would
+        // otherwise trigger an auto-continue nudge.
+        autoContinue: false,
       });
       expect(createArgs).not.toBeNull();
       expect(createArgs!.name).toBe("Blackjack");
@@ -424,6 +427,9 @@ describe("loop integration: XML tool call dispatches end-to-end", () => {
           },
         },
         maxTurns: 20,
+        // Isolates the <question> recovery path — the scripted
+        // post-create terminal would otherwise nudge.
+        autoContinue: false,
       });
       expect(askedQuestion).toBe(
         "Which version of Blackjack would you like to build? A simple text-based version or a graphical user interface (GUI) using React?",

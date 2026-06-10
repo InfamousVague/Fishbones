@@ -342,6 +342,9 @@ describe("scenario: clarification flow", () => {
         },
       },
       maxTurns: 20,
+      // Isolates the clarification flow — the scripted run ends
+      // right after create, which would otherwise nudge.
+      autoContinue: false,
     });
     expect(askedQuestion).toBe("TypeScript or JavaScript?");
     expect(createCalls).toEqual([{ language: "typescript" }]);

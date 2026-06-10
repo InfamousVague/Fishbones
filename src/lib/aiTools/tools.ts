@@ -34,6 +34,14 @@ import {
   enforceProject,
   enforceWrite,
 } from "./scope";
+import { diagnoseRunError } from "../ai/diagnosis";
+import {
+  addFact,
+  loadMemory,
+  recordStruggle,
+  removeFact,
+  saveMemory,
+} from "../ai/memory";
 
 /// State + callbacks the tools execute against. Provided by the
 /// host (App.tsx / TrayPanel) when it instantiates the agent so
@@ -864,11 +872,33 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
             level: l.level,
             text: l.text.length > 4000 ? `${l.text.slice(0, 2000)}\n…[truncated ${l.text.length - 4000} chars]…\n${l.text.slice(-2000)}` : l.text,
           }));
+          // Failed runs get a deterministic diagnosis: the error
+          // text + error-level logs run through the pattern table
+          // and come back with a targeted fix hint (+ file:line
+          // when the format carries one). A small local model
+          // reading "borrow of moved value" cold often flails;
+          // the same model reading the attached hint usually
+          // patches correctly on the first try. Also feeds the
+          // memory layer's struggle tracking.
+          const diagnosis = effectiveOk
+            ? null
+            : diagnoseRunError(
+                [
+                  effectiveError ?? "",
+                  ...truncatedLogs
+                    .filter((l) => l.level === "error")
+                    .map((l) => l.text),
+                ].join("\n"),
+              );
+          if (diagnosis) {
+            recordStruggle(diagnosis.code);
+          }
           return {
             ok: effectiveOk,
             durationMs: result.durationMs,
             logs: truncatedLogs,
             error: effectiveError,
+            ...(diagnosis ? { diagnosis } : {}),
             previewUrl: result.previewUrl ?? null,
           };
         } catch (e) {
@@ -1227,6 +1257,69 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
         } catch (e) {
           return { error: true, message: String(e) };
         }
+      },
+    },
+
+    // ── Learner memory ───────────────────────────────────────
+    //
+    // Cross-session persistence. `remember` is auto (writing a
+    // note is reversible + visible via recall); the prompt block
+    // built from memory is injected by the host into every
+    // system prompt, so saved notes shape future sessions
+    // without any tool call.
+    {
+      name: "remember",
+      description:
+        "Save a durable note about the learner that should shape FUTURE sessions (preferences like 'wants terse answers', goals like 'building a roguelike', recurring confusions like 'mixes up String and &str'). Don't save session-trivia (file names, current task state) — only facts that stay true tomorrow. The note is injected into your system prompt in every later conversation.",
+      parameters: {
+        type: "object",
+        properties: {
+          note: {
+            type: "string",
+            description:
+              "The fact to remember, one sentence, under 280 chars.",
+          },
+        },
+        required: ["note"],
+      },
+      auto: true,
+      async handler(args: { note: string }) {
+        if (!args.note || !args.note.trim()) {
+          return { error: true, message: "remember: 'note' is required." };
+        }
+        const { memory, added } = addFact(loadMemory(), args.note);
+        if (added) saveMemory(memory);
+        return {
+          ok: true,
+          added,
+          totalFacts: memory.facts.length,
+          message: added
+            ? "Saved. This note will appear in your context in future sessions."
+            : "An equivalent note already exists — nothing saved.",
+        };
+      },
+    },
+    {
+      name: "forget",
+      description:
+        "Delete a previously-saved learner note (by its exact text). Use when the learner corrects you ('actually I prefer detailed answers now') or asks you to forget something.",
+      parameters: {
+        type: "object",
+        properties: {
+          note: {
+            type: "string",
+            description: "Exact text of the note to delete.",
+          },
+        },
+        required: ["note"],
+      },
+      auto: true,
+      async handler(args: { note: string }) {
+        const before = loadMemory();
+        const after = removeFact(before, args.note ?? "");
+        const removed = after.facts.length < before.facts.length;
+        if (removed) saveMemory(after);
+        return { ok: true, removed };
       },
     },
 

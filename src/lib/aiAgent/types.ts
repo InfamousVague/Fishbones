@@ -54,6 +54,12 @@ export type AgentMessage =
       /// differently so the thread reads as "model asked, user
       /// answered" rather than "user spontaneously typed this".
       isClarification?: boolean;
+      /// True when the LOOP injected this message (auto-continue
+      /// nudge for an unfinished build) — the learner never typed
+      /// it. UI renders it as a muted system breadcrumb instead of
+      /// a user bubble so the conversation doesn't show words in
+      /// the learner's mouth.
+      isNudge?: boolean;
     }
   | {
       role: "assistant";

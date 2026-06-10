@@ -6,6 +6,13 @@ import { useAiChat, type ChatMessage } from "../../hooks/useAiChat";
 import { useAiAgent, type AgentMessage } from "../../hooks/useAiAgent";
 import { buildToolRegistry } from "../../lib/aiTools/tools";
 import { useAgentScope } from "../../lib/aiTools/scope";
+import {
+  formatRetrievalBlock,
+  searchCourseContent,
+} from "../../lib/ai/retrieval";
+import { buildContextBlock } from "../../lib/ai/context";
+import { buildMemoryBlock } from "../../lib/ai/memory";
+import { buildLinkGuard } from "../../lib/ai/linkGuard";
 import { readAiEnabled } from "../../lib/aiHost";
 import TrayHeader from "../TrayPanel/TrayHeader";
 import { useTraySessions } from "../TrayPanel/useTraySessions";
@@ -196,9 +203,17 @@ export default function AiAssistant({
     [course, lesson],
   );
 
+  // libre:// link guard — strips hallucinated lesson/course deep
+  // links from agent output. Rebuilt only when the installed
+  // course set changes.
+  const linkGuard = useMemo(
+    () => buildLinkGuard(courses ?? []),
+    [courses],
+  );
   const agent = useAiAgent({
     systemPrompt: agentSystemPrompt,
     tools: agentTools,
+    postProcessAssistant: linkGuard,
   });
 
   // ── Stream-to-file parser (in-app parity with the tray) ─────
@@ -342,7 +357,9 @@ export default function AiAssistant({
       // most reliable source of truth — the global `lesson` prop
       // can be stale during a route transition.
       const askContext: "lesson" | "sandbox" | "tray" | "free" =
-        detail.kind === "code" || detail.kind === "quiz"
+        detail.kind === "code" ||
+        detail.kind === "quiz" ||
+        detail.kind === "selection"
           ? "lesson"
           : detail.kind === "explain-step" ||
               detail.kind === "generate-code"
@@ -374,18 +391,47 @@ export default function AiAssistant({
         void agent.send(displayed, augmented);
         return;
       }
-      // Chat-routed kinds (code, explain-step, quiz, ask): same
-      // displayed-vs-augmented split. The chat panel renders the
-      // user's intent in plain terms; the LLM receives the
-      // workflow-framed payload from `formatAskPrompt`.
-      const augmented = formatAskPrompt(detail);
+      // Chat-routed kinds (code, explain-step, quiz, ask,
+      // selection): same displayed-vs-augmented split. The chat
+      // panel renders the user's intent in plain terms; the LLM
+      // receives the workflow-framed payload from
+      // `formatAskPrompt` — plus, for natural-language kinds,
+      // retrieval grounding: the top lessons from the learner's
+      // installed courses that match the question, with
+      // clickable libre:// links. A question about borrowing
+      // asked from a Rustlings exercise pulls the Rust Book's
+      // "References and Borrowing" lesson into the prompt so the
+      // answer can cite the material the learner already has.
+      const groundingQuery =
+        detail.kind === "selection"
+          ? detail.text
+          : detail.kind === "quiz" || detail.kind === "ask"
+            ? detail.prompt
+            : null;
+      const grounding =
+        groundingQuery && courses && courses.length > 0
+          ? formatRetrievalBlock(
+              searchCourseContent(courses, groundingQuery, 3, {
+                // Same-course affinity: a question asked from
+                // inside Rustlings prefers Rustlings material on
+                // near-ties. `course` can be stale during a route
+                // transition but a mild boost can't mislead.
+                currentCourseId:
+                  detail.kind === "selection"
+                    ? detail.courseId
+                    : course?.id,
+              }),
+            )
+          : "";
+      const augmented =
+        formatAskPrompt(detail) + (grounding ? `\n\n${grounding}` : "");
       const displayed = formatAskDisplay(detail);
       track.aiSend({ mode: "chat", context: askContext });
       void chat.send(displayed, systemPrompt, augmented);
     };
     window.addEventListener("libre:ask-ai", handler);
     return () => window.removeEventListener("libre:ask-ai", handler);
-  }, [chat, agent, setMode, systemPrompt, panelContext]);
+  }, [chat, agent, setMode, systemPrompt, panelContext, courses, course]);
 
   // Pending-generate completion is now handled by the AGENT path
   // — `useSandboxStreamWriter` writes each ```lang:path block into
@@ -713,6 +759,11 @@ function buildSystemPrompt(
       "```",
     );
   }
+  // Cross-session learner memory: notes the agent saved in earlier
+  // sessions + auto-tracked recurring struggles. Empty string when
+  // the learner is new — section omitted entirely.
+  const memoryBlock = buildMemoryBlock();
+  if (memoryBlock) parts.push("", memoryBlock);
   return parts.join("\n");
 }
 
@@ -959,21 +1010,33 @@ function buildAgentSystemPrompt(
     ].join("\n"),
   );
 
-  // Active lesson context — when the agent is invoked from a
-  // lesson view, the model gets a quick "you're here" snippet so
-  // "fix this" type prompts make sense without the user having to
-  // copy the lesson title.
+  // Active lesson context — built by the context engine so the
+  // agent sees what the chat path sees: lesson coordinates, a
+  // budgeted body excerpt (for a Rustlings exercise that's the
+  // broken code + instructions — exactly what "help me fix this"
+  // needs), and the deep link it can cite back to the learner.
   if (lesson) {
-    const ctx: string[] = [];
-    if (course) ctx.push(`Course: ${course.title} (${course.language})`);
-    ctx.push(`Lesson: ${lesson.title}`);
-    if (lesson.kind) ctx.push(`Kind: ${lesson.kind}`);
-    sections.push(`# Active lesson context\n\n${ctx.join("\n")}`);
+    const block = buildContextBlock({
+      lesson: {
+        courseId: course?.id ?? "",
+        courseTitle: course?.title ?? "",
+        lessonId: lesson.id,
+        title: lesson.title,
+        kind: lesson.kind,
+        body: lesson.body,
+      },
+    });
+    if (block) sections.push(block);
   } else {
     sections.push(
       "# Context\n\nThe learner is browsing the library — no specific lesson is open.",
     );
   }
+
+  // Cross-session learner memory (same block the chat prompt
+  // gets): saved notes + recurring-struggle coaching guidance.
+  const memoryBlock = buildMemoryBlock();
+  if (memoryBlock) sections.push(memoryBlock);
 
   return sections.join("\n\n");
 }
@@ -1027,6 +1090,18 @@ type AskAiDetail =
       kind: "generate-code";
       language?: string;
       request: string;
+    }
+  | {
+      /// Inline Ask AI — the learner selected text in the lesson
+      /// reader and clicked the floating chip. `text` is the
+      /// selection (pre-capped by the popover); the lesson
+      /// coordinates let the prompt attribute the passage and the
+      /// retrieval layer pull related material.
+      kind: "selection";
+      text: string;
+      courseId?: string;
+      lessonId?: string;
+      lessonTitle?: string;
     }
   | {
       /// "Just open the panel" trigger, used by the command palette
@@ -1102,9 +1177,21 @@ function formatAskPrompt(detail: Exclude<AskAiDetail, { kind: "open" }>): string
     ].join("\n");
   }
   if (detail.kind === "ask") {
-    // Free-form question from the menu-bar tray popover. Send it
-    // verbatim — the user already phrased their question.
+    // Free-form question. Send it verbatim — the user already
+    // phrased what they meant.
     return detail.prompt;
+  }
+  if (detail.kind === "selection") {
+    const where = detail.lessonTitle
+      ? ` from the lesson "${detail.lessonTitle}"`
+      : "";
+    return [
+      `I selected this passage${where} — explain it in plain terms.`,
+      "Unpack the concept it describes, why it matters, and give one tiny concrete example if that helps. If the passage uses a term of art, define it.",
+      "Keep it tight: a few short paragraphs at most, anchored to THIS passage (not a general lecture on the topic).",
+      "",
+      "> " + detail.text.trim().replace(/\n/g, "\n> "),
+    ].join("\n");
   }
   // quiz
   return [
@@ -1154,6 +1241,15 @@ function formatAskDisplay(
   }
   if (detail.kind === "ask") {
     return detail.prompt;
+  }
+  if (detail.kind === "selection") {
+    // Show the passage the learner picked, quoted, under a short
+    // intent line — mirrors what they did ("I highlighted this").
+    return [
+      "Explain this passage:",
+      "",
+      "> " + detail.text.trim().replace(/\n/g, "\n> "),
+    ].join("\n");
   }
   // quiz
   return detail.prompt;

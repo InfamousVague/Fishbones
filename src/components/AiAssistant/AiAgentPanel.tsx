@@ -848,6 +848,21 @@ function AgentRow({
 }) {
   if (message.role === "system") return null;
   if (message.role === "user") {
+    // Loop-injected auto-continue nudges are NOT learner words —
+    // render them as a muted breadcrumb ("auto-continuing the
+    // build…") instead of a user bubble so the transcript never
+    // puts text in the learner's mouth.
+    if (message.isNudge) {
+      return (
+        <div
+          className="libre-ai-agent-breadcrumb libre-ai-agent-breadcrumb--nudge"
+          title={message.content}
+        >
+          <Icon icon={hammer} size="xs" color="currentColor" />
+          <span>auto-continuing — the build isn't finished yet</span>
+        </div>
+      );
+    }
     // base-ui `Card` (filled variant) for the user bubble —
     // same primitive `AiChatPanel` uses, so chat-mode and
     // agent-mode messages render with identical chrome. The

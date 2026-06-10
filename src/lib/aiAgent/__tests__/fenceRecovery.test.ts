@@ -240,6 +240,9 @@ describe("loop integration: fence-only response triggers synthesis", () => {
       transport,
       hooks: { approveToolCall: async () => "approved" },
       maxTurns: 20,
+      // Isolates fence synthesis — the scripted post-create stall
+      // would otherwise trigger an auto-continue nudge.
+      autoContinue: false,
     });
     // The synthesised tool call ran.
     expect(createArgs).not.toBeNull();

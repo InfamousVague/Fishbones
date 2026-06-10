@@ -909,6 +909,16 @@
   border-color: rgba(86, 201, 138, 0.45);
 }
 
+/* Auto-continue nudge — the loop noticed an unfinished build and
+   injected a continuation. Rendered as a muted, italic system
+   note (NOT a user bubble: the learner never typed it). Hovering
+   shows the full nudge text via title=. */
+.libre-ai-agent-breadcrumb--nudge {
+  font-style: italic;
+  opacity: 0.75;
+  border-style: dashed;
+}
+
 .libre-ai-agent-breadcrumb-dots {
   display: inline-flex;
   gap: 3px;

@@ -130,6 +130,10 @@ describe("runAgentLoop", () => {
       tools: [t],
       userPrompt: "make X",
       transport,
+      // This test isolates inline-JSON recovery; the scripted
+      // model "stalls" after create, which would now trigger an
+      // auto-continue nudge (covered by buildState.test.ts).
+      autoContinue: false,
       hooks: { approveToolCall: autoApprove },
       maxTurns: 20,
     });

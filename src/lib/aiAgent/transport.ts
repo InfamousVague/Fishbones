@@ -59,6 +59,12 @@ export function createTauriTransport(): AgentTransport {
           tools: req.tools,
         };
         if (streamId) payload.streamId = streamId;
+        // Effort-derived model knobs. Tauri 2 matches JS camelCase
+        // args to Rust snake_case params, so `numCtx` lands on the
+        // command's `num_ctx`. Omitted keys keep Ollama's defaults.
+        if (req.temperature !== undefined) payload.temperature = req.temperature;
+        if (req.num_ctx !== undefined) payload.numCtx = req.num_ctx;
+        if (req.num_predict !== undefined) payload.numPredict = req.num_predict;
         const raw = (await invoke("ai_chat_agent_turn", payload)) as {
           content: string;
           tool_calls?: Array<{
