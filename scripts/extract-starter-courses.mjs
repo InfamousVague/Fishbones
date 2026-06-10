@@ -1,30 +1,36 @@
 #!/usr/bin/env node
-/// Extract a curated subset of the bundled .libre packs into
-/// `public/starter-courses/` so the web build can fetch them at
-/// first-launch and seed IndexedDB.
+/// Extract the published bundled packs into `public/starter-courses/`
+/// so the web build can fetch them at first-launch and seed
+/// IndexedDB.
 ///
-/// We only ship packs whose primary language has a browser-native
-/// runtime — anything that needs a system compiler (C / C++ / Java /
-/// Kotlin / C# / Assembly / Swift) gets skipped because the web
-/// build can't run those lessons anyway. SvelteKit is also skipped
-/// (Node sidecar required); plain Svelte 5 CSR works in-browser via
-/// the vendored compiler.
+/// WHICH packs ship is decided by exactly one place:
+/// `scripts/published-courses.json` (the explicit publish list, in
+/// render order). This script emits that list and nothing else:
+///
+///   - a published id whose archive is missing or unreadable FAILS
+///     the build (pass --allow-missing-published or set
+///     LIBRE_ALLOW_MISSING_PUBLISHED=1 to demote to a warning) — a
+///     regenerated manifest must never silently drop a live course;
+///   - an archive on disk that ISN'T in the publish list is skipped
+///     with a loud warning so strays stay visible instead of
+///     auto-publishing.
 ///
 /// Output:
 ///   public/starter-courses/manifest.json   — list of {id,title,language,file,size}
 ///   public/starter-courses/<id>.json       — the full course JSON
 ///
-/// Idempotent: deletes + recreates the directory each run so a pack
-/// removed from PACK_IDS doesn't ghost in production. Run once before
-/// `vite build` for the web variant; chained automatically by
-/// `npm run vendor:web`.
+/// Idempotent: stale outputs for known ids are removed each run so a
+/// pack dropped from the publish list doesn't ghost in production.
+/// Run once before `vite build` for the web variant; chained
+/// automatically by `npm run build:web`.
 
 import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import {
-  ALL_PACK_IDS,
+  PUBLISHED_PACK_IDS,
+  MANIFEST_VERSION,
   tierFor,
   releaseStatusFor,
   isHiddenPack,
@@ -335,79 +341,6 @@ function findPackArchive(packsDir, id) {
   return null;
 }
 
-/// Curated browser-compatible starter set. IDs match the archive
-/// filenames (without the extension). Order here is the order the
-/// library renders them in on first launch.
-///
-/// Curation rules for what makes the cut:
-///   - Primary language is browser-runnable (per platform.ts canRun)
-///     — JS, TS, Python, web, three.js, React, RN, Svelte, Solid,
-///     HTMX, Astro, Bun, Tauri-as-Rust, Solidity. Rust + Go are
-///     also OK because their runtimes proxy to the public playgrounds
-///     over HTTP.
-///   - Excluded: anything needing a system compiler (C, C++, Java,
-///     Kotlin, C#, Assembly, Swift, SvelteKit's Node sidecar). Those
-///     stay desktop-only.
-// (Legacy PACK_IDS kept inline below for back-compat — the live
-// extract loop now reads from `ALL_PACK_IDS` in
-// `scripts/course-tiers.mjs` so the catalog + the desktop bundle
-// + the web build all share one source of truth. This array is
-// reachable as `LEGACY_PACK_IDS` only and isn't used by main().)
-const LEGACY_PACK_IDS = [
-  // ── Languages-as-a-foundation books ────────────────────────────
-  // Long-form books that teach a language end-to-end. Order here is
-  // the order the library renders them on first launch.
-  "the-rust-programming-language",
-  "rust-by-example",
-  "the-async-book-rust",
-  "the-rustonomicon",
-  "eloquent-javascript",
-  "the-modern-javascript-tutorial-fundamentals",
-  "javascript-the-definitive-guide",
-  "you-don-t-know-js-yet",
-  "composing-programs",
-  "python-crash-course",
-  "learning-go",
-
-  // ── Computer-science fundamentals ──────────────────────────────
-  "algorithms-erickson",
-  "open-data-structures",
-  "crafting-interpreters-javascript",
-  "pro-git",
-
-  // ── Frameworks + libraries ─────────────────────────────────────
-  "learning-svelte",
-  "solidjs-fundamentals",
-  "htmx-fundamentals",
-  "astro-fundamentals",
-  "react-native",
-  "learning-react-native",
-  "fluent-react",
-  "tauri-2-fundamentals",
-  "interactive-web-development-with-three-js-and-a-frame",
-
-  // ── Smart-contract / web3 / crypto ─────────────────────────────
-  "mastering-bitcoin",
-  "programming-bitcoin",
-  "mastering-ethereum",
-  "mastering-lightning-network",
-  "vyper-fundamentals-pythonic-smart-contracts",
-  "solana-programs-rust-on-the-svm",
-  "viem-and-ethers-js-talking-to-ethereum-from-typescript",
-  "cryptography-fundamentals-hashes-to-zk",
-
-  // ── Challenge packs ───────────────────────────────────────────
-  // One per browser-runnable language. Assembly / C / C++ / C# /
-  // Java / Kotlin / Swift live in the desktop bundle but stay out
-  // of the web set because their runtimes need a system compiler.
-  "javascript-challenges",
-  "typescript-challenge-pack",
-  "python-challenges",
-  "go-challenges",
-  "rust-challenges",
-  "react-native-challenges",
-];
-
 async function main() {
   if (!existsSync(PACKS_DIR)) {
     console.error(
@@ -433,15 +366,14 @@ async function main() {
   // cleaned up too.)
   const { readdir } = await import("node:fs/promises");
 
-  // Build the canonical id list: union of explicitly-classified
-  // ALL_PACK_IDS + every .academy/.libre/.kata archive present in
-  // PACKS_DIR. Pre-refactor the extract loop only emitted packs in
-  // ALL_PACK_IDS, which meant new packs (rustlings, ziglings, every
-  // exercism track, every koan, etc.) shipped to bundled-packs but
-  // silently vanished from the manifest until someone hand-added
-  // them to course-tiers.mjs. Scanning the dir means a new .academy
-  // just works — it lands in the manifest as tier="remote" /
-  // releaseStatus="UNREVIEWED" via the helpers' defaults.
+  // What ships = the explicit publish list, verbatim and in order.
+  // The dir scan below is only used to (a) clean up stale outputs
+  // for packs that were dropped from the list and (b) surface
+  // archives that exist on disk but aren't published. History note:
+  // an earlier refactor emitted the union of the curated ids + every
+  // archive on disk, which meant a stray .academy auto-published
+  // itself — that's how a deploy once took the live catalog from a
+  // curated 37 courses to 105 overnight. Explicit list only, now.
   const diskIds = (await readdir(PACKS_DIR))
     .map((name) => {
       for (const ext of ARCHIVE_EXTS) {
@@ -450,11 +382,30 @@ async function main() {
       return null;
     })
     .filter((id) => id !== null);
-  const PACK_IDS_TO_EMIT = Array.from(new Set([...ALL_PACK_IDS, ...diskIds]));
+  const PACK_IDS_TO_EMIT = Array.from(new Set(PUBLISHED_PACK_IDS));
+
+  const unpublished = diskIds.filter((id) => !PACK_IDS_TO_EMIT.includes(id));
+  if (unpublished.length > 0) {
+    console.warn(
+      `[starter-courses] ${unpublished.length} archive(s) in bundled-packs are NOT in ` +
+        "scripts/published-courses.json and will NOT be published:",
+    );
+    for (const id of unpublished.sort()) console.warn(`  - ${id}`);
+    console.warn(
+      "[starter-courses] add them to the publish list if they should ship.",
+    );
+  }
 
   if (existsSync(OUT)) {
-    const managed = new Set(["manifest.json"]);
-    for (const id of PACK_IDS_TO_EMIT) {
+    // Managed set covers published ids AND every archive on disk so
+    // a pack pulled from the publish list (or renamed) gets its
+    // stale .json/.jpg removed instead of ghosting in production.
+    // Unmanaged sidecars (e.g. hellotrade.json, a python-generated
+    // course with no .academy) survive untouched. manifest.json is
+    // NOT deleted here — the final writeFile overwrites it, and on a
+    // failed run the previous complete manifest must survive.
+    const managed = new Set();
+    for (const id of [...PACK_IDS_TO_EMIT, ...diskIds]) {
       managed.add(`${id}.json`);
       managed.add(`${id}.jpg`);
     }
@@ -470,17 +421,18 @@ async function main() {
   // burying it in `+ cover.png` absences across 22 lines.
   warnIfNoResizer();
 
-  // Reference the legacy list once so the linter doesn't strip the
-  // declaration we kept around for documentation. The live loop
-  // pulls from PACK_IDS_TO_EMIT (classified ∪ disk-discovered).
-  void LEGACY_PACK_IDS;
+  // Every published id that can't be staged lands here; a non-empty
+  // list fails the run (see the gate below the loop) so a partial
+  // manifest never overwrites a complete one.
+  const failedPublished = [];
   const manifest = [];
   for (const id of PACK_IDS_TO_EMIT) {
     const found = findPackArchive(PACKS_DIR, id);
     if (!found) {
-      console.warn(
-        `[starter-courses] missing pack: ${join(PACKS_DIR, id)}.{${ARCHIVE_EXTS.join("|")}}, skipping`,
-      );
+      failedPublished.push({
+        id,
+        reason: `no ${id}.{${ARCHIVE_EXTS.join("|")}} in bundled-packs/`,
+      });
       continue;
     }
     const { path: packPath, ext: packExt } = found;
@@ -495,16 +447,27 @@ async function main() {
     // a JS zip library just for five files at build time.
     const work = await mkdtemp(join(tmpdir(), "fb-starter-"));
     try {
-      execFileSync("unzip", ["-q", packPath, "-d", work], { stdio: "pipe" });
-      const courseJsonPath = join(work, "course.json");
-      if (!existsSync(courseJsonPath)) {
-        console.warn(
-          `[starter-courses] no course.json inside ${id}.${packExt}, skipping`,
-        );
+      let course;
+      let courseJson;
+      try {
+        execFileSync("unzip", ["-q", packPath, "-d", work], { stdio: "pipe" });
+        const courseJsonPath = join(work, "course.json");
+        if (!existsSync(courseJsonPath)) {
+          failedPublished.push({
+            id,
+            reason: `no course.json inside ${id}.${packExt}`,
+          });
+          continue;
+        }
+        courseJson = await readFile(courseJsonPath, "utf-8");
+        course = JSON.parse(courseJson);
+      } catch (err) {
+        failedPublished.push({
+          id,
+          reason: `archive unreadable: ${err instanceof Error ? err.message : err}`,
+        });
         continue;
       }
-      const courseJson = await readFile(courseJsonPath, "utf-8");
-      const course = JSON.parse(courseJson);
 
       const outFile = join(OUT, `${id}.json`);
       await writeFile(outFile, courseJson, "utf-8");
@@ -677,6 +640,37 @@ async function main() {
     }
   }
 
+  // ── Publish-list gate ─────────────────────────────────────────
+  // A published course we couldn't stage means the regenerated
+  // manifest would ship with fewer courses than the live one — the
+  // exact clobber this pipeline used to inflict (2026-06-10: a full
+  // deploy silently dropped 4 live courses whose archives hadn't
+  // landed locally yet). Fail before writing manifest.json so the
+  // previous complete output survives. Override only when a removal
+  // is intentional: --allow-missing-published flag or
+  // LIBRE_ALLOW_MISSING_PUBLISHED=1 (and prune the id from
+  // published-courses.json instead, ideally).
+  if (failedPublished.length > 0) {
+    const allow =
+      process.argv.includes("--allow-missing-published") ||
+      process.env.LIBRE_ALLOW_MISSING_PUBLISHED === "1";
+    const log = allow ? console.warn : console.error;
+    log(
+      `[starter-courses] ${failedPublished.length} PUBLISHED course(s) could not be staged:`,
+    );
+    for (const f of failedPublished) log(`  - ${f.id}: ${f.reason}`);
+    if (!allow) {
+      console.error(
+        "[starter-courses] refusing to write a manifest that drops published courses.\n" +
+          "  Fix: commit the missing .academy to src-tauri/resources/bundled-packs/,\n" +
+          "  or remove the id from scripts/published-courses.json if the removal is\n" +
+          "  intentional, or re-run with --allow-missing-published to force.",
+      );
+      process.exit(1);
+    }
+    log("[starter-courses] override active — continuing WITHOUT them.");
+  }
+
   // ── Placeholder-cover sweep ───────────────────────────────────
   // Walk `cover-overrides/` and emit `<id>.jpg` for any cover whose
   // matching id ISN'T already in the manifest. These are the next-up
@@ -714,7 +708,7 @@ async function main() {
     join(OUT, "manifest.json"),
     JSON.stringify(
       {
-        version: 2,
+        version: MANIFEST_VERSION,
         generatedAt: new Date().toISOString(),
         archiveBaseUrl: REMOTE_ARCHIVE_BASE,
         courses: manifest,

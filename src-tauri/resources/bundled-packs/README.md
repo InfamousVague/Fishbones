@@ -16,8 +16,14 @@ itself).
 3. Wait for the floating panel to finish.
 4. Right-click the pack in the sidebar → Course settings… → Export… and save the `.academy` file.
 5. Move the `.academy` file into this directory.
-6. Commit it alongside the Rust + frontend changes.
-7. Next `cargo tauri build` / `cargo tauri dev` includes it.
+6. Add its pack id (filename minus extension) to
+   `scripts/published-courses.json` — that list is the single source
+   of truth for what ships in the live catalog manifest. An archive
+   sitting here WITHOUT a publish-list entry is not published (the
+   extract script warns); a publish-list entry WITHOUT an archive
+   here fails the web build.
+7. Commit it alongside the Rust + frontend changes.
+8. Next `cargo tauri build` / `cargo tauri dev` includes it.
 
 ## What gets tracked where
 

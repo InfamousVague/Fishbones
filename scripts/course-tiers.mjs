@@ -1,5 +1,7 @@
-/// Single source of truth for which bundled `.libre` archives ship
-/// inline with the app vs which appear as downloadable placeholders.
+/// Editorial classification for the bundled `.libre` archives:
+/// which ship inline with the app (core) vs which appear as
+/// downloadable placeholders (remote), plus release-status
+/// overrides.
 ///
 /// **Core** = bundled with the desktop installer and inlined into
 /// the web build's first-launch seed. Always present after install.
@@ -13,12 +15,36 @@
 /// launch (Rust + Go + every challenge pack so kata-style learners
 /// can start immediately in any language).
 ///
-/// Adding a new core book: drop the .libre into
-/// `src-tauri/resources/bundled-packs/`, add the id here, add the
+/// NOTE — which packs are *published at all* is NOT decided here.
+/// That lives in `scripts/published-courses.json` (the explicit
+/// publish list). This file only classifies the published set.
+///
+/// Adding a new core book: drop the .academy into
+/// `src-tauri/resources/bundled-packs/`, add the id to
+/// `published-courses.json` AND `CORE_PACK_IDS` below, add the
 /// matching path entry to `tauri.conf.json` `resources`. Adding a
-/// new remote book: drop the .libre into `bundled-packs/` and
-/// add the id to ALL_PACK_IDS only — the build script + catalog
-/// take care of the rest.
+/// new remote book: drop the .academy into `bundled-packs/` and add
+/// the id to `published-courses.json` only — the build script +
+/// catalog take care of the rest.
+
+import { readFileSync } from "node:fs";
+
+/// The explicit publish list — every pack id that ships in the live
+/// catalog manifest, in render order. Checked into the repo as JSON
+/// so surgical live additions (agents patching the VPS directly) can
+/// update it programmatically. See the `$comment` block in the JSON
+/// for the full contract.
+const publishedDoc = JSON.parse(
+  readFileSync(new URL("./published-courses.json", import.meta.url), "utf-8"),
+);
+
+export const PUBLISHED_PACK_IDS = publishedDoc.packIds;
+
+/// Catalog manifest format/content version, written verbatim into
+/// manifest.json. Must never decrease — the live manifest was
+/// hand-bumped to 4 on 2026-06-10 and the deploy guard in
+/// Web/libre.academy refuses version regressions.
+export const MANIFEST_VERSION = publishedDoc.manifestVersion;
 
 export const CORE_PACK_IDS = [
   // ── In-house "A to <lang>" tutorial books ──────────────────────
@@ -81,96 +107,16 @@ export const CORE_PACK_IDS = [
   "challenges-sway-handwritten",
 ];
 
-/// Every pack we extract metadata for at build time. Anything in
-/// here but NOT in CORE_PACK_IDS becomes a remote placeholder. Kept
-/// in the same order the Library should display them in.
-export const ALL_PACK_IDS = [
-  // ── In-house "A to <lang>" tutorial books ──────────────────────
-  // Listed first so they top the catalog — these are the flagship
-  // beginner-friendly tutorials Libre authors directly.
-  "javascript-typescript",
-  "a-to-zig",
-  "a-to-ts",
-  // Hardware-wallet course — uses the new Ledger transport (Rust
-  // hidapi on desktop, WebHID on web) introduced alongside it.
-  // Course `requiresDevice: "ledger"` flag mounts the Ledger
-  // status pill in the lesson view; readings include device-action
-  // markdown buttons that send real APDUs.
-  "learning-ledger",
-
-  // ── Languages-as-a-foundation books ────────────────────────────
-  // Removed from the catalog (retired) on 2026-05-07:
-  //   eloquent-javascript, the-modern-javascript-tutorial-fundamentals,
-  //   you-don-t-know-js-yet, python-crash-course, learning-zig.
-  // The Zig spot is now covered by the in-house "A to Zig" course
-  // bundled above, not via these third-party books.
-  // Cleanup pass 2026-05-10: dropped rust-by-example, the-async-book-
-  //   rust, composing-programs — code-only references with no archive
-  //   anywhere (CDN dead, never bundled, never authored). The catalog
-  //   layer was producing Discover tiles whose install button always
-  //   404'd. Re-add when the .academy ships.
-  "the-rust-programming-language",
-  "the-rustonomicon",
-  "learning-go",
-
-  // ── Computer-science fundamentals ──────────────────────────────
-  // Removed 2026-05-07: crafting-interpreters-javascript.
-  // Removed 2026-05-10: algorithms-erickson, open-data-structures,
-  //   pro-git — same archive-dead reason as the rust block above.
-
-  // ── Frameworks + libraries ─────────────────────────────────────
-  // Removed 2026-05-07: learning-react-native, fluent-react,
-  //   interactive-web-development-with-three-js-and-a-frame.
-  // Removed 2026-05-10: learning-svelte, solidjs-fundamentals,
-  //   htmx-fundamentals, astro-fundamentals, react-native,
-  //   tauri-2-fundamentals — archive-dead.
-
-  // ── Smart-contract / web3 / crypto ─────────────────────────────
-  // Removed 2026-05-10: mastering-lightning-network,
-  //   vyper-fundamentals-pythonic-smart-contracts,
-  //   viem-and-ethers-js-talking-to-ethereum-from-typescript,
-  //   cryptography-fundamentals-hashes-to-zk — archive-dead.
-  "mastering-bitcoin",
-  "mastering-ethereum",
-  "solana-programs-rust-on-the-svm",
-  // HelloTrade — decentralised perp futures exchange. JavaScript-
-  // primary; bundles with the in-app TradeDock (Postman-shaped REST
-  // + WS client) so every dock-flagged lesson hits a real-or-mock
-  // API. Source-distilled from hellotrade.gitbook.io.
-  "hellotrade",
-
-  // ── Challenge packs ───────────────────────────────────────────
-  "javascript-challenges",
-  "typescript-challenge-pack",
-  "python-challenges",
-  "go-challenges",
-  "rust-challenges",
-  "react-native-challenges",
-  // Desktop-only challenge packs (their languages need a local
-  // toolchain). Web build skips them at runtime via the desktopOnly
-  // gate in runtimes/index.ts; they're still bundled in core because
-  // the pack itself is tiny and ships even if the runtime can't run.
-  "c-challenges",
-  "cpp-challenges",
-  "java-challenges",
-  "kotlin-challenges",
-  "csharp-challenges",
-  "swift-challenges",
-  "assembly-challenges-arm64-macos",
-  // 2026 language-expansion challenge packs — also small, also
-  // shipped in core. Order mirrors CORE_PACK_IDS.
-  "challenges-ruby-handwritten",
-  "challenges-lua-handwritten",
-  "challenges-dart-handwritten",
-  "challenges-haskell-handwritten",
-  "challenges-scala-handwritten",
-  "challenges-sql-handwritten",
-  "challenges-elixir-handwritten",
-  "challenges-zig-handwritten",
-  "challenges-move-handwritten",
-  "challenges-cairo-handwritten",
-  "challenges-sway-handwritten",
-];
+/// Back-compat alias for the publish list. Historically this was a
+/// second hand-curated array in this file, and a pack id missing
+/// from it (e.g. `learning-react-native`, dropped in a 2026-05-07
+/// cleanup comment) silently vanished from every regenerated
+/// manifest even though its archive was still on disk and live —
+/// that's the bug that kept clobbering the production manifest.
+/// The literal array is gone; the publish list in
+/// `published-courses.json` is the only place packs are added or
+/// removed now. Prefer importing PUBLISHED_PACK_IDS in new code.
+export const ALL_PACK_IDS = PUBLISHED_PACK_IDS;
 
 /// Whether a pack is bundled with the app (extracted on first
 /// launch) vs downloaded on demand. Drives the catalog `tier`
