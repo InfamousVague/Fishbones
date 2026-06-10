@@ -95,3 +95,6 @@ vite.config.js
 # site, generated MP3 packs). The chosen pack gets promoted into the
 # app deliberately; the workbench itself stays out of the repo.
 .sfx-work/
+
+# Audio-embedded course archives (generated at release time; never committed)
+src-tauri/resources/bundled-packs-full/
