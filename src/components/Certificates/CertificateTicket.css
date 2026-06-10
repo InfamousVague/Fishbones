@@ -281,7 +281,7 @@
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.62);
   letter-spacing: 0.04em;
   text-transform: none;
 }
@@ -299,7 +299,7 @@
   font-weight: 600;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.5);
+  color: rgba(26, 26, 26, 0.62);
   /* Paired with `.libre-cert-ticket__body-foot { margin-top:
      auto }` — flexbox splits the body's free vertical space
      evenly between these two auto-margins, which centres the
@@ -334,7 +334,7 @@
   font-family: inherit;
   font-size: clamp(9px, 1.05vw, 11px);
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.62);
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -363,7 +363,7 @@
   align-items: center;
   justify-content: space-between;
   font-size: clamp(10px, 1.1vw, 12px);
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(0, 0, 0, 0.64);
   font-weight: 500;
 }
 
@@ -497,7 +497,7 @@
   font-weight: 600;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.5);
+  color: rgba(26, 26, 26, 0.62);
   margin-bottom: 8px;
 }
 
@@ -580,7 +580,7 @@
   /* Neutralized from warm `rgba(26, 20, 24, 0.65)` to a
      plain black-alpha so the monospace ID reads as paper-ink
      rather than parchment-ink. */
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(0, 0, 0, 0.64);
   letter-spacing: 0.04em;
 }
 

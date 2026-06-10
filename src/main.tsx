@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { applyTheme, loadTheme } from "./theme/themes";
 import { prewarmCoursesSummary } from "./hooks/useCourses";
 import { isMobile } from "./lib/platform";
+import ErrorBoundary from "./components/Shared/ErrorBoundary";
 // Base library's design tokens FIRST (light `:root` + `[data-theme=
 // "dark"]` blocks), then our theme overrides, then app shell styles.
 // The order is load-bearing: the base kit's `[data-theme="dark"]`
@@ -139,9 +140,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         loaded synchronously from localStorage at mount, so the
         first paint already has the correct language. */}
     <I18nProvider>
-      <Suspense fallback={null}>
-        <Page />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <Page />
+        </Suspense>
+      </ErrorBoundary>
     </I18nProvider>
   </React.StrictMode>,
 );
