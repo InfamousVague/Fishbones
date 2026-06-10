@@ -3,14 +3,13 @@
 import { profileKey } from "./profileStore";
 
 /// Persists which tabs the learner had open at the moment of the
-/// last write. Currently the app boots with `openTabs = []` (Library
-/// route) every time, so we don't *re-hydrate* from this snapshot —
-/// but we keep writing it so a future "Resume last session" button
-/// (or telemetry) has something to read.
+/// last write, and hydrates them back at boot — App.tsx reads
+/// `loadPersistedTabs()` for its initial tab state so the learner's
+/// workspace survives an app restart.
 ///
-/// `validateTabsAgainstCourses` is exported because callers that DO
-/// want to consume a snapshot (e.g. a future resume flow) need to
-/// drop tabs whose course/lesson was uninstalled before re-mounting.
+/// `validateTabsAgainstCourses` drops tabs whose course/lesson was
+/// uninstalled between sessions; App runs it once when the course
+/// list finishes loading after a restore.
 ///
 /// Storage key is versioned (`v1`) so a future change to the snapshot
 /// shape can ship without tripping on an old shape's leftovers — bump

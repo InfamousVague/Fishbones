@@ -109,11 +109,18 @@ import {
 } from "./lib/librarySync";
 import { isHiddenCourse } from "./lib/hiddenCourses";
 import {
+  loadPersistedTabs,
   savePersistedTabs,
   validateTabsAgainstCourses,
   type OpenCourse,
   type TabGroup,
 } from "./lib/openTabsState";
+
+/// Last session's open-tab snapshot, read once at module load (same
+/// timing as the storage key resolution inside openTabsState — a
+/// profile switch reloads the page, so this re-evaluates per
+/// profile). Null on first launch / cleared storage.
+const bootTabsSnapshot = loadPersistedTabs();
 import "./App.css";
 
 /// XP value for a given lesson kind. Mirrors the XP_PER_KIND map
@@ -192,21 +199,28 @@ export default function App() {
     [coursesAll],
   );
 
-  // Always start with NO tabs open — the user lands on the Library
-  // route on every launch and re-opens whatever lesson they want
-  // from there. Persisted tabs from the previous session aren't
-  // auto-restored, but `savePersistedTabs` keeps writing the
-  // current snapshot so a future "Resume last session" affordance
-  // has data to read.
-  const [openTabs, setOpenTabs] = useState<OpenCourse[]>([]);
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  // Restore last session's open tabs. `savePersistedTabs` writes the
+  // snapshot on every tab change; here we hydrate it back so the
+  // learner's workspace survives a restart. Tabs pointing at since-
+  // uninstalled courses are pruned by the one-shot
+  // `validateTabsAgainstCourses` effect once the course list loads
+  // (which also re-arms the auto-open fallback if EVERY restored tab
+  // went stale).
+  const [openTabs, setOpenTabs] = useState<OpenCourse[]>(
+    () => bootTabsSnapshot?.tabs ?? [],
+  );
+  const [activeTabIndex, setActiveTabIndex] = useState(
+    () => bootTabsSnapshot?.activeIndex ?? 0,
+  );
   /// Tab-group definitions. Tabs reference a group by id via
   /// `OpenCourse.groupId`; this array carries the human-facing
   /// metadata (name, colour). Created lazily when the user picks
   /// "New group with…" from a tab's right-click menu; pruned in
   /// `validateTabsAgainstCourses` once the last referencing tab
   /// closes. Persisted alongside the tabs themselves.
-  const [tabGroups, setTabGroups] = useState<TabGroup[]>([]);
+  const [tabGroups, setTabGroups] = useState<TabGroup[]>(
+    () => bootTabsSnapshot?.groups ?? [],
+  );
 
   /// `cmd+K → "Verify this course"` session state. Null when no
   /// verification is in flight or visible. The overlay component
