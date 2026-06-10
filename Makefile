@@ -39,6 +39,7 @@ DMG           := $(TAURI)/target/release/bundle/dmg/Libre_$(VERSION)_$(ARCH_TAG)
 INSTALL_PATH  := /Applications/Libre.app
 
 .PHONY: all build pre-build sign notarize staple install dev release local-release \
+        build-offline-audio bundle-offline-audio local-release-offline \
         deploy deploy-site deploy-content clean help \
         audio-import audio-upload audio-deploy tour-audio \
         run run-split run-phone run-watch pick-phone pick-watch run-clean \
@@ -133,6 +134,34 @@ build: pre-build
 		TAURI_SIGNING_PRIVATE_KEY="$$(cat $(TAURI_SIGNING_KEY_PATH) 2>/dev/null)" \
 		TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(TAURI_SIGNING_KEY_PASSWORD)" \
 		npm run tauri build -- --bundles app,dmg
+
+## Generate the audio-embedded course archives into the gitignored
+## bundled-packs-full/ (offline narration; see
+## scripts/bundle-audio-into-academy.mjs). Sourced from the LIVE audio
+## CDN, so upload narration BEFORE running this. Standalone target —
+## handy for inspecting sizes or test-installing one. Set
+## OFFLINE_AUDIO_CODEC=aac to fall back from Opus.
+bundle-offline-audio:
+	@echo "=== Generating audio-embedded archives (bundled-packs-full/) ==="
+	cd $(ROOT) && node scripts/bundle-audio-into-academy.mjs --core \
+		$(if $(OFFLINE_AUDIO_CODEC),--codec $(OFFLINE_AUDIO_CODEC),)
+
+## Same as `build`, but with the narration baked into the bundled
+## course archives so the install plays audio offline. The swap is
+## transient: scripts/with-offline-audio.sh stages the full archives
+## into bundled-packs/ for the bundler, then restores the committed
+## slim copies from git on exit (success, failure, or interrupt) — so
+## this never touches `dev` and nothing bloated lands in git. Use via
+## `make local-release-offline`, or `BUILD_TARGET=build-offline-audio`.
+build-offline-audio:
+	@echo "=== Building Tauri release WITH offline audio ==="
+	cd $(ROOT) && bash scripts/with-offline-audio.sh $(MAKE) build
+
+## Full self-contained release: build with offline audio, then sign +
+## notarize + publish exactly as `local-release` does (it just swaps
+## the build step). Run `make release` first if you need a version bump.
+local-release-offline:
+	@$(MAKE) --no-print-directory local-release BUILD_TARGET=build-offline-audio
 
 ## Tauri OTA-update signing key. The public half of this keypair is
 ## committed to `src-tauri/tauri.conf.json` (`plugins.updater.pubkey`,
@@ -245,7 +274,14 @@ release:
 ##   make local-release  → build + sign + notarize + publish DMG
 ##   …wait ~25 min…       CI uploads Linux + Windows assets
 ##   visit https://github.com/InfamousVague/Libre/releases/latest
-local-release: build sign notarize
+## Which target produces the .app/.dmg that `local-release` then signs,
+## notarizes, and publishes. Defaults to the normal `build` (streams
+## audio from the CDN). Override to `build-offline-audio` to bake the
+## narration into the bundled course archives for a self-contained
+## install — `make local-release-offline` is the convenience alias.
+BUILD_TARGET ?= build
+
+local-release: $(BUILD_TARGET) sign notarize
 	@DMG_CURRENT="$(TAURI)/target/release/bundle/dmg/Libre_$(VERSION)_$(ARCH_TAG).dmg"; \
 	UPDATER_TARBALL="$(TAURI)/target/release/bundle/macos/Libre.app.tar.gz"; \
 	UPDATER_SIG="$$UPDATER_TARBALL.sig"; \
