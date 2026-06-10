@@ -1,0 +1,66 @@
+/* Floating "+N XP" reward popup — see XpBurst.tsx. Fixed near the
+   top-right so the burst reads as flying toward the XP ring in the
+   stats chip. Pointer-events none; portal-rendered above all chrome. */
+
+.libre-xp-burst-layer {
+  position: fixed;
+  top: 60px;
+  right: 24px;
+  z-index: 9000;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.libre-xp-burst {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  /* Warm gold — matches the XP stat token in StatsChip. */
+  color: #e8c46b;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  animation: libre-xp-burst-rise 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes libre-xp-burst-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  30% {
+    transform: translateY(-2px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-36px) scale(1);
+  }
+}
+
+/* Reduced motion — fade in/out without the rise. */
+@media (prefers-reduced-motion: reduce) {
+  .libre-xp-burst {
+    animation: libre-xp-burst-fade 1.3s ease forwards;
+  }
+}
+
+@keyframes libre-xp-burst-fade {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

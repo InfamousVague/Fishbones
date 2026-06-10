@@ -72,7 +72,7 @@ import GeneratePackDialog from "./components/dialogs/ChallengePack/GeneratePackD
 import { useIngestRun } from "./hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import AiAssistant from "./components/AiAssistant/AiAssistant";
-import MobileApp from "./mobile/MobileApp";
+import XpBurst, { fireXpBurst } from "./components/Shared/XpBurst";
 import { InstallBanner } from "./components/banners/InstallBanner/InstallBanner";
 import { UpdateBanner } from "./components/banners/UpdateBanner/UpdateBanner";
 import CommandPalette from "./components/CommandPalette/CommandPalette";
@@ -134,8 +134,13 @@ export default function App() {
   // (no TopBar, no Sidebar, no editor) when running on a phone-sized
   // device. We bail before instantiating the desktop hooks tree so we
   // don't pay for any of the chrome the mobile UI doesn't use.
+  // Mobile is routed to MobileApp directly in main.tsx (its own lazy
+  // chunk), so App never actually renders on a phone. This guard is an
+  // unreachable safety net — returning null here instead of statically
+  // importing the ~500KB MobileApp keeps the entire mobile app + its
+  // CSS out of the desktop App chunk's first load.
   if (isMobile) {
-    return <MobileApp />;
+    return null;
   }
 
   const {
@@ -751,6 +756,9 @@ export default function App() {
       // completion tactile. Larger tier sounds (chime, fanfare) layer
       // on top via the achievement engine's own dispatch.
       playSound("xp-pop", { volume: 0.7 });
+      // Floating "+N XP" near the stats chip so the reward is VISIBLE
+      // at the moment of action, not just silently ticking the top bar.
+      fireXpBurst(xp);
     }
     markCompleted(courseId, lessonId);
     // Mirror to the cloud via the realtime sync hook. Coalesces by
@@ -2796,6 +2804,7 @@ export default function App() {
           restart button is the canonical surface and the banner
           should hand off there. */}
       <UpdateBanner onOpenSettings={openSettings} />
+      <XpBurst />
 
       {/* First-launch sign-in nudge. Self-gates on
           `cloud.user === false` (= no token, not signed in) and on
