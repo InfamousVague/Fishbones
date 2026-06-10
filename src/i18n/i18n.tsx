@@ -26,30 +26,68 @@
 /// matching `params` entry; unmatched placeholders stay literal so
 /// it's obvious during dev which value didn't make it through.
 
-import { type ReactNode } from "react";
+import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { useLocale as useLocaleHook } from "../hooks/useLocale";
 import { type Locale } from "../data/locales";
 import enLocale from "./locales/en.json";
-import esLocale from "./locales/es.json";
-import ruLocale from "./locales/ru.json";
-import frLocale from "./locales/fr.json";
-import krLocale from "./locales/kr.json";
-import jpLocale from "./locales/jp.json";
 
 type Dict = Record<string, unknown>;
 
-/// Static dictionary map — one bundled JSON per supported locale.
-/// Imports are eager because the bundles are small (~5 KB each
-/// minified + gzipped) and the runtime cost of a missing-locale
-/// fetch on language switch isn't worth saving 30 KB of initial JS.
-const DICTS: Record<Locale, Dict> = {
+/// Dictionary cache. English ships in the main bundle (it's the
+/// fallback chain's floor, so it must be synchronously available);
+/// the other five locales load on demand via dynamic import the
+/// first time a session actually uses them. Previously all six were
+/// eagerly bundled (~230 KB of strings the typical English session
+/// never reads) — the on-demand load costs one extra fetch on
+/// language switch, and the missing-key → English fallback in
+/// `useT` keeps the UI readable for the few frames before the
+/// dictionary lands.
+const loadedDicts: Partial<Record<Locale, Dict>> = {
   en: enLocale as Dict,
-  es: esLocale as Dict,
-  ru: ruLocale as Dict,
-  fr: frLocale as Dict,
-  kr: krLocale as Dict,
-  jp: jpLocale as Dict,
 };
+
+/// Subscription plumbing so `useT` re-renders when a lazily-loaded
+/// dictionary arrives. Version counter + listener set — the minimal
+/// useSyncExternalStore-shaped store.
+let dictsVersion = 0;
+const dictListeners = new Set<() => void>();
+
+function subscribeDicts(cb: () => void): () => void {
+  dictListeners.add(cb);
+  return () => {
+    dictListeners.delete(cb);
+  };
+}
+
+function getDictsVersion(): number {
+  return dictsVersion;
+}
+
+const dictsInFlight = new Set<Locale>();
+
+/// Kick off (idempotently) the dynamic import for a locale's
+/// dictionary. No-op for English, already-loaded, or in-flight
+/// locales. On failure the locale simply keeps falling back to
+/// English for the session; the next call retries.
+export function ensureLocaleLoaded(locale: Locale): void {
+  if (locale === "en" || loadedDicts[locale] || dictsInFlight.has(locale)) {
+    return;
+  }
+  dictsInFlight.add(locale);
+  import(`./locales/${locale}.json`)
+    .then((mod: { default?: Dict } & Dict) => {
+      loadedDicts[locale] = (mod.default ?? mod) as Dict;
+      dictsVersion++;
+      dictListeners.forEach((cb) => cb());
+    })
+    .catch(() => {
+      // Network/chunk failure — stay on the English fallback. Not
+      // marked permanently failed: a later ensure call retries.
+    })
+    .finally(() => {
+      dictsInFlight.delete(locale);
+    });
+}
 
 /// Drill into a Dict by dotted path. Returns `undefined` if any
 /// hop misses; callers handle the fallback chain themselves.
@@ -83,12 +121,19 @@ export type TFunction = (
   params?: Record<string, string | number>,
 ) => string;
 
-/// Provider — no-op compatibility wrapper. The locale state lives in
-/// `useLocale` (backed by localStorage + cloud-sync), which is safe to
-/// call from any tree depth without a context. This component is kept
-/// so existing `<I18nProvider>` mounts in `main.tsx` (and any user
-/// code) don't break; it just renders children.
+/// Provider — near-no-op compatibility wrapper. The locale state
+/// lives in `useLocale` (backed by localStorage + cloud-sync), which
+/// is safe to call from any tree depth without a context. The one
+/// real job left here: it's mounted at the very root (main.tsx,
+/// before the lazy Page chunk), so it kicks off the active locale's
+/// dictionary fetch as early as possible — by the time the app
+/// paints, a returning non-English user's dictionary is usually
+/// already in, keeping the English flash to at most a few frames.
 export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale] = useLocaleHook();
+  useEffect(() => {
+    ensureLocaleLoaded(locale);
+  }, [locale]);
   return <>{children}</>;
 }
 
@@ -98,14 +143,21 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 /// changes — i.e. the user picked a new language).
 export function useT(): TFunction {
   const [locale] = useLocaleHook();
+  // Subscribe to dictionary arrivals so components re-render (and
+  // re-resolve their strings) the moment a lazily-loaded locale
+  // lands. For English / already-loaded locales this never fires.
+  useSyncExternalStore(subscribeDicts, getDictsVersion, getDictsVersion);
   return (key, params) => {
-    const primary = lookup(DICTS[locale], key);
+    // While a non-English dictionary is still in flight this resolves
+    // undefined and the English fallback below carries the frame.
+    const dict = loadedDicts[locale];
+    const primary = dict ? lookup(dict, key) : undefined;
     if (primary !== undefined) return interpolate(primary, params);
     // Fall back to English when a key is missing from the current
     // locale — better to show readable English than a raw key path
     // while translations catch up.
     if (locale !== "en") {
-      const fallback = lookup(DICTS.en, key);
+      const fallback = lookup(loadedDicts.en as Dict, key);
       if (fallback !== undefined) return interpolate(fallback, params);
     }
     // Last resort: return the key itself so it's obvious in dev
@@ -132,7 +184,8 @@ export function useLocale(): {
 /// import everything language-related from `i18n/i18n` without
 /// having to know about the separate `data/locales` module. New
 /// language → add it to `data/locales.ts` + drop a `<code>.json`
-/// next to this file's locales and import it into `DICTS` above.
+/// next to this file's locales — the dynamic `ensureLocaleLoaded`
+/// import picks it up by filename, no registration needed.
 export { SUPPORTED_LOCALES as LOCALES } from "../data/locales";
 export { LOCALE_NAMES, LOCALE_FLAGS } from "../data/locales";
 export type { Locale };
