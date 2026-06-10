@@ -326,6 +326,21 @@ export default function OutputPane({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.durationMs]);
 
+  // Brief green "you passed" pulse on the pane when a NEW result lands
+  // with tests that all passed. Subtle glow flash (no confetti — those
+  // were retired as too much); pairs with the `success` cue LessonView
+  // fires on the same pass.
+  const [passPulse, setPassPulse] = useState(false);
+  useEffect(() => {
+    if (result && hasTests && failingCount === 0) {
+      setPassPulse(true);
+      const id = window.setTimeout(() => setPassPulse(false), 750);
+      return () => window.clearTimeout(id);
+    }
+    setPassPulse(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.durationMs]);
+
   // Whenever the result flips to a new timestamp, reload the iframe
   // so the user sees the latest render without needing to reach for
   // the reload button manually. We key off durationMs as a cheap
@@ -362,7 +377,9 @@ export default function OutputPane({
   };
 
   return (
-    <div className="libre-output">
+    <div
+      className={`libre-output${passPulse ? " libre-output--pass-pulse" : ""}`}
+    >
       <div className="libre-output-header">
         {/* Header left side: tabs when this is a multi-pane output
             (Console + Tests), otherwise the static label. The

@@ -10,6 +10,34 @@
   background: var(--color-code-surface);
 }
 
+/* Brief "you passed" pulse — a green inner glow that flashes and fades
+   when a run lands all-tests-passing. Subtle on purpose (full-screen
+   celebration bursts were retired as too much); pairs with the
+   `success` sound cue on the same pass. */
+.libre-output--pass-pulse {
+  animation: libre-output-pass-pulse 0.75s ease-out;
+}
+
+@keyframes libre-output-pass-pulse {
+  0% {
+    box-shadow: inset 0 0 0 0 rgba(124, 217, 124, 0);
+  }
+  22% {
+    box-shadow:
+      inset 0 0 0 2px rgba(124, 217, 124, 0.55),
+      inset 0 0 26px rgba(124, 217, 124, 0.22);
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 rgba(124, 217, 124, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libre-output--pass-pulse {
+    animation: none;
+  }
+}
+
 /* Web-runtime preview — full-bleed iframe. No card chrome, no inner
    padding, no URL row underneath; the iframe IS the body when a
    preview is active. The action cluster (Open in browser / Copy
