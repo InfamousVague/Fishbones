@@ -6,6 +6,7 @@ import type { QuizLesson, QuizQuestion } from "../../data/types";
 import { normalizeAnswer } from "../../data/types";
 import { onCommand as onVerifierCommand } from "../../lib/verify/bus";
 import { fireHaptic } from "../../lib/haptics";
+import { playSound } from "../../lib/sfx";
 import { renderMarkdown } from "../Lesson/markdown";
 import "./QuizView.css";
 
@@ -94,8 +95,15 @@ export default function QuizView({ lesson, onComplete }: Props) {
     // user didn't take a definitive action there.
     if (next.status === "correct") {
       void fireHaptic("notification-success");
+      // Light confirmation chirp on a correct pick. This is the
+      // primary feedback on desktop (no haptics there). Throttled
+      // in sfx so the verifier's staggered auto-answer can't
+      // machine-gun it.
+      playSound("ping", { volume: 0.5 });
     } else if (next.status === "wrong") {
       void fireHaptic("notification-warning");
+      // Gentle "not quite" — never a scold (see the `nope` cue).
+      playSound("nope", { volume: 0.6 });
     }
     setState((prev) => {
       const copy = prev.slice();
@@ -109,6 +117,9 @@ export default function QuizView({ lesson, onComplete }: Props) {
         // the user feels a single confident "you passed" pulse
         // rather than two stacked.
         void fireHaptic("completion");
+        // Desktop has no haptics, so this cue is the only "you
+        // passed the checkpoint" feedback there.
+        playSound("success");
         // Latch so the bubble fires exactly once even if the
         // learner answers the rest of the questions afterward.
         completedRef.current = true;

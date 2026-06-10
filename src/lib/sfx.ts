@@ -46,7 +46,8 @@ export type SfxName =
   | "level-up"
   | "complete-section"
   | "complete-book"
-  | "freeze";
+  | "freeze"
+  | "nope";
 
 export interface PlayOptions {
   /// Per-call volume scale, 0..1. Multiplies into the master volume.
@@ -54,8 +55,12 @@ export interface PlayOptions {
   volume?: number;
   /// Override the global mute for this single call. Used by the
   /// settings pane's "Test sound" buttons so the user can hear a
-  /// preview even when mute is on.
+  /// preview even when mute is on. Also bypasses the per-cue
+  /// throttle so rapid preview taps always play.
   ignoreMute?: boolean;
+  /// Minimum gap (ms) before the SAME cue may fire again. Repeats
+  /// inside the window are dropped. Defaults to DEFAULT_COOLDOWN_MS.
+  cooldownMs?: number;
 }
 
 const ENABLED_KEY = "libre:sfx:enabled";
@@ -67,6 +72,15 @@ const SETTINGS_EVENT = "libre:sfx:settings-changed";
 /// context only when needed is the safer pattern.
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
+
+/// Per-cue cooldown clock. Several cues now fire from rapid learning
+/// events (per-question quiz answers, the verifier auto-answering a
+/// whole quiz, fast run-retries). Without a throttle those would
+/// machine-gun. We collapse repeats of the SAME cue within a short
+/// window — mirrors the haptic engine's per-intent cooldown. Keyed
+/// by cue name, so different cues never throttle each other.
+const lastFiredAt = new Map<SfxName, number>();
+const DEFAULT_COOLDOWN_MS = 100;
 
 /// In-module cache of settings. Refreshed on the custom event the
 /// settings pane fires after writing, AND on the cross-tab storage
@@ -682,6 +696,34 @@ const CUES: Record<SfxName, CuePlayer> = {
       type: "sine",
     }, s);
   },
+
+  /// Wrong answer / run failed — a soft, low descending two-note.
+  /// Deliberately NOT a glockTone (no octave sparkle, which reads as
+  /// "good thing"): a muted triangle with a small downward inflection
+  /// + a quiet low partial for weight. Quietest cue in the set
+  /// (peak ≤ 0.08) — it should say "not quite, try again," never
+  /// scold. The house "childish but subtle" voice, on the minor side.
+  nope(c, dest, s) {
+    scheduleTone(c, dest, {
+      freq: 392, // G4
+      glideTo: 349, // F4 — gentle downward bend
+      start: 0,
+      duration: 0.20,
+      peak: 0.08,
+      attack: 0.008,
+      release: 0.14,
+      type: "triangle",
+    }, s);
+    scheduleTone(c, dest, {
+      freq: 294, // D4 — soft low body
+      start: 0.05,
+      duration: 0.22,
+      peak: 0.05,
+      attack: 0.010,
+      release: 0.16,
+      type: "sine",
+    }, s);
+  },
 };
 
 /// Fire a sound-effect cue. Resumes the AudioContext if suspended.
@@ -691,6 +733,16 @@ export function playSound(name: SfxName, opts: PlayOptions = {}): void {
   const settings = settingsCache;
   if (!settings.enabled && !opts.ignoreMute) return;
   if (settings.volume <= 0 && !opts.ignoreMute) return;
+  // Per-cue throttle — collapse rapid repeats of the same cue. The
+  // settings "test" buttons pass ignoreMute and bypass this so
+  // repeated previews always play.
+  if (!opts.ignoreMute) {
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    const last = lastFiredAt.get(name) ?? Number.NEGATIVE_INFINITY;
+    if (now - last < (opts.cooldownMs ?? DEFAULT_COOLDOWN_MS)) return;
+    lastFiredAt.set(name, now);
+  }
   const c = ensureContext();
   if (!c || !masterGain) return;
   // Browsers suspend the context when there's been no user
@@ -726,6 +778,7 @@ export const ALL_SFX: SfxName[] = [
   "complete-section",
   "complete-book",
   "freeze",
+  "nope",
 ];
 
 /// Friendly labels for the settings pane.
@@ -742,4 +795,5 @@ export const SFX_LABELS: Record<SfxName, string> = {
   "complete-section": "Section complete",
   "complete-book": "Book complete",
   freeze: "Streak freeze used",
+  nope: "Nope (wrong answer)",
 };

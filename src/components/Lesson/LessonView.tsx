@@ -13,6 +13,7 @@ import { useLocale } from "../../hooks/useLocale";
 import { useKeybinding } from "../../hooks/useKeybinding";
 import { setRunStatus } from "../../hooks/useRunStatus";
 import { fireHaptic } from "../../lib/haptics";
+import { playSound } from "../../lib/sfx";
 import { track } from "../../lib/track";
 import { Icon } from "@base/primitives/icon";
 import { panelLeftOpen } from "@base/primitives/icon/icons/panel-left-open";
@@ -404,9 +405,14 @@ export default function LessonView({
       // touch laptops or paired devices.
       if (passed) {
         void fireHaptic("completion");
+        // Desktop's only run-pass feedback (no haptics there) — the
+        // green test result lands with the silver-unlock cue.
+        playSound("success");
         onComplete();
       } else {
         void fireHaptic("notification-error");
+        // Soft "not quite" on a failed run — never a harsh buzzer.
+        playSound("nope", { volume: 0.6 });
       }
       // Watch-mode verifier: announce the run finished + whether it
       // passed so the verify-course coroutine can advance to the

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { useHapticOnChange } from "../../hooks/useHaptic";
+import { useSoundOnChange } from "../../hooks/useSoundOnChange";
 import { flame } from "@base/primitives/icon/icons/flame";
 import { check } from "@base/primitives/icon/icons/check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
@@ -97,6 +98,18 @@ export default function StatsChip({
   });
   useHapticOnChange(stats.level, "level-up", {
     when: (prev, next) => next > prev,
+  });
+  // Sound counterparts for the streak. The `streak-tick`/`streak-flame`
+  // cues existed in sfx but were never wired to anything. A milestone
+  // day gets the fuller `streak-flame`; an ordinary day-flip gets the
+  // soft `streak-tick`. Level-up's SOUND already fires from
+  // useAchievements, so it isn't duplicated here (only the haptic above).
+  const streakMilestones = [3, 7, 14, 30, 50, 100, 365];
+  useSoundOnChange(stats.streakDays, "streak-tick", {
+    when: (prev, next) => next > prev && !streakMilestones.includes(next),
+  });
+  useSoundOnChange(stats.streakDays, "streak-flame", {
+    when: (prev, next) => next > prev && streakMilestones.includes(next),
   });
 
   /// Freeze-affordance state. The "Freeze yesterday" CTA shows only when:
