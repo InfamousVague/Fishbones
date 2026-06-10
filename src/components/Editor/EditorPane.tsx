@@ -13,12 +13,15 @@ import { arrowRight } from "@base/primitives/icon/icons/arrow-right";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
 import { eye } from "@base/primitives/icon/icons/eye";
+import { layoutPanelLeft } from "@base/primitives/icon/icons/layout-panel-left";
+import { layoutPanelTop } from "@base/primitives/icon/icons/layout-panel-top";
 import "@base/primitives/icon/icon.css";
 import { ShortcutHint } from "../ShortcutHint/ShortcutHint";
 import { useT } from "../../i18n/i18n";
 import type { FileLanguage, LanguageId, WorkbenchFile } from "../../data/types";
 import { useActiveTheme } from "../../theme/useActiveTheme";
 import { MONACO_THEME_BY_APP_THEME, registerMonacoThemes } from "../../theme/monaco-themes";
+import { attachTodoHints } from "../../lib/monaco/todoHints";
 import "./EditorPane.css";
 
 // Themes + ambient CommonJS decls are still applied per-mount via
@@ -108,6 +111,13 @@ interface Props {
   /// Omit on surfaces where the handoff doesn't make sense (e.g. the
   /// popped-out workbench window, where you're already detached).
   onOpenInVSCode?: () => void;
+  /// Outer split orientation + toggle. When both are supplied, the editor
+  /// header renders a layout button that flips the article↔workbench split
+  /// between side-by-side ("horizontal") and stacked ("vertical"). Omitted
+  /// on surfaces with no article to split against (e.g. the popped-out
+  /// workbench window).
+  splitOrientation?: "horizontal" | "vertical";
+  onToggleSplit?: () => void;
   /// Exercise render-mode toggle, surfaced inline in the editor header
   /// when the lesson ships authored blocks data. When omitted, no
   /// toggle renders. The toggle replaces the previous language label
@@ -204,6 +214,8 @@ export default function EditorPane({
   onRevealSolution,
   onPopOut,
   onOpenInVSCode,
+  splitOrientation,
+  onToggleSplit,
   exerciseMode,
   onExerciseModeChange,
 }: Props) {
@@ -533,6 +545,31 @@ export default function EditorPane({
                 )}
             </div>
           )}
+          {onToggleSplit && splitOrientation && (
+            <button
+              type="button"
+              className="libre-editor-button libre-editor-button--glyph"
+              onClick={onToggleSplit}
+              title={
+                splitOrientation === "vertical"
+                  ? t("editor.splitSideBySide")
+                  : t("editor.splitTopBottom")
+              }
+              aria-label={
+                splitOrientation === "vertical"
+                  ? t("editor.splitSideBySide")
+                  : t("editor.splitTopBottom")
+              }
+            >
+              <Icon
+                icon={
+                  splitOrientation === "vertical" ? layoutPanelLeft : layoutPanelTop
+                }
+                size="xs"
+                color="currentColor"
+              />
+            </button>
+          )}
           {onPopOut && (
             <button
               type="button"
@@ -678,6 +715,20 @@ export default function EditorPane({
               // same virtual filename, so re-calling it mid-mount is a
               // no-op once the globals are already declared.
               addCommonJsAmbientDecls(monaco);
+            }}
+            onMount={(editor, monaco) => {
+              // AI TODO hints — "✨ help" CodeLens over TODO/FIXME
+              // comments + ghost-text suggestions (see todoHints.ts).
+              // Keyed remounts per file mean one attach per model;
+              // the attachment self-detaches on editor dispose.
+              // Skipped for read-only files (tests) where hints make
+              // no sense.
+              if (!active.readOnly) {
+                attachTodoHints(monaco, editor, {
+                  language: active.language,
+                  fileName: active.name,
+                });
+              }
             }}
             onChange={(v) => onChange(safeIndex, v ?? "")}
             options={{
