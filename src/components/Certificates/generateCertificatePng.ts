@@ -35,7 +35,8 @@
 /// points at a libre.academy/verify URL with the cert payload
 /// base64-encoded into the query string.
 
-import QRCode from "qrcode";
+// `qrcode` is imported dynamically at its call site below so it
+// code-splits out of this module's first-load chunk.
 import type { Certificate } from "../../data/certificates";
 import { buildVerifyUrl } from "../../data/certificates";
 
@@ -484,6 +485,7 @@ async function paintStub(
   const qrSize = 280;
   const qrX = stubCenterX - qrSize / 2;
   const qrY = 110;
+  const QRCode = (await import("qrcode")).default;
   const qrDataUrl = await QRCode.toDataURL(url, {
     width: qrSize,
     margin: 1,

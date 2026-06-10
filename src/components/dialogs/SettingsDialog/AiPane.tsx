@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import QRCode from "qrcode";
+// `qrcode` is imported dynamically in the effect below so it
+// code-splits out of the Settings dialog's chunk.
 import { Icon } from "@base/primitives/icon";
 import { copy as copyIcon } from "@base/primitives/icon/icons/copy";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
@@ -282,18 +283,22 @@ function AssistantHostField() {
       return;
     }
     let cancelled = false;
-    void QRCode.toDataURL(value, {
-      // High-contrast bone-on-dark to match the rest of the chrome.
-      // The phone's QR scanner doesn't care about colour, but a
-      // matching palette keeps the modal from feeling like a
-      // bolt-on.
-      color: { dark: "#d4c5a1", light: "#0a0a0d" },
-      margin: 2,
-      width: 320,
-      errorCorrectionLevel: "M",
-    }).then((url) => {
-      if (!cancelled) setQrDataUrl(url);
-    });
+    void import("qrcode")
+      .then(({ default: QRCode }) =>
+        QRCode.toDataURL(value, {
+          // High-contrast bone-on-dark to match the rest of the
+          // chrome. The phone's QR scanner doesn't care about colour,
+          // but a matching palette keeps the modal from feeling like
+          // a bolt-on.
+          color: { dark: "#d4c5a1", light: "#0a0a0d" },
+          margin: 2,
+          width: 320,
+          errorCorrectionLevel: "M",
+        }),
+      )
+      .then((url) => {
+        if (!cancelled) setQrDataUrl(url);
+      });
     return () => {
       cancelled = true;
     };

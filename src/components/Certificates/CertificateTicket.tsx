@@ -11,7 +11,8 @@
 /// preview AND the source-of-truth for the printed artefact.
 
 import { useEffect, useState } from "react";
-import QRCode from "qrcode";
+// `qrcode` is imported dynamically in the effect below so it
+// code-splits out of this component's chunk.
 import { Icon } from "@base/primitives/icon";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import type { Certificate } from "../../data/certificates";
@@ -49,11 +50,14 @@ export default function CertificateTicket({ cert, chapters }: Props) {
   // an identical image.
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(buildVerifyUrl(cert), {
-      width: 260,
-      margin: 1,
-      errorCorrectionLevel: "M",
-    })
+    void import("qrcode")
+      .then(({ default: QRCode }) =>
+        QRCode.toDataURL(buildVerifyUrl(cert), {
+          width: 260,
+          margin: 1,
+          errorCorrectionLevel: "M",
+        }),
+      )
       .then((url) => {
         if (!cancelled) setQrDataUrl(url);
       })

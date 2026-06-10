@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import QRCode from "qrcode";
+// `qrcode` is imported dynamically in the effects below so it
+// code-splits out of this component's chunk.
 import { Icon } from "@base/primitives/icon";
 import { smartphone } from "@base/primitives/icon/icons/smartphone";
 import { refreshCw } from "@base/primitives/icon/icons/refresh-cw";
@@ -48,13 +49,17 @@ export default function ReactNativeDevTools({ previewUrl }: Props) {
   // stable across runs, but a belt-and-braces dep is cheap).
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(previewUrl, {
-      margin: 1,
-      width: 180,
-      color: { dark: "#f5f5f7", light: "#0b0b10" },
-    }).then((d) => {
-      if (!cancelled) setLocalQr(d);
-    });
+    void import("qrcode")
+      .then(({ default: QRCode }) =>
+        QRCode.toDataURL(previewUrl, {
+          margin: 1,
+          width: 180,
+          color: { dark: "#f5f5f7", light: "#0b0b10" },
+        }),
+      )
+      .then((d) => {
+        if (!cancelled) setLocalQr(d);
+      });
     return () => {
       cancelled = true;
     };
@@ -72,14 +77,21 @@ export default function ReactNativeDevTools({ previewUrl }: Props) {
       setExpoQr(null);
       return;
     }
+    // Capture the narrowed (non-null) URL before the async import — TS
+    // narrowing from the guard above doesn't flow into the .then scope.
+    const expoUrl = expo.exp_url;
     let cancelled = false;
-    QRCode.toDataURL(expo.exp_url, {
-      margin: 1,
-      width: 180,
-      color: { dark: "#f5f5f7", light: "#0b0b10" },
-    }).then((d) => {
-      if (!cancelled) setExpoQr(d);
-    });
+    void import("qrcode")
+      .then(({ default: QRCode }) =>
+        QRCode.toDataURL(expoUrl, {
+          margin: 1,
+          width: 180,
+          color: { dark: "#f5f5f7", light: "#0b0b10" },
+        }),
+      )
+      .then((d) => {
+        if (!cancelled) setExpoQr(d);
+      });
     return () => {
       cancelled = true;
     };
