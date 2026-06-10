@@ -99,6 +99,23 @@ export interface AudioManifest {
   lessons: Record<string, AudioManifestEntry>;
 }
 
+/// True when the manifest predates course-scoping — i.e. it has no
+/// `courseId/lessonId` composite keys at all. Only then is a bare
+/// lesson-id lookup safe: on a modern manifest the bare keys are
+/// back-compat aliases for OLD app builds, and resolving through them
+/// can hand a colliding lesson id another course's narration.
+/// WeakMap-cached — the scan is O(keys) and manifests are immutable
+/// once fetched, so each manifest object is scanned exactly once.
+const legacyManifestCache = new WeakMap<AudioManifest, boolean>();
+function isLegacyManifest(m: AudioManifest): boolean {
+  let legacy = legacyManifestCache.get(m);
+  if (legacy === undefined) {
+    legacy = !Object.keys(m.lessons).some((k) => k.includes("/"));
+    legacyManifestCache.set(m, legacy);
+  }
+  return legacy;
+}
+
 /// Module-scope cache shared across every consumer of the hooks.
 /// `manifestPromise` is the in-flight fetch; once it resolves
 /// SUCCESSFULLY we keep the result around for the lifetime of the
@@ -459,12 +476,18 @@ export function useLessonAudio(
   }, []);
 
   if (!m || !lessonId || !audioKey) return { available: false };
-  // Composite-first, bare-fallback. New manifests key by
-  // `courseId/lessonId`; a legacy/CDN-cached manifest still keyed
-  // by bare id resolves via the fallback so narration doesn't
-  // black out during the transition.
+  // Composite-first. The bare-id fallback ONLY applies when the
+  // manifest itself is legacy (zero composite keys) or the caller
+  // couldn't supply a courseId. On a modern course-scoped manifest,
+  // a missing composite key means THIS lesson has no narration —
+  // falling back to a bare alias would play another course's audio
+  // for any colliding lesson id (e.g. a not-yet-narrated course
+  // whose `chNN-reading` ids collide with an already-narrated one).
   const entry =
-    m.lessons[audioKey] ?? (lessonId ? m.lessons[lessonId] : undefined);
+    m.lessons[audioKey] ??
+    (lessonId && (!courseId || isLegacyManifest(m))
+      ? m.lessons[lessonId]
+      : undefined);
   if (!entry) return { available: false };
   const sections = sectionsFor(entry);
   if (!sections) return { available: false };
