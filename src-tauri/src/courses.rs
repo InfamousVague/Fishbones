@@ -555,6 +555,85 @@ pub fn load_course(app: tauri::AppHandle, course_id: String) -> Result<CourseJso
     read_course_json(&course_json).map_err(|e| e.to_string())
 }
 
+/// Offline-audio bundling (see scripts/bundle-audio-into-academy.mjs):
+/// a desktop-only `.academy` can ship its narration inside the archive
+/// as `audio/manifest.json` + `audio/<lessonId>/NN.<sha>.<ext>`. Those
+/// extract into `<course>/audio/` like any other archive file. The two
+/// commands below let the frontend overlay that on-disk audio over the
+/// CDN manifest so narration plays with no network.
+///
+/// Read the bundled audio manifest for an installed course, or None
+/// when the course shipped no offline audio (the common case — most
+/// courses stream from libre.academy/audio/). Returns the raw JSON
+/// text; the frontend parses + overlays it.
+#[tauri::command]
+pub fn load_course_audio_manifest(
+    app: tauri::AppHandle,
+    course_id: String,
+) -> Result<Option<String>, String> {
+    let dir = match courses_dir(&app) {
+        Ok(d) => d,
+        Err(_) => return Ok(None),
+    };
+    let path = dir.join(&course_id).join("audio").join("manifest.json");
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let text = fs::read_to_string(&path).map_err(|e| format!("read audio manifest: {e}"))?;
+    Ok(Some(text))
+}
+
+/// Read one bundled audio section as a `data:audio/...;base64,...` URL
+/// the `<audio>` element can play directly (`data:` is already allowed
+/// by the media-src CSP, so no asset-protocol or CSP changes needed).
+///
+/// `rel` is the section's path from the audio manifest, e.g.
+/// `audio/<lessonId>/01.<sha>.opus`. Lazy + on-demand: only the section
+/// being played is read + encoded, so a ~40 MB course never crosses the
+/// IPC bridge whole. Path-traversal guarded — the resolved file must
+/// stay inside `<course>/audio/`.
+#[tauri::command]
+pub fn load_course_audio_section(
+    app: tauri::AppHandle,
+    course_id: String,
+    rel: String,
+) -> Result<Option<String>, String> {
+    use base64::Engine;
+    let dir = match courses_dir(&app) {
+        Ok(d) => d,
+        Err(_) => return Ok(None),
+    };
+    let audio_root = dir.join(&course_id).join("audio");
+    // Manifest urls are archive-root-relative (`audio/<lessonId>/<file>`);
+    // strip the leading `audio/` so we join under audio_root. Reject any
+    // `..` component up front, then canonicalize + confirm containment.
+    let rel_under = rel.strip_prefix("audio/").unwrap_or(&rel);
+    if Path::new(rel_under)
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err("invalid audio path".into());
+    }
+    let candidate = audio_root.join(rel_under);
+    let (canon_root, canon_file) = match (audio_root.canonicalize(), candidate.canonicalize()) {
+        (Ok(r), Ok(f)) => (r, f),
+        _ => return Ok(None), // file missing / course not installed
+    };
+    if !canon_file.starts_with(&canon_root) {
+        return Err("audio path escapes course dir".into());
+    }
+    let bytes = fs::read(&canon_file).map_err(|e| format!("read audio section: {e}"))?;
+    let mime = match canon_file.extension().and_then(|s| s.to_str()) {
+        Some("opus") | Some("ogg") => "audio/ogg",
+        Some("m4a") | Some("mp4") | Some("aac") => "audio/mp4",
+        Some("mp3") => "audio/mpeg",
+        Some("wav") => "audio/wav",
+        _ => "application/octet-stream",
+    };
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    Ok(Some(format!("data:{mime};base64,{b64}")))
+}
+
 /// Return EVERY course's JSON in one shot, but with the heavy per-lesson
 /// bodies stripped out: `starter`, `solution`, `tests`, `files`,
 /// `solutionFiles`, and prose/markdown/content fields are removed.

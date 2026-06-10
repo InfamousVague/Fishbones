@@ -299,6 +299,8 @@ pub fn run() {
             courses::list_courses,
             courses::list_courses_summary,
             courses::load_course,
+            courses::load_course_audio_manifest,
+            courses::load_course_audio_section,
             courses::save_course,
             courses::save_bundled_starter_course,
             courses::delete_course,
