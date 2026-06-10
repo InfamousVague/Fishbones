@@ -152,6 +152,28 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Count badge (spaced-repetition reviews due) — anchored top-right of
+   the icon button via the item's `position: relative` above. Accent
+   pill with a punch-out ring so it reads cleanly against the rail. */
+.libre-nav-rail__badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--color-accent, #d4c5a1);
+  color: var(--color-accent-fg, #111111);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--color-bg-secondary, #1a1427);
+  pointer-events: none;
+}
+
 .libre-nav-rail__item:hover {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);

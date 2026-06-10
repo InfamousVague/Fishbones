@@ -87,6 +87,10 @@ export interface NavigationRailProps {
   /// random-access "drill weak spots" surface that closes the
   /// learn → review loop.
   onPractice?: () => void;
+  /// Count of spaced-repetition cards due right now — badges the
+  /// Practice rail item so pending reviews are visible without opening
+  /// the tab. 0/undefined hides the badge.
+  practiceDue?: number;
   /// Paths route — curated, goal-oriented sequences that thread
   /// courses / Exercism tracks / koans / *-lings into a journey
   /// ("entry-level developer", "mobile app developer", "systems
@@ -133,9 +137,12 @@ interface RailItemProps {
   /// the title attribute carries the visible label since the rail
   /// itself is icon-only. Same vocabulary the MobileTabBar uses.
   pressed?: boolean;
+  /// Optional count badge (e.g. spaced-repetition reviews due). Shown
+  /// top-right of the icon when > 0; capped at "9+".
+  badge?: number;
 }
 
-function RailItem({ icon, label, onClick, active, pressed }: RailItemProps) {
+function RailItem({ icon, label, onClick, active, pressed, badge }: RailItemProps) {
   return (
     <Tooltip content={label} placement="right" delay={120}>
       <button
@@ -145,7 +152,7 @@ function RailItem({ icon, label, onClick, active, pressed }: RailItemProps) {
           (active ? " libre-nav-rail__item--active" : "")
         }
         onClick={onClick}
-        aria-label={label}
+        aria-label={badge && badge > 0 ? `${label} (${badge})` : label}
         aria-pressed={pressed}
       >
         {/* size="xl" — bumped up from the original "sm" so the rail
@@ -153,6 +160,11 @@ function RailItem({ icon, label, onClick, active, pressed }: RailItemProps) {
             which crowded the 40×40 button. xl (22px) leaves ~9px
             of ring inside the button for hover / active contrast. */}
         <Icon icon={icon} size="xl" color="currentColor" />
+        {badge !== undefined && badge > 0 && (
+          <span className="libre-nav-rail__badge" aria-hidden>
+            {badge > 9 ? "9+" : badge}
+          </span>
+        )}
       </button>
     </Tooltip>
   );
@@ -166,6 +178,7 @@ export default function NavigationRail({
   onDiscover,
   onChallenges,
   onPractice,
+  practiceDue,
   onPaths,
   onAchievements,
   onCertificates,
@@ -316,6 +329,7 @@ export default function NavigationRail({
             label={t("nav.practice")}
             onClick={onPractice}
             active={activeView === "practice"}
+            badge={practiceDue}
           />
         )}
         {onPaths && (

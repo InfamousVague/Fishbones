@@ -73,6 +73,8 @@ import { useIngestRun } from "./hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import AiAssistant from "./components/AiAssistant/AiAssistant";
 import XpBurst, { fireXpBurst } from "./components/Shared/XpBurst";
+import { harvestPracticeItems } from "./components/Practice/practiceHarvest";
+import { loadAllRecords, summariseStats } from "./components/Practice/practiceStore";
 import { InstallBanner } from "./components/banners/InstallBanner/InstallBanner";
 import { UpdateBanner } from "./components/banners/UpdateBanner/UpdateBanner";
 import CommandPalette from "./components/CommandPalette/CommandPalette";
@@ -730,6 +732,24 @@ export default function App() {
   // main window — but it can happen in tray/popout surfaces that
   // share the bundle but never render LessonView).
   useEffect(() => clearPendingAutoAdvance, [clearPendingAutoAdvance]);
+
+  // Spaced-repetition "reviews due" count for the nav-rail badge.
+  // Mirrors the Practice page's own "Due now" (summariseStats.dueCount)
+  // so the badge and the page agree. loadAllRecords() is a plain
+  // localStorage read, so re-pull on the `libre:practice-graded` event
+  // the practice store dispatches after every graded attempt / reset.
+  const [practiceRecordsVersion, setPracticeRecordsVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setPracticeRecordsVersion((v) => v + 1);
+    window.addEventListener("libre:practice-graded", bump);
+    return () => window.removeEventListener("libre:practice-graded", bump);
+  }, []);
+  const practiceDue = useMemo(() => {
+    const items = harvestPracticeItems(courses, completed);
+    return summariseStats(items, loadAllRecords()).dueCount;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courses, completed, practiceRecordsVersion]);
+
   function markCompletedAndCelebrate(courseId: string, lessonId: string) {
     const key = `${courseId}:${lessonId}`;
     const isFresh = !completed.has(key);
@@ -2221,6 +2241,7 @@ export default function App() {
           onDiscover={() => setView("discover")}
           onChallenges={() => setView("challenges")}
           onPractice={() => setView("practice")}
+          practiceDue={practiceDue}
           onPaths={() => setView("paths")}
           onAchievements={() => setView("achievements")}
           onCertificates={() => setView("certificates")}
