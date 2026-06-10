@@ -72,7 +72,11 @@ const isPhone = params.get("phone") === "1";
 const isEvmDock = params.get("evmDock") === "1";
 const isBtcDock = params.get("btcDock") === "1";
 const isSvmDock = params.get("svmDock") === "1";
-const popoutMode = isPopped || isPhone || isEvmDock || isBtcDock || isSvmDock;
+// Floating Docs window — official language docs re-rendered in the
+// app theme. Opened via `lib/docsPopout.ts`.
+const isDocs = params.get("docs") === "1";
+const popoutMode =
+  isPopped || isPhone || isEvmDock || isBtcDock || isSvmDock || isDocs;
 
 // Kick off the courses-summary IPC BEFORE React mounts. Skip on the
 // popout / dock variants — they don't render the library so warming
@@ -123,6 +127,7 @@ const Page = (() => {
       })),
     );
   }
+  if (isDocs) return lazy(() => import("./components/Docs/DocsPopoutView"));
   if (isPhone) return lazy(() => import("./components/PhonePopout/PhonePopoutView"));
   if (isPopped) return lazy(() => import("./components/Workbench/PoppedWorkbench"));
   return isMobile

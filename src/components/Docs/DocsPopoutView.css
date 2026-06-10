@@ -1,0 +1,193 @@
+/* Floating Docs window — booklet layout: curated sidebar left,
+   themed article right. Rides the app theme tokens so the window
+   matches whatever theme the main window applied at boot; the
+   article body reuses LessonReader.css typography (same class) so
+   external docs read exactly like lesson prose. */
+
+.libre-docs-popout {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-primary, #1a1427);
+  color: var(--color-text-primary, #f5f5f7);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────── */
+
+.libre-docs-popout__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  flex-shrink: 0;
+}
+
+.libre-docs-popout__nav-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary, rgba(245, 245, 247, 0.7));
+  cursor: pointer;
+}
+
+.libre-docs-popout__nav-btn:hover:not(:disabled) {
+  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  color: var(--color-text-primary, #f5f5f7);
+}
+
+.libre-docs-popout__nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.libre-docs-popout__bar-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
+}
+
+/* ── Body: sidebar + content ─────────────────────────────────── */
+
+.libre-docs-popout__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.libre-docs-popout__side {
+  flex: 0 0 232px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  background: var(--color-bg-secondary, #241b2f);
+}
+
+.libre-docs-popout__booklet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  color: var(--color-text-secondary, rgba(245, 245, 247, 0.7));
+}
+
+.libre-docs-popout__booklet select {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-primary, #f5f5f7);
+  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+.libre-docs-popout__toc {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.libre-docs-popout__toc-item {
+  text-align: left;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.35;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary, rgba(245, 245, 247, 0.7));
+  cursor: pointer;
+}
+
+.libre-docs-popout__toc-item:hover {
+  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  color: var(--color-text-primary, #f5f5f7);
+}
+
+.libre-docs-popout__toc-item--active {
+  background: color-mix(
+    in srgb,
+    var(--color-bg-tertiary, rgba(255, 255, 255, 0.06)) 60%,
+    var(--color-accent, #d4c5a1) 40%
+  );
+  color: var(--color-text-primary, #f5f5f7);
+  font-weight: 600;
+}
+
+/* ── Content pane ────────────────────────────────────────────── */
+
+.libre-docs-popout__content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.libre-docs-popout__article,
+.libre-docs-popout__skeleton {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 22px 28px 64px;
+}
+
+/* The lesson renderer decorates every code fence with an "Ask
+   Libre" badge that dispatches into the main window's assistant —
+   there's no assistant mounted here, so hide the affordance. */
+.libre-docs-popout__article .libre-code-block-ask {
+  display: none;
+}
+
+/* External docs ship arbitrary imagery — keep it inside the column. */
+.libre-docs-popout__article img {
+  max-width: 100%;
+  height: auto;
+}
+
+.libre-docs-popout__error {
+  max-width: 560px;
+  margin: 48px auto;
+  padding: 0 28px;
+  font-size: 13.5px;
+  color: var(--color-text-secondary, rgba(245, 245, 247, 0.7));
+}
+
+.libre-docs-popout__error code {
+  display: block;
+  margin: 10px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
+  word-break: break-word;
+}
+
+.libre-docs-popout__error-actions button {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.18));
+  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
+  color: var(--color-text-primary, #f5f5f7);
+  cursor: pointer;
+}
