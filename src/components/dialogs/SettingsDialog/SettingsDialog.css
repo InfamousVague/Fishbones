@@ -685,6 +685,54 @@
   line-height: 1.45;
 }
 
+/* Effort slider — the ingest "how hard to think" control beneath the
+   model picker. Monochrome to match the rest of the dialog; the thumb
+   + active tick use the primary text tone rather than a coloured accent.
+   The tick labels double as clickable shortcuts to each stop. */
+.libre-settings-effort {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.libre-settings-effort-range {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.libre-settings-effort-ticks {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.libre-settings-effort-tick {
+  flex: 1;
+  padding: 2px 0;
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  text-align: center;
+}
+
+.libre-settings-effort-tick:first-child {
+  text-align: left;
+}
+
+.libre-settings-effort-tick:last-child {
+  text-align: right;
+}
+
+.libre-settings-effort-tick.is-active {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
 .libre-settings-data-row {
   display: flex;
   align-items: flex-start;

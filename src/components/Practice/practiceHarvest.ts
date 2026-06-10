@@ -30,6 +30,7 @@
 
 import type { Course, Lesson } from "../../data/types";
 import type { PracticeItem } from "./types";
+import { isMobile } from "../../lib/platform";
 
 /// Build the practice deck from courses the learner has touched.
 ///
@@ -111,7 +112,12 @@ function appendItemsForLesson(
     });
     return;
   }
+  // Blocks puzzles are MOBILE-ONLY (typing is the friction blocks solve;
+  // desktop reviews exercises in the editor). Skipping the harvest on
+  // desktop keeps blocks items out of the desktop Practice queue, counts,
+  // and sessions entirely; mobile still surfaces them for review.
   if (
+    isMobile &&
     (lesson.kind === "exercise" || lesson.kind === "mixed") &&
     lesson.blocks
   ) {

@@ -41,6 +41,17 @@
   container-name: libre-book;
 }
 
+/* Practice packs (challenge packs / Exercism tracks / koans / *lings)
+   — square badge-format tiles. Their cover art is authored 1:1
+   (mission-patch style), so the 2:3 paperback frame would crop it;
+   the square silhouette also separates drill packs from prose books
+   at a glance. Width still comes from the grid column — the packs
+   shelf uses a narrower column (.libre-library-shelf--packs in
+   CourseLibrary.css) so these read smaller than books. */
+.libre-book--square {
+  aspect-ratio: 1 / 1;
+}
+
 .libre-book:hover {
   transform: translateY(-3px) scale(1.012);
   /* Hover state escalates to the strong card border so the

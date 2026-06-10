@@ -64,10 +64,14 @@ export const STAMP_ICONS: ReadonlyArray<string> = [
 /// FNV-1a-style scramble of a chapter id → 32-bit integer. Same
 /// id always hashes to the same value across reloads, so badge
 /// icons stay stable.
-function hash32(s: string): number {
+function hash32(s: string | undefined): number {
   let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
+  // Some imported courses ship chapters without an `id`. A decorative
+  // badge hash must never crash the app, so treat a missing id as an
+  // empty string (those chapters fall back to a default badge).
+  const str = s ?? "";
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
     h = Math.imul(h, 0x01000193);
   }
   return Math.abs(h);

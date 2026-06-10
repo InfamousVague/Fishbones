@@ -14,6 +14,11 @@ import { useKeybinding } from "../../hooks/useKeybinding";
 import { setRunStatus } from "../../hooks/useRunStatus";
 import { fireHaptic } from "../../lib/haptics";
 import { playSound } from "../../lib/sfx";
+import {
+  useSplitOrientation,
+  toggleSplitOrientation,
+} from "../../lib/layoutPrefs";
+import { isMobile } from "../../lib/platform";
 import { track } from "../../lib/track";
 import { Icon } from "@base/primitives/icon";
 import { panelLeftOpen } from "@base/primitives/icon/icons/panel-left-open";
@@ -157,19 +162,17 @@ export default function LessonView({
   // placeholder. Reset on lesson change via the parent's keyed remount.
   const [popped, setPopped] = useState(false);
 
-  // Exercise render mode — only meaningful when `lesson.blocks` is present
-  // (otherwise the lesson can only be played as a free-form editor).
-  // Stored GLOBALLY in localStorage (key `libre:lesson-mode`) rather than
-  // per-lesson — flipping the toggle on any lesson with blocks now applies
-  // to every other lesson with blocks. The previous per-lesson key
-  // (`fb:lesson-mode:<id>`) read as "I want blocks for THIS lesson only,"
-  // which was almost never what learners wanted; users who like blocks
-  // like them everywhere, and the toggle-on-this-lesson, toggle-off-on-
-  // the-next dance was friction. Default stays "editor" on desktop;
-  // mobile forces "blocks" (see MobileLesson dispatch — this LessonView
-  // is desktop-only).
+  // Exercise render mode. Blocks (assemble code from chips instead of
+  // typing) is MOBILE-ONLY: on a phone, typing is the friction blocks
+  // solves; on desktop/web the editor is always the right surface. Mobile
+  // renders BlocksView directly via MobileLesson, and this LessonView is
+  // desktop-only (main.tsx routes isMobile → MobileApp), so gating on
+  // `isMobile` means desktop never offers the Editor/Blocks toggle and
+  // always plays the lesson in the editor — even when the lesson ships an
+  // authored `blocks` payload. (`exerciseMode` below is still read so the
+  // mobile-chrome path keeps its global preference.)
   const exerciseHasBlocks =
-    hasExercise && "blocks" in lesson && !!lesson.blocks;
+    isMobile && hasExercise && "blocks" in lesson && !!lesson.blocks;
   const [exerciseMode, setExerciseMode] = useLocalStorageState<
     "editor" | "blocks"
   >("libre:lesson-mode", "editor");
@@ -610,12 +613,12 @@ export default function LessonView({
       onComplete();
     }
     // Page-turn foley on lesson navigation — the app is a book.
-    playSound("page-turn", { volume: 0.6 });
+    playSound("page-turn", { volume: 0.3 });
     onNavigate(neighbors.next.id);
   }
   function handlePrev() {
     if (!neighbors.prev) return;
-    playSound("page-turn", { volume: 0.6 });
+    playSound("page-turn", { volume: 0.3 });
     onNavigate(neighbors.prev.id);
   }
 
@@ -741,6 +744,12 @@ export default function LessonView({
   );
 
   // Quiz lessons are rendered inline under the lesson prose with no editor /
+  // Learner's article↔workbench split preference (side-by-side vs stacked),
+  // toggled from the editor header. Read once here so the lesson class and
+  // the Workbench/EditorPane props all stay in sync. Called before the quiz
+  // early-return below to keep hook order stable.
+  const splitOrientation = useSplitOrientation();
+
   // output pane — the quiz widget handles its own answer flow. Column layout
   // so reader and quiz stack vertically inside a single scroll container.
   if (isQuiz(lesson)) {
@@ -759,7 +768,7 @@ export default function LessonView({
     <div
       className={`libre__lesson ${
         isChallenge ? "libre__lesson--challenge" : ""
-      }`}
+      } ${splitOrientation === "vertical" ? "libre__lesson--vertical" : ""}`}
     >
       <LessonReader
         courseId={courseId}
@@ -837,6 +846,8 @@ export default function LessonView({
                 onRevealSolution={handleRevealSolution}
                 onPopOut={handlePopOut}
                 onOpenInVSCode={handleOpenInVSCode}
+                splitOrientation={splitOrientation}
+                onToggleSplit={toggleSplitOrientation}
                 exerciseMode={
                   exerciseHasBlocks ? effectiveExerciseMode : undefined
                 }
@@ -848,6 +859,7 @@ export default function LessonView({
           ) : (
             <Workbench
               widthControlsParent
+              orientation={splitOrientation}
               // Challenge lessons open the workbench WIDE by default
               // — the prose is a one-paragraph problem statement
               // and the action lives in the workbench. 66% matches
@@ -874,7 +886,9 @@ export default function LessonView({
                   onReset={handleReset}
                   onRevealSolution={handleRevealSolution}
                   onPopOut={handlePopOut}
-                onOpenInVSCode={handleOpenInVSCode}
+                  onOpenInVSCode={handleOpenInVSCode}
+                  splitOrientation={splitOrientation}
+                  onToggleSplit={toggleSplitOrientation}
                   exerciseMode={
                     exerciseHasBlocks ? effectiveExerciseMode : undefined
                   }

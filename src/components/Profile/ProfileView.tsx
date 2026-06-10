@@ -5,7 +5,6 @@ import { trophy } from "@base/primitives/icon/icons/trophy";
 import { zap } from "@base/primitives/icon/icons/zap";
 import { bookOpenCheck } from "@base/primitives/icon/icons/book-open-check";
 import { rocket } from "@base/primitives/icon/icons/rocket";
-import { coins as coinsIcon } from "@base/primitives/icon/icons/coins";
 import { brain } from "@base/primitives/icon/icons/brain";
 import { graduationCap } from "@base/primitives/icon/icons/graduation-cap";
 import { star } from "@base/primitives/icon/icons/star";
@@ -415,7 +414,6 @@ export default function ProfileView({
             <StatTile icon={trophy} tone="longest" value={stats.longestStreakDays} label="Longest streak" />
             <StatTile icon={bookOpenCheck} tone="lessons" value={stats.lessonsCompleted} label="Lessons" />
             <StatTile icon={zap} tone="xp" value={stats.xp} label="Total XP" formatted />
-            <StatTile icon={coinsIcon} tone="coins" value={stats.coins} label="Coins" formatted />
             <StatTile icon={globe} tone="level" value={totalLangsTouched} label="Languages" />
           </div>
 
@@ -707,7 +705,7 @@ function StatTile({
   formatted,
 }: {
   icon: string;
-  tone: "streak" | "lessons" | "xp" | "level" | "longest" | "coins";
+  tone: "streak" | "lessons" | "xp" | "level" | "longest";
   value: number;
   label: string;
   /// Pass `formatted` for XP / coin counters so 5+ digit values

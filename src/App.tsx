@@ -791,9 +791,6 @@ export default function App() {
       // completion tactile. Larger tier sounds (chime, fanfare) layer
       // on top via the achievement engine's own dispatch.
       playSound("xp-pop", { volume: 0.7 });
-      // Coin clink chases the XP pop — a little "pop … clink"
-      // cascade matching the +XP/+coins reward pair.
-      window.setTimeout(() => playSound("coin", { volume: 0.55 }), 350);
       // Floating "+N XP" near the stats chip so the reward is VISIBLE
       // at the moment of action, not just silently ticking the top bar.
       fireXpBurst(xp);
@@ -855,7 +852,7 @@ export default function App() {
             setAutoAdvanceFireAt(null);
             // Same page-turn the manual Next button plays — the
             // auto-advance is just the app turning the page for you.
-            playSound("page-turn", { volume: 0.6 });
+            playSound("page-turn", { volume: 0.3 });
             selectLesson(courseId, next.id);
           }, 3000);
         }

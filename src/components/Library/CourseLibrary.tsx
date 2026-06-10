@@ -979,44 +979,56 @@ export default function CourseLibrary({
                     {secIdx === 0 && updateAllButton}
                   </header>
                   {sec.key === "tracks" ? (
-                    // Tracks always use the dense CourseCard layout,
-                    // even in shelf view. Tracks have no cover art
-                    // (the language identity is carried by the
-                    // CourseCard's LanguageChip in the header), so a
-                    // shelf of large fallback tiles would feel sparse;
-                    // CourseCard's title + author + progress + lesson
-                    // count is the right info-density for a curriculum
-                    // tile and matches how an installed track surfaces
-                    // when opened.
-                    <div className="libre-library-grid">
+                    // Packs (challenge packs / Exercism tracks / koans /
+                    // *lings) render as SQUARE badge tiles on a tighter
+                    // shelf. They used to fall back to the dense
+                    // CourseCard layout because tracks had no cover
+                    // art; every pack now ships 1:1 mission-patch
+                    // covers, so the shelf shows them — smaller than
+                    // the 2:3 books via .libre-library-shelf--packs,
+                    // square via BookCover's own packType check
+                    // (.libre-book--square). Grid mode below keeps
+                    // CourseCard as the info-dense alternative.
+                    <div className="libre-library-shelf libre-library-shelf--packs">
                       {sec.rows.map((e, idx) => (
-                        <CourseCard
+                        <BookCover
                           key={e.course.id}
                           style={{ "--libre-ripple-i": idx } as React.CSSProperties}
                           course={e.course}
-                          total={e.total}
-                          done={e.done}
-                          pct={e.pct}
+                          progress={e.pct}
+                          loading={hydrating?.has(e.course.id)}
                           onOpen={() => onOpen(e.course.id)}
                           onContextMenu={
-                            onExport || onDelete || onSettings || onUpdateCourse
+                            !e.course.placeholder &&
+                            (onExport || onDelete || onSettings || onUpdateCourse)
                               ? (ev) =>
                                   ctxMenu.show(e.course, ev, {
                                     hasUpdate: !!updates[e.course.id],
                                   })
                               : undefined
                           }
-                          placeholder={e.course.placeholder}
-                          installing={installingIds.has(e.course.id)}
-                          onInstall={
-                            e.course.placeholder && onInstallCatalogEntry
-                              ? () => void handleInstallClick(e.course.id)
-                              : undefined
-                          }
                           hasUpdate={
                             !e.course.placeholder &&
                             !!onUpdateCourse &&
                             !!updates[e.course.id]
+                          }
+                          updating={updatingIds.has(e.course.id)}
+                          onUpdate={
+                            !e.course.placeholder && onUpdateCourse
+                              ? () => void handleUpdateClick(e.course.id)
+                              : undefined
+                          }
+                          placeholder={e.course.placeholder}
+                          installing={installingIds.has(e.course.id)}
+                          placeholderCoverUrl={
+                            e.course.placeholder
+                              ? coverHref(entryById.get(e.course.id)!)
+                              : undefined
+                          }
+                          onInstall={
+                            e.course.placeholder && onInstallCatalogEntry
+                              ? () => void handleInstallClick(e.course.id)
+                              : undefined
                           }
                         />
                       ))}

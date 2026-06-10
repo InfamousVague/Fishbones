@@ -17,6 +17,12 @@ pub struct Settings {
     /// string so we can try new models without a schema change. Default is
     /// the balanced choice; users can trade cost for quality in Settings.
     pub anthropic_model: String,
+    /// Reasoning effort for the ingest pipeline — "low" | "medium" |
+    /// "high" | "max". Maps to Anthropic's `output_config.effort` (GA,
+    /// no beta header). Higher = deeper reasoning + stronger exercise /
+    /// test design, at more tokens (cost + latency). Omitted for Haiku,
+    /// which rejects the parameter. Default "high" (Anthropic's own).
+    pub anthropic_effort: String,
     /// OpenAI API key — used for cover-art generation via `gpt-image-1`.
     /// Separate from `anthropic_api_key` because Anthropic doesn't offer
     /// image generation. None means "AI cover art is unavailable"; the
@@ -29,6 +35,7 @@ impl Default for Settings {
         Self {
             anthropic_api_key: None,
             anthropic_model: "claude-sonnet-4-8".to_string(),
+            anthropic_effort: "high".to_string(),
             openai_api_key: None,
         }
     }

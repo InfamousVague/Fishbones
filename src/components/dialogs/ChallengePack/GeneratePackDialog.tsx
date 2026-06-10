@@ -37,9 +37,19 @@ const MODEL_PRICES: Record<ModelId, { inputPerM: number; outputPerM: number; lab
     label: "Opus 4.8",
     hint: "Highest quality. Tests are more robust.",
   },
+  "claude-fable-5": {
+    inputPerM: 10,
+    outputPerM: 50,
+    label: "Fable 5",
+    hint: "Most powerful. Tests are the most robust.",
+  },
 };
 
-type ModelId = "claude-haiku-4-8" | "claude-sonnet-4-8" | "claude-opus-4-8";
+type ModelId =
+  | "claude-haiku-4-8"
+  | "claude-sonnet-4-8"
+  | "claude-opus-4-8"
+  | "claude-fable-5";
 
 export interface GeneratePackOptions {
   language: LanguageId;

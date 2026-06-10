@@ -646,6 +646,16 @@
   gap: 22px 16px;
 }
 
+/* Packs variant of the shelf — challenge packs / Exercism tracks /
+   koans / *lings render as SQUARE badge tiles (.libre-book--square),
+   and the narrower column lands them visibly smaller than the 2:3
+   books above: more per row, less vertical real estate, reads as
+   "drills, not books". */
+.libre-library-shelf--packs {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 18px 14px;
+}
+
 /* ─── Mount-time spring landing ──────────────────────────────────
    When a shelf or grid first mounts (route change, filter swap that
    remounts the section, or first launch), the cards drop in from

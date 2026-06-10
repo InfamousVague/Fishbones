@@ -174,7 +174,6 @@
 .libre-profile-stat--xp      { --stat-tone: #fcd34d; }
 .libre-profile-stat--level   { --stat-tone: #7cd97c; }
 .libre-profile-stat--longest { --stat-tone: #c79bff; }
-.libre-profile-stat--coins   { --stat-tone: #f3a93a; }
 
 .libre-profile-stat-icon {
   display: inline-flex;

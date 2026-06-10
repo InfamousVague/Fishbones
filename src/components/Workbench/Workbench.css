@@ -141,6 +141,27 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Vertical (stacked) orientation — the outer handle moves from the left
+   edge (width resize) to the top edge (height resize), and the marker line
+   flips from vertical to horizontal to match. See Workbench.tsx
+   `orientation` + lib/layoutPrefs.ts. */
+.libre-workbench--vertical .libre-workbench-width-handle {
+  top: -4px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  cursor: row-resize;
+}
+.libre-workbench--vertical .libre-workbench-width-handle::after {
+  top: 50%;
+  bottom: auto;
+  left: 30%;
+  right: 30%;
+  width: auto;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
 /* Light themes want a dark-on-light hover fill instead of the rgba-white
    tint used in dark themes. */
 [data-theme="light"] .libre-workbench-width-handle:hover,

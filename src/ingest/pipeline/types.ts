@@ -60,6 +60,7 @@ export interface PipelineStats {
 
 // Pricing in USD per 1M tokens. Update if Anthropic's prices change.
 export const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  "claude-fable-5":    { input: 10, output: 50 },
   "claude-sonnet-4-8": { input: 3, output: 15 },
   "claude-opus-4-8":   { input: 15, output: 75 },
   "claude-haiku-4-8":  { input: 1, output: 5 },

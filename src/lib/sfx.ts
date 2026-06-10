@@ -62,7 +62,6 @@ export type SfxName =
   | "notify"
   | "page-turn"
   | "stamp"
-  | "coin"
   | "boot-up"
   | "flame-out";
 
@@ -754,7 +753,6 @@ const SYNTH_FALLBACK: Partial<Record<SfxName, SfxName>> = {
   notify: "chime",
   "page-turn": "ping",
   stamp: "xp-pop",
-  coin: "xp-pop",
   "boot-up": "streak-tick",
   "flame-out": "nope",
 };
@@ -880,7 +878,6 @@ export const ALL_SFX: SfxName[] = [
   "notify",
   "page-turn",
   "stamp",
-  "coin",
   "boot-up",
   "flame-out",
 ];
@@ -904,7 +901,6 @@ export const SFX_LABELS: Record<SfxName, string> = {
   notify: "Notification",
   "page-turn": "Lesson page turn",
   stamp: "Certificate stamped",
-  coin: "Coins gained",
   "boot-up": "Run started",
   "flame-out": "Streak lost",
 };

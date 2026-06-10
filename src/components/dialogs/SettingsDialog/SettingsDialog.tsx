@@ -73,6 +73,7 @@ interface Props {
 interface Settings {
   anthropic_api_key: string | null;
   anthropic_model: string;
+  anthropic_effort: string;
   openai_api_key: string | null;
 }
 
@@ -100,6 +101,7 @@ export default function SettingsDialog({
   const [apiKey, setApiKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
   const [model, setModel] = useState<string>("claude-sonnet-4-8");
+  const [effort, setEffort] = useState<string>("high");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -247,6 +249,7 @@ export default function SettingsDialog({
         setApiKey(s.anthropic_api_key ?? "");
         setOpenaiKey(s.openai_api_key ?? "");
         if (s.anthropic_model) setModel(s.anthropic_model);
+        if (s.anthropic_effort) setEffort(s.anthropic_effort);
       })
       .catch(() => { /* not in tauri — ignore */ });
   }, []);
@@ -260,6 +263,7 @@ export default function SettingsDialog({
         settings: {
           anthropic_api_key: apiKey.trim() || null,
           anthropic_model: model,
+          anthropic_effort: effort,
           openai_api_key: openaiKey.trim() || null,
         },
       });
@@ -346,6 +350,8 @@ export default function SettingsDialog({
                 onOpenaiKeyChange={setOpenaiKey}
                 model={model}
                 onModelChange={setModel}
+                effort={effort}
+                onEffortChange={setEffort}
               />
             )}
 

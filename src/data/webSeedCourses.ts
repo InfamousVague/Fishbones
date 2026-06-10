@@ -89,7 +89,13 @@ const LEGACY_STARTER_IDS: ReadonlyArray<string> = [
   // Complete, etc.) — those got moved here so returning visitors
   // who had them seeded in V8 see them removed on next launch.
   // Anything ever in the seed set should stay in this list
-  // forever; never trim it.
+  // forever; never trim it. That includes ids that later returned
+  // to the active catalog (eloquent-javascript, you-dont-know-js-yet,
+  // pro-git, open-data-structures re-published 2026-06-10, …): this
+  // is NOT a retire filter — the prune step only deletes ids absent
+  // from the current manifest, so a published course is never
+  // touched. Un-retiring happens in catalog.ts RETIRED_PACK_IDS
+  // (+ its courses.rs mirror), not here.
   "rust-by-example",
   "rust-async-book",
   "rustonomicon",

@@ -38,7 +38,6 @@ import { trophy } from "@base/primitives/icon/icons/trophy";
 import { bookOpenCheck } from "@base/primitives/icon/icons/book-open-check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { rocket } from "@base/primitives/icon/icons/rocket";
-import { coins as coinsIcon } from "@base/primitives/icon/icons/coins";
 import { brain } from "@base/primitives/icon/icons/brain";
 import { graduationCap } from "@base/primitives/icon/icons/graduation-cap";
 import { star } from "@base/primitives/icon/icons/star";
@@ -460,9 +459,7 @@ export default function MobileProfile({
 
       {/* Stat tiles. Same data the rings cover but flat / numeric —
           the rings are for emotional pull, the tiles for at-a-glance
-          scanning. The 5th tile (coins) wraps to a second row in the
-          2-col mobile grid; that's the right layout cue for "this is
-          the wallet, separate from XP". */}
+          scanning. */}
       <div className="m-prof__stats" role="list">
         <StatTile
           icon={flame}
@@ -482,16 +479,6 @@ export default function MobileProfile({
           tone="level"
           value={stats.level}
           label="Level"
-        />
-        {/* Coins are a soft-currency dropped alongside XP on every
-            completion. The shop where they spend (cosmetics, streak
-            freezes, upgrades) ships in a later release — for now they
-            just accumulate so the learner banks a balance from day one. */}
-        <StatTile
-          icon={coinsIcon}
-          tone="coins"
-          value={stats.coins}
-          label="Coins"
         />
       </div>
 
@@ -742,7 +729,7 @@ function StatTile({
   label,
 }: {
   icon: string;
-  tone: "streak" | "lessons" | "xp" | "level" | "coins";
+  tone: "streak" | "lessons" | "xp" | "level";
   value: number;
   label: string;
 }) {

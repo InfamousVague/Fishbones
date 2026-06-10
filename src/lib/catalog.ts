@@ -151,9 +151,12 @@ const RETIRED_PACK_IDS: ReadonlySet<string> = new Set([
   // catalog cache has them won't keep rendering the tiles until SWR
   // revalidation kicks in. (pro-git was re-authored + re-bundled on
   // 2026-06-07 and is back in the active catalog — kept out so it
-  // renders in Discover; matches courses.rs, which never retired it.)
+  // renders in Discover; matches courses.rs, which never retired it.
+  // Same story for open-data-structures, re-authored + re-published
+  // on 2026-06-10 — kept OUT of this set so Discover renders it
+  // again; courses.rs never retired it either, so no Rust-side
+  // change was needed.)
   "hellotrade",
-  "open-data-structures",
   "svelte-tutorial",
   "tauri-2-fundamentals",
 ]);

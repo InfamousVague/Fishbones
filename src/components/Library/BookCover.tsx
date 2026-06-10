@@ -8,7 +8,12 @@ import { loader } from "@base/primitives/icon/icons/loader";
 import { swords } from "@base/primitives/icon/icons/swords";
 import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
-import { isChallengePack } from "../../data/types";
+import {
+  isChallengePack,
+  isExerciseTrack,
+  isKoans,
+  isLings,
+} from "../../data/types";
 import { useCourseCover } from "../../hooks/useCourseCover";
 import LibreLoader from "../Shared/LibreLoader";
 import { languageMeta } from "../../lib/languages";
@@ -218,6 +223,18 @@ function BookCoverImpl({
   // field the Library kindFilter uses.
   const isChallenges = isChallengePack(course);
 
+  // Practice packs (challenge packs, Exercism tracks, koans, *lings)
+  // render as SQUARE tiles instead of 2:3 paperbacks — their cover
+  // art is authored 1:1 (mission-patch / badge style) so a learner
+  // can tell drill packs from prose books by silhouette alone. The
+  // class only changes the aspect ratio; all the chrome (status
+  // banner, language badge, kind chip, progress) lays out the same.
+  const isSquarePack =
+    isChallenges ||
+    isExerciseTrack(course) ||
+    isKoans(course) ||
+    isLings(course);
+
   // Placeholder tiles route their click to the install handler
   // instead of the open handler. The card itself stays interactive
   // so the visual affordance is consistent with installed covers
@@ -238,7 +255,7 @@ function BookCoverImpl({
         loading ? "libre-book--loading" : ""
       } ${placeholder ? "libre-book--placeholder" : ""} ${
         installing ? "libre-book--installing" : ""
-      }`}
+      } ${isSquarePack ? "libre-book--square" : ""}`}
       onClick={handleClick}
       onContextMenu={onContextMenu}
       title={

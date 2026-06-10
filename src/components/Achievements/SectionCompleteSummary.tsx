@@ -20,7 +20,7 @@ import { useCallback, useEffect } from "react";
 import { Icon } from "@base/primitives/icon";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import { flame } from "@base/primitives/icon/icons/flame";
-import { coins } from "@base/primitives/icon/icons/coins";
+import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { bookCheck } from "@base/primitives/icon/icons/book-check";
 
 import type { Achievement } from "../../data/achievements";
@@ -157,7 +157,7 @@ export default function SectionCompleteSummary({
       <div className="libre-ach-summary__stats">
         {xpEarned !== undefined && xpEarned > 0 ? (
           <span className="libre-ach-summary__stat">
-            <Icon icon={coins} size="sm" color="currentColor" />
+            <Icon icon={sparkles} size="sm" color="currentColor" />
             <strong>+{xpEarned}</strong> XP
           </span>
         ) : null}

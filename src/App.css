@@ -456,6 +456,35 @@ button {
   min-height: 0;
 }
 
+/* Vertical (stacked) lesson layout — the learner's "top and bottom" split
+   preference (lib/layoutPrefs.ts, toggled from the editor header). The
+   article sits on top; the workbench drops below it. The Workbench's outer
+   drag handle becomes a top-edge row-resizer and writes an inline
+   `height: NN%` on the wrap instead of a width. These selectors override
+   both the default row layout above and the challenge-mode column widths,
+   so they sit after both in source order. */
+.libre__lesson--vertical {
+  flex-direction: column;
+}
+.libre__lesson--vertical .libre-reader {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+}
+.libre__lesson--vertical .libre__lesson-workbench-wrap {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin-left: 0;
+  margin-top: 10px;
+  min-height: 220px;
+  max-height: 78%;
+  /* height: NN% is written inline by the Workbench in vertical mode */
+}
+
 /* Editor / Blocks toggle. Sits above the workbench when the lesson
    carries authored blocks data — when it doesn't, the toggle isn't
    rendered at all (no point showing a control with one option).

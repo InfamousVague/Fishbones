@@ -85,6 +85,16 @@ struct AnthropicRequest<'a> {
     max_tokens: u32,
     system: &'a str,
     messages: Vec<Msg<'a>>,
+    /// `output_config.effort` — reasoning-depth / token-spend control
+    /// (GA, no beta header). `None` for models that reject it (Haiku),
+    /// where it's skipped from the serialized body entirely.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    output_config: Option<OutputConfig<'a>>,
+}
+
+#[derive(Debug, Serialize)]
+struct OutputConfig<'a> {
+    effort: &'a str,
 }
 
 #[derive(Debug, Serialize)]
@@ -918,9 +928,20 @@ async fn call_llm(
     model_override: Option<&str>,
     label: &str,
 ) -> Result<LlmResponse, String> {
-    let (api_key, user_model) = {
+    let (api_key, user_model, effort) = {
         let s = settings.0.lock();
-        (s.anthropic_api_key.clone(), s.anthropic_model.clone())
+        (
+            s.anthropic_api_key.clone(),
+            s.anthropic_model.clone(),
+            s.anthropic_effort.clone(),
+        )
+    };
+    // Guard a blank persisted value (older settings.json, or a hand-edit)
+    // — fall back to Anthropic's own default rather than sending "".
+    let effort = if effort.trim().is_empty() {
+        "high".to_string()
+    } else {
+        effort
     };
     let api_key = api_key
         .ok_or_else(|| "No Anthropic API key configured — add one in Settings first.".to_string())?;
@@ -936,11 +957,20 @@ async fn call_llm(
     );
 
     let max_tokens = max_tokens_for(&model);
+    // Haiku rejects `output_config.effort` (the API 400s on it); every
+    // other tier we ship — Sonnet 4.6+, Opus, Fable 5 — accepts
+    // low/medium/high/max. Omit the field entirely on Haiku.
+    let output_config = if model.contains("haiku") {
+        None
+    } else {
+        Some(OutputConfig { effort: &effort })
+    };
     let body = AnthropicRequest {
         model: &model,
         max_tokens,
         system,
         messages: vec![Msg { role: "user", content: user }],
+        output_config,
     };
 
     let client = reqwest::Client::new();

@@ -128,6 +128,43 @@ function reorderQuizzes(course) {
 /// are compile-verified (rustc --test). Also refresh the body's stale
 /// empty-main preview block to show the new starter.
 const BROKEN_EXERCISES = {
+  // move_semantics2 is the odd one out: its upstream task is at the CALL
+  // SITE (clone `vec0` so it survives the move into `fill_vec`), not inside
+  // `fill_vec`. The importer shipped the already-correct code as the starter
+  // — `fill_vec` complete, an empty experiment `main` — so it auto-passed
+  // with nothing to fix. We restore the canonical challenge in `main`: it
+  // moves `vec0` into `fill_vec` and then still uses it, which won't compile
+  // until the learner adds `.clone()`. The merged crate compiles `main`
+  // (see runtimes/rust.ts joinCodeAndTests), so the broken `main` blocks the
+  // test until fixed; the non-editable test already clones, so it passes
+  // once `main` does. Matches the lesson's existing move/clone hints.
+  "move-semantics2": {
+    starter:
+      "fn fill_vec(vec: Vec<i32>) -> Vec<i32> {\n    let mut vec = vec;\n\n" +
+      "    vec.push(88);\n\n    vec\n}\n\n" +
+      "fn main() {\n    let vec0 = vec![22, 44, 66];\n\n" +
+      "    // TODO: `vec0` is MOVED into `fill_vec` here, so the lines below\n" +
+      "    // that still use `vec0` won't compile. Fix this call so `vec0`\n" +
+      "    // stays usable afterwards (hint: it has a method that copies it).\n" +
+      "    let vec1 = fill_vec(vec0);\n\n" +
+      "    println!(\"{vec0:?} has length {}\", vec0.len());\n" +
+      "    println!(\"{vec1:?} has length {}\", vec1.len());\n}\n",
+    tests:
+      "#[test]\n    fn move_semantics2() {\n        let vec0 = vec![22, 44, 66];\n\n" +
+      "        // Cloning `vec0` so that the clone is moved into `fill_vec`,\n" +
+      "        // not `vec0` itself.\n" +
+      "        let vec1 = fill_vec(vec0.clone());\n\n" +
+      "        assert_eq!(vec0, [22, 44, 66]);\n" +
+      "        assert_eq!(vec1, [22, 44, 66, 88]);\n    }\n",
+    solution:
+      "fn fill_vec(vec: Vec<i32>) -> Vec<i32> {\n    let mut vec = vec;\n\n" +
+      "    vec.push(88);\n\n    vec\n}\n\n" +
+      "fn main() {\n    let vec0 = vec![22, 44, 66];\n\n" +
+      "    // Clone so the original `vec0` isn't moved into `fill_vec`.\n" +
+      "    let vec1 = fill_vec(vec0.clone());\n\n" +
+      "    println!(\"{vec0:?} has length {}\", vec0.len());\n" +
+      "    println!(\"{vec1:?} has length {}\", vec1.len());\n}\n",
+  },
   "primitive-types4": {
     starter:
       "// TODO: Return the slice `[2, 3, 4]` out of the array `a`.\n" +
@@ -193,12 +230,20 @@ const BROKEN_EXERCISES = {
 function fixBrokenExercises(course) {
   const EMPTY_MAIN =
     "```rust\nfn main() {\n    // You can optionally experiment here.\n}\n```";
+  // Fallback for fixed lessons whose body preview is the FULL starter (not
+  // just an empty main) — e.g. move_semantics2, whose challenge lives in a
+  // populated `main`. Replace the first fenced ```rust block with the new
+  // starter so the article preview matches the editor.
+  const RUST_FENCE = /```rust\n[\s\S]*?\n```/;
   for (const ch of course.chapters)
     for (const l of ch.lessons || []) {
       const fx = BROKEN_EXERCISES[l.id];
       if (!fx) continue;
+      const newFence = "```rust\n" + fx.starter.trimEnd() + "\n```";
       if (l.body && l.body.includes(EMPTY_MAIN))
-        l.body = l.body.replace(EMPTY_MAIN, "```rust\n" + fx.starter.trimEnd() + "\n```");
+        l.body = l.body.replace(EMPTY_MAIN, newFence);
+      else if (l.body && RUST_FENCE.test(l.body))
+        l.body = l.body.replace(RUST_FENCE, newFence);
       l.starter = fx.starter;
       l.tests = fx.tests;
       l.solution = fx.solution;

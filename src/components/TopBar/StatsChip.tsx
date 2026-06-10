@@ -7,7 +7,6 @@ import { check } from "@base/primitives/icon/icons/check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { trophy } from "@base/primitives/icon/icons/trophy";
 import { snowflake } from "@base/primitives/icon/icons/snowflake";
-import { coins as coinsIcon } from "@base/primitives/icon/icons/coins";
 import "@base/primitives/icon/icon.css";
 import type { StreakAndXp } from "../../hooks/useStreakAndXp";
 import type { Completion } from "../../hooks/useProgress";
@@ -28,7 +27,6 @@ const STAT_COLORS = {
   xp: "#e8c46b",       // warm gold
   longest: "#c79bff",  // soft purple — personal-record accent
   freeze: "#7fc8ff",   // pale blue — ice / streak shield
-  coins: "#f3a93a",    // saturated coin gold — distinct from XP's softer tone
 } as const;
 
 /// Combined streak + level chip with a dropdown detail panel. Chip shows
@@ -395,20 +393,6 @@ export default function StatsChip({
                 stats.longestStreakDays === 1 ? t("stats.day") : t("stats.days")
               }`}
               hint={t("stats.personalRecord")}
-            />
-            {/* Coins are a soft-currency that future shop UI will let the
-                learner spend on cosmetics, streak freezes, and other
-                upgrades. Spans the full grid width as a wallet footer so
-                it reads as its own thing rather than "another stat" — also
-                keeps the 5th block from leaving an awkward gap in the
-                2-column layout above. */}
-            <StatBlock
-              icon={coinsIcon}
-              color={STAT_COLORS.coins}
-              label={t("stats.coinsLabel")}
-              value={String(stats.coins)}
-              hint={t("stats.coinsHint")}
-              span
             />
           </div>
 

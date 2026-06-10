@@ -160,16 +160,20 @@ export default function MiniCertBanner({
                 role="list"
                 aria-label={t("certificates.ariaBadges")}
               >
-                {course.chapters.map((chapter) => {
+                {course.chapters.map((chapter, idx) => {
+                  // Some imported courses ship chapters without an `id`;
+                  // fall back to a stable index-based key so badges stay
+                  // unique + deterministic and React keys don't collide.
+                  const chapterKey = chapter.id ?? `${course.id}-ch-${idx}`;
                   const total = chapter.lessons.length;
                   const done = chapter.lessons.filter((l) =>
                     completed.has(`${course.id}:${l.id}`),
                   ).length;
                   const earned = total > 0 && done === total;
-                  const rotation = chapterRotation(chapter.id);
+                  const rotation = chapterRotation(chapterKey);
                   return (
                     <span
-                      key={chapter.id}
+                      key={chapterKey}
                       role="listitem"
                       className={
                         "libre-mini-cert__badge " +
@@ -189,7 +193,7 @@ export default function MiniCertBanner({
                       }
                     >
                       <Icon
-                        icon={pickIcon(chapter.id)}
+                        icon={pickIcon(chapterKey)}
                         size="xs"
                         color="currentColor"
                         // Bumped stroke weight for earned badges

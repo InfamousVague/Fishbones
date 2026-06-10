@@ -18,6 +18,11 @@ import { useT } from "../../../i18n/i18n";
 
 const MODEL_OPTIONS: Array<{ id: string; labelKey: string; hintKey: string }> = [
   {
+    id: "claude-fable-5",
+    labelKey: "settings.fableLabel",
+    hintKey: "settings.fableHint",
+  },
+  {
     id: "claude-sonnet-4-8",
     labelKey: "settings.sonnetLabel",
     hintKey: "settings.sonnetHint",
@@ -34,6 +39,13 @@ const MODEL_OPTIONS: Array<{ id: string; labelKey: string; hintKey: string }> = 
   },
 ];
 
+/// Effort slider stops, low → high reasoning depth. Maps 1:1 to
+/// Anthropic's `output_config.effort` values. `max` is the ceiling the
+/// ingest models (Fable 5, Opus, Sonnet 4.6+) accept; Haiku ignores
+/// effort entirely (dropped in the Rust llm layer).
+const EFFORT_STEPS = ["low", "medium", "high", "max"] as const;
+type EffortStep = (typeof EFFORT_STEPS)[number];
+
 interface AiPaneProps {
   apiKey: string;
   onApiKeyChange: (next: string) => void;
@@ -41,6 +53,8 @@ interface AiPaneProps {
   onOpenaiKeyChange: (next: string) => void;
   model: string;
   onModelChange: (next: string) => void;
+  effort: string;
+  onEffortChange: (next: string) => void;
 }
 
 export default function AiPane({
@@ -50,8 +64,18 @@ export default function AiPane({
   onOpenaiKeyChange,
   model,
   onModelChange,
+  effort,
+  onEffortChange,
 }: AiPaneProps) {
   const t = useT();
+  // Clamp any unrecognised persisted value to a valid stop so the slider
+  // always has a thumb position.
+  const currentEffort: EffortStep = (
+    EFFORT_STEPS as readonly string[]
+  ).includes(effort)
+    ? (effort as EffortStep)
+    : "high";
+  const effortIndex = EFFORT_STEPS.indexOf(currentEffort);
   // Per-field "just copied" flash. Keyed so the Anthropic + OpenAI
   // copy buttons each get their own check-mark moment without
   // stomping each other.
@@ -144,6 +168,36 @@ export default function AiPane({
               </div>
             </label>
           ))}
+        </div>
+      </label>
+
+      <label className="libre-settings-field">
+        <span className="libre-settings-label">{t("settings.effortLabel")}</span>
+        <p className="libre-settings-blurb">{t("settings.effortBlurb")}</p>
+        <div className="libre-settings-effort">
+          <input
+            type="range"
+            className="libre-settings-effort-range"
+            min={0}
+            max={EFFORT_STEPS.length - 1}
+            step={1}
+            value={effortIndex}
+            onChange={(e) => onEffortChange(EFFORT_STEPS[Number(e.target.value)])}
+            aria-label={t("settings.effortLabel")}
+            aria-valuetext={t(`settings.effort_${currentEffort}`)}
+          />
+          <div className="libre-settings-effort-ticks">
+            {EFFORT_STEPS.map((step) => (
+              <button
+                type="button"
+                key={step}
+                className={`libre-settings-effort-tick ${step === currentEffort ? "is-active" : ""}`}
+                onClick={() => onEffortChange(step)}
+              >
+                {t(`settings.effort_${step}`)}
+              </button>
+            ))}
+          </div>
         </div>
       </label>
 

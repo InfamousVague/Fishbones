@@ -12,36 +12,9 @@ const XP_PER_KIND: Record<string, number> = {
   mixed: 20,
 };
 
-/// Coin award per lesson kind. Coins are the new soft-currency
-/// alongside XP — every completion drops both. Coins are a constant
-/// fraction of XP so the totals scale together but feel distinct
-/// (XP for level + streak, coins for spending).
-///
-/// Currency design (locked in for v1, expandable later):
-///   - reading → 1 coin   (5 XP × ~1/5)
-///   - quiz    → 2 coins  (10 XP × ~1/5)
-///   - exercise/mixed → 5 coins (20 XP × ~1/4 — slight bias so
-///     real coding work pays better in coins than the linear XP/5)
-///
-/// The store doesn't exist yet — coins go in, nothing comes out
-/// until we ship the upgrades / cosmetics / streak-freezes shop in
-/// a later release. Persisting them now means the user banks a
-/// balance the moment that shop ships, rather than starting at 0.
-const COINS_PER_KIND: Record<string, number> = {
-  reading: 1,
-  quiz: 2,
-  exercise: 5,
-  mixed: 5,
-};
-
 export interface StreakAndXp {
   /// Total XP earned across all courses.
   xp: number;
-  /// Total coins earned across all courses. Coins are a soft-currency
-  /// that future shop UI will let the learner spend on cosmetics,
-  /// streak freezes, and other upgrades. For now nothing consumes
-  /// them — they just accumulate.
-  coins: number;
   /// Current streak in consecutive calendar days. A streak is "alive"
   /// today if there's a completion today OR yesterday (grace period —
   /// we don't want to punish the learner for one sleepy evening); if the
@@ -98,11 +71,9 @@ function computeStreakAndXp(
   }
 
   let xp = 0;
-  let coins = 0;
   for (const c of history) {
     const kind = kindByKey.get(`${c.course_id}:${c.lesson_id}`) ?? "reading";
     xp += XP_PER_KIND[kind] ?? XP_PER_KIND.reading;
-    coins += COINS_PER_KIND[kind] ?? COINS_PER_KIND.reading;
   }
 
   const { current: streakDays, longest: longestStreakDays } = computeStreaks(
@@ -114,7 +85,6 @@ function computeStreakAndXp(
 
   return {
     xp,
-    coins,
     streakDays,
     longestStreakDays,
     lessonsCompleted: history.length,

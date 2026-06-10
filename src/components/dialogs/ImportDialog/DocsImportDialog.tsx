@@ -31,9 +31,19 @@ const MODEL_PRICES: Record<ModelId, { inputPerM: number; outputPerM: number; lab
     label: "Opus 4.8",
     hint: "Highest quality. Best for reference docs.",
   },
+  "claude-fable-5": {
+    inputPerM: 10,
+    outputPerM: 50,
+    label: "Fable 5",
+    hint: "Most powerful. Best pedagogy + test design.",
+  },
 };
 
-type ModelId = "claude-haiku-4-8" | "claude-sonnet-4-8" | "claude-opus-4-8";
+type ModelId =
+  | "claude-haiku-4-8"
+  | "claude-sonnet-4-8"
+  | "claude-opus-4-8"
+  | "claude-fable-5";
 
 /// Language roster for docs courses. Same subset we use elsewhere —
 /// the pipeline's `generate_lesson_from_docs_page` supports all of

@@ -46,6 +46,13 @@ interface Props {
   /// can stack above the card — without this flag the wrap's width and
   /// the Workbench's width would nest (48% × 48% ≈ 23% of lesson pane).
   widthControlsParent?: boolean;
+  /// Orientation of the OUTER split between the article and the workbench.
+  /// "horizontal" (default) sits the workbench beside the article and the
+  /// drag handle resizes their column ratio (writing an inline width % on
+  /// the parent). "vertical" stacks the workbench below the article and the
+  /// handle becomes a top-edge row resizer (writing a height % instead).
+  /// The internal editor/console split is always vertical regardless.
+  orientation?: "horizontal" | "vertical";
 }
 
 const MIN_EDITOR_PCT = 25;
@@ -74,6 +81,7 @@ export default function Workbench({
   defaultWorkbenchPct = 50,
   fillWidth = false,
   widthControlsParent = false,
+  orientation = "horizontal",
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -149,26 +157,30 @@ export default function Workbench({
   const onWidthPointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (!widthDraggingRef.current || !containerRef.current) return;
-      // The reader+workbench share a flex-row ancestor. When we control
-      // our own width, that's parentElement; when we control the wrap's
-      // width (widthControlsParent), parentElement IS the wrap and we
-      // need to go up one more level to get the flex-row.
+      // The reader+workbench share a flex ancestor. When we control our
+      // own size, that's parentElement; when we control the wrap's size
+      // (widthControlsParent), parentElement IS the wrap and we go up one
+      // more level to reach the flex row/column.
       const self = containerRef.current;
       const sizingBox = widthControlsParent
         ? self.parentElement?.parentElement
         : self.parentElement;
       if (!sizingBox) return;
       const rect = sizingBox.getBoundingClientRect();
-      // Workbench is on the right, so drag-from-right is natural:
-      // width in px = box.right - pointer.x. pct stays meaningful even
-      // as the window resizes because we re-measure every pointer move.
-      const widthPx = rect.right - e.clientX;
-      const pct = (widthPx / rect.width) * 100;
+      // Workbench sits on the right (horizontal) or the bottom (vertical),
+      // so measure from that far edge: size = far_edge - pointer. Re-
+      // measured every move so the percentage stays correct on resize.
+      const sizePx =
+        orientation === "vertical"
+          ? rect.bottom - e.clientY
+          : rect.right - e.clientX;
+      const span = orientation === "vertical" ? rect.height : rect.width;
+      const pct = (sizePx / span) * 100;
       setWorkbenchPct(
         Math.max(MIN_WORKBENCH_PCT, Math.min(MAX_WORKBENCH_PCT, pct)),
       );
     },
-    [widthControlsParent],
+    [widthControlsParent, orientation],
   );
   const onWidthPointerUp = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -197,26 +209,43 @@ export default function Workbench({
     if (!widthControlsParent || fillWidth) return;
     const parent = containerRef.current?.parentElement;
     if (!parent) return;
-    parent.style.width = `${workbenchPct}%`;
+    // Drive the off-axis dimension and clear the other, so toggling
+    // orientation never leaves a stale width/height pinning the wrap.
+    if (orientation === "vertical") {
+      parent.style.height = `${workbenchPct}%`;
+      parent.style.width = "";
+    } else {
+      parent.style.width = `${workbenchPct}%`;
+      parent.style.height = "";
+    }
     return () => {
       parent.style.width = "";
+      parent.style.height = "";
     };
-  }, [workbenchPct, widthControlsParent, fillWidth]);
+  }, [workbenchPct, widthControlsParent, fillWidth, orientation]);
 
   return (
     <div
-      className={`libre-workbench ${fillWidth ? "libre-workbench--fill" : ""}`}
+      className={`libre-workbench ${fillWidth ? "libre-workbench--fill" : ""} ${
+        orientation === "vertical" ? "libre-workbench--vertical" : ""
+      }`}
       ref={containerRef}
       style={fillWidth || widthControlsParent ? undefined : { width: `${workbenchPct}%` }}
     >
-      {/* Left-edge drag handle for the card's overall width. Hidden when
-          `fillWidth` is set (nothing useful to resize against). */}
+      {/* Outer drag handle for the card's overall size against the article:
+          left edge (width) in horizontal mode, top edge (height) in
+          vertical mode. Hidden when `fillWidth` is set (nothing to resize
+          against). */}
       {!fillWidth && (
         <div
           className="libre-workbench-width-handle"
           role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize workbench width"
+          aria-orientation={orientation === "vertical" ? "horizontal" : "vertical"}
+          aria-label={
+            orientation === "vertical"
+              ? "Resize workbench height"
+              : "Resize workbench width"
+          }
           onPointerDown={onWidthPointerDown}
           onPointerMove={onWidthPointerMove}
           onPointerUp={onWidthPointerUp}

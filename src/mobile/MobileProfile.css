@@ -241,9 +241,6 @@
 .m-prof__stat--lessons { --stat-tone: #7cd9d3; }
 .m-prof__stat--xp      { --stat-tone: #fcd34d; }
 .m-prof__stat--level   { --stat-tone: #7cd97c; }
-/* Coin gold — saturated enough to feel like a currency badge without
-   colliding with XP's softer butter tone next to it. */
-.m-prof__stat--coins   { --stat-tone: #f3a93a; }
 
 .m-prof__stat-icon {
   width: 32px;
