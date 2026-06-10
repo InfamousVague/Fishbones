@@ -98,6 +98,20 @@
   isolation: isolate;
   cursor: default;
 
+  /* Ticket notches — two semicircular bites where the stub
+     perforation (x = 71.2%, the stub's flex-basis complement)
+     meets the top and bottom edges, mirroring the full ticket's
+     notched mask. Two radial cutouts intersected so both bites
+     apply; the sidebar background shows through the holes. */
+  -webkit-mask-image:
+    radial-gradient(circle 5px at 71.2% 0, transparent 4.5px, #000 5px),
+    radial-gradient(circle 5px at 71.2% 100%, transparent 4.5px, #000 5px);
+  mask-image:
+    radial-gradient(circle 5px at 71.2% 0, transparent 4.5px, #000 5px),
+    radial-gradient(circle 5px at 71.2% 100%, transparent 4.5px, #000 5px);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+
   /* White paper base + neutral radial wash — mirrors the
      modernized full cert ticket (Notion issue #8fc4fe14f15d1747).
      The previous parchment-cream `#fbfaf6` + amber haze didn't
@@ -403,8 +417,8 @@
     180deg,
     transparent 0px,
     transparent 4px,
-    rgba(0, 0, 0, 0.3) 4px,
-    rgba(0, 0, 0, 0.3) 8px
+    #111111 4px,
+    #111111 8px
   );
   background-size: 1.5px 100%;
   background-repeat: no-repeat;
@@ -545,7 +559,7 @@
      progress bar above — echoes the tear-off stub's perforation
      so the cert's visual vocabulary stays consistent.
      Neutralized from warm `rgba(26, 20, 24, 0.18)`. */
-  border-top: 1px dashed rgba(0, 0, 0, 0.14);
+  border-top: 1px dashed #111111;
 }
 
 .libre-mini-cert__badge {
