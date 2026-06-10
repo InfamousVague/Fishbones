@@ -1,9 +1,16 @@
-/// Synthesized sound-effect library.
+/// Sound-effect library — recorded pack + synthesized fallback.
 ///
-/// Every effect is generated at runtime from the Web Audio API —
-/// oscillators feeding into a gain node shaped by an ADSR envelope.
-/// We ship zero MP3s for sounds; the entire library is a few hundred
-/// lines of code that produces something Duolingo-shaped on demand.
+/// As of the 2026-06 sound redesign, the PRIMARY soundscape is a
+/// recorded pack (ElevenLabs sound-generation, hand-picked per cue
+/// from a 10-pack audition — see .sfx-work/ for the prompt book,
+/// workbench and provenance manifest). MP3s ship in public/sfx/ and
+/// decode through the same AudioContext + master gain below, so the
+/// mute / volume settings and per-cue throttle apply unchanged.
+///
+/// The original Web-Audio SYNTH cues remain as the instant fallback
+/// (pack still fetching on a cold boot, fetch failed, decode error)
+/// — oscillators feeding into a gain node shaped by an ADSR envelope,
+/// something Duolingo-shaped produced on demand.
 ///
 /// Why synthesise instead of bundle audio:
 ///   - Bundle bytes: ~0 KB on the wire vs. ~30-80 KB per cue × 12 cues.
@@ -47,7 +54,17 @@ export type SfxName =
   | "complete-section"
   | "complete-book"
   | "freeze"
-  | "nope";
+  | "nope"
+  // Recorded-pack-era cues (2026-06): no bespoke synth generator —
+  // they fall back to a neighbouring synth cue via SYNTH_FALLBACK
+  // when the recorded asset isn't available.
+  | "ui-open"
+  | "notify"
+  | "page-turn"
+  | "stamp"
+  | "coin"
+  | "boot-up"
+  | "flame-out";
 
 export interface PlayOptions {
   /// Per-call volume scale, 0..1. Multiplies into the master volume.
@@ -321,7 +338,10 @@ function glockTone(
   return end;
 }
 
-const CUES: Record<SfxName, CuePlayer> = {
+/// Partial since the recorded-pack-era cues (ui-open, page-turn, …)
+/// have no bespoke synth generator — SYNTH_FALLBACK below maps them
+/// onto a neighbouring cue for the no-asset edge case.
+const CUES: Partial<Record<SfxName, CuePlayer>> = {
   /// UI tap — a single soft sine bell with an octave overtone. No
   /// glide; the cue is a "blip" not a "swoop" so the user reads it
   /// as a stable status indicator (clicked / dismissed / saved).
@@ -726,7 +746,65 @@ const CUES: Record<SfxName, CuePlayer> = {
   },
 };
 
-/// Fire a sound-effect cue. Resumes the AudioContext if suspended.
+/// Synth stand-ins for cues that only exist in the recorded pack.
+/// Only heard in the rare no-asset window (cold boot before the
+/// pack decodes, or a failed fetch).
+const SYNTH_FALLBACK: Partial<Record<SfxName, SfxName>> = {
+  "ui-open": "ping",
+  notify: "chime",
+  "page-turn": "ping",
+  stamp: "xp-pop",
+  coin: "xp-pop",
+  "boot-up": "streak-tick",
+  "flame-out": "nope",
+};
+
+// ── Recorded pack loading ────────────────────────────────────────
+// MP3s live at <BASE_URL>sfx/<cue>.mp3 (public/sfx in the repo).
+// BASE_URL makes the same path work on desktop ("/sfx/…") and the
+// /learn/-prefixed web deploy. Decoding happens against the shared
+// (possibly still-suspended) AudioContext — allowed by the Web
+// Audio spec, so the pack can warm fully before any user gesture.
+
+/// Recorded renditions are full-scale where the synth peaks were
+/// kept ≤0.13 — this trim keeps the pack polite at the same master
+/// volume users already have set.
+const ASSET_GAIN = 0.8;
+
+/// null = fetch/decode failed (synth fallback permanently this
+/// session); absent = not requested yet.
+const assetBuffers = new Map<SfxName, AudioBuffer | null>();
+const assetLoading = new Set<SfxName>();
+
+function assetUrl(name: SfxName): string {
+  const base = (import.meta.env?.BASE_URL ?? "/").replace(/\/$/, "");
+  return `${base}/sfx/${name}.mp3`;
+}
+
+function loadAsset(name: SfxName): void {
+  if (assetBuffers.has(name) || assetLoading.has(name)) return;
+  const c = ensureContext();
+  if (!c) return;
+  assetLoading.add(name);
+  fetch(assetUrl(name))
+    .then((r) =>
+      r.ok ? r.arrayBuffer() : Promise.reject(new Error(`HTTP ${r.status}`)),
+    )
+    .then((raw) => c.decodeAudioData(raw))
+    .then((decoded) => {
+      assetBuffers.set(name, decoded);
+    })
+    .catch(() => {
+      assetBuffers.set(name, null);
+    })
+    .finally(() => {
+      assetLoading.delete(name);
+    });
+}
+
+/// Fire a sound-effect cue. Plays the recorded rendition when its
+/// buffer is ready, else the synth fallback (and warms the asset for
+/// next time). Resumes the AudioContext if suspended.
 /// Never throws — sound is decorative and a failure here should
 /// never break the page.
 export function playSound(name: SfxName, opts: PlayOptions = {}): void {
@@ -751,9 +829,28 @@ export function playSound(name: SfxName, opts: PlayOptions = {}): void {
   if (c.state === "suspended") {
     void c.resume().catch(() => undefined);
   }
-  const cue = CUES[name];
-  if (!cue) return;
   const scale = opts.volume === undefined ? 1 : Math.max(0, Math.min(1, opts.volume));
+  // Recorded rendition first.
+  const buf = assetBuffers.get(name);
+  if (buf) {
+    try {
+      const src = c.createBufferSource();
+      src.buffer = buf;
+      const g = c.createGain();
+      g.gain.setValueAtTime(ASSET_GAIN * scale, c.currentTime);
+      src.connect(g);
+      g.connect(masterGain);
+      src.start();
+      return;
+    } catch {
+      // Fall through to the synth path below.
+    }
+  }
+  // Not loaded yet (or never requested) — warm it so the NEXT play
+  // is recorded, and cover this one with the synth.
+  if (buf === undefined) loadAsset(name);
+  const cue = CUES[name] ?? CUES[SYNTH_FALLBACK[name] ?? "ping"];
+  if (!cue) return;
   try {
     cue(c, masterGain, scale);
   } catch {
@@ -779,6 +876,13 @@ export const ALL_SFX: SfxName[] = [
   "complete-book",
   "freeze",
   "nope",
+  "ui-open",
+  "notify",
+  "page-turn",
+  "stamp",
+  "coin",
+  "boot-up",
+  "flame-out",
 ];
 
 /// Friendly labels for the settings pane.
@@ -796,4 +900,25 @@ export const SFX_LABELS: Record<SfxName, string> = {
   "complete-book": "Book complete",
   freeze: "Streak freeze used",
   nope: "Nope (wrong answer)",
+  "ui-open": "Panel / modal open",
+  notify: "Notification",
+  "page-turn": "Lesson page turn",
+  stamp: "Certificate stamped",
+  coin: "Coins gained",
+  "boot-up": "Run started",
+  "flame-out": "Streak lost",
 };
+
+// ── Pack warm-up ─────────────────────────────────────────────────
+// Kick the whole pack's fetch+decode shortly after boot (staggered,
+// off the critical path) so the first real cue of the session plays
+// the recorded rendition rather than the synth stand-in. ~560 KB
+// total; decoding works on a suspended context, so no user gesture
+// is needed before warming.
+if (typeof window !== "undefined") {
+  window.setTimeout(() => {
+    ALL_SFX.forEach((name, i) => {
+      window.setTimeout(() => loadAsset(name), i * 120);
+    });
+  }, 3500);
+}

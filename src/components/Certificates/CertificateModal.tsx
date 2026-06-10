@@ -3,7 +3,7 @@
 /// same layout the PNG generator paints to canvas — kept close
 /// enough that the user gets a true WYSIWYG before they download.
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
@@ -11,6 +11,8 @@ import ModalBackdrop from "../Shared/ModalBackdrop";
 import type { Certificate } from "../../data/certificates";
 import { buildVerifyUrl } from "../../data/certificates";
 import { downloadCertificatePng } from "./generateCertificatePng";
+import { playSound } from "../../lib/sfx";
+import { fireHaptic } from "../../lib/haptics";
 import { useT } from "../../i18n/i18n";
 import "./CertificateModal.css";
 
@@ -23,6 +25,15 @@ export default function CertificateModal({ cert, onDismiss }: Props) {
   const t = useT();
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The certificate is the app's hero artefact — opening it lands
+  // with the official rubber-stamp cue + a weightier haptic than
+  // ModalBackdrop's generic light tap. Mount-only; the haptic
+  // engine collapses the overlap with the backdrop's own cue.
+  useEffect(() => {
+    playSound("stamp");
+    void fireHaptic("completion");
+  }, []);
 
   const handleDownload = useCallback(async () => {
     setDownloading(true);

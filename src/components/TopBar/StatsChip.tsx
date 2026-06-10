@@ -111,6 +111,14 @@ export default function StatsChip({
   useSoundOnChange(stats.streakDays, "streak-flame", {
     when: (prev, next) => next > prev && streakMilestones.includes(next),
   });
+  // Streak BROKEN — the candle blow-out. Fires when the computed
+  // streak drops mid-session (first completion after missed days
+  // resets it to 1, or the day rolls over past a grace window).
+  // `prev >= 2` so going 0 → 1 → … never reads as a loss.
+  useSoundOnChange(stats.streakDays, "flame-out", {
+    increaseOnly: false,
+    when: (prev, next) => next < prev && prev >= 2,
+  });
 
   /// Freeze-affordance state. The "Freeze yesterday" CTA shows only when:
   ///   - shields are wired,
