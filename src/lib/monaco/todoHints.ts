@@ -31,6 +31,16 @@ type ITextModel = MonacoNS.editor.ITextModel;
 
 const TODO_RE = /\b(TODO|FIXME)\b/;
 
+/// Endpoint resolution: the configured remote host when the user set
+/// one (Settings → AI host, e.g. a Tailscale box), else the local
+/// Ollama daemon. `aiHostUrl()` returning null is the NORMAL desktop
+/// state — the assistant talks to localhost through the Rust side
+/// and never writes the host key — so null must not disable hints.
+const LOCAL_OLLAMA = "http://localhost:11434";
+function hintEndpoint(path: string): string {
+  return aiHostUrl(path) ?? `${LOCAL_OLLAMA}${path}`;
+}
+
 /// Same default the AI assistant ships with; overridable via the
 /// (undocumented) localStorage key for tinkering without a rebuild.
 const HINT_MODEL_KEY = "libre:todo-hint-model";
@@ -92,8 +102,7 @@ async function fetchHint(
   model: ITextModel,
   lineNumber: number,
 ): Promise<string> {
-  const url = aiHostUrl("/api/chat");
-  if (!url) throw new Error("no AI host configured");
+  const url = hintEndpoint("/api/chat");
   const todoText = model.getLineContent(lineNumber).trim();
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 25_000);
@@ -208,7 +217,9 @@ function registerProviders(monaco: Monaco): void {
     provideCodeLenses(model) {
       const uriStr = model.uri.toString();
       if (!attached.has(uriStr)) return { lenses: [], dispose() {} };
-      if (!readAiEnabled() || !aiHostUrl()) return { lenses: [], dispose() {} };
+      // Gate on the user's AI toggle only — see hintEndpoint() for
+      // why a missing host must NOT hide the lenses on desktop.
+      if (!readAiEnabled()) return { lenses: [], dispose() {} };
       const lenses: MonacoNS.languages.CodeLens[] = [];
       const lineCount = model.getLineCount();
       for (let line = 1; line <= lineCount; line++) {
