@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { onOpenUrl, getCurrent as getCurrentDeepLinks } from "@tauri-apps/plugin-deep-link";
@@ -19,8 +19,8 @@ import { Tour } from "./components/Tour/Tour";
 import { TOUR_STEPS, type TourPage } from "./components/Tour/tourSteps";
 import { stopTourAudio } from "./components/Tour/useTourAudio";
 import { stopLessonAudio } from "./hooks/useLessonAudio";
-import ChallengesView from "./components/Challenges/ChallengesView";
-import PracticeView from "./components/Practice/PracticeView";
+const ChallengesView = lazy(() => import("./components/Challenges/ChallengesView"));
+const PracticeView = lazy(() => import("./components/Practice/PracticeView"));
 import EvmDockBanner from "./components/ChainDock/EvmDockBanner";
 import BitcoinDockBanner from "./components/BitcoinChainDock/BitcoinDockBanner";
 import SvmDockBanner from "./components/SvmDock/SvmDockBanner";
@@ -38,29 +38,29 @@ import {
 } from "./lessonHelpers";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { useKeybinding } from "./hooks/useKeybinding";
-import ImportDialog from "./components/dialogs/ImportDialog/ImportDialog";
-import BulkImportDialog from "./components/dialogs/ImportDialog/BulkImportDialog";
-import DocsImportDialog from "./components/dialogs/ImportDialog/DocsImportDialog";
-import SettingsDialog from "./components/dialogs/SettingsDialog/SettingsDialog";
+const ImportDialog = lazy(() => import("./components/dialogs/ImportDialog/ImportDialog"));
+const BulkImportDialog = lazy(() => import("./components/dialogs/ImportDialog/BulkImportDialog"));
+const DocsImportDialog = lazy(() => import("./components/dialogs/ImportDialog/DocsImportDialog"));
+const SettingsDialog = lazy(() => import("./components/dialogs/SettingsDialog/SettingsDialog"));
 import CourseLibrary from "./components/Library/CourseLibrary";
 import ArchiveDropOverlay from "./components/Library/ArchiveDropOverlay";
 import { useArchiveDrop } from "./hooks/useArchiveDrop";
 import { DeferredMount, LoadingPane } from "./components/Shared/DeferredMount";
 import LibreLoader from "./components/Shared/LibreLoader";
 import { prefetchCovers } from "./hooks/useCourseCover";
-import ConfirmDialog from "./components/dialogs/ConfirmDialog/ConfirmDialog";
-import CourseSettingsModal from "./components/dialogs/CourseSettings/CourseSettingsModal";
-import FloatingIngestPanel from "./components/IngestPanel/FloatingIngestPanel";
-import ProfileView from "./components/Profile/ProfileView";
-import SandboxView from "./components/Sandbox/SandboxView";
+const ConfirmDialog = lazy(() => import("./components/dialogs/ConfirmDialog/ConfirmDialog"));
+const CourseSettingsModal = lazy(() => import("./components/dialogs/CourseSettings/CourseSettingsModal"));
+const FloatingIngestPanel = lazy(() => import("./components/IngestPanel/FloatingIngestPanel"));
+const ProfileView = lazy(() => import("./components/Profile/ProfileView"));
+const SandboxView = lazy(() => import("./components/Sandbox/SandboxView"));
 import SandboxSidebar from "./components/Sandbox/SandboxSidebar";
 import { useSandboxProjects } from "./hooks/useSandboxProjects";
 import { useAchievements } from "./hooks/useAchievements";
 import AchievementOverlay from "./components/Achievements/AchievementOverlay";
-import AchievementsPage from "./components/Achievements/AchievementsPage";
+const AchievementsPage = lazy(() => import("./components/Achievements/AchievementsPage"));
 import SectionCompleteSummary from "./components/Achievements/SectionCompleteSummary";
-import CertificatesPage from "./components/Certificates/CertificatesPage";
-import PathsPage from "./components/Paths/PathsPage";
+const CertificatesPage = lazy(() => import("./components/Certificates/CertificatesPage"));
+const PathsPage = lazy(() => import("./components/Paths/PathsPage"));
 import { mintCertificate } from "./data/certificates";
 import { notifyCertificatesChanged } from "./hooks/useCertificates";
 import { playSound, unlockAudioContext } from "./lib/sfx";
@@ -68,18 +68,19 @@ import { isWeb, isMobile } from "./lib/platform";
 import { consumePendingOAuthSession } from "./lib/oauthSession";
 import { isoToUnixSeconds } from "./lib/timestamps";
 import DownloadButton from "./components/DownloadButton/DownloadButton";
-import GeneratePackDialog from "./components/dialogs/ChallengePack/GeneratePackDialog";
+const GeneratePackDialog = lazy(() => import("./components/dialogs/ChallengePack/GeneratePackDialog"));
 import { useIngestRun } from "./hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import AiAssistant from "./components/AiAssistant/AiAssistant";
+const AiAssistant = lazy(() => import("./components/AiAssistant/AiAssistant"));
 import XpBurst, { fireXpBurst } from "./components/Shared/XpBurst";
 import { harvestPracticeItems } from "./components/Practice/practiceHarvest";
 import { loadAllRecords, summariseStats } from "./components/Practice/practiceStore";
 import { InstallBanner } from "./components/banners/InstallBanner/InstallBanner";
 import { UpdateBanner } from "./components/banners/UpdateBanner/UpdateBanner";
-import CommandPalette from "./components/CommandPalette/CommandPalette";
-import { VerifyCourseOverlay, type VerifySessionView } from "./components/VerifyCourse";
-import FixApplierDialog from "./components/dialogs/FixApplier/FixApplierDialog";
+const CommandPalette = lazy(() => import("./components/CommandPalette/CommandPalette"));
+import type { VerifySessionView } from "./components/VerifyCourse";
+const VerifyCourseOverlay = lazy(() => import("./components/VerifyCourse/VerifyCourseOverlay"));
+const FixApplierDialog = lazy(() => import("./components/dialogs/FixApplier/FixApplierDialog"));
 import {
   verifyCourse,
   verifyAllCourses,
@@ -93,9 +94,9 @@ import { useProgress } from "./hooks/useProgress";
 import { useChainActivity } from "./hooks/useChainActivity";
 import { useLibreCloud } from "./hooks/useLibreCloud";
 import { useRealtimeSync } from "./hooks/useRealtimeSync";
-import FirstLaunchPrompt from "./components/dialogs/SignInDialog/FirstLaunchPrompt";
-import SetupWizard from "./components/dialogs/SetupWizard/SetupWizard";
-import SignInDialog from "./components/dialogs/SignInDialog/SignInDialog";
+const FirstLaunchPrompt = lazy(() => import("./components/dialogs/SignInDialog/FirstLaunchPrompt"));
+const SetupWizard = lazy(() => import("./components/dialogs/SetupWizard/SetupWizard"));
+const SignInDialog = lazy(() => import("./components/dialogs/SignInDialog/SignInDialog"));
 import { useCourses } from "./hooks/useCourses";
 import { useRecentCourses } from "./hooks/useRecentCourses";
 import { useStreakAndXp } from "./hooks/useStreakAndXp";
@@ -2298,6 +2299,12 @@ export default function App() {
         </div>
 
         <main className="libre__main">
+          {/* Suspense boundary for the lazy-loaded page routes below
+              (Profile/Sandbox/Challenges/Practice/Paths/Achievements/
+              Certificates). `null` fallback: useTransition already
+              keeps the previous view painted during the swap, so a
+              skeleton here would just blank a frame. */}
+          <Suspense fallback={null}>
           {view === "profile" ? (
             <ProfileView
               courses={courses}
@@ -2567,9 +2574,16 @@ export default function App() {
               <p>Pick a lesson from the sidebar to get started.</p>
             </div>
           )}
+          </Suspense>
         </main>
       </div>
 
+      {/* Suspense boundary for every lazy-loaded modal / overlay below.
+          `null` fallback — nothing should show until the dialog's chunk
+          resolves and it animates in. The always-mounted overlays in
+          this range (Tour, banners, XpBurst) never suspend, so wrapping
+          them is harmless. */}
+      <Suspense fallback={null}>
       {settingsOpen && (
         <SettingsDialog
           cloud={cloud}
@@ -2942,6 +2956,7 @@ export default function App() {
         />
       )}
 
+      </Suspense>
     </div>
   );
 
