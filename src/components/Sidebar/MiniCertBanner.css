@@ -575,17 +575,20 @@
    printed. The glyph itself stays the Icon primitive's line art
    (no solid fill) so it reads as a printed sticker icon. */
 .libre-mini-cert__badge--earned {
-  color: #161616;
+  /* White line-art icon on a black squircle — the classic die-cut
+     vinyl sticker look. The squircle is approximated with a 30%
+     radius (true superellipses aren't expressible in CSS). */
+  color: #ffffff;
   position: relative;
-  border-radius: 6px;
-  background: linear-gradient(157deg, #ffffff 0%, #f5f5f9 52%, #ece9f3 100%);
-  /* faint hairline for definition + two-step lift shadow so the
-     chip floats above the (also near-white) parchment. */
+  border-radius: 30%;
+  background: linear-gradient(157deg, #2c2c31 0%, #1a1a1e 55%, #101013 100%);
+  /* Hairline ring for edge definition on the white parchment +
+     two-step lift shadow so the chip floats above the surface. */
   box-shadow:
-    0 0 0 0.5px rgba(20, 16, 28, 0.06),
-    0 1px 1px rgba(20, 16, 28, 0.1),
-    0 2.5px 4px rgba(20, 16, 28, 0.16);
-  /* own stacking context so the foil ::before + dark icon + peel
+    0 0 0 0.5px rgba(20, 16, 28, 0.35),
+    0 1px 1px rgba(20, 16, 28, 0.18),
+    0 2.5px 4px rgba(20, 16, 28, 0.22);
+  /* own stacking context so the foil ::before + icon + peel
      ::after layer predictably and the foil never bleeds out. */
   isolation: isolate;
 }
@@ -618,7 +621,10 @@
     );
   background-size: 100% 100%, 220% 220%;
   background-position: 0 0, 0% 50%;
-  opacity: 0.55;
+  /* Dialed way down for the black-vinyl chip — just an iridescent
+     sheen catching the surface, not a rainbow wash (the white icon
+     needs to stay the loudest thing on the sticker). */
+  opacity: 0.18;
   z-index: 0;
   pointer-events: none;
   animation: libre-sticker-foil 9s ease-in-out infinite;
