@@ -103,12 +103,15 @@
      meets the top and bottom edges, mirroring the full ticket's
      notched mask. Two radial cutouts intersected so both bites
      apply; the sidebar background shows through the holes. */
+  /* +1px: the stub's dash stripe is painted 1.5px wide starting AT
+     the 71.2% edge, so the visual line centre sits just right of
+     the flex boundary — nudge the bites to match. */
   -webkit-mask-image:
-    radial-gradient(circle 5px at 71.2% 0, transparent 4.5px, #000 5px),
-    radial-gradient(circle 5px at 71.2% 100%, transparent 4.5px, #000 5px);
+    radial-gradient(circle 5px at calc(71.2% + 1px) 0, transparent 4.5px, #000 5px),
+    radial-gradient(circle 5px at calc(71.2% + 1px) 100%, transparent 4.5px, #000 5px);
   mask-image:
-    radial-gradient(circle 5px at 71.2% 0, transparent 4.5px, #000 5px),
-    radial-gradient(circle 5px at 71.2% 100%, transparent 4.5px, #000 5px);
+    radial-gradient(circle 5px at calc(71.2% + 1px) 0, transparent 4.5px, #000 5px),
+    radial-gradient(circle 5px at calc(71.2% + 1px) 100%, transparent 4.5px, #000 5px);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 
