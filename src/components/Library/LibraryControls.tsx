@@ -38,7 +38,7 @@ import { useT } from "../../i18n/i18n";
 /// (e.g. Chain when not in Crypto, or only-one-kind libraries) auto-
 /// hide — same visibility rules the old pill-bar version had.
 
-export type SortKey = "name" | "progress" | "lessons";
+export type SortKey = "name" | "recent" | "progress" | "lessons";
 export type ViewMode = "shelf" | "grid";
 
 export interface ChainCountsShape {
@@ -224,6 +224,7 @@ export default function LibraryControls(p: LibraryControlsProps): ReactElement {
             onChange={(e) => p.onSetSort(e.target.value as SortKey)}
           >
             <option value="name">{t("library.sortName")}</option>
+            <option value="recent">{t("library.sortRecent")}</option>
             <option value="progress">{t("library.sortProgress")}</option>
             <option value="lessons">{t("library.sortLessonCount")}</option>
           </select>

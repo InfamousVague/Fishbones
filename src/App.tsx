@@ -2424,6 +2424,7 @@ export default function App() {
                 scope={view === "discover" ? "discover" : "library"}
                 courses={courses}
                 completed={completed}
+                recents={recentCourses}
                 hydrating={hydrating}
                 onDismiss={() => setView("courses")}
                 onOpen={(id) => openCourseFromLibrary(id)}
@@ -2504,6 +2505,7 @@ export default function App() {
                 mode="inline"
                 courses={courses}
                 completed={completed}
+                recents={recentCourses}
                 hydrating={hydrating}
                 onDismiss={() => { /* inline mode has no dismiss affordance */ }}
                 onOpen={(id) => openCourseFromLibrary(id)}

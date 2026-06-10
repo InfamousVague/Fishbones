@@ -49,6 +49,14 @@ const VIEW_MODE_DEFAULT: ViewMode = "shelf";
 interface Props {
   courses: Course[];
   completed: Set<string>;
+  /// `{ [courseId]: unixSeconds }` of when each course was last opened
+  /// (see `useRecentCourses` in App). Drives the "Recent" sort — the
+  /// library's default order — so the book you touched most recently
+  /// floats to the front of the shelf. Optional: omitted in contexts
+  /// without history (tests, the Discover scope where nothing's been
+  /// read), in which case every course reads as never-opened and the
+  /// sort falls back to alphabetical.
+  recents?: Record<string, number>;
   /// Course ids whose full body is still hydrating from disk. Covers for
   /// these ids get a dimmed + spinner overlay. Optional — when omitted,
   /// no covers show a loading state.
@@ -134,6 +142,7 @@ interface Props {
 export default function CourseLibrary({
   courses,
   completed,
+  recents = {},
   hydrating,
   onDismiss,
   onOpen,
@@ -197,7 +206,14 @@ export default function CourseLibrary({
   const [kindFilter, setKindFilter] = useState<
     "all" | "books" | "tracks"
   >("all");
-  const [sortBy, setSortBy] = useState<SortKey>("name");
+  // Default to "Recent" so the library opens with the book you were
+  // last reading at the front of the shelf — the timestamps come from
+  // `recents` (useRecentCourses, bumped whenever a lesson is opened).
+  // Never-opened courses carry no timestamp and sort alphabetically
+  // among themselves at the back, so a fresh install with no history
+  // looks identical to the old "Name (A–Z)" default until the learner
+  // starts reading.
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useLocalStorageState<ViewMode>(
     VIEW_MODE_STORAGE_KEY,
@@ -433,6 +449,16 @@ export default function CourseLibrary({
       )
       .sort((a, b) => {
         switch (sortBy) {
+          case "recent": {
+            // Most-recently-opened first. Courses with no recorded
+            // timestamp read as 0 and sink below every course that's
+            // ever been opened; ties (incl. two never-opened books)
+            // break alphabetically so the order stays stable.
+            const ra = recents[a.course.id] ?? 0;
+            const rb = recents[b.course.id] ?? 0;
+            if (rb !== ra) return rb - ra;
+            return a.course.title.localeCompare(b.course.title);
+          }
           case "progress":
             return b.pct - a.pct;
           case "lessons":
@@ -450,6 +476,7 @@ export default function CourseLibrary({
     langFilter,
     kindFilter,
     sortBy,
+    recents,
     query,
   ]);
 
