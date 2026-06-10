@@ -329,10 +329,12 @@ mattssoftware.com, www.mattssoftware.com {
     file_server
 }
 
-# Tap relay (different product on the same VPS).
-${TAP_DOMAIN:-tap.mattssoftware.com} {
-    reverse_proxy 127.0.0.1:${TAP_RELAY_PORT:-8443}
-}
+# Drop-in vhosts owned by OTHER products on this VPS (currently the
+# Tap relay's tap.caddy, written by Apps/tap/deploy.sh). Each product
+# deploys its own conf.d file so neither deploy script can clobber
+# the other's sites — the 2026-06 TLS outage was tap's deploy
+# overwriting this whole file with just its own block.
+import /etc/caddy/conf.d/*.caddy
 
 # Libre API. Protocols are inherited from the global servers
 # block above (h1 + h3, no h2) so the WS handshake works.
@@ -354,7 +356,11 @@ EOF
 
 # ── Start / restart ───────────────────────────────────────────────
 echo "── Starting services..."
-$SSH "systemctl daemon-reload && \
+# conf.d must exist before Caddy parses the import line above (a
+# matching-nothing glob is fine, a missing parent dir is not on
+# older Caddy builds — and tap's deploy expects the dir anyway).
+$SSH "mkdir -p /etc/caddy/conf.d && \
+  systemctl daemon-reload && \
   systemctl enable --now caddy && \
   systemctl restart caddy && \
   systemctl enable --now libre-api && \
