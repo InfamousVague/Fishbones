@@ -792,25 +792,9 @@
      corners instead of leaking past them. */
   position: relative;
   overflow: hidden;
-  /* "Face the mouse" tilt. The custom properties are written by
-     AchievementsPage.tsx's page-level mousemove tracker
-     (rAF-throttled, capped at ±10°). Every tile gets its own
-     pair based on its centre-to-cursor vector, so the grid
-     behaves like a field of compasses pointing at the pointer.
-     The transition eases each tile back toward its at-rest tilt
-     when the mouse stops moving rather than snapping.
-     `perspective(600px)` — tightened from the earlier 900px so
-     the 10° rotation actually reads as a visible 3D tilt
-     rather than a flat 2D shear. Smaller perspective = camera
-     closer to the element = more pronounced foreshortening per
-     degree of rotation. Notion issue #baf3f5d5c4961dd1 flagged
-     the tilt was barely visible on the first pass. */
-  transform-style: preserve-3d;
-  transform-origin: center;
-  transform: perspective(600px)
-    rotateX(var(--libre-ach-rx, 0deg))
-    rotateY(var(--libre-ach-ry, 0deg));
-  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* The "face the mouse" 3D tilt that used to live here (driven by
+     a page-level mousemove tracker in AchievementsPage.tsx) was
+     removed in the 2026-06 cleanup — tiles sit flat now. */
 }
 
 /* Unlocked achievements get the same visual treatment as
@@ -858,15 +842,10 @@
     hsl(0, 95%, 60%) 40%
   );
   background-size: 200% 200%;
-  /* Background position drives the apparent flow of the rainbow.
-     The custom property is written by the page-level mouse
-     tracker — clamped to 25-75% so the band always crosses the
-     tile, never slides off. Transitioned so the foil eases
-     between positions as the cursor moves rather than ticking
-     frame-by-frame. */
-  background-position: var(--libre-ach-foil, 50%) 50%;
+  /* Static band centre — the mouse-driven foil sweep was removed
+     along with the tile tilt (2026-06 cleanup). */
+  background-position: 50% 50%;
   background-repeat: no-repeat;
-  transition: background-position 280ms cubic-bezier(0.22, 1, 0.36, 1);
   --sparkle-mask: url("/new-logo-tile.png");
   mask-image: var(--sparkle-mask);
   -webkit-mask-image: var(--sparkle-mask);

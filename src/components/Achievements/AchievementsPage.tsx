@@ -15,7 +15,7 @@
 /// link. The route is `/achievements` (web) and the desktop equivalent
 /// is registered alongside the existing in-app routes in App.tsx.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { search as searchIcon } from "@base/primitives/icon/icons/search";
 import { trophy } from "@base/primitives/icon/icons/trophy";
@@ -112,92 +112,13 @@ export default function AchievementsPage({
     return m;
   }, [query, categoryFilter, unlocked]);
 
-  // Page-level mouse tracker that tilts each tile toward the
-  // cursor and slides the holographic foil's rainbow band as the
-  // mouse moves. Each tile computes its own tilt from its
-  // centre-to-mouse vector. Throttled to ~60fps via
-  // requestAnimationFrame and skipped entirely under
-  // `prefers-reduced-motion`.
-  //
-  // Math (Notion issue #baf3f5d5c4961dd1 — the first version
-  // multiplied a normalized-distance term BY an attenuation
-  // term, whose product peaks at ~0.25 → max tilt of only 1° at
-  // the optimal cursor position; the tiles barely moved):
-  //
-  //   - Direct linear map: dx in pixels → ry in degrees via a
-  //     fixed per-pixel rate, capped at ±MAX_TILT_DEG.
-  //   - Rate tuned so MAX_TILT is hit when the cursor is
-  //     ~half-a-viewport away. Closer cursor = within the cap;
-  //     farther cursor = clamped to the cap (so even tiles in
-  //     the far corner of the grid still face the cursor at
-  //     full extent rather than barely moving).
-  //   - No distance attenuation — the user wants every tile
-  //     pointing at the cursor, not a localized "ripple" around
-  //     it.
-  const pageRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const root = pageRef.current;
-    if (!root) return;
-    const MAX_TILT_DEG = 10;
-    let frameId: number | null = null;
-    let last: { x: number; y: number } | null = null;
-    const apply = () => {
-      frameId = null;
-      if (!last) return;
-      const { x: mx, y: my } = last;
-      // Half-viewport as the "tilt saturates here" distance.
-      // Beyond it the tilt clamps at MAX_TILT_DEG so far tiles
-      // still present full face to the cursor.
-      const saturate =
-        Math.max(window.innerWidth, window.innerHeight) * 0.5;
-      const tiles = root.querySelectorAll<HTMLElement>(
-        ".libre-ach-page__tile",
-      );
-      tiles.forEach((tile) => {
-        const rect = tile.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = mx - cx;
-        const dy = my - cy;
-        // Linear ramp to ±MAX_TILT_DEG. Clamp via Math.max/min
-        // rather than a smoothstep so the falloff feels
-        // mechanical — every tile face is genuinely tracking
-        // the cursor's position, not following a soft curve.
-        const ry = Math.max(
-          -MAX_TILT_DEG,
-          Math.min(MAX_TILT_DEG, (dx / saturate) * MAX_TILT_DEG),
-        );
-        const rx = Math.max(
-          -MAX_TILT_DEG,
-          Math.min(MAX_TILT_DEG, (-dy / saturate) * MAX_TILT_DEG),
-        );
-        tile.style.setProperty("--libre-ach-rx", `${rx.toFixed(2)}deg`);
-        tile.style.setProperty("--libre-ach-ry", `${ry.toFixed(2)}deg`);
-        // Foil sweep position — mirrors the rainbow band along
-        // the cursor's horizontal vector. Clamps to 20-80% so the
-        // band never disappears off-tile.
-        const fpRaw = 50 + (dx / saturate) * 30;
-        tile.style.setProperty(
-          "--libre-ach-foil",
-          `${Math.max(20, Math.min(80, fpRaw)).toFixed(1)}%`,
-        );
-      });
-    };
-    const onMove = (e: MouseEvent) => {
-      last = { x: e.clientX, y: e.clientY };
-      if (frameId == null) frameId = requestAnimationFrame(apply);
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      if (frameId != null) cancelAnimationFrame(frameId);
-    };
-  }, []);
+  // The page-level mouse tracker that tilted every tile toward the
+  // cursor (and slid the holographic foil band with it) was removed
+  // in the 2026-06 cleanup — tiles render statically now; the
+  // unlocked-tile foil treatment itself lives entirely in CSS.
 
   return (
-    <div className="libre-ach-page" ref={pageRef}>
+    <div className="libre-ach-page">
       <div className="libre-ach-page__inner">
       <header className="libre-ach-page__head">
         <div className="libre-ach-page__head-row">

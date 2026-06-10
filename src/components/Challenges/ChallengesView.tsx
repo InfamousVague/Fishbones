@@ -1,20 +1,9 @@
-/// Tracks — curated linear learning paths, rendered as a 3D
-/// hyper-scroll surface.
+/// Challenges — every installed challenge pack rendered as a flat,
+/// scannable card grid with search.
 ///
-/// The visual is a stack of cards arranged along the camera's
-/// Z axis. Wheeling the surface drives a smoothed scroll value;
-/// each card's Z is `(baseZ + scroll)` so cards visually fly past
-/// the camera as the learner scrolls. Mouse position parallax-
-/// tilts the world. Velocity drives a dynamic perspective (FOV)
-/// warp so fast scrolls "warp" through the field and slow scrolls
-/// read as gentle drift.
-///
-/// Why hand-rolled instead of a smooth-scroll library: this
-/// surface is a single screen with its own scroll pseudo-axis
-/// (wheel events instead of the page scrollbar), the math is
-/// trivial (lerp + delta), and adding a dep for one component
-/// felt wrong. The rAF loop runs only while the surface is
-/// mounted + visible.
+/// The 3D "hyper-scroll" fly-through intro that used to precede the
+/// grid was retired in the 2026-06 cleanup — the page now just shows
+/// the challenges.
 ///
 /// Trees were retired in the 2026-05 redesign; tracks are now
 /// the sole "outcome-driven sequence" surface. The underlying
@@ -25,10 +14,8 @@
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
-  type MutableRefObject,
 } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
@@ -48,7 +35,6 @@ import {
   trackProgressPercent,
   type LearningTrack,
 } from "../../data/tracks";
-import { useSessionStorageState } from "../../hooks/useLocalStorageState";
 import { useT } from "../../i18n/i18n";
 import "./ChallengesView.css";
 
@@ -157,32 +143,11 @@ function firstIncompleteLesson(
   return null;
 }
 
-/// View modes for the Tracks page.
-///   - "hyper" — the 3D fly-through carousel. Default on first
-///     visit to Tracks after an app launch; the dramatic intro to
-///     the surface.
-///   - "grid"  — flat CSS-grid of cards. Faster to scan once the
-///     learner has finished the tour. Activated automatically
-///     when the learner scrolls to the END of the hyper view
-///     (we treat that as "you've seen the catalogue, here's the
-///     scannable layout"). Persisted in **sessionStorage** so the
-///     "I've already seen the intro" state survives in-session
-///     navigations (Tracks → Library → Tracks stays in grid) but
-///     resets on every app launch — so a cold restart replays the
-///     hyper intro the next time the learner clicks Tracks.
-///
-/// Within a session the transition is one-way (no in-app toggle
-/// back to hyper). A cold app restart is the natural reset point;
-/// previous builds persisted to localStorage which made the intro
-/// a strict one-time-ever moment, but the wow-factor is more fun
-/// when it replays per launch.
-type TracksMode = "hyper" | "grid";
-const TRACKS_MODE_KEY = "libre:tracks-mode";
-/// Legacy localStorage key from when the mode was persisted
-/// permanently. Cleaned up on mount so users who already had
-/// "grid" written there don't keep skipping the hyper intro after
-/// the switch to sessionStorage.
-const LEGACY_TRACKS_MODE_KEY = "libre:tracks-mode";
+/// Storage key from the retired hyper-scroll intro (the 3D
+/// fly-through that used to precede the grid). The page is
+/// grid-only now; the key is cleaned out of both storages on
+/// mount so old sessions don't carry a stale value around.
+const RETIRED_TRACKS_MODE_KEY = "libre:tracks-mode";
 
 interface Props {
   courses: readonly Course[];
@@ -203,115 +168,6 @@ interface Props {
   onResetCourse?: (courseId: string) => void;
 }
 
-/// Viewport-width thresholds for the responsive column tier.
-///   - >= WIDE_BREAKPOINT_PX  → 3 columns (the default density;
-///     three 266px cards + two ~34px gaps need ~866px of carousel
-///     viewport, so we wait until the window itself has ~1300px
-///     before committing to 3-up so the sidebar + nav rail haven't
-///     eaten our content area).
-///   - >= NARROW_BREAKPOINT_PX → 2 columns (mid-range laptops).
-///   - below                  → 1 column (tablets / sidebar-collapsed
-///     narrow shells reverts to the original single-file fly-through).
-const WIDE_BREAKPOINT_PX = 1300;
-const NARROW_BREAKPOINT_PX = 900;
-
-/// Compute the active column count for the current viewport. Used
-/// by both the maxScroll calculation (row-count → scrollable
-/// distance) AND the per-frame card-position math. SSR-safe via
-/// the `typeof window` guard.
-function activeCardsPerRow(): number {
-  if (typeof window === "undefined") return 3;
-  if (window.innerWidth >= WIDE_BREAKPOINT_PX) return 3;
-  if (window.innerWidth >= NARROW_BREAKPOINT_PX) return 2;
-  return 1;
-}
-
-/// Horizontal centre-to-centre distance between adjacent cards
-/// within a row. Card width is 266px (see ChallengesView.css). 300
-/// leaves a ~34px gap between neighbours so adjacent cards don't
-/// feel glued together. Ignored when `activeCardsPerRow() === 1`
-/// (single-column layout puts every card on the world's X
-/// origin).
-const X_SPACING = 300;
-
-/// Z-distance between adjacent ROWS in the 3D stack. Bigger
-/// values spread the rows further apart along the camera axis
-/// (more "fly-through" feel); smaller values pack them tighter.
-/// Dropped from the pre-grid 700px → 500px because rows now
-/// contain 3 cards each — each row is "denser" visually, so a
-/// shorter Z gap still feels cinematic without burying rows
-/// behind their neighbours' depth blur.
-const Z_GAP = 500;
-
-/// Per-card jitter amounts — applied on top of the grid position
-/// to break the rigid column/row pattern into a scattered, more
-/// abstract field. Each value is the maximum +/- the per-card
-/// hash can pull a coordinate by. Jitter is deterministic
-/// (hashed from card idx) so a given card lives at the same
-/// scattered position every render — there's no per-frame
-/// twitch, just a stable scatter that reads as "thrown" rather
-/// than "gridded."
-///
-/// JITTER_X — ±90px lets cards in adjacent columns visibly
-///   overlap, so when you fly through a row you see cards
-///   peek out from behind their neighbours rather than seeing
-///   a tidy comb of three.
-/// JITTER_Y — ±90px varies vertical heights so a row isn't a
-///   ruler-flat line; some cards sit higher in the viewport,
-///   some lower, simulating "thrown" placement.
-/// JITTER_Z — ±200px (40% of Z_GAP) pulls cards forward / back
-///   from their row's natural Z plane, so cards from one row
-///   can sit IN FRONT of cards from the next row — that's what
-///   produces the "see cards behind others" effect during a
-///   scroll-through.
-/// JITTER_ROT — ±2.5deg adds a static skew on top of the per-
-///   frame sine-wave wobble so cards don't all share a single
-///   "upright" baseline.
-const JITTER_X = 90;
-const JITTER_Y = 90;
-const JITTER_Z = 200;
-const JITTER_ROT = 2.5;
-
-/// Deterministic 0..1 hash from (idx, seed) — FNV-1a flavored.
-/// Stable across frames so a card's jitter doesn't twitch; cheap
-/// enough to call several times per card per frame.
-function hash01(idx: number, seed: number): number {
-  let h = (0x811c9dc5 ^ seed) >>> 0;
-  h = Math.imul(h ^ idx, 0x01000193) >>> 0;
-  h = Math.imul(h ^ (idx >>> 8), 0x01000193) >>> 0;
-  h = Math.imul(h ^ ((seed << 13) ^ idx), 0x01000193) >>> 0;
-  return ((h >>> 0) % 100000) / 100000;
-}
-
-/// Same hash mapped to -1..1 so the caller can multiply by a
-/// jitter magnitude to get a signed offset.
-function hashSigned(idx: number, seed: number): number {
-  return hash01(idx, seed) * 2 - 1;
-}
-
-/// Scroll-position → camera-Z multiplier. Higher = scrolling
-/// covers more Z distance per wheel-tick. 1.4 felt natural with
-/// a Magic Mouse / trackpad; 1.0 felt sluggish.
-const CAM_SPEED = 1.4;
-
-/// Lerp weight for the smooth-scroll. Lower = heavier / more
-/// inertia (Lenis defaults to 0.1). 0.08 matches the demo's
-/// "heavy feel" — wheel events queue up and ease in over ~150ms.
-const SCROLL_LERP = 0.08;
-
-/// Fade-in distance: cards fully transparent further than
-/// `FADE_IN_FAR` behind the camera, opacity ramps to 1 by
-/// `FADE_IN_NEAR`. Keeps the far horizon clean instead of
-/// painting hundreds of stacked invisible cards.
-const FADE_IN_FAR = -2400;
-const FADE_IN_NEAR = -1600;
-
-/// Fade-out: cards past the camera (positive Z) fade out
-/// before disappearing. The gap between 80 and 320 lets the
-/// learner see a card start to pass them before it dissolves —
-/// reads as natural depth perception.
-const FADE_OUT_NEAR = 80;
-const FADE_OUT_FAR = 320;
 
 export default function ChallengesView({
   courses,
@@ -375,31 +231,13 @@ export default function ChallengesView({
       }
     : undefined;
 
-  // Tracks-page mode, persisted to sessionStorage so the
-  // "you've already seen the intro" state survives in-session
-  // navigations but resets on every cold launch — the next time
-  // the learner opens the app and clicks Tracks, the hyper-scroll
-  // intro replays. Default "hyper" for fresh sessions; flips to
-  // "grid" once the learner scrolls past the last hyper card.
-  // The hook handles SSR / private-mode reads safely.
-  const [mode, setMode] = useSessionStorageState<TracksMode>(
-    TRACKS_MODE_KEY,
-    "hyper",
-    {
-      serialize: (v) => v,
-      deserialize: (raw) => (raw === "grid" ? "grid" : "hyper"),
-    },
-  );
-
-  // One-shot cleanup of the legacy localStorage key. Users who
-  // ran an older build had `libre:tracks-mode = "grid"` written
-  // to localStorage permanently — leaving that around would do
-  // nothing on its own (we read sessionStorage now), but kicking
-  // it out keeps the user's storage tidy and prevents confusion
-  // if some future migration tries to read the same key.
+  // One-shot cleanup of the retired hyper-intro mode key (older
+  // builds wrote localStorage, newer ones sessionStorage).
+  // Harmless when absent.
   useEffect(() => {
     try {
-      localStorage.removeItem(LEGACY_TRACKS_MODE_KEY);
+      localStorage.removeItem(RETIRED_TRACKS_MODE_KEY);
+      sessionStorage.removeItem(RETIRED_TRACKS_MODE_KEY);
     } catch {
       /* private-browsing — no-op */
     }
@@ -563,144 +401,22 @@ export default function ChallengesView({
     if (next) onOpenLesson(next.courseId, next.lessonId);
   };
 
-  // The end-of-hyper handoff: when the hyper-scroll reports the
-  // learner has reached its last card, flip to grid permanently.
-  // Wrapped in a guard so the handler is a no-op if we somehow
-  // get repeat fires from the rAF loop — `setMode` is idempotent
-  // either way, but skipping the localStorage write on no-ops
-  // is cheaper.
-  const handleReachedEnd = () => {
-    if (mode !== "grid") setMode("grid");
-  };
-
-  // Outer container ref — the hyper-scroll's rAF loop writes a
-  // `--tracks-end-progress` CSS variable here every frame (0..1
-  // based on how close to the last row the camera has flown).
-  // CSS uses that variable to fade the grid overlay in as the
-  // learner approaches 100% scroll, instead of the previous
-  // hard switch that snapped the hyper view out and the grid
-  // in at the moment the end fired.
-  const rootRef = useRef<HTMLDivElement | null>(null);
-
-  // Curated card set for the hyper intro: interleaves Exercism
-  // tracks with *lings, koans, and in-house challenge packs so the
-  // fly-through alternates between the four catalogues instead of
-  // leading with an all-Exercism block. Cap at 7 cards (Notion
-  // follow-up "only show about 7 total challenges so we scroll
-  // through faster"). The grid mode underneath still receives the
-  // full `visibleTracks` list, so the cap only narrows the intro.
-  //
-  // Algorithm:
-  //   1. Split `visibleTracks` into exercism / lings / koans /
-  //      in-house buckets, preserving the source sort within each.
-  //   2. Round-robin draw — track, ling, koan, challenge — until
-  //      any bucket runs out, then drain the remainders in the
-  //      same order.
-  //   3. Slice to HYPER_CAP.
-  const HYPER_CAP = 7;
-  const hyperTracks = useMemo<readonly LearningTrack[]>(() => {
-    const ex: LearningTrack[] = [];
-    const li: LearningTrack[] = [];
-    const ko: LearningTrack[] = [];
-    const ch: LearningTrack[] = [];
-    for (const t of visibleTracks) {
-      const kind = trackKindById.get(t.id);
-      if (kind === "track") ex.push(t);
-      else if (kind === "lings") li.push(t);
-      else if (kind === "koans") ko.push(t);
-      else if (kind === "challenges") ch.push(t);
-    }
-    const mixed: LearningTrack[] = [];
-    let ei = 0;
-    let li_i = 0;
-    let ki = 0;
-    let ci = 0;
-    while (
-      mixed.length < HYPER_CAP &&
-      (ei < ex.length ||
-        li_i < li.length ||
-        ki < ko.length ||
-        ci < ch.length)
-    ) {
-      if (ei < ex.length) mixed.push(ex[ei++]);
-      if (mixed.length >= HYPER_CAP) break;
-      if (li_i < li.length) mixed.push(li[li_i++]);
-      if (mixed.length >= HYPER_CAP) break;
-      if (ki < ko.length) mixed.push(ko[ki++]);
-      if (mixed.length >= HYPER_CAP) break;
-      if (ci < ch.length) mixed.push(ch[ci++]);
-    }
-    return mixed;
-  }, [visibleTracks, trackKindById]);
-
   return (
-    <div ref={rootRef} className={`libre-challenges libre-challenges--${mode}`}>
-      <TracksHeader query={query} onQueryChange={setQuery} mode={mode} />
-      {/* Content wrapper — flex: 1 + position: relative so the
-          grid overlay can absolutely position over JUST the
-          hyper viewport area (excluding the header) and the
-          inner grid-wrap's `flex: 1` resolves against a flex
-          parent. Without this wrapper, the overlay covered the
-          header AND the grid-wrap had no flex context, so the
-          grid stretched to its natural content height and
-          appeared zoomed-in / clipped. */}
+    <div className="libre-challenges libre-challenges--grid">
+      <TracksHeader query={query} onQueryChange={setQuery} />
+      {/* Content wrapper — flex: 1 so the inner grid-wrap's
+          `flex: 1` resolves against a flex parent. Without it the
+          grid stretched to its natural content height and appeared
+          zoomed-in / clipped. */}
       <div className="libre-challenges__content">
-        {mode === "hyper" ? (
-          <>
-            <TracksHyperScroll
-              // Mixed + capped curated set — see the `hyperTracks`
-              // memo above. Interleaves Exercism with in-house
-              // challenges so the fly-through alternates instead
-              // of leading with one bucket, and caps at 7 so the
-              // intro scrolls past quickly.
-              tracks={hyperTracks}
-              completed={completed}
-              onOpenTrack={handleOpenPack}
-              onReachedEnd={handleReachedEnd}
-              progressTargetRef={rootRef}
-              progressOverrides={packProgress}
-              onContextMenuTrack={openPackMenu}
-            />
-            {/* "Keep scrolling" overlay — fades in over the tail
-                of the hyper carousel via the `--tracks-end-progress`
-                CSS variable the hyper-scroll writes on the rootRef
-                each frame. Sits above the cards but below the grid
-                overlay, pointer-events: none so it doesn't
-                intercept the scroll wheel that's driving its own
-                appearance. Only renders when the hyper view is
-                showing a subset of the full catalogue (the cap
-                kicked in). */}
-            {visibleTracks.length > hyperTracks.length && (
-              <div className="libre-challenges__scroll-hint" aria-hidden>
-                Keep scrolling →
-              </div>
-            )}
-            {/* Grid overlay — rendered concurrently with the
-                hyper view during the final stretch of scroll so
-                the two layers can crossfade. Pointer-events are
-                gated by CSS so the overlay only accepts clicks
-                once it's fully opaque (mode flips to "grid" at
-                end-reached and the hyper view unmounts). */}
-            <div className="libre-challenges__grid-overlay" aria-hidden>
-              <ChallengesGrid
-                tracks={visibleTracks}
-                completed={completed}
-                onOpenTrack={handleOpenPack}
-                progressOverrides={packProgress}
-                onContextMenuTrack={openPackMenu}
-              />
-            </div>
-          </>
-        ) : (
-          <ChallengesGrid
-            tracks={visibleTracks}
-            completed={completed}
-            onOpenTrack={handleOpenPack}
-            progressOverrides={packProgress}
-            kindByTrackId={trackKindById}
-            onContextMenuTrack={openPackMenu}
-          />
-        )}
+        <ChallengesGrid
+          tracks={visibleTracks}
+          completed={completed}
+          onOpenTrack={handleOpenPack}
+          progressOverrides={packProgress}
+          kindByTrackId={trackKindById}
+          onContextMenuTrack={openPackMenu}
+        />
       </div>
 
       {/* Pack-card right-click menu. Reuses the Sidebar's
@@ -738,30 +454,22 @@ export default function ChallengesView({
   );
 }
 
-/// Top strip: title + blurb + search input. Sits above the
-/// scroll surface so it stays readable as cards fly past
-/// behind it (hyper mode) or above the card grid (grid mode).
+/// Top strip: title + blurb + search input above the card grid.
 /// The search input is the only interactive element up here —
-/// the title block is decorative. Blurb copy adapts per mode
-/// so the hyper-mode prose ("scroll the catalogue") doesn't
-/// confuse a grid-mode visitor who isn't seeing a scroll.
+/// the title block is decorative.
 function TracksHeader({
   query,
   onQueryChange,
-  mode,
 }: {
   query: string;
   onQueryChange: (q: string) => void;
-  mode: TracksMode;
 }) {
   const t = useT();
   return (
     <header className="libre-challenges__header">
       <div className="libre-challenges__header-text">
         <h1 className="libre-challenges__title">{t("challenges.title")}</h1>
-        <p className="libre-challenges__blurb">
-          {mode === "hyper" ? t("challenges.blurbHyper") : t("challenges.blurbGrid")}
-        </p>
+        <p className="libre-challenges__blurb">{t("challenges.blurbGrid")}</p>
       </div>
       <div className="libre-challenges__search">
         <input
@@ -784,392 +492,6 @@ function TracksHeader({
         )}
       </div>
     </header>
-  );
-}
-
-/// 3D scroll surface. Owns the rAF loop, the wheel listener,
-/// the mouse-parallax listener, and the per-frame transform
-/// writes against each card's DOM node. Fires `onReachedEnd`
-/// once when the smoothed scroll converges to the last row —
-/// the App promotes the page to grid mode in response, which
-/// unmounts this component.
-function TracksHyperScroll({
-  tracks,
-  completed,
-  onOpenTrack,
-  onReachedEnd,
-  progressTargetRef,
-  progressOverrides,
-  onContextMenuTrack,
-}: {
-  tracks: readonly LearningTrack[];
-  completed: Set<string>;
-  onOpenTrack: (id: string) => void;
-  onReachedEnd: () => void;
-  /// Element to receive the per-frame `--tracks-end-progress`
-  /// CSS variable (0..1 = fraction of maxScroll covered). The
-  /// parent uses this to fade in a grid overlay as the learner
-  /// approaches the end of the carousel, without any React
-  /// state updates per frame. Optional — when absent, the rAF
-  /// loop just skips the variable write.
-  progressTargetRef?: MutableRefObject<HTMLElement | null>;
-  /// Per-card progress overrides keyed by `track.id` (0..1).
-  /// Used for challenge packs, whose synthetic LearningTrack
-  /// has an empty `steps` array — `trackProgressPercent` would
-  /// always return 0 because the tree-walker has no steps to
-  /// resolve. When this map provides a value for a card's id,
-  /// the card displays that progress instead of running the
-  /// tree-walk fallback.
-  progressOverrides?: ReadonlyMap<string, number>;
-  /// Right-click on a card → host opens the pack-actions menu at
-  /// the cursor. Optional; when absent the card is plain
-  /// click-to-open with no menu.
-  onContextMenuTrack?: (courseId: string, e: React.MouseEvent) => void;
-}) {
-  // Capture latest `onReachedEnd` in a ref so the rAF effect
-  // below doesn't rebuild every render. The handler closes over
-  // App's `setMode`, which is stable, but defensive against
-  // future inlined callbacks.
-  const onReachedEndRef = useRef(onReachedEnd);
-  useEffect(() => {
-    onReachedEndRef.current = onReachedEnd;
-  }, [onReachedEnd]);
-  // One-shot latch — once we've fired the end handoff, don't
-  // fire again. Without this the smooth-scroll's residual
-  // oscillation around `maxScroll` (lerp can take a few extra
-  // frames to settle exactly) would call the handler multiple
-  // times, triggering `setMode` repeatedly and burning state
-  // updates.
-  const reachedEndOnceRef = useRef(false);
-  // Physics state — refs (not state) so the rAF loop doesn't
-  // re-render every frame.
-  const targetScroll = useRef(0); // accumulates wheel deltas
-  const smoothScroll = useRef(0); // lerped toward target
-  const velocity = useRef(0); // signed delta per frame
-  const mouseX = useRef(0); // -1..1 from screen center
-  const mouseY = useRef(0); // -1..1
-
-  // HUD readout — only piece of state we actually re-render
-  // (and only at ~10Hz; otherwise the React tree thrashes).
-  const [velReadout, setVelReadout] = useState(0);
-  const [posReadout, setPosReadout] = useState(0);
-
-  // DOM refs for the elements we mutate in rAF.
-  const viewportRef = useRef<HTMLDivElement | null>(null);
-  const worldRef = useRef<HTMLDivElement | null>(null);
-  // Map<trackId, HTMLElement> so we can apply per-card
-  // transforms without iterating world.children (which would
-  // include any pseudo elements / future siblings).
-  const cardRefs = useRef(new Map<string, HTMLElement>());
-
-  // Responsive column count. State so the rAF effect re-runs when
-  // the viewport crosses the breakpoint (the effect closes over
-  // `cardsPerRow`, so re-creating it picks up the new layout
-  // without having to bust + rebuild every per-frame closure
-  // manually). Initialised from the current viewport so the FIRST
-  // render places cards correctly — without the initial read the
-  // hyper view would paint at the default (2-col) for one frame
-  // before the resize handler kicked in.
-  const [cardsPerRow, setCardsPerRow] = useState<number>(() =>
-    activeCardsPerRow(),
-  );
-  useEffect(() => {
-    const onResize = () => {
-      const next = activeCardsPerRow();
-      // `setCardsPerRow` short-circuits when value unchanged, so
-      // we can call it on every resize without thrashing renders.
-      setCardsPerRow(next);
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  const trackCount = tracks.length;
-  // Total scrollable Z distance. Add 600px tail so the LAST
-  // card can fly past the camera before scroll clamps; without
-  // it the user can't see the final card in its pass-through
-  // position.
-  // Scroll bounds are driven by the ROW count (not the card
-  // count) — `ceil(trackCount / cardsPerRow)` rounds a partial
-  // last row up to a full one so the scroll still terminates
-  // cleanly past the bottom row even when trackCount isn't
-  // divisible by `cardsPerRow`.
-  const rowCount = Math.ceil(trackCount / cardsPerRow);
-  // Tail buffer extended from 600 → 800 to cover the worst-case
-  // Z-jittered card: a card whose per-card hash pushes it
-  // JITTER_Z further back than its row's natural Z needs
-  // ~JITTER_Z / CAM_SPEED extra scroll to fly past the camera.
-  // 800 covers that comfortably without leaving an awkward
-  // dead-air stretch at the end.
-  const maxScroll = Math.max(0, (rowCount - 1) * (Z_GAP / CAM_SPEED) + 800);
-
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    const world = worldRef.current;
-    if (!viewport || !world) return;
-
-    let raf = 0;
-    let mounted = true;
-
-    // Wheel handler — accumulate deltaY into target scroll,
-    // clamped to [0, maxScroll] so the user can't scroll past
-    // the start or end. preventDefault stops the parent page
-    // from also scrolling.
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      targetScroll.current = Math.max(
-        0,
-        Math.min(maxScroll, targetScroll.current + e.deltaY),
-      );
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      // Normalise to -1..1 from the viewport center. We use
-      // the viewport bounding rect (not window) so parallax
-      // stays calibrated when the sidebar collapses + the
-      // surface re-flows wider.
-      const rect = viewport.getBoundingClientRect();
-      mouseX.current = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      mouseY.current = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-    };
-
-    // Reset parallax when the cursor leaves the surface so
-    // the world doesn't lock at the last seen tilt.
-    const onMouseLeave = () => {
-      mouseX.current = 0;
-      mouseY.current = 0;
-    };
-
-    let hudTick = 0;
-
-    const tick = (time: number) => {
-      if (!mounted) return;
-
-      // 1. Lerp the smoothed scroll toward the target, then
-      //    derive velocity from the per-frame delta. Higher
-      //    SCROLL_LERP = snappier; lower = heavier inertia.
-      const prevSmooth = smoothScroll.current;
-      smoothScroll.current += (targetScroll.current - prevSmooth) * SCROLL_LERP;
-      velocity.current = smoothScroll.current - prevSmooth;
-
-      // Per-frame end-of-scroll progress. Written as a CSS
-      // variable on the parent so the grid-overlay can fade in
-      // via pure CSS without React re-renders. `maxScroll` can
-      // be 0 in pathological cases (zero tracks, search filter
-      // emptied the list); guard against the divide-by-zero so
-      // the variable stays well-formed.
-      if (progressTargetRef?.current) {
-        const progress =
-          maxScroll > 0
-            ? Math.min(1, Math.max(0, smoothScroll.current / maxScroll))
-            : 0;
-        progressTargetRef.current.style.setProperty(
-          "--tracks-end-progress",
-          progress.toFixed(3),
-        );
-      }
-
-      // 2. Camera tilt — combines mouse parallax (so the
-      //    world leans slightly toward the cursor) with a
-      //    scroll-velocity pitch (the world tilts forward
-      //    when the learner accelerates). Multipliers are
-      //    small (single-digit degrees) so the effect reads
-      //    as "alive" rather than "drunk."
-      const tiltX = mouseY.current * 4 - velocity.current * 0.08;
-      const tiltY = mouseX.current * 4;
-      world.style.transform = `rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg)`;
-
-      // 3. Dynamic perspective — narrower FOV when scrolling
-      //    fast creates a "warp through hyperspace" effect.
-      //    Clamped so a very long flick doesn't collapse the
-      //    FOV to zero (which would render everything at
-      //    infinite z and break the scene).
-      const speed = Math.abs(velocity.current);
-      const fov = 1400 - Math.min(speed * 5, 700);
-      viewport.style.perspective = `${fov.toFixed(0)}px`;
-
-      // 4. Per-card transforms. cameraZ is the scroll position
-      //    in Z space; each card's vizZ is (baseZ + cameraZ).
-      //    Cards far behind the camera or past it fade out;
-      //    the opacity logic is cheap arithmetic so it can
-      //    run every frame against every card.
-      const cameraZ = smoothScroll.current * CAM_SPEED;
-      const t = time * 0.001;
-      cardRefs.current.forEach((el) => {
-        const idx = Number(el.dataset.idx ?? 0);
-        // Deterministic per-card jitter — same hash inputs always
-        // produce the same offset, so cards stay anchored at their
-        // "thrown" position from frame to frame instead of dancing.
-        // Four independent seeds keep X / Y / Z / rotation
-        // uncorrelated so the scatter doesn't fall into a visible
-        // axis-aligned pattern.
-        const jx = hashSigned(idx, 1) * JITTER_X;
-        const jy = hashSigned(idx, 2) * JITTER_Y;
-        const jz = hashSigned(idx, 3) * JITTER_Z;
-        const jrot = hashSigned(idx, 4) * JITTER_ROT;
-
-        // Grid scaffold: column drives X, row drives Z. The
-        // scatter on top of this scaffold means cards from the
-        // same row no longer sit on a perfect line, and a card
-        // from row N+1 can come forward to sit IN FRONT of a row
-        // N card thanks to the Z jitter — which is what gives the
-        // surface its "see cards peeking out from behind others"
-        // feel during the scroll.
-        const col = idx % cardsPerRow;
-        const row = Math.floor(idx / cardsPerRow);
-        const baseZ = -row * Z_GAP + jz;
-        const vizZ = baseZ + cameraZ;
-
-        // Opacity: fade in from far, fade out as it passes
-        // the camera.
-        let alpha = 1;
-        if (vizZ < FADE_IN_NEAR) {
-          alpha = Math.max(
-            0,
-            (vizZ - FADE_IN_FAR) / (FADE_IN_NEAR - FADE_IN_FAR),
-          );
-        } else if (vizZ > FADE_OUT_NEAR) {
-          alpha = Math.max(
-            0,
-            1 - (vizZ - FADE_OUT_NEAR) / (FADE_OUT_FAR - FADE_OUT_NEAR),
-          );
-        }
-
-        // Skip layout work for fully-transparent cards —
-        // skipping cuts the per-frame cost when the
-        // catalogue is large.
-        if (alpha <= 0.001) {
-          if (el.style.opacity !== "0") el.style.opacity = "0";
-          return;
-        }
-
-        // X position: column-anchored, then scattered by the
-        // per-card jitter so adjacent columns visibly overlap
-        // instead of sitting in three tidy stripes.
-        const xOffset = (col - (cardsPerRow - 1) / 2) * X_SPACING + jx;
-
-        // Gentle idle float — sine wave over time, phased by
-        // both row AND column so cards in the same row aren't
-        // bobbing in lockstep (which would have read as a
-        // single rigid line moving). Velocity dampens the float
-        // when scrolling fast so the cards don't also bob,
-        // which would feel chaotic.
-        const floatDamp = Math.max(0, 1 - speed * 0.02);
-        const phase = row * 0.5 + col * 0.9 + hash01(idx, 5) * 6.28;
-        const yFloat = Math.sin(t + phase) * 8 * floatDamp;
-        const rotZ = Math.sin(t * 0.7 + phase) * 1.5 * floatDamp;
-
-        // Final Y combines the gentle per-frame float with the
-        // static per-card jitter; final rotation likewise
-        // combines the slow sine-wobble with the static skew.
-        const finalY = yFloat + jy;
-        const finalRot = rotZ + jrot;
-
-        el.style.opacity = alpha.toFixed(3);
-        el.style.transform = `translate3d(${xOffset.toFixed(2)}px, ${finalY.toFixed(2)}px, ${vizZ.toFixed(2)}px) rotateZ(${finalRot.toFixed(2)}deg)`;
-      });
-
-      // 5. HUD readouts — update every ~6 frames so the
-      //    digits don't jitter at 60fps. The HUD itself is
-      //    decorative; an out-of-date by one frame value is
-      //    fine.
-      hudTick += 1;
-      if (hudTick % 6 === 0) {
-        setVelReadout(Math.abs(velocity.current));
-        setPosReadout(
-          maxScroll > 0
-            ? Math.round((smoothScroll.current / maxScroll) * 100)
-            : 0,
-        );
-      }
-
-      // 6. End-of-tour detection. When the smooth scroll has
-      //    converged to within 2px of `maxScroll` AND the user
-      //    has actually scrolled (targetScroll > 0 — guards
-      //    the trivial "catalogue is one screen tall" case),
-      //    fire `onReachedEnd` exactly once via the latch.
-      //    The ChallengesView parent flips mode → "grid" in
-      //    response, which unmounts this surface entirely —
-      //    so we don't need to worry about cleanup.
-      if (
-        !reachedEndOnceRef.current &&
-        maxScroll > 0 &&
-        targetScroll.current > 0 &&
-        smoothScroll.current >= maxScroll - 2
-      ) {
-        reachedEndOnceRef.current = true;
-        onReachedEndRef.current();
-      }
-
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    viewport.addEventListener("wheel", onWheel, { passive: false });
-    viewport.addEventListener("mousemove", onMouseMove);
-    viewport.addEventListener("mouseleave", onMouseLeave);
-
-    return () => {
-      mounted = false;
-      cancelAnimationFrame(raf);
-      viewport.removeEventListener("wheel", onWheel);
-      viewport.removeEventListener("mousemove", onMouseMove);
-      viewport.removeEventListener("mouseleave", onMouseLeave);
-    };
-    // `cardsPerRow` is captured in the closure above (drives the
-    // per-frame col / row math). Listing it explicitly here keeps
-    // the effect honest in case a future refactor breaks the
-    // assumption that `maxScroll` always changes when
-    // `cardsPerRow` does.
-  }, [maxScroll, cardsPerRow]);
-
-  // Clamp targetScroll back into range when the visible set
-  // changes shape (a long search-filtered list scrolled to the
-  // end, then cleared, would otherwise leave the camera
-  // floating past the new last card).
-  useEffect(() => {
-    if (targetScroll.current > maxScroll) {
-      targetScroll.current = maxScroll;
-    }
-  }, [maxScroll]);
-
-  if (trackCount === 0) {
-    return (
-      <div className="libre-challenges__empty">
-        <p>No tracks match this search.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={viewportRef} className="libre-challenges__viewport">
-      <div ref={worldRef} className="libre-challenges__world">
-        {tracks.map((track, idx) => (
-          <HyperCard
-            key={track.id}
-            track={track}
-            index={idx}
-            completed={completed}
-            onOpen={() => onOpenTrack(track.id)}
-            onContextMenu={
-              onContextMenuTrack
-                ? (e) => onContextMenuTrack(track.id, e)
-                : undefined
-            }
-            progressOverride={progressOverrides?.get(track.id)}
-            registerRef={(el) => {
-              if (el) cardRefs.current.set(track.id, el);
-              else cardRefs.current.delete(track.id);
-            }}
-          />
-        ))}
-      </div>
-      <TracksHud
-        velocity={velReadout}
-        positionPct={posReadout}
-        smoothScroll={smoothScroll}
-      />
-    </div>
   );
 }
 
@@ -1266,52 +588,6 @@ function TrackCardBody({
   );
 }
 
-/// Hyper-mode card wrapper. The slot div is the 3D-positioned
-/// element the rAF loop writes transforms onto; the inner
-/// `TrackCardBody` is the visual. Splitting these lets grid
-/// mode reuse the body without the slot.
-function HyperCard({
-  track,
-  index,
-  completed,
-  onOpen,
-  onContextMenu,
-  registerRef,
-  progressOverride,
-}: {
-  track: LearningTrack;
-  index: number;
-  completed: Set<string>;
-  onOpen: () => void;
-  /// Right-click → host opens its pack-actions menu. Forwarded
-  /// straight through to TrackCardBody.
-  onContextMenu?: (e: React.MouseEvent) => void;
-  registerRef: (el: HTMLElement | null) => void;
-  /// 0..1 progress fraction for this card, when the surrounding
-  /// renderer already knows the answer (e.g., challenge packs).
-  /// Forwarded to TrackCardBody where it short-circuits the tree-
-  /// walk that would otherwise read 0 for synthetic tracks.
-  progressOverride?: number;
-}) {
-  return (
-    <div
-      className="libre-challenges__card-slot"
-      data-idx={index}
-      ref={registerRef}
-    >
-      <TrackCardBody
-        track={track}
-        index={index}
-        completed={completed}
-        onOpen={onOpen}
-        onContextMenu={onContextMenu}
-        variant="hyper"
-        progressOverride={progressOverride}
-      />
-    </div>
-  );
-}
-
 /// Grid mode — a CSS grid of TrackCardBodys. No physics, no rAF
 /// loop, no perspective. Renders once the learner has finished
 /// the hyper tour (or on subsequent loads after the
@@ -1346,8 +622,7 @@ function ChallengesGrid({
   /// the cursor. Optional; when absent the cards are plain
   /// click-to-open with no menu.
   onContextMenuTrack?: (courseId: string, e: React.MouseEvent) => void;
-  /// Per-card progress overrides keyed by `track.id` (0..1).
-  /// See TracksHyperScroll's prop docstring for the rationale —
+  /// Per-card progress overrides keyed by `track.id` (0..1) —
   /// challenge packs ride this rail because their synthetic
   /// LearningTrack has no `steps` for the tree-walker to count.
   progressOverrides?: ReadonlyMap<string, number>;
@@ -1471,42 +746,6 @@ function ChallengesGrid({
           </div>
         </section>
       ))}
-    </div>
-  );
-}
-
-/// Minimal HUD pinned to the bottom-left of the surface. Carries
-/// just enough telemetry to make the physics feel intentional
-/// (scroll position + velocity) without dressing it up as a
-/// sci-fi cockpit. Same monospaced detail font the rest of the
-/// app uses for telemetry-ish text.
-function TracksHud({
-  velocity,
-  positionPct,
-  smoothScroll,
-}: {
-  velocity: number;
-  positionPct: number;
-  // Kept here for callers that might want to render a more
-  // detailed read-out later (raw scroll px). Unused for now —
-  // the percentage display is enough.
-  smoothScroll: MutableRefObject<number>;
-}) {
-  void smoothScroll;
-  return (
-    <div className="libre-challenges__hud" aria-hidden>
-      <span className="libre-challenges__hud-row">
-        <span className="libre-challenges__hud-key">POS</span>
-        <span className="libre-challenges__hud-val">
-          {positionPct.toString().padStart(3, "0")}%
-        </span>
-      </span>
-      <span className="libre-challenges__hud-row">
-        <span className="libre-challenges__hud-key">VEL</span>
-        <span className="libre-challenges__hud-val">
-          {velocity.toFixed(2)}
-        </span>
-      </span>
     </div>
   );
 }
