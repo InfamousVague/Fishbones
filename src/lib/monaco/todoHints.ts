@@ -29,7 +29,12 @@ type Monaco = typeof MonacoNS;
 type ICodeEditor = MonacoNS.editor.IStandaloneCodeEditor;
 type ITextModel = MonacoNS.editor.ITextModel;
 
-const TODO_RE = /\b(TODO|FIXME)\b/;
+/// What counts as a hintable line: TODO/FIXME comment markers
+/// (uppercase — matching lowercase bare "todo" would false-positive
+/// on identifiers like `todoList`), plus Rust's `todo!()` /
+/// `unimplemented!()` placeholder macros, whose trailing bang makes
+/// the lowercase form unambiguous.
+const TODO_RE = /\b(?:TODO|FIXME)\b|\btodo!\s*\(|\bunimplemented!\s*\(/;
 
 /// Endpoint resolution: the configured remote host when the user set
 /// one (Settings → AI host, e.g. a Tailscale box), else the local
