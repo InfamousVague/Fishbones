@@ -432,24 +432,9 @@
   justify-content: center;
 }
 
-/* Ring kept in the DOM as a no-op for backwards compat; the
-   ribbon-snake `libre_loader.png` IS the ring now, so layering a
-   border circle around it would just be visual noise. */
-.libre-output-running-ring {
-  display: none;
-}
-
-.libre-output-running-logo {
-  width: 88px;
-  height: 88px;
-  background: url("/libre_loader.png") no-repeat center / contain;
-  transform-origin: center;
-  /* Spin the ribbon-snake itself for the "running" feel. Slightly
-     brisker than the cold-boot loader so a fast-running test
-     doesn't feel like the spinner is sluggish. */
-  animation: libre-output-spin 1.4s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(243, 114, 57, 0.28));
-}
+/* The ribbon-snake PNG spinner that used to live here was replaced
+   by the interlocking-gears SVG (Shared/GearSpinner) — geometry +
+   motion notes live with that component. */
 
 .libre-output-running-label {
   font-size: 11px;
@@ -457,10 +442,6 @@
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-}
-
-@keyframes libre-output-spin {
-  to { transform: rotate(360deg); }
 }
 
 /* Pulse keyframes retained but unreferenced — the running spinner

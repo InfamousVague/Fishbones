@@ -424,27 +424,13 @@
     drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
 }
 
-/* Cookie-cutter silhouette: fill every shape inside an earned
-   badge's SVG with the current colour. The base Icon primitive
-   sets `fill="none"` as a presentation attribute on the SVG;
-   the CSS rule targeting the child elements wins because their
-   own `fill` is unset. Combined with the bumped stroke-width
-   below + the Icon's own `weight="bold"` (stroke 3), each glyph
-   paints as a single connected blob rather than line art. */
-.libre-cert-ticket__badge svg path,
-.libre-cert-ticket__badge svg circle,
-.libre-cert-ticket__badge svg rect,
-.libre-cert-ticket__badge svg ellipse,
-.libre-cert-ticket__badge svg polygon,
-.libre-cert-ticket__badge svg polyline,
-.libre-cert-ticket__badge svg line {
-  fill: currentColor;
-}
-
+/* Badges render as LINE ART (the Icon primitive's stroke-only
+   default, weight="bold" from the TSX) — the old solid-fill
+   cookie-cutter treatment read as ink blobs; the outline glyphs
+   read as printed sticker icons. */
 .libre-cert-ticket__badge svg {
   width: 100%;
   height: 100%;
-  stroke-width: 4;
 }
 
 /* ─── Stub (right ~29%) ───────────────────────────────────── */

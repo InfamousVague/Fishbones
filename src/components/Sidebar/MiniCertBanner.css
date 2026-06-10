@@ -572,9 +572,8 @@
    sheen + a solid dark-ink icon, lifted PROUD of the surface by a
    soft drop-shadow, with a peeled corner (::after) at a per-
    position corner so the row reads hand-applied rather than
-   printed. The old `fill: currentColor` / stroke rules below still
-   apply — they keep the glyph a solid silhouette, now printed ON
-   the sticker instead of cut out of the page. */
+   printed. The glyph itself stays the Icon primitive's line art
+   (no solid fill) so it reads as a printed sticker icon. */
 .libre-mini-cert__badge--earned {
   color: #161616;
   position: relative;
@@ -693,36 +692,12 @@
   }
 }
 
-/* Cookie-cutter silhouette: fill every shape inside an earned
-   badge's SVG with the current colour AND keep its stroke. The
-   filled paths give the solid silhouette; the strokes thicken
-   any thin features (like the connecting lines on a "key" icon)
-   so they don't render as hairline gaps inside the otherwise-
-   solid shape. The base `Icon` primitive sets `fill="none"` as
-   a presentation attribute on the SVG, but a CSS rule targeting
-   the child elements wins because their own `fill` is unset.
-   This is scoped to `.libre-mini-cert__badge--earned` so the
-   line-art Icon primitive's appearance is preserved everywhere
-   else in the app. */
-.libre-mini-cert__badge--earned svg path,
-.libre-mini-cert__badge--earned svg circle,
-.libre-mini-cert__badge--earned svg rect,
-.libre-mini-cert__badge--earned svg ellipse,
-.libre-mini-cert__badge--earned svg polygon,
-.libre-mini-cert__badge--earned svg polyline,
-.libre-mini-cert__badge--earned svg line {
-  fill: currentColor;
-}
-
-/* Bump the stroke-width on earned badges past the Icon
-   primitive's `weight="bold"` cap (3) so internal details
-   inside the silhouette — page lines on a book, gem facets,
-   etc. — get visually absorbed into the fill instead of
-   reading as inner outlines. With fill on AND a 4px stroke,
-   the shape paints as a single connected blob. */
-.libre-mini-cert__badge--earned svg {
-  stroke-width: 4;
-}
+/* Earned glyphs stay LINE ART (the base Icon primitive's
+   stroke-only rendering, weight="bold" from the TSX) — the old
+   solid `fill: currentColor` cookie-cutter treatment made the
+   chips read as ink blobs rather than printed sticker icons.
+   The crisp dark outline on the white foil chip is the sticker
+   look. */
 
 /* Make the SVG inside each badge fill the cell — Icon size="xs"
    defaults to 12px which is too small for the badge slot (~20px).

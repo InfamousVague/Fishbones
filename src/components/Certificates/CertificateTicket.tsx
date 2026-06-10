@@ -133,9 +133,9 @@ export default function CertificateTicket({ cert, chapters }: Props) {
           <div className="libre-cert-ticket__for">{t("certificates.forCompleting")}</div>
           <div className="libre-cert-ticket__course">{cert.courseTitle}</div>
 
-          {/* Badge punch-hole grid — one solid icon-silhouette per
-              chapter, rotated a few degrees per chapter so the
-              row reads as hand-stamped rather than sticker-sheet.
+          {/* Badge grid — one line-art sticker icon per chapter,
+              rotated a few degrees per chapter so the row reads
+              as hand-applied rather than machine-set.
               The cert is by definition fully earned (no cert is
               minted unless the course is 100% complete), so every
               chapter renders as "earned" — there's no pending

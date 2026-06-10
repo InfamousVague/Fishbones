@@ -2,7 +2,6 @@ import { type ReactNode, type MouseEvent, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { fireHaptic } from "../../lib/haptics";
-import { playSound } from "../../lib/sfx";
 import "./ModalBackdrop.css";
 
 interface Props {
@@ -55,10 +54,6 @@ export default function ModalBackdrop({
   // launch — the throttle in the engine handles repeated mounts.
   useEffect(() => {
     void fireHaptic("impact-light");
-    // Soft panel-open whoosh — quiet on purpose (it fires for every
-    // modal in the app); the per-cue throttle in sfx collapses any
-    // double-mounts.
-    playSound("ui-open", { volume: 0.4 });
   }, []);
 
   const stop = (e: MouseEvent) => {

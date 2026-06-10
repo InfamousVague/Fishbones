@@ -1,0 +1,53 @@
+/* Interlocking-gears spinner — see GearSpinner.tsx for the meshing
+   geometry. The two gears counter-rotate with periods in the exact
+   inverse of their tooth counts (10:7), which is what keeps the
+   teeth visually interleaved frame after frame:
+     gear A: 10 teeth, 5.0s per revolution (clockwise)
+     gear B:  7 teeth, 3.5s per revolution (counter-clockwise)
+   5.0 × 7/10 = 3.5 ✓ */
+
+.libre-gear-spinner {
+  display: block;
+  color: var(--color-text-secondary, rgba(245, 245, 247, 0.7));
+}
+
+.libre-gear-spinner path {
+  fill: currentColor;
+}
+
+/* fill-box + center: rotate each gear around its own bbox centre
+   (made exactly the axle by the invisible bounding circle in the
+   TSX) — NOT the SVG viewBox origin, which is what a bare
+   transform-origin would resolve against for SVG content. */
+.libre-gear-spinner__a,
+.libre-gear-spinner__b {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.libre-gear-spinner__a {
+  animation: libre-gear-cw 5s linear infinite;
+}
+
+.libre-gear-spinner__b {
+  animation: libre-gear-ccw 3.5s linear infinite;
+}
+
+@keyframes libre-gear-cw {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes libre-gear-ccw {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libre-gear-spinner__a,
+  .libre-gear-spinner__b {
+    animation: none;
+  }
+}

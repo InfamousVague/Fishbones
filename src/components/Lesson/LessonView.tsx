@@ -310,10 +310,6 @@ export default function LessonView({
     // even when no subscriber is mounted — the hook no-ops on
     // empty listener sets.
     setRunStatus(true);
-    // Machine-spin-up cue at dispatch — acknowledges the click during
-    // slow toolchain warms (Rust/Go compiles). Quiet so it layers
-    // under the eventual success/nope verdict on fast runs.
-    playSound("boot-up", { volume: 0.5 });
     setResult(null);
     // Auto-pop the phone simulator open on every Run so a closed
     // popout surfaces itself when the user actually has output to

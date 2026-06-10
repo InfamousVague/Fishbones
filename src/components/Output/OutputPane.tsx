@@ -11,6 +11,7 @@ import type { RunResult } from "../../runtimes";
 import { testSourceByName } from "../../lib/parseTestSource";
 import { highlightCode } from "../../lib/highlightCode";
 import ReactNativeDevTools from "./ReactNativeDevTools";
+import GearSpinner from "../Shared/GearSpinner";
 import MissingToolchainBanner from "../banners/MissingToolchain/MissingToolchainBanner";
 import { DesktopUpsellBanner } from "../banners/DesktopUpsell/DesktopUpsellBanner";
 import { useToolchainStatus } from "../../hooks/useToolchainStatus";
@@ -569,14 +570,12 @@ export default function OutputPane({
         )}
 
         {running && (
-          // Big centered spinner with the Libre fish-bone inside. The ring
-          // spins via CSS `@keyframes libre-output-spin`; the fish itself is
-          // theme-tinted (white on dark themes, black on light) via a
-          // background-color + mask trick so we can keep one asset.
+          // Big centered run indicator — two interlocking gears
+          // counter-rotating (GearSpinner), "the machine is working".
+          // currentColor-driven so it follows the theme.
           <div className="libre-output-running" aria-live="polite">
             <div className="libre-output-running-stack" aria-hidden>
-              <div className="libre-output-running-ring" />
-              <div className="libre-output-running-logo" />
+              <GearSpinner size={84} />
             </div>
             <div className="libre-output-running-label">{currentPhase.label}</div>
           </div>
