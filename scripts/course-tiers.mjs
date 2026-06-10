@@ -27,6 +27,11 @@ export const CORE_PACK_IDS = [
   // install opens with two opinionated, end-to-end tutorials.
   "a-to-zig",
   "a-to-ts",
+  // JavaScript & TypeScript — the flagship original book (24 chapters,
+  // 139 lessons): JS beginner→pro in Parts I–III, TypeScript layered on
+  // in Part IV. 230 inline playgrounds, 53 diagrams, quizzes + blocks.
+  // Authored 2026-06; validated by .jsts-work/validate-jsts-course.mjs.
+  "javascript-typescript",
   // HelloTrade — 51 lessons + the in-app TradeDock (Postman-style
   // REST + WS client). Small enough to ship in core (96KB JSON).
   "hellotrade",
@@ -83,6 +88,7 @@ export const ALL_PACK_IDS = [
   // ── In-house "A to <lang>" tutorial books ──────────────────────
   // Listed first so they top the catalog — these are the flagship
   // beginner-friendly tutorials Libre authors directly.
+  "javascript-typescript",
   "a-to-zig",
   "a-to-ts",
   // Hardware-wallet course — uses the new Ledger transport (Rust
@@ -224,6 +230,10 @@ export const REMOTE_ARCHIVE_BASE =
 /// pack id from this map.
 export const RELEASE_STATUS_OVERRIDES = {
   // ── Books bumped to BETA after substantive validation ─────────
+  // JavaScript & TypeScript — flagship original book. Every exercise,
+  // playground, quiz, blocks spec and diagram machine-validated
+  // (88/88 exercises, 230/230 playgrounds) before release.
+  "javascript-typescript": "BETA",
   // Updated to use viem-style runtime + verified passing through
   // the cmd+K verifier.
   "mastering-ethereum": "BETA",

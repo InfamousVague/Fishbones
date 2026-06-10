@@ -86,3 +86,7 @@ vite.config.js
 # LLM blocks-data authoring cache (one entry per exercise, sha-keyed)
 .cache/blocks/
 .cache/
+
+# JS&TS book authoring scratch (briefs, per-chapter agent outputs, staging).
+# The shipped validator lives at scripts/validate-jsts-course.mjs.
+.jsts-work/
