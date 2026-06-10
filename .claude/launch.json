@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:web"],
       "port": 1420
+    },
+    {
+      "name": "sfx-workbench",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4180", "-d", ".sfx-work"],
+      "port": 4180
     }
   ]
 }

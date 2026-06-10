@@ -90,3 +90,8 @@ vite.config.js
 # JS&TS book authoring scratch (briefs, per-chapter agent outputs, staging).
 # The shipped validator lives at scripts/validate-jsts-course.mjs.
 .jsts-work/
+
+# ElevenLabs SFX-pack workbench (prompt catalog, generator, audition
+# site, generated MP3 packs). The chosen pack gets promoted into the
+# app deliberately; the workbench itself stays out of the repo.
+.sfx-work/
