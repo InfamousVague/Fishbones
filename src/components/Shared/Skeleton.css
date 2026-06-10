@@ -1,0 +1,78 @@
+/* Unified skeleton placeholders — see Skeleton.tsx for the usage
+   contract. One shimmer keyframe, theme-token colors with safe
+   fallbacks, GPU-friendly transform animation, reduced-motion aware. */
+
+.libre-skeleton {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--libre-radius-sm, 6px);
+  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
+  /* Never let a shimmer block grab pointer events or text selection. */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Sweeping highlight. Namespaced so it can't be confused with the
+   decorative holographic `*-shimmer` keyframes on certs/achievements. */
+.libre-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-bg-elevated, rgba(255, 255, 255, 0.09)) 50%,
+    transparent 100%
+  );
+  animation: libre-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes libre-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ── Variants ─────────────────────────────────────────────────── */
+
+.libre-skeleton--line {
+  height: 0.9em;
+  margin: 0.5em 0;
+  border-radius: 4px;
+}
+
+.libre-skeleton--short {
+  width: 60%;
+}
+
+.libre-skeleton--circle {
+  border-radius: 50%;
+}
+
+/* Book-cover aspect for the library / discover grid. Matches
+   `.libre-book`'s `aspect-ratio: 2 / 3` so placeholders occupy the
+   exact footprint of the real cards → no shift on swap. */
+.libre-skeleton--card {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+}
+
+/* Certificate ticket aspect for the certificates page grid. */
+.libre-skeleton--ticket {
+  width: 100%;
+  aspect-ratio: 5 / 2;
+  border-radius: 14px;
+}
+
+.libre-skeleton-text {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libre-skeleton::after {
+    animation: none;
+  }
+}

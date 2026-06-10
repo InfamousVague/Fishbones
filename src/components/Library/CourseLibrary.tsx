@@ -6,7 +6,7 @@ import type { Course, LanguageId } from "../../data/types";
 import { isChallengePack, isExerciseTrack, isKoans, isLings } from "../../data/types";
 import { track } from "../../lib/track";
 import BookCover from "./BookCover";
-import LibreLoader from "../Shared/LibreLoader";
+import { SkeletonCardGrid } from "../Shared/Skeleton";
 import CourseContextMenu, { useCourseMenu } from "../Shared/CourseContextMenu";
 import { prefetchCovers } from "../../hooks/useCourseCover";
 import { useCourseUpdates } from "../../hooks/useCourseUpdates";
@@ -876,8 +876,8 @@ export default function CourseLibrary({
             // committing the chrome of a discover→library swap; the
             // body keeps showing the previous Library cards until
             // the deferred recomputation lands.
-            <div className="libre-library-empty">
-              <LibreLoader size="md" label="Loading catalog…" />
+            <div className="libre-library-grid">
+              <SkeletonCardGrid count={12} />
             </div>
           ) : courses.length === 0 && derivedScope !== "discover" ? (
             <div className="libre-library-empty">

@@ -13,6 +13,7 @@
 
 import CertificateTicket from "./CertificateTicket";
 import InProgressTicket from "./InProgressTicket";
+import { SkeletonCardGrid } from "../Shared/Skeleton";
 import { useCertificates } from "../../hooks/useCertificates";
 import type { Course } from "../../data/types";
 import { useT } from "../../i18n/i18n";
@@ -102,7 +103,9 @@ export default function CertificatesPage({
       </header>
 
       {!loaded ? (
-        <div className="libre-certs-page__loading">{t("certificates.loading")}</div>
+        <div className="libre-certs-page__grid">
+          <SkeletonCardGrid count={3} variant="ticket" />
+        </div>
       ) : !hasEarned && !hasInProgress ? (
         <EmptyState />
       ) : (
