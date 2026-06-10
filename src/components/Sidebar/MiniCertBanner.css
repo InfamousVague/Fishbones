@@ -566,22 +566,131 @@
   color: rgba(0, 0, 0, 0.14);
 }
 
-/* Earned — dark-coloured icon silhouette + drop-shadow rim so the
-   shape reads as a hole punched through the parchment. The
-   drop-shadow's offset (0, 1px) + bright tone simulate light
-   catching the far edge of a punched cutout. Combined with the
-   `fill: currentColor` override below — which paints every
-   shape inside the SVG solid instead of leaving it as a line
-   drawing — the result paints as a chunky icon-shaped opening
-   like a cookie cutter, not the open outline the base Icon
-   primitive produces.
-   Color matches the cert's primary text ink so the punch reads
-   as "missing material" against the parchment. */
+/* Earned — a holographic die-cut STICKER applied over the
+   parchment (previously a dark silhouette punched THROUGH it). Each
+   chip is a glossy near-white sticker carrying a pearlescent foil
+   sheen + a solid dark-ink icon, lifted PROUD of the surface by a
+   soft drop-shadow, with a peeled corner (::after) at a per-
+   position corner so the row reads hand-applied rather than
+   printed. The old `fill: currentColor` / stroke rules below still
+   apply — they keep the glyph a solid silhouette, now printed ON
+   the sticker instead of cut out of the page. */
 .libre-mini-cert__badge--earned {
-  color: #111111;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.7))
-    drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
+  color: #161616;
+  position: relative;
+  border-radius: 6px;
+  background: linear-gradient(157deg, #ffffff 0%, #f5f5f9 52%, #ece9f3 100%);
+  /* faint hairline for definition + two-step lift shadow so the
+     chip floats above the (also near-white) parchment. */
+  box-shadow:
+    0 0 0 0.5px rgba(20, 16, 28, 0.06),
+    0 1px 1px rgba(20, 16, 28, 0.1),
+    0 2.5px 4px rgba(20, 16, 28, 0.16);
+  /* own stacking context so the foil ::before + dark icon + peel
+     ::after layer predictably and the foil never bleeds out. */
+  isolation: isolate;
+}
+
+/* Pearlescent foil sheen + glossy top highlight. A pastel rainbow
+   over the white at partial opacity reads as holographic pigment
+   WITHOUT a blend mode, so the dark icon ink stays crisp on top.
+   Slow background-position drift makes the foil feel alive at rest
+   (matches the card's ambient-foil language). */
+.libre-mini-cert__badge--earned::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0) 42%
+    ),
+    conic-gradient(
+      from 210deg at 50% 50%,
+      #ff9ec4,
+      #ffd49b,
+      #c9f59c,
+      #9bf2ea,
+      #9bbcff,
+      #e7a3ff,
+      #ff9ec4
+    );
+  background-size: 100% 100%, 220% 220%;
+  background-position: 0 0, 0% 50%;
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+  animation: libre-sticker-foil 9s ease-in-out infinite;
+}
+
+/* Peeled corner — a folded "dog-ear" flap showing the sticker's
+   lighter backing, casting a small shadow onto the chip face. The
+   default lifts the TOP-RIGHT corner; the :nth-of-type rules below
+   move it to a different corner per badge so the lifts read random
+   rather than uniform. */
+.libre-mini-cert__badge--earned::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  top: -0.5px;
+  right: -0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #efeef4 50%, #dbdae6 100%);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  border-top-right-radius: 6px;
+  box-shadow: -1.5px 1.5px 1.5px rgba(20, 16, 28, 0.22);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Per-position peel corners — cycle the four corners (with slight
+   size jitter) so no two adjacent lifts match. Earned-only;
+   pending chips stay flat. */
+.libre-mini-cert__badge--earned:nth-of-type(4n + 2)::after {
+  /* bottom-left */
+  top: auto;
+  right: auto;
+  bottom: -0.5px;
+  left: -0.5px;
+  width: 8px;
+  height: 8px;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  border-radius: 0 0 0 6px;
+  box-shadow: 1.5px -1.5px 1.5px rgba(20, 16, 28, 0.22);
+}
+.libre-mini-cert__badge--earned:nth-of-type(4n + 3)::after {
+  /* top-left */
+  top: -0.5px;
+  right: auto;
+  left: -0.5px;
+  width: 10px;
+  height: 10px;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  border-radius: 6px 0 0 0;
+  box-shadow: 1.5px 1.5px 1.5px rgba(20, 16, 28, 0.22);
+}
+.libre-mini-cert__badge--earned:nth-of-type(4n)::after {
+  /* bottom-right */
+  top: auto;
+  bottom: -0.5px;
+  right: -0.5px;
+  width: 8.5px;
+  height: 8.5px;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  border-radius: 0 0 6px 0;
+  box-shadow: -1.5px -1.5px 1.5px rgba(20, 16, 28, 0.22);
+}
+
+@keyframes libre-sticker-foil {
+  0%,
+  100% {
+    background-position: 0 0, 0% 50%;
+  }
+  50% {
+    background-position: 0 0, 100% 50%;
+  }
 }
 
 /* Cookie-cutter silhouette: fill every shape inside an earned
@@ -624,8 +733,22 @@
   height: calc(100% - 2px) !important;
 }
 
+/* Earned glyphs sit smaller + centred so the holographic chip
+   shows a foil rim around the icon (a full-bleed glyph would hide
+   the sticker material). z-index lifts the ink above the foil
+   ::before. Must follow the rule above to win on source order. */
+.libre-mini-cert__badge--earned svg {
+  width: 64% !important;
+  height: 64% !important;
+  position: relative;
+  z-index: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .libre-mini-cert__badge {
     transition: none;
+  }
+  .libre-mini-cert__badge--earned::before {
+    animation: none;
   }
 }
