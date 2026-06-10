@@ -566,144 +566,24 @@
   color: rgba(0, 0, 0, 0.14);
 }
 
-/* Earned — a holographic die-cut STICKER applied over the
-   parchment (previously a dark silhouette punched THROUGH it). Each
-   chip is a glossy near-white sticker carrying a pearlescent foil
-   sheen + a solid dark-ink icon, lifted PROUD of the surface by a
-   soft drop-shadow, with a peeled corner (::after) at a per-
-   position corner so the row reads hand-applied rather than
-   printed. The glyph itself stays the Icon primitive's line art
-   (no solid fill) so it reads as a printed sticker icon. */
+/* Earned — a flat die-cut sticker: solid black squircle chip with
+   the chapter icon as white line art ("white traces"). No gradient,
+   no foil sheen, no peeled corner — those earlier flourishes were
+   removed by request; the lift shadow alone says "applied on top". */
 .libre-mini-cert__badge--earned {
-  /* White line-art icon on a black squircle — the classic die-cut
-     vinyl sticker look. The squircle is approximated with a 30%
-     radius (true superellipses aren't expressible in CSS). */
   color: #ffffff;
   position: relative;
+  /* Squircle approximated with a 30% radius (true superellipses
+     aren't expressible in CSS). */
   border-radius: 30%;
-  background: linear-gradient(157deg, #2c2c31 0%, #1a1a1e 55%, #101013 100%);
+  background: #141414;
   /* Hairline ring for edge definition on the white parchment +
      two-step lift shadow so the chip floats above the surface. */
   box-shadow:
     0 0 0 0.5px rgba(20, 16, 28, 0.35),
     0 1px 1px rgba(20, 16, 28, 0.18),
     0 2.5px 4px rgba(20, 16, 28, 0.22);
-  /* own stacking context so the foil ::before + icon + peel
-     ::after layer predictably and the foil never bleeds out. */
-  isolation: isolate;
 }
-
-/* Pearlescent foil sheen + glossy top highlight. A pastel rainbow
-   over the white at partial opacity reads as holographic pigment
-   WITHOUT a blend mode, so the dark icon ink stays crisp on top.
-   Slow background-position drift makes the foil feel alive at rest
-   (matches the card's ambient-foil language). */
-.libre-mini-cert__badge--earned::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.62) 0%,
-      rgba(255, 255, 255, 0) 42%
-    ),
-    conic-gradient(
-      from 210deg at 50% 50%,
-      #ff9ec4,
-      #ffd49b,
-      #c9f59c,
-      #9bf2ea,
-      #9bbcff,
-      #e7a3ff,
-      #ff9ec4
-    );
-  background-size: 100% 100%, 220% 220%;
-  background-position: 0 0, 0% 50%;
-  /* Dialed way down for the black-vinyl chip — just an iridescent
-     sheen catching the surface, not a rainbow wash (the white icon
-     needs to stay the loudest thing on the sticker). */
-  opacity: 0.18;
-  z-index: 0;
-  pointer-events: none;
-  animation: libre-sticker-foil 9s ease-in-out infinite;
-}
-
-/* Peeled corner — a folded "dog-ear" flap showing the sticker's
-   lighter backing, casting a small shadow onto the chip face. The
-   default lifts the TOP-RIGHT corner; the :nth-of-type rules below
-   move it to a different corner per badge so the lifts read random
-   rather than uniform. */
-.libre-mini-cert__badge--earned::after {
-  content: "";
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  top: -0.5px;
-  right: -0.5px;
-  background: linear-gradient(135deg, #ffffff 0%, #efeef4 50%, #dbdae6 100%);
-  clip-path: polygon(100% 0, 0 0, 100% 100%);
-  border-top-right-radius: 6px;
-  box-shadow: -1.5px 1.5px 1.5px rgba(20, 16, 28, 0.22);
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Per-position peel corners — cycle the four corners (with slight
-   size jitter) so no two adjacent lifts match. Earned-only;
-   pending chips stay flat. */
-.libre-mini-cert__badge--earned:nth-of-type(4n + 2)::after {
-  /* bottom-left */
-  top: auto;
-  right: auto;
-  bottom: -0.5px;
-  left: -0.5px;
-  width: 8px;
-  height: 8px;
-  clip-path: polygon(0 0, 0 100%, 100% 100%);
-  border-radius: 0 0 0 6px;
-  box-shadow: 1.5px -1.5px 1.5px rgba(20, 16, 28, 0.22);
-}
-.libre-mini-cert__badge--earned:nth-of-type(4n + 3)::after {
-  /* top-left */
-  top: -0.5px;
-  right: auto;
-  left: -0.5px;
-  width: 10px;
-  height: 10px;
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  border-radius: 6px 0 0 0;
-  box-shadow: 1.5px 1.5px 1.5px rgba(20, 16, 28, 0.22);
-}
-.libre-mini-cert__badge--earned:nth-of-type(4n)::after {
-  /* bottom-right */
-  top: auto;
-  bottom: -0.5px;
-  right: -0.5px;
-  width: 8.5px;
-  height: 8.5px;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  border-radius: 0 0 6px 0;
-  box-shadow: -1.5px -1.5px 1.5px rgba(20, 16, 28, 0.22);
-}
-
-@keyframes libre-sticker-foil {
-  0%,
-  100% {
-    background-position: 0 0, 0% 50%;
-  }
-  50% {
-    background-position: 0 0, 100% 50%;
-  }
-}
-
-/* Earned glyphs stay LINE ART (the base Icon primitive's
-   stroke-only rendering, weight="bold" from the TSX) — the old
-   solid `fill: currentColor` cookie-cutter treatment made the
-   chips read as ink blobs rather than printed sticker icons.
-   The crisp dark outline on the white foil chip is the sticker
-   look. */
 
 /* Make the SVG inside each badge fill the cell — Icon size="xs"
    defaults to 12px which is too small for the badge slot (~20px).
@@ -714,22 +594,17 @@
   height: calc(100% - 2px) !important;
 }
 
-/* Earned glyphs sit smaller + centred so the holographic chip
-   shows a foil rim around the icon (a full-bleed glyph would hide
-   the sticker material). z-index lifts the ink above the foil
-   ::before. Must follow the rule above to win on source order. */
+/* Earned glyphs sit smaller + centred so the black chip shows a
+   visible rim around the white line art (a full-bleed glyph would
+   hide the sticker material). Must follow the rule above to win on
+   source order. */
 .libre-mini-cert__badge--earned svg {
   width: 64% !important;
   height: 64% !important;
-  position: relative;
-  z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .libre-mini-cert__badge {
     transition: none;
-  }
-  .libre-mini-cert__badge--earned::before {
-    animation: none;
   }
 }

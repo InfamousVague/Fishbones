@@ -418,10 +418,10 @@
   justify-content: center;
   width: 22px;
   height: 22px;
-  /* White line-art icon on a black squircle chip — matches the
-     mini-cert banner's sticker treatment. */
+  /* White line-art icon on a solid black squircle chip — matches
+     the mini-cert banner's sticker treatment. */
   color: #ffffff;
-  background: linear-gradient(157deg, #2c2c31 0%, #1a1a1e 55%, #101013 100%);
+  background: #141414;
   border-radius: 30%;
   box-shadow:
     0 0 0 0.5px rgba(20, 16, 28, 0.35),

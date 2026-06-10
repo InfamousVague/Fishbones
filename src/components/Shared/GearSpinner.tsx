@@ -69,9 +69,11 @@ const PITCH_B = (M * TEETH_B) / 2; // 11.9
 const PATH_A = gearPath(TEETH_A, PITCH_A - 2.6, PITCH_A + 2.6, 5.4);
 const PATH_B = gearPath(TEETH_B, PITCH_B - 2.6, PITCH_B + 2.6, 3.8);
 
-/// Centres sit exactly the sum of pitch radii apart, along a -32°
-/// diagonal so the pair reads dynamic rather than side-by-side.
-const DIST = PITCH_A + PITCH_B; // 28.9
+/// Centres sit the sum of pitch radii apart plus a little backlash
+/// clearance (+1.3) so the mesh reads comfortably interleaved
+/// rather than jammed tooth-on-tooth, along a -32° diagonal so the
+/// pair reads dynamic rather than side-by-side.
+const DIST = PITCH_A + PITCH_B + 1.3; // 30.2
 const ANGLE_DEG = -32;
 const ANGLE = (ANGLE_DEG * Math.PI) / 180;
 const AX = 33;
