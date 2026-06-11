@@ -4,6 +4,12 @@ import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import "@base/primitives/icon/icon.css";
 import type { Course, Chapter, Lesson } from "../../data/types";
+import {
+  isChallengePack,
+  isExerciseTrack,
+  isKoans,
+  isLings,
+} from "../../data/types";
 import LanguageChip from "../LanguageChip/LanguageChip";
 import { ProgressRing } from "../Shared/ProgressRing";
 import ChapterTree from "./ChapterTree";
@@ -11,6 +17,26 @@ import ChapterGrid from "./ChapterGrid";
 import MiniCertBanner from "./MiniCertBanner";
 import { useSidebarVariant } from "./variants/useSidebarVariant";
 import { useT } from "../../i18n/i18n";
+
+/// Challenge packs / Exercism tracks / koans / *lings — the practice
+/// surfaces that ship square illustrated cover art rather than reading
+/// as long-form books.
+function isPracticePack(course: Course): boolean {
+  return (
+    isChallengePack(course) ||
+    isExerciseTrack(course) ||
+    isKoans(course) ||
+    isLings(course)
+  );
+}
+
+/// Sidebar row icon for a practice pack: the programming-language glyph
+/// (a language chip), NOT the pack's cover art. Keeps the rail a tidy
+/// column of language icons; the illustrated cover stays on the Library
+/// shelf where it has room to read. No cover fetch for packs either now.
+function PackCoverIcon({ course }: { course: Course }): React.ReactElement {
+  return <LanguageChip language={course.language} size="xs" iconOnly />;
+}
 
 export default function CourseGroup({
   course,
@@ -141,7 +167,11 @@ export default function CourseGroup({
             weight="bold"
           />
         </span>
-        <LanguageChip language={course.language} size="xs" iconOnly />
+        {isPracticePack(course) ? (
+          <PackCoverIcon course={course} />
+        ) : (
+          <LanguageChip language={course.language} size="xs" iconOnly />
+        )}
         <span className="libre__course-name">{course.title}</span>
         <span
           className="libre__course-row-ring"

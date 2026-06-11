@@ -26,7 +26,6 @@ import { libraryBig } from "@base/primitives/icon/icons/library-big";
 import { compass as compassIcon } from "@base/primitives/icon/icons/compass";
 import { swords } from "@base/primitives/icon/icons/swords";
 import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
-import { trophy } from "@base/primitives/icon/icons/trophy";
 import { award } from "@base/primitives/icon/icons/award";
 import { route } from "@base/primitives/icon/icons/route";
 import { terminal as terminalIcon } from "@base/primitives/icon/icons/terminal";
@@ -37,7 +36,6 @@ import { Tooltip } from "@base/primitives/tooltip";
 import "@base/primitives/icon/icon.css";
 import "@base/primitives/tooltip/tooltip.css";
 import { formatShortcutForTitle } from "../ShortcutHint/ShortcutHint";
-import NotificationDrawer from "./NotificationDrawer";
 import { useT } from "../../i18n/i18n";
 import "./NavigationRail.css";
 
@@ -55,7 +53,6 @@ export interface NavigationRailProps {
     | "challenges"
     | "practice"
     | "paths"
-    | "achievements"
     | "certificates";
   onLibrary: () => void;
   /// Resume-most-recent affordance. When present, surfaces a play
@@ -94,18 +91,13 @@ export interface NavigationRailProps {
   /// Paths route — curated, goal-oriented sequences that thread
   /// courses / Exercism tracks / koans / *-lings into a journey
   /// ("entry-level developer", "mobile app developer", "systems
-  /// engineer", …). Sits just above Achievements: Paths is the
-  /// "here's the map" surface, Achievements/Certificates are the
-  /// "here's what you've collected" surfaces — map first, trophies
-  /// after. Optional; when omitted the chip just doesn't render.
+  /// engineer", …). Sits just above Certificates: Paths is the
+  /// "here's the map" surface, Certificates is the "here's what
+  /// you've collected" surface — map first, trophies after.
+  /// Optional; when omitted the chip just doesn't render.
   onPaths?: () => void;
-  /// Achievements route — browse-all surface for the unlock
-  /// library. Optional; when omitted the chip just doesn't render.
-  onAchievements?: () => void;
   /// Certificates route — browse-all surface for course-completion
-  /// certificates. Sits just below Achievements because both
-  /// surfaces are "trophy case" affordances; certificates are the
-  /// more permanent / shareable artefact, so they go second.
+  /// certificates. The shareable "trophy case" of finished courses.
   onCertificates?: () => void;
   /// Sandbox route — free-form coding workspace with multi-project
   /// support (per-project file list + language + git later in the
@@ -180,7 +172,6 @@ export default function NavigationRail({
   onPractice,
   practiceDue,
   onPaths,
-  onAchievements,
   onCertificates,
   onSandbox,
   onSettings,
@@ -228,7 +219,7 @@ export default function NavigationRail({
     // and Trees becomes available) would shift the active button's
     // offset without re-running the effect, leaving the pill
     // misaligned.
-  }, [activeView, onDiscover, onChallenges, onPractice, onPaths, onAchievements, onCertificates, onSandbox]);
+  }, [activeView, onDiscover, onChallenges, onPractice, onPaths, onCertificates, onSandbox]);
 
   return (
     <nav className="libre-nav-rail" aria-label={t("nav.primaryNavigation")}>
@@ -263,13 +254,9 @@ export default function NavigationRail({
               4. Practice     — review-mode for cards already opened;
                                middle of the rail because it's a
                                recurring rhythm, not a one-off start
-              5. Achievements — unlock browser; below Practice so
-                               the run-of-day affordances cluster
-                               above the trophy case
-              6. Certificates — permanent / shareable artefacts of
-                               course completion (the more durable
-                               cousin of the Achievements browser)
-              7. Tracks       — curated linear paths anchored at
+              5. Certificates — permanent / shareable artefacts of
+                               course completion
+              6. Tracks       — curated linear paths anchored at
                                the bottom of the rail; the
                                outcome-driven on-ramp for learners
                                who haven't picked a book yet. (The
@@ -340,14 +327,6 @@ export default function NavigationRail({
             active={activeView === "paths"}
           />
         )}
-        {onAchievements && (
-          <RailItem
-            icon={trophy}
-            label={t("nav.achievements")}
-            onClick={onAchievements}
-            active={activeView === "achievements"}
-          />
-        )}
         {onCertificates && (
           <RailItem
             icon={award}
@@ -358,13 +337,8 @@ export default function NavigationRail({
         )}
       </div>
       <div className="libre-nav-rail__bottom">
-        {/* Bottom cluster, top → bottom: sidebar toggle, notification
-            bell, help, settings. The sidebar toggle anchors the top
-            of this group (the most common bottom-rail interaction),
-            with the bell just below it so the unread chip lives
-            next to a frequently-clicked button without sitting on
-            top of the navigation list above. Settings is at the
-            very bottom (conventional Mac-app spot) with help docked
+        {/* Bottom cluster, top → bottom: help, settings. Settings is at
+            the very bottom (conventional Mac-app spot) with help docked
             one row up so the "I need a hint" affordance sits beside
             the knob it usually nudges the user toward. */}
         {/* The sidebar toggle that used to live here was moved to a
@@ -374,7 +348,6 @@ export default function NavigationRail({
             still accepted on this component so existing call
             sites pass through cleanly — they're just unused in
             the rail now. */}
-        <NotificationDrawer />
         {onStartTour && (
           <RailItem
             icon={circleHelp}

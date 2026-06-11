@@ -553,36 +553,38 @@ function TrackCardBody({
       onClick={onOpen}
       onContextMenu={onContextMenu}
     >
-      <div className="libre-challenges__card-head">
-        <span className="libre-challenges__card-tag">
-          <span aria-hidden className="libre-challenges__card-tag-icon">
-            <Icon
-              icon={swords}
-              size="xs"
-              color="currentColor"
-              weight="bold"
-            />
+      <div className="libre-challenges__card-main">
+        <div className="libre-challenges__card-head">
+          <span className="libre-challenges__card-tag">
+            <span aria-hidden className="libre-challenges__card-tag-icon">
+              <Icon
+                icon={swords}
+                size="xs"
+                color="currentColor"
+                weight="bold"
+              />
+            </span>
+            <span>{track.short}</span>
           </span>
-          <span>{track.short}</span>
-        </span>
-        <span className="libre-challenges__card-index">
-          {String(index + 1).padStart(2, "0")}
-        </span>
-      </div>
-      <div className="libre-challenges__card-body">
-        <h2 className="libre-challenges__card-title">{track.title}</h2>
-        <p className="libre-challenges__card-outcome">{track.outcome}</p>
-        <p className="libre-challenges__card-desc">{track.description}</p>
-      </div>
-      <div className="libre-challenges__card-foot">
-        <span className="libre-challenges__card-meta">{meta.join(" · ")}</span>
-        <span className="libre-challenges__card-pct">{pct}%</span>
-      </div>
-      <div className="libre-challenges__card-progress" aria-hidden>
-        <span
-          className="libre-challenges__card-progress-fill"
-          style={{ width: `${pct}%` }}
-        />
+          <span className="libre-challenges__card-index">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+        </div>
+        <div className="libre-challenges__card-body">
+          <h2 className="libre-challenges__card-title">{track.title}</h2>
+          <p className="libre-challenges__card-outcome">{track.outcome}</p>
+          <p className="libre-challenges__card-desc">{track.description}</p>
+        </div>
+        <div className="libre-challenges__card-foot">
+          <span className="libre-challenges__card-meta">{meta.join(" · ")}</span>
+          <span className="libre-challenges__card-pct">{pct}%</span>
+        </div>
+        <div className="libre-challenges__card-progress" aria-hidden>
+          <span
+            className="libre-challenges__card-progress-fill"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
       </div>
     </button>
   );

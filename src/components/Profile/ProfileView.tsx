@@ -4,14 +4,6 @@ import { flame } from "@base/primitives/icon/icons/flame";
 import { trophy } from "@base/primitives/icon/icons/trophy";
 import { zap } from "@base/primitives/icon/icons/zap";
 import { bookOpenCheck } from "@base/primitives/icon/icons/book-open-check";
-import { rocket } from "@base/primitives/icon/icons/rocket";
-import { brain } from "@base/primitives/icon/icons/brain";
-import { graduationCap } from "@base/primitives/icon/icons/graduation-cap";
-import { star } from "@base/primitives/icon/icons/star";
-import { award } from "@base/primitives/icon/icons/award";
-import { crown } from "@base/primitives/icon/icons/crown";
-import { medal } from "@base/primitives/icon/icons/medal";
-import { target as targetIcon } from "@base/primitives/icon/icons/target";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import { chevronUp } from "@base/primitives/icon/icons/chevron-up";
 import { globe } from "@base/primitives/icon/icons/globe";
@@ -314,27 +306,6 @@ export default function ProfileView({
     return out;
   }, [history, lessonById]);
 
-  /// Achievement / milestone unlocks. Twelve total — kept identical
-  /// to MobileProfile so progress reads the same on both surfaces.
-  /// Order is roughly easiest → hardest top-to-bottom.
-  const milestones = useMemo<MilestoneSpec[]>(
-    () => [
-      { id: "first-lesson", label: "First lesson", icon: bookOpenCheck, target: 1, actual: stats.lessonsCompleted, unit: "lesson" },
-      { id: "ten-lessons", label: "Ten lessons", icon: graduationCap, target: 10, actual: stats.lessonsCompleted, unit: "lessons" },
-      { id: "hundred-lessons", label: "Century", icon: trophy, target: 100, actual: stats.lessonsCompleted, unit: "lessons" },
-      { id: "streak-3", label: "3-day streak", icon: flame, target: 3, actual: Math.max(stats.streakDays, stats.longestStreakDays), unit: "days" },
-      { id: "streak-7", label: "Week strong", icon: targetIcon, target: 7, actual: Math.max(stats.streakDays, stats.longestStreakDays), unit: "days" },
-      { id: "streak-30", label: "Iron habit", icon: medal, target: 30, actual: Math.max(stats.streakDays, stats.longestStreakDays), unit: "days" },
-      { id: "level-5", label: "Apprentice", icon: star, target: 5, actual: stats.level, unit: "level" },
-      { id: "level-10", label: "Adept", icon: award, target: 10, actual: stats.level, unit: "level" },
-      { id: "level-20", label: "Mastered", icon: crown, target: 20, actual: stats.level, unit: "level" },
-      { id: "languages-3", label: "Polyglot", icon: brain, target: 3, actual: langChart.rows.filter((r) => r.xp > 0).length, unit: "languages" },
-      { id: "xp-1000", label: "1k XP", icon: zap, target: 1000, actual: stats.xp, unit: "XP" },
-      { id: "xp-10000", label: "10k XP", icon: rocket, target: 10000, actual: stats.xp, unit: "XP" },
-    ],
-    [stats, langChart],
-  );
-
   void completed;
 
   const xpToNext = Math.max(0, stats.xpForLevel - stats.xpIntoLevel);
@@ -342,7 +313,6 @@ export default function ProfileView({
     stats.xpForLevel > 0
       ? Math.min(stats.xpIntoLevel / stats.xpForLevel, 1)
       : 0;
-  const unlockedCount = milestones.filter((m) => m.actual >= m.target).length;
 
   const visibleTopics = showAllTopics
     ? topicStats
@@ -378,8 +348,7 @@ export default function ProfileView({
                 Level {stats.level} ·{" "}
                 {xpToNext === 0
                   ? "ready to level up — complete any lesson"
-                  : `${formatNumber(xpToNext)} XP to level ${stats.level + 1}`}{" "}
-                · {unlockedCount}/{milestones.length} achievements
+                  : `${formatNumber(xpToNext)} XP to level ${stats.level + 1}`}
               </p>
             </div>
             <div
@@ -506,42 +475,6 @@ export default function ProfileView({
               </section>
             )}
 
-            {/* Achievements ────────────────────────────────── */}
-            <section className="libre-profile-card libre-profile-card--ach">
-              <header className="libre-profile-card-head">
-                <h2 className="libre-profile-card-title">Achievements</h2>
-                <span className="libre-profile-card-meta">
-                  {unlockedCount}/{milestones.length} unlocked
-                </span>
-              </header>
-              <ul className="libre-profile-badges" role="list">
-                {milestones.map((m) => {
-                  const unlocked = m.actual >= m.target;
-                  return (
-                    <li
-                      key={m.id}
-                      className={
-                        "libre-profile-badge" +
-                        (unlocked ? " libre-profile-badge--unlocked" : "")
-                      }
-                      title={
-                        unlocked
-                          ? `${m.label} unlocked`
-                          : `${m.actual}/${m.target} ${m.unit}`
-                      }
-                    >
-                      <span className="libre-profile-badge-icon" aria-hidden>
-                        <Icon icon={m.icon} size="sm" color="currentColor" />
-                      </span>
-                      <span className="libre-profile-badge-label">{m.label}</span>
-                      <span className="libre-profile-badge-meta">
-                        {unlocked ? "Unlocked" : `${m.actual}/${m.target}`}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
 
             {/* Topics ──────────────────────────────────────── */}
             <section className="libre-profile-card libre-profile-card--topics">
@@ -644,15 +577,6 @@ export default function ProfileView({
       </div>
     </div>
   );
-}
-
-interface MilestoneSpec {
-  id: string;
-  label: string;
-  icon: string;
-  target: number;
-  actual: number;
-  unit: string;
 }
 
 /// Reusable expand/collapse footer button used by Topics + Recent

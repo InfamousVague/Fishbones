@@ -34,17 +34,8 @@ import { search as searchIcon } from "@base/primitives/icon/icons/search";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { flame } from "@base/primitives/icon/icons/flame";
 import { zap } from "@base/primitives/icon/icons/zap";
-import { trophy } from "@base/primitives/icon/icons/trophy";
 import { bookOpenCheck } from "@base/primitives/icon/icons/book-open-check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
-import { rocket } from "@base/primitives/icon/icons/rocket";
-import { brain } from "@base/primitives/icon/icons/brain";
-import { graduationCap } from "@base/primitives/icon/icons/graduation-cap";
-import { star } from "@base/primitives/icon/icons/star";
-import { award } from "@base/primitives/icon/icons/award";
-import { crown } from "@base/primitives/icon/icons/crown";
-import { medal } from "@base/primitives/icon/icons/medal";
-import { target } from "@base/primitives/icon/icons/target";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileProfile.css";
@@ -281,111 +272,6 @@ export default function MobileProfile({
     return { rows, total };
   }, [history, courses]);
 
-  // Milestone unlocks. Each is a small stateful object — the
-  // renderer styles earned ones as bright + the rest as muted with
-  // a small "x/y" progress hint. Order is roughly easiest → hardest.
-  const milestones = useMemo<MilestoneSpec[]>(
-    () => [
-      {
-        id: "first-lesson",
-        label: "First lesson",
-        icon: bookOpenCheck,
-        target: 1,
-        actual: stats.lessonsCompleted,
-        unit: "lesson",
-      },
-      {
-        id: "ten-lessons",
-        label: "Ten lessons",
-        icon: graduationCap,
-        target: 10,
-        actual: stats.lessonsCompleted,
-        unit: "lessons",
-      },
-      {
-        id: "hundred-lessons",
-        label: "Century",
-        icon: trophy,
-        target: 100,
-        actual: stats.lessonsCompleted,
-        unit: "lessons",
-      },
-      {
-        id: "streak-3",
-        label: "3-day streak",
-        icon: flame,
-        target: 3,
-        actual: Math.max(stats.streakDays, stats.longestStreakDays),
-        unit: "days",
-      },
-      {
-        id: "streak-7",
-        label: "Week strong",
-        icon: target,
-        target: 7,
-        actual: Math.max(stats.streakDays, stats.longestStreakDays),
-        unit: "days",
-      },
-      {
-        id: "streak-30",
-        label: "Iron habit",
-        icon: medal,
-        target: 30,
-        actual: Math.max(stats.streakDays, stats.longestStreakDays),
-        unit: "days",
-      },
-      {
-        id: "level-5",
-        label: "Apprentice",
-        icon: star,
-        target: 5,
-        actual: stats.level,
-        unit: "level",
-      },
-      {
-        id: "level-10",
-        label: "Adept",
-        icon: award,
-        target: 10,
-        actual: stats.level,
-        unit: "level",
-      },
-      {
-        id: "level-20",
-        label: "Mastered",
-        icon: crown,
-        target: 20,
-        actual: stats.level,
-        unit: "level",
-      },
-      {
-        id: "languages-3",
-        label: "Polyglot",
-        icon: brain,
-        target: 3,
-        actual: langChart.rows.filter((r) => r.xp > 0).length,
-        unit: "languages",
-      },
-      {
-        id: "xp-1000",
-        label: "1k XP",
-        icon: zap,
-        target: 1000,
-        actual: stats.xp,
-        unit: "XP",
-      },
-      {
-        id: "xp-10000",
-        label: "10k XP",
-        icon: rocket,
-        target: 10000,
-        actual: stats.xp,
-        unit: "XP",
-      },
-    ],
-    [stats, langChart],
-  );
-
   return (
     <div
       className="m-prof"
@@ -532,38 +418,6 @@ export default function MobileProfile({
         </section>
       ) : null}
 
-      {/* Achievement badges — unlocked ones glow, locked ones dim
-          with a "x / target" hint so the next goal is visible. */}
-      <section className="m-prof__section">
-        <h3 className="m-prof__section-title">Achievements</h3>
-        <ul className="m-prof__badges" role="list">
-          {milestones.map((m) => {
-            const unlocked = m.actual >= m.target;
-            return (
-              <li
-                key={m.id}
-                className={
-                  "m-prof__badge" + (unlocked ? " m-prof__badge--unlocked" : "")
-                }
-                title={
-                  unlocked
-                    ? `${m.label} unlocked`
-                    : `${m.actual}/${m.target} ${m.unit}`
-                }
-              >
-                <span className="m-prof__badge-icon" aria-hidden>
-                  <Icon icon={m.icon} size="sm" color="currentColor" />
-                </span>
-                <span className="m-prof__badge-label">{m.label}</span>
-                <span className="m-prof__badge-meta">
-                  {unlocked ? "Unlocked" : `${m.actual}/${m.target}`}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
       {courseProgress.length > 0 && (
         <section className="m-prof__section">
           <h3 className="m-prof__section-title">Continue learning</h3>
@@ -644,15 +498,6 @@ function ringStreakTarget(streak: number): number {
     if (streak < t) return t;
   }
   return Math.max(streak + 30, 365);
-}
-
-interface MilestoneSpec {
-  id: string;
-  label: string;
-  icon: string;
-  target: number;
-  actual: number;
-  unit: string;
 }
 
 /// Circular SVG gauge. Size + stroke are CSS variables so the

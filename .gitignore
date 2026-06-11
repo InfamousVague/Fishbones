@@ -96,5 +96,12 @@ vite.config.js
 # app deliberately; the workbench itself stays out of the repo.
 .sfx-work/
 
+# Book authoring scratch (blueprints, per-chapter agent outputs, staging).
+# Finished courses ship as .academy archives; the workspace stays out.
+.books-work/
+
+# Brand / marketing asset scratch (briefs, section drafts).
+.assets-work/
+
 # Audio-embedded course archives (generated at release time; never committed)
 src-tauri/resources/bundled-packs-full/

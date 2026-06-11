@@ -55,9 +55,6 @@ const ProfileView = lazy(() => import("./components/Profile/ProfileView"));
 const SandboxView = lazy(() => import("./components/Sandbox/SandboxView"));
 import SandboxSidebar from "./components/Sandbox/SandboxSidebar";
 import { useSandboxProjects } from "./hooks/useSandboxProjects";
-import { useAchievements } from "./hooks/useAchievements";
-import AchievementOverlay from "./components/Achievements/AchievementOverlay";
-const AchievementsPage = lazy(() => import("./components/Achievements/AchievementsPage"));
 import SectionCompleteSummary from "./components/Achievements/SectionCompleteSummary";
 const CertificatesPage = lazy(() => import("./components/Certificates/CertificatesPage"));
 const PathsPage = lazy(() => import("./components/Paths/PathsPage"));
@@ -788,8 +785,7 @@ export default function App() {
       const xp = xpForLessonKind(lesson?.kind);
       lastLessonXpRef.current = xp;
       // Small audible cue per fresh lesson — keeps the rhythm of
-      // completion tactile. Larger tier sounds (chime, fanfare) layer
-      // on top via the achievement engine's own dispatch.
+      // completion tactile.
       playSound("xp-pop", { volume: 0.7 });
       // Floating "+N XP" near the stats chip so the reward is VISIBLE
       // at the moment of action, not just silently ticking the top bar.
@@ -865,12 +861,6 @@ export default function App() {
   // data/types.ts.
   const shields = useStreakShields();
   const stats = useStreakAndXp(history, coursesAll, shields.frozenDays);
-
-  /// Achievement / sound / animation system. Reactive — re-evaluates
-  /// the registry whenever history / streak / level changes and
-  /// surfaces the freshly-unlocked rows via `pendingPresentation`
-  /// for the AchievementOverlay to drain.
-  const achievements = useAchievements(history, coursesAll, stats);
 
   /// Track section / book completion transitions. We compare the
   /// previous completed Set to the new one whenever it changes;
@@ -1060,7 +1050,6 @@ export default function App() {
     | "challenges"
     | "practice"
     | "paths"
-    | "achievements"
     | "certificates"
   >("library");
 
@@ -2129,16 +2118,6 @@ export default function App() {
         progress={archiveDrop.progress}
       />
 
-      {/* Achievement toast / modal overlay. Receives the queue from
-          useAchievements and drains it tier-first — bronze/silver as
-          stacked toasts in the top-right column, gold/platinum as
-          fullscreen modals. Sits above everything else (z-index 80
-          for toasts, 150 for modals). */}
-      <AchievementOverlay
-        pending={achievements.pendingPresentation}
-        onPresented={achievements.markPresented}
-      />
-
       {/* Chapter / book completion summary. Shown once per
           chapter/book the learner just finished; dismissable. The
           chapter version slides up over the lesson view; the book
@@ -2261,7 +2240,6 @@ export default function App() {
           onPractice={() => setView("practice")}
           practiceDue={practiceDue}
           onPaths={() => setView("paths")}
-          onAchievements={() => setView("achievements")}
           onCertificates={() => setView("certificates")}
           onSandbox={() => setView("sandbox")}
           onSettings={() => setSettingsOpen(true)}
@@ -2317,7 +2295,7 @@ export default function App() {
 
         <main className="libre__main">
           {/* Suspense boundary for the lazy-loaded page routes below
-              (Profile/Sandbox/Challenges/Practice/Paths/Achievements/
+              (Profile/Sandbox/Challenges/Practice/Paths/
               Certificates). `null` fallback: useTransition already
               keeps the previous view painted during the swap, so a
               skeleton here would just blank a frame. */}
@@ -2358,11 +2336,6 @@ export default function App() {
               completed={completed}
               onOpenCourse={openCourseFromLibrary}
               onBrowseCatalog={() => setView("discover")}
-            />
-          ) : view === "achievements" ? (
-            <AchievementsPage
-              unlocked={achievements.unlocked}
-              unlockedRecords={achievements.unlockedRecords}
             />
           ) : view === "certificates" ? (
             <CertificatesPage

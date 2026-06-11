@@ -158,6 +158,24 @@
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
+/* Practice-pack row icon: the pack's full square cover art as a small
+   rounded tile, in place of the language chip books use. */
+.libre__course-row-cover {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.libre__course-row-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .libre__course-row:hover {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);

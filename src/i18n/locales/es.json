@@ -126,6 +126,7 @@
     "importArchive": "Archivo",
     "sortName": "Nombre (A–Z)",
     "sortRecent": "Recientes",
+    "sortStatus": "Estado",
     "sortProgress": "Progreso",
     "sortLessonCount": "Número de lecciones",
     "sortOrderTitle": "Orden",

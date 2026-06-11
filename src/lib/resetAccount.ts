@@ -54,9 +54,6 @@ import type { UseLibreCloud } from "../hooks/useLibreCloud";
 /// duplicating the literal at this single coordinator keeps the
 /// "what counts as progress" list scannable in one place.
 const ACCOUNT_STATE_KEYS: readonly string[] = [
-  // Achievements
-  "libre:achievements:unlocked",
-  "libre:achievements:freezes-used",
   // Streak shields + frozen-day registry
   "libre:streak-shields:v1",
   "libre:streak-frozen-days:v1",

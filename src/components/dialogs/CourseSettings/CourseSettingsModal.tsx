@@ -21,9 +21,10 @@ export interface CourseMetadataPatch {
 }
 
 /// Editorial-tier options for the release-status select. Order
-/// matches the library's section order (top → bottom): final polish
-/// first, then next up, then unreviewed.
+/// matches the library's Status sort (top → bottom): verified first,
+/// then final polish, next up, then unreviewed.
 const RELEASE_OPTIONS: Array<{ value: ReleaseStatus; label: string }> = [
+  { value: "VERIFIED", label: "VERIFIED — reviewed + verified end-to-end" },
   { value: "BETA", label: "BETA — final polish for release" },
   { value: "ALPHA", label: "ALPHA — next up in the queue" },
   { value: "UNREVIEWED", label: "UNREVIEWED — unreviewed draft" },

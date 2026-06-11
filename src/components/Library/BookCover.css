@@ -173,10 +173,10 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  top: 0;
   height: 55%;
   background: linear-gradient(
-    to top,
+    to bottom,
     rgba(0, 0, 0, 0.88) 0%,
     rgba(0, 0, 0, 0.6) 35%,
     rgba(0, 0, 0, 0) 100%
@@ -188,8 +188,10 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  padding: 10px 12px 14px;
+  top: 0;
+  /* Doubled top/bottom padding nudges the title/author block down from
+     the cover's top edge (sides unchanged). */
+  padding: 24px 12px 28px;
   /* Sits over the dark gradient (`.libre-book-shadow`) which
      dims the lower half of the cover image to ~rgba(0,0,0,0.7).
      ALWAYS paint the title in pure white — the gradient is the
@@ -362,7 +364,7 @@
  * letting the cover stay the dominant visual. */
 .libre-book-langbadge {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   right: 8px;
   z-index: 3;
   display: inline-flex;
@@ -406,7 +408,7 @@
    colour; the base rule handles everything else. */
 .libre-book-status {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   left: 8px;
   z-index: 3;
   display: inline-flex;
@@ -444,12 +446,19 @@
   line-height: 1;
 }
 
+/* VERIFIED — azure. Highest tier; reviewed + verified end-to-end.
+   The classic "verified badge" blue, distinct from beta's emerald so
+   the top tier reads at a glance. */
+.libre-book-status--verified {
+  --book-status-fg: #5aa9ff;
+}
+
 /* ALPHA — warm amber. "Next up" in the editorial pipeline. */
 .libre-book-status--alpha {
   --book-status-fg: #f5b13a;
 }
 
-/* BETA — emerald. Top tier; final polish before release. */
+/* BETA — emerald. Final polish before release (one tier below VERIFIED). */
 .libre-book-status--beta {
   --book-status-fg: #4dd699;
 }
@@ -461,6 +470,53 @@
    modifier here. */
 .libre-book-status--unreviewed {
   --book-status-fg: #9aa0b4;
+}
+
+/* ─── 100% clear stamp — white snake-hologram seal ────────────────
+   Shown on a book cover once every lesson is complete (progress >= 1).
+   A near-white disc carrying the Hologram primitive's snake foil
+   (iridescent brand-mark dust soaked into white, the same surface the
+   cert + chapter stamps use), hand-placed via per-book seeded offsets
+   + rotation. The "100%" sits static and black on top so it stays
+   legible while the foil drifts underneath. */
+.libre-book-clear-stamp {
+  position: absolute;
+  /* Seeded jitter near the middle — offsets + tilt set per book via
+     inline custom props (see stampPlacement in BookCover.tsx). */
+  top: calc(50% + var(--stamp-y, 0%));
+  left: calc(50% + var(--stamp-x, 0%));
+  transform: translate(-50%, -50%) rotate(var(--stamp-rot, -8deg));
+  z-index: 4;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  /* White seal base — the Hologram's multiply snake foil reads as
+     iridescent dust soaked into the paper. */
+  background: #f4f5f7;
+  /* Hairline ring + a soft lift — kept light so the small seal reads
+     clean rather than as a heavy rubber stamp. */
+  box-shadow:
+    inset 0 0 0 1px rgba(12, 12, 18, 0.55),
+    0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* "100%" — static, black, sitting above the holographic foil. */
+.libre-book-clear-stamp__pct {
+  position: relative;
+  z-index: 1;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #0b0b10;
+  /* Faint white halo so the numerals hold against the brightest
+     foil bands. */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* ──────────── Pack-kind chip (top-left, below status pill) ────────────
@@ -477,7 +533,7 @@
    8 + 18 + 6px gap = 32. */
 .libre-book-kind {
   position: absolute;
-  top: 32px;
+  bottom: 32px;
   left: 8px;
   z-index: 3;
   display: inline-flex;

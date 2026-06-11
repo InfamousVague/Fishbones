@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { isWeb } from "../lib/platform";
+import { catalogAssetBase } from "../lib/catalog";
 
-/// Public CDN base for cover JPEGs the deployed Libre site serves.
-/// Used as the canonical cover source on every platform now that
-/// course content all flows from libre.academy. The Tauri WebView
-/// fetches HTTPS by default so an `<img src=...>` with this URL just
-/// works as long as Caddy serves the JPEG.
-const COVER_CDN_BASE = "https://libre.academy/starter-courses";
+/// Base URL for cover JPEGs — delegated to `catalogAssetBase()` so cover
+/// resolution always matches wherever the catalog itself loads from: the
+/// libre.academy CDN in production, the LOCAL `/starter-courses/` extract
+/// on dev builds, or the `LIBRE_CATALOG_URL` override. One shared base
+/// means a dev build shows the covers you just staged with
+/// `npm run starter:web`, not the deployed set.
+const COVER_CDN_BASE = catalogAssetBase();
 
 /// Build the CDN fallback URL. Returns null for empty ids so the
 /// caller can short-circuit without rendering a broken image. The
@@ -40,8 +42,18 @@ function desktopCdnCoverUrl(
 /// even after the JPEG is fixed on the server.
 function webCoverUrl(courseId: string, cacheBust?: number): string | null {
   if (!courseId) return null;
-  // Single absolute base so the cover URL is the same on every host —
-  // dev server, the production embed at libre.academy/learn/, or any
+  // DEV: read the LOCALLY staged cover under the page's BASE_URL
+  // (`public/starter-courses/<id>.jpg`, produced by `npm run
+  // starter:web`) so cover art you change locally shows on reload
+  // without a deploy. No `?v=` cache-bust — the Vite dev server
+  // revalidates the file by mtime, whereas the CDN path below pins the
+  // URL behind the seed-time `coverFetchedAt` and would keep serving a
+  // browser-cached copy after a re-extract.
+  if (import.meta.env.DEV) {
+    return `${import.meta.env.BASE_URL}starter-courses/${courseId}.jpg`;
+  }
+  // PROD: single absolute CDN base so the cover URL is identical on
+  // every host — the production embed at libre.academy/learn/ and any
   // future location. Mirrors `COVER_CDN_BASE` used in the desktop
   // fallback path below.
   const path = `${COVER_CDN_BASE}/${courseId}.jpg`;

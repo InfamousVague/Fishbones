@@ -87,7 +87,15 @@ const DEFAULT_CATALOG_URL =
   "https://libre.academy/starter-courses/manifest.json";
 
 function defaultCatalogUrl(): string {
-  return CATALOG_URL_OVERRIDE || DEFAULT_CATALOG_URL;
+  if (CATALOG_URL_OVERRIDE) return CATALOG_URL_OVERRIDE;
+  // Dev builds read the LOCAL extract (public/starter-courses, staged by
+  // `npm run starter:web`) instead of the live CDN, so freshly-staged
+  // covers and course edits are visible immediately without a deploy.
+  // Production (web + desktop) keeps the CDN.
+  if (import.meta.env.DEV) {
+    return `${import.meta.env.BASE_URL}starter-courses/manifest.json`;
+  }
+  return DEFAULT_CATALOG_URL;
 }
 
 /// Base URL for fetching catalog assets (per-course JSON + cover JPG).
@@ -297,7 +305,13 @@ async function fetchCatalogJson(): Promise<CatalogEntry[]> {
 /// `libre.academy/starter-courses/<id>.jpg`.
 export function coverHref(entry: CatalogEntry): string | undefined {
   if (!entry.cover) return undefined;
-  return `${catalogAssetBase()}/${entry.cover}`;
+  // `?v=` cache-buster keyed on the cover-set version. Covers keep the
+  // same `<id>.jpg` filename when regenerated, so without this the
+  // WebView/browser serves its cached copy of the OLD art even after new
+  // bytes land on the CDN (this is the whole web cover URL — installed +
+  // Discover tiles both fall back to it). Bump CATALOG_COVER_VERSION below
+  // whenever the cover set is regenerated and the URL changes → re-fetch.
+  return `${catalogAssetBase()}/${entry.cover}?v=${CATALOG_COVER_VERSION}`;
 }
 
 /// Resolve a catalog entry's `file` field into a full URL for the
@@ -345,4 +359,4 @@ export function placeholderCourseFromCatalog(entry: CatalogEntry): Course {
 ///
 /// 20260510 — Refresh full library + tighten resize parameters
 ///            (288x432 q68 web / 384x576 q78 bundle).
-const CATALOG_COVER_VERSION = 20260510;
+const CATALOG_COVER_VERSION = 20260610;

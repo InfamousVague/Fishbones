@@ -241,6 +241,7 @@ export interface Course {
   /// Editorial release tier. Drives the corner-pill on BookCover and
   /// the section heading in CourseLibrary. Reading order, top of the
   /// library to bottom:
+  ///   `VERIFIED`   \u2014 fully reviewed + verified; highest tier
   ///   `BETA`       \u2014 final polish for release
   ///   `ALPHA`      \u2014 next up in the queue
   ///   `UNREVIEWED` \u2014 drafts; bottom of the library
@@ -251,7 +252,7 @@ export interface Course {
   /// deserialize and are normalised to `"UNREVIEWED"` by
   /// `releaseStatusFor` until the migration script rewrites every
   /// course.json on disk.
-  releaseStatus?: "UNREVIEWED" | "ALPHA" | "BETA" | "PRE-RELEASE";
+  releaseStatus?: "VERIFIED" | "UNREVIEWED" | "ALPHA" | "BETA" | "PRE-RELEASE";
   /// SHA-256 of the bundled `public/starter-courses/<id>.json` at the
   /// last sync (first install OR explicit "Reapply bundled starter").
   /// The Library compares this against `hash(currentBundled)` to

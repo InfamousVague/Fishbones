@@ -92,13 +92,43 @@ function hasAnyCompletion(
   return false;
 }
 
+/// A "summary" lesson is the stripped placeholder the web build seeds
+/// the library with before a course's full body loads (see `summarise`
+/// in `lib/storage.ts`): `body` is blanked to "" and the practiceable
+/// payloads — `questions` for quizzes, `blocks` for exercises — are
+/// dropped, leaving only id/title/kind plus light metadata. Such a
+/// lesson has nothing to harvest yet, so the harvester skips it.
+function isLessonSummaryStub(lesson: Lesson): boolean {
+  const l = lesson as {
+    body?: string;
+    questions?: unknown;
+    blocks?: unknown;
+  };
+  return (
+    l.body === "" && l.questions === undefined && l.blocks === undefined
+  );
+}
+
 function appendItemsForLesson(
   out: PracticeItem[],
   course: Course,
   lesson: Lesson,
 ): void {
+  // Web seeds the library with stripped summary lessons (see
+  // `isLessonSummaryStub`) that carry no harvestable atoms until the
+  // full course body loads. Skip them before the per-kind logic: a
+  // completed-but-not-yet-opened course must not emit phantom items —
+  // and, historically, this is what stops the harvest from crashing the
+  // whole <App> (via the `practiceDue` useMemo in App.tsx) by
+  // dereferencing a `questions` array the summary doesn't carry. Both
+  // harvest entry points funnel through here, so both are covered.
+  if (isLessonSummaryStub(lesson)) return;
   if (lesson.kind === "quiz") {
-    lesson.questions.forEach((q, i) => {
+    // Second line of defence: a genuinely malformed *full* quiz lesson
+    // (kind "quiz", real body, but the author forgot `questions`) isn't
+    // a summary stub — coalesce to an empty list so it contributes
+    // nothing instead of throwing.
+    (lesson.questions ?? []).forEach((q, i) => {
       out.push({
         id: `${course.id}:${lesson.id}:${q.kind}:q${i}`,
         kind: q.kind,

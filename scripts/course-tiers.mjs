@@ -166,6 +166,9 @@ export const REMOTE_ARCHIVE_BASE =
 /// repacking the archive.
 ///
 /// Tier vocabulary:
+///   - "VERIFIED"   — fully reviewed + verified end-to-end; the
+///                    highest editorial tier. Sorts above every
+///                    other book in the library's "Status" sort.
 ///   - "BETA"       — final polish for release; renders at the top
 ///                    of the library section list.
 ///   - "ALPHA"      — next up in the queue; middle section.
@@ -175,6 +178,12 @@ export const REMOTE_ARCHIVE_BASE =
 /// To remove an override and let the in-zip value win, delete the
 /// pack id from this map.
 export const RELEASE_STATUS_OVERRIDES = {
+  // ── Books verified end-to-end (highest tier) ──────────────────
+  // The Rust Programming Language + Rustlings — reviewed and
+  // verified cover-to-cover; they anchor the top of the Status sort.
+  "the-rust-programming-language": "VERIFIED",
+  "rustlings": "VERIFIED",
+
   // ── Books bumped to BETA after substantive validation ─────────
   // JavaScript & TypeScript — flagship original book. Every exercise,
   // playground, quiz, blocks spec and diagram machine-validated
@@ -247,6 +256,12 @@ export const RELEASE_STATUS_OVERRIDES = {
 export function releaseStatusFor(packId, inZipStatus) {
   const override = RELEASE_STATUS_OVERRIDES[packId];
   if (override) return override;
-  if (inZipStatus === "BETA" || inZipStatus === "ALPHA") return inZipStatus;
+  if (
+    inZipStatus === "VERIFIED" ||
+    inZipStatus === "BETA" ||
+    inZipStatus === "ALPHA"
+  ) {
+    return inZipStatus;
+  }
   return "UNREVIEWED";
 }

@@ -116,7 +116,7 @@ export const PANES: ReadonlyArray<PaneDef> = [
     id: "sounds",
     group: "app",
     label: "Sounds",
-    hint: "SFX + achievement cues",
+    hint: "SFX + UI cues",
     icon: volume2,
     searchTerms: ["audio", "mute", "volume", "sfx", "noise", "chime", "click"],
   },

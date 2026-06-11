@@ -12,7 +12,10 @@ import type { Course } from "../../data/types";
 import { isChallengePack } from "../../data/types";
 import { languageLabel } from "./labels";
 import CourseGroup from "./CourseGroup";
-import CourseCarousel from "./CourseCarousel";
+// Book carousel disabled per request — re-enable by uncommenting this
+// import, the `recents` / `onSelectCourse` destructure below, and the
+// <CourseCarousel> render in the body.
+// import CourseCarousel from "./CourseCarousel";
 import { useT } from "../../i18n/i18n";
 import "./Sidebar.css";
 
@@ -67,9 +70,9 @@ export default function Sidebar({
   activeCourseId,
   activeLessonId,
   completed,
-  recents = {},
+  // recents = {}, // unused while the book carousel is commented out
   onSelectLesson,
-  onSelectCourse,
+  // onSelectCourse, // unused while the book carousel is commented out
   onLibrary,
   onExportCourse,
   onDeleteCourse,
@@ -150,12 +153,11 @@ export default function Sidebar({
           Playground route, and Settings. Profile lives on the top-bar
           streak pill alongside level/XP so it's adjacent to the data
           it belongs with, not hiding in the left rail. */}
-      {/* "Viewing a lesson" mode collapses the carousel out so the
-          chapter tree gets the sidebar's top edge to itself when the
-          learner is heads-down on a specific lesson. Outside that mode
-          (library / discover / the course landing before a lesson is
-          picked) the carousel earns its space as a one-click switcher
-          across recent courses. */}
+      {/* Book carousel disabled per request — the recent-courses
+          switcher that used to sit at the top of the sidebar. Code
+          preserved below; re-enable by uncommenting this block (plus
+          the import + `recents` / `onSelectCourse` destructure).
+
       {(() => {
         const viewingLesson = !!activeLessonId && !!activeCourseId;
         if (viewingLesson || !onSelectCourse) return null;
@@ -181,6 +183,7 @@ export default function Sidebar({
           />
         );
       })()}
+      */}
 
       {/* Library / Discover / Trees / Playground / Settings live in
           the navigation rail to the LEFT of this sidebar — see
@@ -285,14 +288,15 @@ export default function Sidebar({
           const inactiveBooks = books.filter(
             (c) => c.id !== activeCourseId && isStarted(c),
           );
-          // Challenge packs intentionally skip the `isStarted` filter
-          // — packs are small, language-pickable practice surfaces, and
-          // the "I have a Ruby pack but never saw it because the
-          // sidebar hid it until I started a lesson" failure mode is
-          // worse than showing 11 unstarted tiles. Books still filter
-          // by started so the bench doesn't drown in 30+ untouched
-          // long-form courses on a fresh install.
-          const inactivePacks = packs.filter((c) => c.id !== activeCourseId);
+          // Challenge packs ALSO filter by `isStarted` now — the
+          // sidebar is the learner's bench, and showing every bundled
+          // pack (20+ unstarted tiles) is overwhelming. Untouched packs
+          // live on the Library / Challenges pages where the learner
+          // goes to find new things; the sidebar only surfaces the ones
+          // they've actually started (≥1 completed lesson).
+          const inactivePacks = packs.filter(
+            (c) => c.id !== activeCourseId && isStarted(c),
+          );
 
           // Language-filtered packs when focused on a course. We match
           // the pack's primary language to the active course's language.

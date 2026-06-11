@@ -23,7 +23,6 @@ import { flame } from "@base/primitives/icon/icons/flame";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { bookCheck } from "@base/primitives/icon/icons/book-check";
 
-import type { Achievement } from "../../data/achievements";
 import {
   celebrate,
   accelerateActiveCelebrations,
@@ -31,7 +30,6 @@ import {
 } from "../../lib/celebrate";
 import { playSound } from "../../lib/sfx";
 import ModalBackdrop from "../Shared/ModalBackdrop";
-import AchievementBadge from "./AchievementBadge";
 import { useT } from "../../i18n/i18n";
 import "./Achievements.css";
 
@@ -57,10 +55,6 @@ interface Props {
   /// Current streak — included in the summary as warm flavour
   /// ("17 day streak") if non-zero.
   streakDays?: number;
-  /// Achievements that unlocked in the same beat. The card stages
-  /// each as a small inline badge so the user sees the section win
-  /// AND the achievement(s) it triggered in one place.
-  unlocks?: readonly Achievement[];
   onDismiss: () => void;
 }
 
@@ -71,7 +65,6 @@ export default function SectionCompleteSummary({
   coverUrl,
   xpEarned,
   streakDays,
-  unlocks,
   onDismiss,
 }: Props) {
   const t = useT();
@@ -168,24 +161,6 @@ export default function SectionCompleteSummary({
           </span>
         ) : null}
       </div>
-      {unlocks && unlocks.length > 0 ? (
-        <div className="libre-ach-summary__unlocks">
-          <span className="libre-ach-summary__unlocks-eyebrow">
-            {t("achievements.unlockedAlongside")}
-          </span>
-          <ul className="libre-ach-summary__unlocks-list">
-            {unlocks.map((a) => (
-              <li key={a.id} className="libre-ach-summary__unlock">
-                <AchievementBadge achievement={a} size="sm" />
-                <span className="libre-ach-summary__unlock-text">
-                  <strong>{a.title}</strong>
-                  <em>{a.blurb}</em>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
       <button
         type="button"
         className="libre-ach-summary__cta"

@@ -3,6 +3,7 @@ import { Icon } from "@base/primitives/icon";
 import { rocket } from "@base/primitives/icon/icons/rocket";
 import { flaskConical } from "@base/primitives/icon/icons/flask-conical";
 import { pencilLine } from "@base/primitives/icon/icons/pencil-line";
+import { badgeCheck } from "@base/primitives/icon/icons/badge-check";
 import { arrowDownToLine } from "@base/primitives/icon/icons/arrow-down-to-line";
 import { loader } from "@base/primitives/icon/icons/loader";
 import { swords } from "@base/primitives/icon/icons/swords";
@@ -16,8 +17,34 @@ import {
 } from "../../data/types";
 import { useCourseCover } from "../../hooks/useCourseCover";
 import LibreLoader from "../Shared/LibreLoader";
+import Hologram from "../Shared/Hologram";
 import { languageMeta } from "../../lib/languages";
 import "./BookCover.css";
+
+/// Deterministic "random" placement for the 100% clear stamp, seeded by
+/// the course id. Each book's seal lands at a stable jittered spot near
+/// the middle with its own tilt — so it reads as hand-stamped rather than
+/// rigidly centred, but never jumps between renders. Returns CSS-ready
+/// offsets (% of the cover) + a rotation.
+function stampPlacement(id: string): { x: string; y: string; rot: string } {
+  // FNV-1a hash → xorshift draws for a few independent 0..1 values.
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const unit = () => {
+    h ^= h << 13;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    h >>>= 0;
+    return (h % 10000) / 10000;
+  };
+  const x = (unit() * 2 - 1) * 15; // -15%..+15% of cover width
+  const y = (unit() * 2 - 1) * 12; // -12%..+12% of cover height
+  const rot = (unit() * 2 - 1) * 20; // -20deg..+20deg
+  return { x: `${x.toFixed(1)}%`, y: `${y.toFixed(1)}%`, rot: `${rot.toFixed(1)}deg` };
+}
 
 /// Pick a glyph that matches the editorial-pipeline metaphor for each
 /// tier. Pencil = drafting (unreviewed), flask = next up, rocket =
@@ -25,6 +52,8 @@ import "./BookCover.css";
 /// header can render the same glyph next to the section title.
 export function releaseStatusIcon(status: ReleaseStatus): string {
   switch (status) {
+    case "VERIFIED":
+      return badgeCheck;
     case "BETA":
       return rocket;
     case "ALPHA":
@@ -216,6 +245,10 @@ function BookCoverImpl({
   // mapping into a manifest field.
   const releaseStatus = releaseStatusFor(course);
 
+  // 100%-cleared books get a hand-stamped holographic seal. Compute its
+  // seeded placement once per render (cheap; stable per course id).
+  const stamp = progress >= 1 ? stampPlacement(course.id) : null;
+
   // Whether this card is a challenge pack vs. a tutorial book —
   // surfaces a small "Challenges" chip in the corner so a learner
   // scanning the shelf can tell exercises-only packs apart from
@@ -382,6 +415,32 @@ function BookCoverImpl({
         </span>
       )}
 
+      {/* Holographic "100%" clear stamp — a white snake-foil seal
+          slapped on the cover once every lesson is complete. Seeded
+          jitter (position + rotation per book) reads as hand-stamped;
+          the snake iridescence drifts on the white base while the
+          "100%" stays static black for legibility. */}
+      {stamp && (
+        <div
+          className="libre-book-clear-stamp"
+          style={{
+            ["--stamp-x" as string]: stamp.x,
+            ["--stamp-y" as string]: stamp.y,
+            ["--stamp-rot" as string]: stamp.rot,
+          }}
+          aria-label="100% cleared"
+        >
+          <Hologram
+            surface="light"
+            intensity="vivid"
+            sparkle="snake"
+            size="sm"
+            ambient
+          />
+          <span className="libre-book-clear-stamp__pct">100%</span>
+        </div>
+      )}
+
       {/* Progress bar along the very bottom edge. Doubles as the visual
           affordance for "how far you've read". Hidden entirely when
           progress is 0 so untouched books don't show a strip. */}
@@ -475,10 +534,14 @@ export default BookCover;
 /// Legacy `"PRE-RELEASE"` values from before the rename normalise to
 /// `"UNREVIEWED"` here so on-disk data we haven't migrated yet still
 /// renders correctly.
-export type ReleaseStatus = "UNREVIEWED" | "ALPHA" | "BETA";
+export type ReleaseStatus = "VERIFIED" | "UNREVIEWED" | "ALPHA" | "BETA";
 
 export function releaseStatusFor(course: Pick<Course, "id" | "releaseStatus">): ReleaseStatus {
-  if (course.releaseStatus === "ALPHA" || course.releaseStatus === "BETA") {
+  if (
+    course.releaseStatus === "VERIFIED" ||
+    course.releaseStatus === "ALPHA" ||
+    course.releaseStatus === "BETA"
+  ) {
     return course.releaseStatus;
   }
   if (course.releaseStatus === "UNREVIEWED" || course.releaseStatus === "PRE-RELEASE") {
@@ -486,6 +549,16 @@ export function releaseStatusFor(course: Pick<Course, "id" | "releaseStatus">): 
   }
   return "UNREVIEWED";
 }
+
+/// Status rank for the library's "Status" sort — higher wins (floats
+/// to the top). VERIFIED is the ceiling so verified books lead the
+/// shelf; UNREVIEWED drafts sink to the bottom.
+export const RELEASE_STATUS_RANK: Record<ReleaseStatus, number> = {
+  VERIFIED: 3,
+  BETA: 2,
+  ALPHA: 1,
+  UNREVIEWED: 0,
+};
 
 /// Short identifier rendered in the fallback tile when no cover image is
 /// available. We use the uppercase 2-3 letter language code since it

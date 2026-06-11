@@ -5,7 +5,10 @@ import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "../../data/types";
 import { isChallengePack, isExerciseTrack, isKoans, isLings } from "../../data/types";
 import { track } from "../../lib/track";
-import BookCover from "./BookCover";
+import BookCover, {
+  releaseStatusFor,
+  RELEASE_STATUS_RANK,
+} from "./BookCover";
 import { SkeletonCardGrid } from "../Shared/Skeleton";
 import CourseContextMenu, { useCourseMenu } from "../Shared/CourseContextMenu";
 import { prefetchCovers } from "../../hooks/useCourseCover";
@@ -19,6 +22,8 @@ import {
 } from "../../lib/catalog";
 import AddCourseButton from "./AddCourseButton";
 import CourseCard from "./CourseCard";
+import CollectionFolder from "./CollectionFolder";
+import { COLLECTIONS, findCollection } from "./collections";
 import LibraryControls, {
   type SortKey,
   type ViewMode,
@@ -215,6 +220,16 @@ export default function CourseLibrary({
   // starts reading.
   const [sortBy, setSortBy] = useState<SortKey>("recent");
   const [query, setQuery] = useState("");
+
+  // Curated-collection "folder" state. `null` = browsing normally;
+  // a collection id = the folder is open and the shelf shows only that
+  // collection's members (books + packs together). Resets whenever the
+  // user switches Library/Discover scope.
+  const [openCollection, setOpenCollection] = useState<string | null>(null);
+  const activeCollection = findCollection(openCollection);
+  useEffect(() => {
+    setOpenCollection(null);
+  }, [derivedScope]);
   const [viewMode, setViewMode] = useLocalStorageState<ViewMode>(
     VIEW_MODE_STORAGE_KEY,
     VIEW_MODE_DEFAULT,
@@ -459,6 +474,15 @@ export default function CourseLibrary({
             if (rb !== ra) return rb - ra;
             return a.course.title.localeCompare(b.course.title);
           }
+          case "status": {
+            // Editorial tier, highest first — VERIFIED books lead the
+            // shelf, UNREVIEWED drafts trail. Within a tier, fall back
+            // to alphabetical so the order is stable.
+            const sa = RELEASE_STATUS_RANK[releaseStatusFor(a.course)];
+            const sb = RELEASE_STATUS_RANK[releaseStatusFor(b.course)];
+            if (sb !== sa) return sb - sa;
+            return a.course.title.localeCompare(b.course.title);
+          }
           case "progress":
             return b.pct - a.pct;
           case "lessons":
@@ -488,7 +512,76 @@ export default function CourseLibrary({
   //     section so a learner browsing the catalog can find every
   //     installable pack. Challenges fold into the Tracks lane
   //     here (mirrors the Tracks-page bucketing).
+  // Rows for an OPEN collection folder. Pulled straight from `enriched`
+  // (all kinds, scope-appropriate) so the books-only Library strip is
+  // bypassed — a Rust folder shows its books AND its challenge packs /
+  // track together even in the Library where packs are normally hidden.
+  const collectionRows = useMemo(() => {
+    if (!activeCollection) return [];
+    const q = query.trim().toLowerCase();
+    return enriched
+      .filter((e) => activeCollection.memberIds.has(e.course.id))
+      .filter(
+        (e) =>
+          q === "" ||
+          e.course.title.toLowerCase().includes(q) ||
+          (e.course.author ?? "").toLowerCase().includes(q),
+      )
+      .sort((a, b) => a.course.title.localeCompare(b.course.title));
+  }, [activeCollection, enriched, query]);
+
+  // Folder tiles to show: only collections with ≥1 member present in the
+  // current scope, each with a cover mosaic + member count.
+  const collectionMeta = useMemo(() => {
+    return COLLECTIONS.map((c) => {
+      const members = enriched.filter((e) => c.memberIds.has(e.course.id));
+      // Up to four member mini-card previews for the folder mosaic —
+      // cover + title + author + editorial tier, mirroring the card.
+      const previews = members.slice(0, 4).map((e) => {
+        const ent = entryById.get(e.course.id);
+        return {
+          id: e.course.id,
+          title: e.course.title,
+          subtitle: e.course.author ?? "",
+          coverUrl: ent ? coverHref(ent) : undefined,
+          status: releaseStatusFor(e.course),
+        };
+      });
+      return { collection: c, count: members.length, previews };
+    }).filter((m) => m.count > 0);
+  }, [enriched, entryById]);
+
   const sections = useMemo(() => {
+    // Open-folder view: a Books section + a Tracks section drawn from the
+    // collection's members, regardless of scope.
+    if (activeCollection) {
+      if (collectionRows.length === 0) return [];
+      const isPack = (c: Course) =>
+        isExerciseTrack(c) || isChallengePack(c) || isKoans(c) || isLings(c);
+      const out: Array<{
+        key: string;
+        label: string;
+        blurb: string;
+        rows: typeof collectionRows;
+      }> = [];
+      const books = collectionRows.filter((e) => !isPack(e.course));
+      const packs = collectionRows.filter((e) => isPack(e.course));
+      if (books.length > 0)
+        out.push({
+          key: "books",
+          label: t("library.books"),
+          blurb: t("library.booksBlurb"),
+          rows: books,
+        });
+      if (packs.length > 0)
+        out.push({
+          key: "tracks",
+          label: t("library.tracks"),
+          blurb: t("library.tracksBlurb"),
+          rows: packs,
+        });
+      return out;
+    }
     if (filtered.length === 0) return [];
     if (derivedScope !== "discover") {
       return [
@@ -542,7 +635,7 @@ export default function CourseLibrary({
       });
     }
     return out;
-  }, [filtered, derivedScope, t]);
+  }, [filtered, derivedScope, t, activeCollection, collectionRows]);
 
   // Count courses per category so the top-level toggle can show
   // badges. Always uses the full enriched set — the badge needs to
@@ -890,6 +983,63 @@ export default function CourseLibrary({
               itself carries the count + busy state so AT users still
               get the full status via aria-label on the button. */}
 
+          {/* Collections — folder tiles, plus the open-folder back-bar.
+              A folder groups a topic's books + challenge packs + track
+              together (see collections.ts). Hidden while searching so
+              search stays a flat sweep across everything. */}
+          {activeCollection ? (
+            <div className="libre-collection-bar">
+              <button
+                type="button"
+                className="libre-collection-back"
+                onClick={() => setOpenCollection(null)}
+              >
+                ←{" "}
+                {derivedScope === "discover"
+                  ? t("library.headerDiscover")
+                  : t("library.headerLibrary")}
+              </button>
+              <div className="libre-collection-bar-meta">
+                <h2 className="libre-collection-bar-title">
+                  {activeCollection.title}
+                </h2>
+                <span className="libre-collection-bar-blurb">
+                  {activeCollection.blurb}
+                </span>
+              </div>
+            </div>
+          ) : query.trim() === "" && collectionMeta.length > 0 ? (
+            <section
+              className="libre-library-section libre-collections-section"
+              aria-label="Collections"
+            >
+              <header className="libre-library-section-head">
+                <h2 className="libre-library-section-title">Collections</h2>
+                <span className="libre-library-section-count">
+                  {collectionMeta.length}
+                </span>
+                <span className="libre-library-section-blurb">
+                  Curated folders grouping a topic's books, track, and
+                  challenges together.
+                </span>
+              </header>
+              <div className="libre-library-shelf libre-collections-shelf">
+                {collectionMeta.map((m, idx) => (
+                  <CollectionFolder
+                    key={m.collection.id}
+                    collection={m.collection}
+                    count={m.count}
+                    members={m.previews}
+                    onOpen={() => setOpenCollection(m.collection.id)}
+                    style={
+                      { "--libre-ripple-i": idx } as React.CSSProperties
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           {derivedScope === "discover" && !catalogLoaded ? (
             // Catalog fetch in flight. The desktop build hits a Tauri
             // command that walks the bundled-packs dir; the web build
@@ -942,7 +1092,9 @@ export default function CourseLibrary({
                 )}
               </div>
             </div>
-          ) : filtered.length === 0 ? (
+          ) : (
+              activeCollection ? collectionRows.length === 0 : filtered.length === 0
+            ) ? (
             <div className="libre-library-empty">
               <div className="libre-library-empty-title">No matches</div>
               <div className="libre-library-empty-blurb">
@@ -980,55 +1132,39 @@ export default function CourseLibrary({
                   </header>
                   {sec.key === "tracks" ? (
                     // Packs (challenge packs / Exercism tracks / koans /
-                    // *lings) render as SQUARE badge tiles on a tighter
-                    // shelf. They used to fall back to the dense
-                    // CourseCard layout because tracks had no cover
-                    // art; every pack now ships 1:1 mission-patch
-                    // covers, so the shelf shows them — smaller than
-                    // the 2:3 books via .libre-library-shelf--packs,
-                    // square via BookCover's own packType check
-                    // (.libre-book--square). Grid mode below keeps
-                    // CourseCard as the info-dense alternative.
-                    <div className="libre-library-shelf libre-library-shelf--packs">
+                    // *lings) render as IMAGE-LESS info cards even in
+                    // shelf mode — challenge surfaces dropped their
+                    // cover/badge art; only long-form books keep the
+                    // illustrated 2:3 shelf treatment.
+                    <div className="libre-library-grid">
                       {sec.rows.map((e, idx) => (
-                        <BookCover
+                        <CourseCard
                           key={e.course.id}
                           style={{ "--libre-ripple-i": idx } as React.CSSProperties}
                           course={e.course}
-                          progress={e.pct}
-                          loading={hydrating?.has(e.course.id)}
+                          total={e.total}
+                          done={e.done}
+                          pct={e.pct}
                           onOpen={() => onOpen(e.course.id)}
                           onContextMenu={
-                            !e.course.placeholder &&
-                            (onExport || onDelete || onSettings || onUpdateCourse)
+                            onExport || onDelete || onSettings || onUpdateCourse
                               ? (ev) =>
                                   ctxMenu.show(e.course, ev, {
                                     hasUpdate: !!updates[e.course.id],
                                   })
                               : undefined
                           }
-                          hasUpdate={
-                            !e.course.placeholder &&
-                            !!onUpdateCourse &&
-                            !!updates[e.course.id]
-                          }
-                          updating={updatingIds.has(e.course.id)}
-                          onUpdate={
-                            !e.course.placeholder && onUpdateCourse
-                              ? () => void handleUpdateClick(e.course.id)
-                              : undefined
-                          }
                           placeholder={e.course.placeholder}
                           installing={installingIds.has(e.course.id)}
-                          placeholderCoverUrl={
-                            e.course.placeholder
-                              ? coverHref(entryById.get(e.course.id)!)
-                              : undefined
-                          }
                           onInstall={
                             e.course.placeholder && onInstallCatalogEntry
                               ? () => void handleInstallClick(e.course.id)
                               : undefined
+                          }
+                          hasUpdate={
+                            !e.course.placeholder &&
+                            !!onUpdateCourse &&
+                            !!updates[e.course.id]
                           }
                         />
                       ))}

@@ -632,7 +632,7 @@
 
 .libre-library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(346px, 1fr));
   gap: 14px;
 }
 
@@ -642,7 +642,7 @@
    breathing room so the shelf reads as ROWS not a continuous wall. */
 .libre-library-shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(226px, 1fr));
   gap: 22px 16px;
 }
 
@@ -652,7 +652,7 @@
    books above: more per row, less vertical real estate, reads as
    "drills, not books". */
 .libre-library-shelf--packs {
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 18px 14px;
 }
 
@@ -1277,4 +1277,198 @@
 [data-theme-name="catppuccin-latte"] .libre-library-card,
 [data-theme-name="cipher-light"] .libre-library-card {
   background: #ffffff;
+}
+
+/* ─── Collections (curated topic folders) ─────────────────────────────
+   A folder tile groups a topic's books + challenge packs + track behind
+   a 2×2 cover mosaic. Sits in its own "Collections" section above the
+   shelves; opening one swaps the shelf for that collection's members. */
+.libre-collections-shelf {
+  grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));
+}
+
+.libre-collection-folder {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  border: 1px solid var(--color-border-card);
+  border-left: 3px solid var(--collection-accent, var(--color-border-card-strong));
+  border-radius: var(--libre-radius-sm);
+  background: var(--color-bg-primary);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--libre-motion-snappy),
+    border-color var(--libre-motion-snappy),
+    box-shadow var(--libre-motion-snappy);
+}
+.libre-collection-folder:hover {
+  border-color: var(--color-border-card-strong);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.6);
+}
+.libre-collection-folder:active {
+  transform: translateY(-1px);
+}
+
+.libre-collection-folder-mosaic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  background: var(--color-border-card);
+}
+.libre-collection-folder-cell {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+.libre-collection-folder-cell img,
+.libre-collection-folder-cell-blank {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.libre-collection-folder-cell-blank {
+  background: var(--color-bg-tertiary, #1a1b22);
+}
+/* Top gradient so each member's title stays legible over its art. */
+.libre-collection-folder-cell-shade {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 66%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.32) 46%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+}
+.libre-collection-folder-cell-meta {
+  position: absolute;
+  /* Leave room on the right for the tier pill. */
+  inset: 0 28px auto 0;
+  padding: 5px 6px;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  pointer-events: none;
+}
+.libre-collection-folder-cell-title {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.libre-collection-folder-cell-sub {
+  margin-top: 1px;
+  font-size: 7px;
+  font-weight: 500;
+  line-height: 1.1;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.libre-collection-folder-cell-status {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  font-size: 6.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  background: rgba(8, 9, 14, 0.66);
+  color: var(--cell-status-fg, #cfd1da);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+.libre-collection-folder-cell-status--verified { --cell-status-fg: #5aa9ff; }
+.libre-collection-folder-cell-status--beta { --cell-status-fg: #4dd699; }
+.libre-collection-folder-cell-status--alpha { --cell-status-fg: #f5b13a; }
+.libre-collection-folder-cell-status--unreviewed { --cell-status-fg: #9aa0b4; }
+
+.libre-collection-folder-label {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.86), rgba(0, 0, 0, 0));
+}
+.libre-collection-folder-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+.libre-collection-folder-count {
+  flex: none;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--collection-accent, rgba(255, 255, 255, 0.22));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Open-folder back-bar */
+.libre-collection-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.libre-collection-back {
+  flex: none;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--libre-radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--libre-motion-snappy),
+    background var(--libre-motion-snappy);
+}
+.libre-collection-back:hover {
+  border-color: var(--color-border-card-strong);
+  background: var(--color-bg-secondary);
+}
+.libre-collection-bar-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.libre-collection-bar-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.libre-collection-bar-blurb {
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }

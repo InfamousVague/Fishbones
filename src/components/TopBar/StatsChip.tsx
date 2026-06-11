@@ -230,38 +230,6 @@ export default function StatsChip({
     return { cells, peak, activeDays };
   }, [history]);
 
-  /// Next-milestone hint. Picks the closest still-locked achievement
-  /// from the same set the Profile page renders, so the dropdown
-  /// always points at "the next thing to unlock". Falls back silently
-  /// when every milestone is unlocked.
-  const nextMilestone = useMemo(() => {
-    const targets: Array<{ labelKey: string; target: number; actual: number; unitKey: string }> = [
-      { labelKey: "stats.milestoneFirstLesson", target: 1, actual: stats.lessonsCompleted, unitKey: "stats.unitLesson" },
-      { labelKey: "stats.milestoneTenLessons", target: 10, actual: stats.lessonsCompleted, unitKey: "stats.unitLessons" },
-      { labelKey: "stats.milestoneCentury", target: 100, actual: stats.lessonsCompleted, unitKey: "stats.unitLessons" },
-      { labelKey: "stats.milestoneThreeDayStreak", target: 3, actual: Math.max(stats.streakDays, stats.longestStreakDays), unitKey: "stats.unitDays" },
-      { labelKey: "stats.milestoneWeekStrong", target: 7, actual: Math.max(stats.streakDays, stats.longestStreakDays), unitKey: "stats.unitDays" },
-      { labelKey: "stats.milestoneIronHabit", target: 30, actual: Math.max(stats.streakDays, stats.longestStreakDays), unitKey: "stats.unitDays" },
-      { labelKey: "stats.milestoneApprentice", target: 5, actual: stats.level, unitKey: "stats.unitLevel" },
-      { labelKey: "stats.milestoneAdept", target: 10, actual: stats.level, unitKey: "stats.unitLevel" },
-      { labelKey: "stats.milestoneMastered", target: 20, actual: stats.level, unitKey: "stats.unitLevel" },
-      { labelKey: "stats.milestoneOneKXp", target: 1000, actual: stats.xp, unitKey: "stats.unitXp" },
-      { labelKey: "stats.milestoneTenKXp", target: 10000, actual: stats.xp, unitKey: "stats.unitXp" },
-    ];
-    // Closest = smallest remaining gap (target - actual), among locked.
-    let best: typeof targets[number] | null = null;
-    let bestGap = Infinity;
-    for (const tg of targets) {
-      if (tg.actual >= tg.target) continue;
-      const gap = tg.target - tg.actual;
-      if (gap < bestGap) {
-        bestGap = gap;
-        best = tg;
-      }
-    }
-    return best;
-  }, [stats]);
-
   return (
     <div
       className="libre__topbar-stats-wrap"
@@ -465,25 +433,6 @@ export default function StatsChip({
                   })}
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Next-milestone teaser — points the learner at the closest
-              still-locked achievement so the View Profile button has
-              a concrete reward attached to it. Hidden when every
-              milestone is unlocked. */}
-          {nextMilestone && (
-            <div className="libre__topbar-stats-next">
-              <span className="libre__topbar-stats-next-label">{t("stats.next")}</span>
-              <span className="libre__topbar-stats-next-name">
-                {t(nextMilestone.labelKey)}
-              </span>
-              <span className="libre__topbar-stats-next-progress">
-                {nextMilestone.actual}/{nextMilestone.target}{" "}
-                <span className="libre__topbar-stats-next-unit">
-                  {t(nextMilestone.unitKey)}
-                </span>
-              </span>
             </div>
           )}
 

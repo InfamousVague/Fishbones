@@ -126,6 +126,7 @@
     "importArchive": "아카이브",
     "sortName": "이름 (가–하)",
     "sortRecent": "최근",
+    "sortStatus": "상태",
     "sortProgress": "진행도",
     "sortLessonCount": "레슨 수",
     "sortOrderTitle": "정렬 순서",
