@@ -958,8 +958,10 @@
 .libre__carousel-item {
   position: relative;
   flex-shrink: 0;
-  width: 74px;
-  height: 111px;
+  /* 2:3 book thumbnail, sized up 33% from the original 74×111 so the
+     covers read more like a proper shelf. */
+  width: 98px;
+  height: 147px;
   padding: 0;
   background: var(--color-bg-tertiary);
   border: 0;

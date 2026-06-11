@@ -50,6 +50,11 @@ export interface TrackStep {
 
 export interface LearningTrack {
   id: string;
+  /// Cover-art info, threaded in when a challenge pack is adapted into
+  /// a track so the gallery card can render the pack's cover. Unset for
+  /// hand-authored career tracks.
+  coverFetchedAt?: number;
+  language?: string;
   /// Full title — appears in the card head + detail view.
   title: string;
   /// Two-word tag used on the card chip + the section header. Same

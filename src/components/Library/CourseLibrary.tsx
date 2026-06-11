@@ -1130,12 +1130,12 @@ export default function CourseLibrary({
                         natural single anchor. */}
                     {secIdx === 0 && updateAllButton}
                   </header>
-                  {sec.key === "tracks" ? (
-                    // Packs (challenge packs / Exercism tracks / koans /
-                    // *lings) render as IMAGE-LESS info cards even in
-                    // shelf mode — challenge surfaces dropped their
-                    // cover/badge art; only long-form books keep the
-                    // illustrated 2:3 shelf treatment.
+                  {sec.key === "tracks" && !activeCollection ? (
+                    // Packs render as IMAGE-LESS info cards in the flat
+                    // Discover catalog. But inside an open collection
+                    // folder they DO get the illustrated 2:3 cover
+                    // treatment (every pack now has cover art) so the
+                    // folder reads as one cohesive shelf of book covers.
                     <div className="libre-library-grid">
                       {sec.rows.map((e, idx) => (
                         <CourseCard

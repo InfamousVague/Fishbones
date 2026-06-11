@@ -278,14 +278,16 @@
 .libre-challenges__card--grid {
   width: 100%;
   min-height: 0;
-  /* Tighter inner padding too — the card is shorter overall so
-     16/18 of breathing room reads as proportional. */
-  padding: 14px 16px 12px;
-  /* Lay the card out as [circular badge] [content column] so the
-     per-pack art sits as a left-hand avatar before the text. */
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 14px;
+  /* Cover-forward "book" tile: the pack's cover art fills the card and
+     the title + tag + progress overlay the bottom. Portrait 2:3 so it
+     reads as a small book cover (smaller than the library shelf). */
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -295,6 +297,59 @@
   /* Let the body collapse to its content rather than push the
      footer to the bottom of a 360px box. */
   flex: 0 0 auto;
+}
+
+/* ── Cover-forward gallery card: the pack's cover art fills the tile ── */
+.libre-challenges__card-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  /* Crop in ~10% to match the library book covers' tighter framing. */
+  transform: scale(1.1);
+  z-index: 0;
+}
+.libre-challenges__card-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* Dark wash rising from the bottom so the overlaid title + progress
+     stay legible against any cover art. */
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.55) 26%,
+    rgba(0, 0, 0, 0) 58%
+  );
+}
+/* The text stack sits above the cover, anchored to the bottom edge. */
+.libre-challenges__card--grid .libre-challenges__card-main {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  padding: 10px 12px 11px;
+  gap: 5px;
+}
+/* Cover-forward = minimal copy: keep title + tag + progress, drop the
+   verbose outcome / description / meta line and the old left badge. */
+.libre-challenges__card--grid .libre-challenges__card-outcome,
+.libre-challenges__card--grid .libre-challenges__card-desc,
+.libre-challenges__card--grid .libre-challenges__card-meta,
+.libre-challenges__card--grid .libre-challenges__card-index,
+.libre-challenges__card--grid .libre-challenges__card-badge {
+  display: none;
+}
+.libre-challenges__card--grid .libre-challenges__card-title {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+.libre-challenges__card--grid .libre-challenges__card-pct {
+  color: #fff;
 }
 .libre-challenges__card--grid:hover {
   transform: translateY(-3px);
@@ -554,19 +609,21 @@
      3-up row. Scales down via the breakpoints below so
      mid-range laptops + tablets still get a comfortable card
      size. */
-  grid-template-columns: repeat(3, 1fr);
+  /* Auto-fill of small "book" tiles so the gallery shows many compact
+     covers per row instead of three large cards. */
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
   gap: 16px;
 }
 
 @media (max-width: 1300px) {
   .libre-challenges__grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(162px, 1fr));
   }
 }
 
 @media (max-width: 900px) {
   .libre-challenges__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
 

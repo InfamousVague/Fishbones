@@ -99,7 +99,11 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // extracted copies on disk — bumping forces re-extraction so the
 // "this exercise hasn't been authored for blocks mode yet" message
 // stops appearing on every challenge.
-const SEED_VERSION: u32 = 13;
+// V15 — refreshed cover art for every bundled pack (books + challenge
+// packs); the re-seed re-extracts each `.academy`'s new cover.jpg.
+// V16 — re-applied the corrected cover set (courseId-preferred art so
+// dup-named challenge packs pick up the right cover).
+const SEED_VERSION: u32 = 16;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
@@ -190,7 +194,16 @@ fn should_seed_pack(filename: &str) -> bool {
         .trim_end_matches(".kata");
     matches!(
         stem,
-        "the-rust-programming-language" | "mastering-ethereum"
+        // The Rust collection ships installed by default — the books,
+        // the Exercism track, and Rustlings. (The Rust challenge packs
+        // come in via the `contains("challenge")` arm below.)
+        "the-rust-programming-language"
+            | "the-rustonomicon"
+            | "rust-by-example"
+            | "rust-async-book"
+            | "exercism-rust"
+            | "rustlings"
+            | "mastering-ethereum"
     ) || stem.contains("challenge")
 }
 

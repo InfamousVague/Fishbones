@@ -53,7 +53,7 @@
 }
 
 .libre-book:hover {
-  transform: translateY(-3px) scale(1.012);
+  /* No hover lift/scale — the library stays static per request. */
   /* Hover state escalates to the strong card border so the
      "lifting" cue is reinforced visually as well as via
      translate. Dark theme bumps this to rgba 0.32 white;
@@ -143,14 +143,16 @@
 .libre-book-cover--loading {
   filter: blur(16px) saturate(140%);
   opacity: 0.65;
-  transform: scale(1.05);
+  transform: scale(1.155);
 }
 
-/* Post-load state — clear, fully opaque, at native scale. */
+/* Post-load state — clear, fully opaque, resting at a 1.1 zoom so the
+   cover art reads as a slightly tighter crop (edges trimmed ~10%). The
+   load settle still steps down from 1.155 → 1.1, a ~5% sharpen-in. */
 .libre-book-cover--loaded {
   filter: blur(0) saturate(100%);
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1.1);
 }
 
 /* Honor reduced-motion preferences — drop the blur transition for
@@ -162,7 +164,9 @@
   .libre-book-cover--loading {
     filter: none;
     opacity: 1;
-    transform: none;
+    /* Rest at the same 1.1 zoom crop as the loaded state so the cover
+       doesn't snap-scale on load when motion is reduced. */
+    transform: scale(1.1);
   }
 }
 

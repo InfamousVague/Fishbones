@@ -28,7 +28,6 @@ export const COLLECTIONS: readonly Collection[] = [
       "rust-by-example",
       "rustonomicon",
       "rust-async-book",
-      "solana-programs",
       "challenges-rust-mo9bapm1",
       "challenges-rust-handwritten",
       "exercism-rust",

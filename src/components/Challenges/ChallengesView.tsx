@@ -36,6 +36,7 @@ import {
   type LearningTrack,
 } from "../../data/tracks";
 import { useT } from "../../i18n/i18n";
+import { useCourseCover } from "../../hooks/useCourseCover";
 import "./ChallengesView.css";
 
 /// Default accent (matches the cover-art palette used elsewhere)
@@ -87,6 +88,8 @@ function challengePackAsTrack(pack: Course): LearningTrack {
   const lang = pack.language ?? "language";
   return {
     id: pack.id,
+    coverFetchedAt: pack.coverFetchedAt,
+    language: pack.language,
     title: pack.title,
     short: pack.language ? pack.language.toUpperCase() : "Pack",
     description:
@@ -528,6 +531,7 @@ function TrackCardBody({
   /// LearningTrack has no `steps`, so the resolver would read 0.
   progressOverride?: number;
 }) {
+  const coverUrl = useCourseCover(track.id, track.coverFetchedAt);
   const pct =
     progressOverride != null
       ? Math.round(Math.max(0, Math.min(1, progressOverride)) * 100)
@@ -553,6 +557,18 @@ function TrackCardBody({
       onClick={onOpen}
       onContextMenu={onContextMenu}
     >
+      {coverUrl && (
+        <>
+          <img
+            className="libre-challenges__card-cover"
+            src={coverUrl}
+            alt=""
+            loading="lazy"
+            draggable={false}
+          />
+          <span className="libre-challenges__card-shade" aria-hidden />
+        </>
+      )}
       <div className="libre-challenges__card-main">
         <div className="libre-challenges__card-head">
           <span className="libre-challenges__card-tag">

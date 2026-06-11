@@ -12,10 +12,7 @@ import type { Course } from "../../data/types";
 import { isChallengePack } from "../../data/types";
 import { languageLabel } from "./labels";
 import CourseGroup from "./CourseGroup";
-// Book carousel disabled per request — re-enable by uncommenting this
-// import, the `recents` / `onSelectCourse` destructure below, and the
-// <CourseCarousel> render in the body.
-// import CourseCarousel from "./CourseCarousel";
+import CourseCarousel from "./CourseCarousel";
 import { useT } from "../../i18n/i18n";
 import "./Sidebar.css";
 
@@ -70,9 +67,9 @@ export default function Sidebar({
   activeCourseId,
   activeLessonId,
   completed,
-  // recents = {}, // unused while the book carousel is commented out
+  recents = {},
   onSelectLesson,
-  // onSelectCourse, // unused while the book carousel is commented out
+  onSelectCourse,
   onLibrary,
   onExportCourse,
   onDeleteCourse,
@@ -153,11 +150,9 @@ export default function Sidebar({
           Playground route, and Settings. Profile lives on the top-bar
           streak pill alongside level/XP so it's adjacent to the data
           it belongs with, not hiding in the left rail. */}
-      {/* Book carousel disabled per request — the recent-courses
-          switcher that used to sit at the top of the sidebar. Code
-          preserved below; re-enable by uncommenting this block (plus
-          the import + `recents` / `onSelectCourse` destructure).
-
+      {/* Recent-courses carousel — a horizontal strip of book covers at
+          the top of the sidebar, most-recently-opened first. Hidden
+          while reading a lesson (the chapter tree takes over). */}
       {(() => {
         const viewingLesson = !!activeLessonId && !!activeCourseId;
         if (viewingLesson || !onSelectCourse) return null;
@@ -183,7 +178,6 @@ export default function Sidebar({
           />
         );
       })()}
-      */}
 
       {/* Library / Discover / Trees / Playground / Settings live in
           the navigation rail to the LEFT of this sidebar — see

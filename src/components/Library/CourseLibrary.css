@@ -1290,6 +1290,8 @@
 .libre-collection-folder {
   position: relative;
   display: block;
+  /* No spring-land bounce on mount — folders settle in statically. */
+  animation: none;
   width: 100%;
   aspect-ratio: 2 / 3;
   padding: 0;
@@ -1306,8 +1308,8 @@
     box-shadow var(--libre-motion-snappy);
 }
 .libre-collection-folder:hover {
+  /* No hover lift — the library stays static per request. */
   border-color: var(--color-border-card-strong);
-  transform: translateY(-4px);
   box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.6);
 }
 .libre-collection-folder:active {
