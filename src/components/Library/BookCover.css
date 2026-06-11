@@ -295,20 +295,26 @@
 }
 
 /* ---- Bottom progress strip ---- */
+/* Matches the Challenges-page card progress bar: 3px, a lighter track,
+   rounded + clipped, and an accent-coloured fill. */
 .libre-book-progress {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   height: 3px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
 .libre-book-progress-fill {
   height: 100%;
+  /* Coloured by the book's language accent (set inline from langMeta),
+     mirroring the challenge card's `--track-accent` fill; falls back to
+     the text colour when no language accent is available. */
   background: var(--color-text-primary, #fff);
-  opacity: 0.92;
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
 }
 
 /* Respect reduced-motion — kill the hover lift animation. */

@@ -448,7 +448,10 @@ function BookCoverImpl({
         <div className="libre-book-progress" aria-hidden>
           <div
             className="libre-book-progress-fill"
-            style={{ width: `${Math.round(progress * 100)}%` }}
+            style={{
+              width: `${Math.round(progress * 100)}%`,
+              background: langMeta?.color,
+            }}
           />
         </div>
       )}

@@ -83,6 +83,12 @@ const LEGACY_STARTER_IDS: ReadonlyArray<string> = [
   "challenges-move-handwritten",
   "challenges-cairo-handwritten",
   "challenges-sway-handwritten",
+  // 2026-06-11: nanoid "— Challenge Pack" duplicates, retired. Go + Rust
+  // keep their challenges-{go,rust}-handwritten replacements; TypeScript
+  // was dropped per request. Listed so the prune step removes them.
+  "challenges-go-mo9kijkd",
+  "challenges-rust-mo9bapm1",
+  "challenges-typescript-mo9c9k2o",
   // Retired — explicitly listed so they're pruned on migration.
   // V9 dropped a large book set (Eloquent JavaScript, Composing
   // Programs, Python Crash Course, Mastering Bitcoin, Solidity
@@ -490,7 +496,10 @@ function starterUrl(path: string): string {
 /// `packType: "course"` → regular Library (it's a book, not a
 /// challenges/lings/koans pack). Bumping so returning visitors
 /// pick up the new course + cover.
-const SEED_VERSION = 29;
+///
+/// V30 — retired the nanoid "— Challenge Pack" duplicate packs
+/// (challenges-{go,rust,typescript}-*); the prune step removes them.
+const SEED_VERSION = 30;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +

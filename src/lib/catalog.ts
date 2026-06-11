@@ -134,6 +134,11 @@ const RETIRED_PACK_IDS: ReadonlySet<string> = new Set([
   "bun-fundamentals",
   "javascript-crash-course",
   "challenges-reactnative-visual",
+  // 2026-06-11: nanoid "— Challenge Pack" duplicates. Go + Rust have
+  // challenges-{go,rust}-handwritten replacements; TypeScript dropped.
+  "challenges-go-mo9kijkd",
+  "challenges-rust-mo9bapm1",
+  "challenges-typescript-mo9c9k2o",
   // 2026-05-07 cleanup. NOTE: eloquent-javascript and
   // you-dont-know-js-yet were re-authored (covers + per-exercise
   // hints) and returned to the active catalog on 2026-06-07 — kept

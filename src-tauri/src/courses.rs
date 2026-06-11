@@ -103,7 +103,9 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // packs); the re-seed re-extracts each `.academy`'s new cover.jpg.
 // V16 — re-applied the corrected cover set (courseId-preferred art so
 // dup-named challenge packs pick up the right cover).
-const SEED_VERSION: u32 = 16;
+// V17 — retired the nanoid "— Challenge Pack" duplicate packs
+// (challenges-{go,rust,typescript}-*).
+const SEED_VERSION: u32 = 17;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
@@ -126,6 +128,13 @@ const RETIRED_PACK_IDS: &[&str] = &[
     // that got swept into the v1.3.24 bundle; removed from Discover and
     // pruned from every library on next launch (SEED_VERSION 12 → 13).
     "learning-react-native",
+    // 2026-06-11: retire the nanoid-suffixed "— Challenge Pack"
+    // duplicates. Go + Rust are replaced by challenges-{go,rust}-
+    // handwritten ("Go/Rust Challenges"); TypeScript had no handwritten
+    // replacement and was dropped per request.
+    "challenges-go-mo9kijkd",
+    "challenges-rust-mo9bapm1",
+    "challenges-typescript-mo9c9k2o",
     "bun-fundamentals",
     "javascript-crash-course",
     "challenges-reactnative-visual",
