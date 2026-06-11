@@ -967,6 +967,34 @@
   font-weight: 600;
 }
 
+/* Lesson art — standalone images promoted to figure cards by
+   `wrapFiguresWithCaption` in markdown.ts. The image fills a rounded card
+   (overflow:hidden clips its corners to the radius), is responsive to the
+   prose column width, and the image title becomes a centered subtitle. */
+.libre-reader-body .libre-figure {
+  margin: 24px auto;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-card);
+  background: var(--color-bg-secondary);
+}
+
+.libre-reader-body .libre-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.libre-reader-body .libre-figure figcaption {
+  padding: 9px 14px;
+  border-top: 1px solid var(--color-border-card);
+  text-align: center;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
 
 /* Narration cursor — applied by useLessonReadCursor to the
    `[data-tts-block="N"]` whose audio range covers the current

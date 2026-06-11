@@ -183,6 +183,14 @@ export async function renderMarkdown(
     joined = wrapGlossaryTerms(joined, opts.enrichment.glossary);
   }
 
+  // Step 5.5 — promote standalone images to <figure> cards. Lesson art
+  // is authored as a lone `![alt](src "caption")` paragraph; markdown-it
+  // renders that as an inline `<img>` in a `<p>`. We lift it into a
+  // rounded, responsive figure with the title as a <figcaption> subtitle.
+  // Runs BEFORE the TTS pass so the figure (not a soon-to-be-replaced
+  // <p>) gets the block index.
+  joined = wrapFiguresWithCaption(joined);
+
   // Step 6 — annotate top-level block elements for TTS cursor
   // tracking. The lesson-audio cursor reads these attributes at
   // runtime to find the currently-narrated block, highlight it, and
@@ -238,6 +246,59 @@ function annotateTtsBlocks(html: string): string {
     return root.innerHTML;
   } catch {
     // Defensive — never let the annotation step break the render.
+    return html;
+  }
+}
+
+// ---------- Figures (lesson art) ------------------------------------------
+
+/// Promote a standalone image to a `<figure class="libre-figure">` card.
+/// Lesson art is authored as a lone `![alt](src "caption")` paragraph;
+/// markdown-it renders that as an inline `<img>` inside a `<p>`, and a
+/// raw full-bleed `<img>` (a) can overflow the reading column and (b) has
+/// no place to hang a caption. We lift each image-only paragraph into a
+/// figure, move its `title` into a `<figcaption>` subtitle, and drop the
+/// now-empty `<p>`. Images that sit mid-sentence (the paragraph has other
+/// text) are left inline. CSS in LessonReader.css gives `.libre-figure`
+/// the rounded card + responsive width + caption styling.
+function wrapFiguresWithCaption(html: string): string {
+  if (typeof DOMParser === "undefined") return html;
+  try {
+    const doc = new DOMParser().parseFromString(
+      `<!doctype html><html><body><div id="__fig_root__">${html}</div></body></html>`,
+      "text/html",
+    );
+    const root = doc.getElementById("__fig_root__");
+    if (!root) return html;
+    for (const img of Array.from(root.querySelectorAll("img"))) {
+      // Scope to raster art (the baked lesson illustrations). Inline SVG
+      // diagrams (e.g. the JS/TS course's 59 hand-authored schematics)
+      // are sized + placed deliberately and should stay as-is, not get
+      // wrapped in a photo-style card.
+      const src = img.getAttribute("src") || "";
+      if (/^data:image\/svg|\.svg(\?|$)/i.test(src)) continue;
+      const p = img.parentElement;
+      // Only promote images that ARE the paragraph — no sibling prose,
+      // exactly one image. Inline images mid-sentence stay put.
+      if (!p || p.tagName !== "P") continue;
+      if ((p.textContent || "").trim() !== "") continue;
+      if (p.querySelectorAll("img").length !== 1) continue;
+      const caption = img.getAttribute("title") || "";
+      img.removeAttribute("title");
+      img.setAttribute("loading", "lazy");
+      const figure = doc.createElement("figure");
+      figure.className = "libre-figure";
+      figure.appendChild(img); // moves the <img> out of the <p>
+      if (caption) {
+        const fc = doc.createElement("figcaption");
+        fc.textContent = caption;
+        figure.appendChild(fc);
+      }
+      p.replaceWith(figure);
+    }
+    return root.innerHTML;
+  } catch {
+    // Defensive — never let figure promotion break the render.
     return html;
   }
 }
