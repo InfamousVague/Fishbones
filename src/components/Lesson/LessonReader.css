@@ -972,11 +972,21 @@
    (overflow:hidden clips its corners to the radius), is responsive to the
    prose column width, and the image title becomes a centered subtitle. */
 .libre-reader-body .libre-figure {
-  margin: 24px auto;
+  /* Hero / default figures float into the right margin and let the
+     prose wrap around them, capped at half the column — full-bleed art
+     overwhelmed the reading flow. The `wide` variant opts a standout
+     opener up to ~two-thirds. (Floats/talls/seals set their own smaller
+     widths below.) Phones go full-width in the media query. */
+  float: right;
+  width: min(50%, 360px);
+  margin: 4px 0 16px 24px;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--color-border-card);
   background: var(--color-bg-secondary);
+}
+.libre-reader-body .libre-figure--wide {
+  width: min(66%, 460px);
 }
 
 .libre-reader-body .libre-figure img {
@@ -993,6 +1003,49 @@
   font-style: italic;
   line-height: 1.5;
   color: var(--color-text-tertiary);
+}
+
+/* Size-class variants — chosen via a `float:` / `tall:` / `seal:` prefix
+   in the image's alt text (see wrapFiguresWithCaption in markdown.ts).
+   Floats and talls tuck into the right margin and let the prose wrap
+   around them; seals are small left-floated badges (quiz checkpoints).
+   Headings clear floats so art never bleeds into the next section. */
+.libre-reader-body .libre-figure--float,
+.libre-reader-body .libre-figure--tall {
+  float: right;
+  width: min(44%, 320px);
+  margin: 4px 0 16px 22px;
+}
+.libre-reader-body .libre-figure--tall {
+  width: min(40%, 280px);
+}
+.libre-reader-body .libre-figure--seal {
+  float: left;
+  width: min(30%, 180px);
+  margin: 4px 20px 12px 0;
+}
+.libre-reader-body .libre-figure--seal figcaption {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+/* Prose, headings, and code all wrap around floated figures (magazine
+   style) so the column beside an image is never left as an empty
+   gutter. Only a following figure clears, so two images never overlap.
+   (Headings used to clear here, which dropped every section below the
+   figure and left a tall blank strip to its left.) */
+.libre-reader-body .libre-figure {
+  clear: both;
+}
+@media (max-width: 640px) {
+  .libre-reader-body .libre-figure,
+  .libre-reader-body .libre-figure--wide,
+  .libre-reader-body .libre-figure--float,
+  .libre-reader-body .libre-figure--tall,
+  .libre-reader-body .libre-figure--seal {
+    float: none;
+    width: 100%;
+    margin: 16px 0;
+  }
 }
 
 

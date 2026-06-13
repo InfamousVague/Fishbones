@@ -28,7 +28,7 @@ interface Props {
   /// — that way legacy course data with a typo doesn't crash.
   language: string;
   /// Display size. Defaults to `sm`. See module comment for spec.
-  size?: "xs" | "sm" | "md";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   /// Hide the label, leaving just the icon. Defaults to `true` for the
   /// `xs` size (label would be unreadable at that scale anyway), `false`
   /// otherwise. Pass explicitly to override.

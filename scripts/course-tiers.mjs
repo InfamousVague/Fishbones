@@ -58,9 +58,6 @@ export const CORE_PACK_IDS = [
   // in Part IV. 230 inline playgrounds, 53 diagrams, quizzes + blocks.
   // Authored 2026-06; validated by .jsts-work/validate-jsts-course.mjs.
   "javascript-typescript",
-  // HelloTrade — 51 lessons + the in-app TradeDock (Postman-style
-  // REST + WS client). Small enough to ship in core (96KB JSON).
-  "hellotrade",
 
   // Long-form books we want every install to start with.
   "the-rust-programming-language",
@@ -200,12 +197,6 @@ export const RELEASE_STATUS_OVERRIDES = {
   // solution-vs-tests, 9 inline SVG diagrams. Ships in the v1.2.2 bundle
   // alongside the markdown renderer's data:image/svg+xml allowance.
   "eloquent-javascript": "BETA",
-  // HelloTrade authored hand-on at BETA — every prose lesson
-  // proofread, every dock-driven exercise pinned to a real preset
-  // in the API tester. Lessons compile cleanly with the placeholder
-  // exercise harness even though the dock is the actual interaction
-  // surface.
-  "hellotrade": "BETA",
 
   // ── Books bumped to ALPHA ────────────────────────────────────
   // (Vyper override removed 2026-05-10 alongside the ALL_PACK_IDS

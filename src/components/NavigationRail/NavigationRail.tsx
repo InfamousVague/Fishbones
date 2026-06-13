@@ -51,6 +51,7 @@ export interface NavigationRailProps {
     | "library"
     | "discover"
     | "challenges"
+    | "monkeyspaw"
     | "practice"
     | "paths"
     | "certificates";
@@ -78,6 +79,11 @@ export interface NavigationRailProps {
   /// surface was retired in the 2026-05 redesign; Tracks is now
   /// the sole "outcome-driven sequence" affordance.)
   onChallenges?: () => void;
+  /// Monkey's Paw route — adversarial test-writing duels where the
+  /// learner writes only tests and a maliciously-literal genie writes
+  /// the laziest code that passes them. Optional; hidden when the
+  /// host doesn't wire it.
+  onMonkeysPaw?: () => void;
   /// Practice route — review-mode that resurfaces quizzes and
   /// blocks puzzles from courses the learner has already touched.
   /// The rest of the app is linear-by-lesson; Practice is the
@@ -244,31 +250,35 @@ export default function NavigationRail({
                                back in. Hidden on first launch
                                (no recents) and after a deliberate
                                library teardown.
-              1. Library      — the home + most-visited surface
-              2. Sandbox      — open-ended editor + project workspace,
-                               surfaced near the top so devs can dive
-                               in without first picking a course
-              3. Discover     — catalog browser; sits next to
-                               Sandbox because both are entry
-                               points for "I want to start something"
-              4. Practice     — review-mode for cards already opened;
-                               middle of the rail because it's a
-                               recurring rhythm, not a one-off start
-              5. Certificates — permanent / shareable artefacts of
+              1. Paths        — the "here's the map" surface, pinned
+                               directly under Resume: the first
+                               question after "continue?" is "what's
+                               next on my route?"
+              2. Library      — the home + most-visited surface
+              3. Challenges   — exercise-driven content beside the
+                               books it complements
+              4. Sandbox      — open-ended editor + project workspace
+              5. Discover     — catalog browser
+              6. Practice     — the review umbrella (spaced-repetition
+                               deck + Monkey's Paw duels — the Paw's
+                               rail chip folded in here in the V30
+                               practice rework)
+              7. Certificates — permanent / shareable artefacts of
                                course completion
-              6. Tracks       — curated linear paths anchored at
-                               the bottom of the rail; the
-                               outcome-driven on-ramp for learners
-                               who haven't picked a book yet. (The
-                               Trees skill-DAG surface that used
-                               to live below Tracks was retired in
-                               the 2026-05 redesign.)
         */}
         {onResume && resumeLabel && (
           <RailItem
             icon={playIcon}
             label={`${t("nav.resumePrefix")} ${resumeLabel}`}
             onClick={onResume}
+          />
+        )}
+        {onPaths && (
+          <RailItem
+            icon={route}
+            label={t("nav.paths")}
+            onClick={onPaths}
+            active={activeView === "paths"}
           />
         )}
         <RailItem
@@ -294,6 +304,10 @@ export default function NavigationRail({
             active={activeView === "challenges"}
           />
         )}
+        {/* Monkey's Paw no longer gets its own rail chip — it lives
+            under Practice as a practice type (the Practice page's
+            mode cards route there), so the rail stays one chip per
+            surface family. */}
         {onSandbox && (
           <RailItem
             icon={terminalIcon}
@@ -317,14 +331,6 @@ export default function NavigationRail({
             onClick={onPractice}
             active={activeView === "practice"}
             badge={practiceDue}
-          />
-        )}
-        {onPaths && (
-          <RailItem
-            icon={route}
-            label={t("nav.paths")}
-            onClick={onPaths}
-            active={activeView === "paths"}
           />
         )}
         {onCertificates && (

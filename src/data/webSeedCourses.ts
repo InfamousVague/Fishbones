@@ -499,7 +499,13 @@ function starterUrl(path: string): string {
 ///
 /// V30 — retired the nanoid "— Challenge Pack" duplicate packs
 /// (challenges-{go,rust,typescript}-*); the prune step removes them.
-const SEED_VERSION = 30;
+/// V31 — baked per-lesson art into the-rustonomicon (20) and
+/// rust-async-book (22); bump forces returning visitors to re-fetch
+/// the now-illustrated course JSONs (the seeder never refreshes an
+/// already-cached course otherwise).
+/// V32 — baked the first 97 per-lesson images into
+/// the-rust-programming-language (120/168 total; remainder pending art).
+const SEED_VERSION = 32;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +

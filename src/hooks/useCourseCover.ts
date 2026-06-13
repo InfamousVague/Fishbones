@@ -106,7 +106,14 @@ function fetchCover(courseId: string, cacheBust?: number): Promise<Resolved> {
   }
   const existing = inflight.get(key);
   if (existing) return existing;
-  const p = invoke<string | null>("load_course_cover", { courseId })
+  // Promise.resolve-wrap the invoke: test environments stub the Tauri
+  // bridge with a function that returns undefined, and calling .then
+  // directly on that return value crashed every component rendering
+  // covers (first hit: ChallengesView's cover-forward cards in the
+  // koan mount tests).
+  const p = Promise.resolve(
+    invoke<string | null>("load_course_cover", { courseId }),
+  )
     .then((url) => {
       resolved.set(key, url ?? null);
       inflight.delete(key);

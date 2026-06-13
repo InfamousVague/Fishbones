@@ -69,6 +69,29 @@
   height: 18px;
 }
 
+.libre-langchip--lg {
+  height: 34px;
+  padding: 0 12px;
+  font-size: 15px;
+  gap: 7px;
+}
+.libre-langchip--lg .libre-langchip-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.libre-langchip--xl {
+  height: 80px;
+  width: 80px;
+  padding: 0 14px;
+  font-size: 17px;
+  gap: 8px;
+}
+.libre-langchip--xl .libre-langchip-icon svg {
+  width: 64px;
+  height: 64px;
+}
+
 /* ── Icon-only variant ─────────────────────────────────────────── */
 
 /* Square the chip when there's no label so the icon sits centred
@@ -83,6 +106,12 @@
 }
 .libre-langchip--md.libre-langchip--icon-only {
   width: 28px;
+}
+.libre-langchip--lg.libre-langchip--icon-only {
+  width: 34px;
+}
+.libre-langchip--xl.libre-langchip--icon-only {
+  width: 80px;
 }
 
 /* ── Internal layout ───────────────────────────────────────────── */

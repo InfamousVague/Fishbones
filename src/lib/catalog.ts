@@ -364,4 +364,4 @@ export function placeholderCourseFromCatalog(entry: CatalogEntry): Course {
 ///
 /// 20260510 — Refresh full library + tighten resize parameters
 ///            (288x432 q68 web / 384x576 q78 bundle).
-const CATALOG_COVER_VERSION = 20260610;
+const CATALOG_COVER_VERSION = 20260611;

@@ -105,7 +105,11 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // dup-named challenge packs pick up the right cover).
 // V17 — retired the nanoid "— Challenge Pack" duplicate packs
 // (challenges-{go,rust,typescript}-*).
-const SEED_VERSION: u32 = 17;
+// V18 — baked per-lesson art into the-rustonomicon (20) and
+// rust-async-book (22); re-seed rewrites the installed packs.
+// V19 — baked the first 97 per-lesson images into
+// the-rust-programming-language (120/168 total; remainder pending art).
+const SEED_VERSION: u32 = 19;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes

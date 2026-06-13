@@ -637,3 +637,79 @@
     font-size: 22px;
   }
 }
+
+/* ─── Practice types — the umbrella's mode cards ─────────────────
+   Review deck (this page, rendered selected) + The Monkey's Paw
+   (routes to the duels). New practice types slot in as more cards. */
+.libre-practice-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.libre-practice-type {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-card);
+  border-radius: 12px;
+  transition:
+    border-color var(--libre-motion-snappy),
+    background var(--libre-motion-snappy);
+}
+.libre-practice-type--active {
+  border-color: var(--color-border-card-strong);
+  background: var(--color-bg-tertiary);
+}
+button.libre-practice-type {
+  cursor: pointer;
+}
+button.libre-practice-type:hover {
+  border-color: var(--color-border-card-strong);
+  background: var(--color-bg-tertiary);
+}
+.libre-practice-type-icon {
+  flex: none;
+  display: inline-flex;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-card);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+}
+.libre-practice-type-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.libre-practice-type-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.libre-practice-type-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.libre-practice-type-meta {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.libre-practice-type-meta--go {
+  background: color-mix(in srgb, var(--color-accent, #6c8cff) 16%, transparent);
+  color: var(--color-accent, #6c8cff);
+}

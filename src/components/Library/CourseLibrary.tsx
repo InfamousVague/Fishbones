@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
 import { libraryBig } from "@base/primitives/icon/icons/library-big";
 import "@base/primitives/icon/icon.css";
@@ -18,8 +19,15 @@ import { useLocalStorageState } from "../../hooks/useLocalStorageState";
 import {
   placeholderCourseFromCatalog,
   coverHref,
+  catalogAssetBase,
   type CatalogEntry,
 } from "../../lib/catalog";
+import { LEARNING_PATHS, flattenSteps } from "../../data/paths";
+import {
+  DIFFICULTY_COLOR,
+  DIFFICULTY_LABEL,
+  difficultyRange,
+} from "../../data/courseDifficulty";
 import AddCourseButton from "./AddCourseButton";
 import CourseCard from "./CourseCard";
 import CollectionFolder from "./CollectionFolder";
@@ -87,6 +95,15 @@ interface Props {
   onImportArchive?: () => void;
   onExport?: (courseId: string, courseTitle: string) => void;
   onDelete?: (courseId: string, courseTitle: string) => void;
+  /// Direct, no-dialog course removal. Used by the collection-level
+  /// "Delete collection" bulk action, where one in-place confirm covers
+  /// the whole set — per-course dialogs would be noise. Optional: the
+  /// bulk button hides when the host doesn't wire it.
+  onDeleteCourseDirect?: (courseId: string) => Promise<void> | void;
+  /// Open a learning path's detail view (Paths page). Wired by App to
+  /// route + deep-link; drives the "Learning path" card shown at the
+  /// top of an open collection that declares `pathIds`.
+  onOpenPath?: (pathId: string) => void;
   /// Opens the per-course settings modal. When wired, right-clicking
   /// any cover in the library (shelf or grid) surfaces a context menu
   /// with Settings / Export / Delete mirroring the sidebar UX.
@@ -157,6 +174,8 @@ export default function CourseLibrary({
   onImportArchive,
   onExport,
   onDelete,
+  onDeleteCourseDirect,
+  onOpenPath,
   onSettings,
   onBulkExport,
   onUpdateCourse,
@@ -230,6 +249,52 @@ export default function CourseLibrary({
   useEffect(() => {
     setOpenCollection(null);
   }, [derivedScope]);
+
+  // Collection-level bulk action state. `bulkBusy` tracks an in-flight
+  // install-all / delete-all sweep so the UI can show live progress and
+  // stay disabled until the loop finishes. `collectionMenu` is the
+  // right-click context menu (on a folder tile or the open-folder bar)
+  // that hosts the Install collection / Delete collection actions.
+  // `confirmCollectionDelete` holds the collection id whose Delete item
+  // is armed (click-again-to-confirm, same pattern as the sandbox's
+  // delete-project); it disarms after a few seconds or on menu close.
+  const [bulkBusy, setBulkBusy] = useState<{
+    action: "install" | "delete";
+    done: number;
+    total: number;
+  } | null>(null);
+  const [collectionMenu, setCollectionMenu] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [confirmCollectionDelete, setConfirmCollectionDelete] = useState<
+    string | null
+  >(null);
+  useEffect(() => {
+    if (!collectionMenu) setConfirmCollectionDelete(null);
+  }, [collectionMenu]);
+  useEffect(() => {
+    if (!confirmCollectionDelete) return;
+    const t = window.setTimeout(() => setConfirmCollectionDelete(null), 4000);
+    return () => window.clearTimeout(t);
+  }, [confirmCollectionDelete]);
+  // Dismiss the collection menu on any click / Escape — `click` (not
+  // mousedown) so a menu item's onClick runs before the dismiss does.
+  // Mirrors CourseContextMenu's behaviour.
+  useEffect(() => {
+    if (!collectionMenu) return;
+    const close = () => setCollectionMenu(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("click", close);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("click", close);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [collectionMenu]);
   const [viewMode, setViewMode] = useLocalStorageState<ViewMode>(
     VIEW_MODE_STORAGE_KEY,
     VIEW_MODE_DEFAULT,
@@ -529,6 +594,62 @@ export default function CourseLibrary({
       )
       .sort((a, b) => a.course.title.localeCompare(b.course.title));
   }, [activeCollection, enriched, query]);
+
+  /// Member ids of a collection in the current scope, split by install
+  /// state. Used by the collection context-menu actions, which can fire
+  /// from a closed folder tile as well as the open-folder bar.
+  function collectionMemberIds(
+    collectionId: string,
+    kind: "placeholder" | "installed",
+  ): string[] {
+    const c = findCollection(collectionId);
+    if (!c) return [];
+    return enriched
+      .filter(
+        (e) =>
+          c.memberIds.has(e.course.id) &&
+          (kind === "placeholder"
+            ? !!e.course.placeholder
+            : !e.course.placeholder),
+      )
+      .map((e) => e.course.id);
+  }
+
+  /// Install every (placeholder) member of a collection, one at a time
+  /// through the same handleInstallClick the per-tile button uses — so
+  /// per-tile spinners, telemetry, and error alerts all work unchanged.
+  /// Members disappear from the placeholder list as they install, and
+  /// the progress chip narrates done/total.
+  async function handleInstallCollection(collectionId: string) {
+    if (bulkBusy || !onInstallCatalogEntry) return;
+    const ids = collectionMemberIds(collectionId, "placeholder");
+    if (ids.length === 0) return;
+    setBulkBusy({ action: "install", done: 0, total: ids.length });
+    for (let i = 0; i < ids.length; i++) {
+      await handleInstallClick(ids[i]);
+      setBulkBusy({ action: "install", done: i + 1, total: ids.length });
+    }
+    setBulkBusy(null);
+  }
+
+  /// Remove every installed member of a collection. The context-menu
+  /// item arms on first click ("click again…"), then this runs the
+  /// host's direct delete per course — one confirm for the whole sweep.
+  async function handleDeleteCollection(collectionId: string) {
+    if (bulkBusy || !onDeleteCourseDirect) return;
+    const ids = collectionMemberIds(collectionId, "installed");
+    if (ids.length === 0) return;
+    setBulkBusy({ action: "delete", done: 0, total: ids.length });
+    for (let i = 0; i < ids.length; i++) {
+      try {
+        await onDeleteCourseDirect(ids[i]);
+      } catch (e) {
+        console.error("[libre] delete-collection: failed on", ids[i], e);
+      }
+      setBulkBusy({ action: "delete", done: i + 1, total: ids.length });
+    }
+    setBulkBusy(null);
+  }
 
   // Folder tiles to show: only collections with ≥1 member present in the
   // current scope, each with a cover mosaic + member count.
@@ -988,7 +1109,19 @@ export default function CourseLibrary({
               together (see collections.ts). Hidden while searching so
               search stays a flat sweep across everything. */}
           {activeCollection ? (
-            <div className="libre-collection-bar">
+            <div
+              className="libre-collection-bar"
+              // Right-click anywhere on the bar = same collection
+              // context menu as the closed folder tile.
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setCollectionMenu({
+                  id: activeCollection.id,
+                  x: e.clientX,
+                  y: e.clientY,
+                });
+              }}
+            >
               <button
                 type="button"
                 className="libre-collection-back"
@@ -1007,6 +1140,88 @@ export default function CourseLibrary({
                   {activeCollection.blurb}
                 </span>
               </div>
+              {bulkBusy && (
+                <span className="libre-collection-bulk-status">
+                  {bulkBusy.action === "install" ? "Installing" : "Removing"}{" "}
+                  {bulkBusy.done}/{bulkBusy.total}…
+                </span>
+              )}
+              {/* Learning-path card(s) — the curated route THROUGH this
+                  collection's contents. Clicking deep-links into the
+                  Paths page's detail view. */}
+              {onOpenPath &&
+                (activeCollection.pathIds ?? []).map((pid) => {
+                  const p = LEARNING_PATHS.find((x) => x.id === pid);
+                  if (!p) return null;
+                  const ids = flattenSteps(p).map((s) => s.courseId);
+                  const range = difficultyRange(ids);
+                  return (
+                    <button
+                      key={pid}
+                      type="button"
+                      className="libre-collection-path"
+                      onClick={() => onOpenPath(pid)}
+                    >
+                      <span
+                        className="libre-collection-path__covers"
+                        aria-hidden
+                      >
+                        {ids.slice(0, 4).map((id, i) => (
+                          // Frame clips; the img is zoomed ~10% so the
+                          // art's paper-edge border crops away.
+                          <span
+                            key={id + i}
+                            className="libre-collection-path__coverframe"
+                            style={{ zIndex: 8 - i }}
+                          >
+                            <img
+                              src={`${catalogAssetBase()}/${id}.jpg`}
+                              alt=""
+                              loading="lazy"
+                              draggable={false}
+                              onError={(e) => {
+                                (
+                                  e.currentTarget as HTMLImageElement
+                                ).style.display = "none";
+                              }}
+                            />
+                          </span>
+                        ))}
+                      </span>
+                      <span className="libre-collection-path__text">
+                        <span className="libre-collection-path__kicker">
+                          Learning path
+                        </span>
+                        <span className="libre-collection-path__title">
+                          {p.title}
+                        </span>
+                        <span className="libre-collection-path__blurb">
+                          {p.blurb}
+                        </span>
+                      </span>
+                      {range && (
+                        <span
+                          className="libre-collection-path__range"
+                          style={
+                            {
+                              "--chip-accent": DIFFICULTY_COLOR[range.min],
+                            } as React.CSSProperties
+                          }
+                        >
+                          {range.min === range.max
+                            ? DIFFICULTY_LABEL[range.min]
+                            : `${DIFFICULTY_LABEL[range.min]} → ${DIFFICULTY_LABEL[range.max]}`}
+                        </span>
+                      )}
+                      <span
+                        className="libre-collection-path__go"
+                        aria-hidden
+                      >
+                        →
+                      </span>
+                    </button>
+                  );
+                })}
             </div>
           ) : query.trim() === "" && collectionMeta.length > 0 ? (
             <section
@@ -1031,6 +1246,14 @@ export default function CourseLibrary({
                     count={m.count}
                     members={m.previews}
                     onOpen={() => setOpenCollection(m.collection.id)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setCollectionMenu({
+                        id: m.collection.id,
+                        x: e.clientX,
+                        y: e.clientY,
+                      });
+                    }}
                     style={
                       { "--libre-ripple-i": idx } as React.CSSProperties
                     }
@@ -1311,12 +1534,89 @@ export default function CourseLibrary({
           onUpdate={
             onUpdateCourse
               ? (courseId) => {
-                  void onUpdateCourse(courseId);
+                  // Through handleUpdateClick (not onUpdateCourse
+                  // directly) so the context-menu path shares the
+                  // re-entry guard, in-flight spinner, and badge
+                  // recheck with the cover-badge click path.
+                  void handleUpdateClick(courseId);
                 }
               : undefined
           }
           onDelete={onDelete}
         />
+        {/* Collection context menu — right-click on a folder tile or the
+            open-folder bar. Hosts the bulk Install / Delete actions;
+            shares the CourseContextMenu CSS + portal treatment so it
+            reads as the same menu chrome. */}
+        {collectionMenu &&
+          (() => {
+            const c = findCollection(collectionMenu.id);
+            if (!c) return null;
+            const installable = collectionMemberIds(
+              c.id,
+              "placeholder",
+            ).length;
+            const installed = collectionMemberIds(c.id, "installed").length;
+            const showInstall =
+              derivedScope === "discover" &&
+              !!onInstallCatalogEntry &&
+              installable > 0;
+            const showDelete =
+              derivedScope !== "discover" &&
+              !!onDeleteCourseDirect &&
+              installed > 0;
+            if (!showInstall && !showDelete) return null;
+            return createPortal(
+              <div
+                className="libre__context-menu"
+                style={{
+                  left: collectionMenu.x,
+                  top: collectionMenu.y,
+                  position: "fixed",
+                  zIndex: 1000,
+                }}
+                role="menu"
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                <div className="libre__context-menu-label">{c.title}</div>
+                {showInstall && (
+                  <button
+                    type="button"
+                    className="libre__context-menu-item"
+                    role="menuitem"
+                    disabled={!!bulkBusy}
+                    onClick={() => void handleInstallCollection(c.id)}
+                  >
+                    Install collection ({installable})
+                  </button>
+                )}
+                {showDelete && (
+                  <button
+                    type="button"
+                    className="libre__context-menu-item libre__context-menu-item--danger"
+                    role="menuitem"
+                    disabled={!!bulkBusy}
+                    onClick={(e) => {
+                      // First click arms; stopPropagation keeps the
+                      // window-level dismiss from closing the menu so
+                      // the second (confirming) click can land.
+                      if (confirmCollectionDelete !== c.id) {
+                        e.stopPropagation();
+                        setConfirmCollectionDelete(c.id);
+                        return;
+                      }
+                      void handleDeleteCollection(c.id);
+                    }}
+                  >
+                    {confirmCollectionDelete === c.id
+                      ? `Click again to remove ${installed}`
+                      : `Delete collection (${installed})`}
+                  </button>
+                )}
+              </div>,
+              document.body,
+            );
+          })()}
     </div>
   );
 

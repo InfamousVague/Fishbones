@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 import type { Collection } from "./collections";
 
 /// One member's preview, rendered as a mini-card tile inside the folder
@@ -21,6 +21,9 @@ interface Props {
   /// How many members the folder holds in the current scope.
   count: number;
   onOpen: () => void;
+  /// Right-click handler — the parent surfaces the collection context
+  /// menu (Install collection / Delete collection) here.
+  onContextMenu?: (e: ReactMouseEvent) => void;
   style?: CSSProperties;
 }
 
@@ -34,15 +37,20 @@ export default function CollectionFolder({
   members,
   count,
   onOpen,
+  onContextMenu,
   style,
 }: Props) {
   const cells = members.slice(0, 4);
   return (
+    <div
+      className="libre-collection-folder-wrap"
+      style={{ ["--collection-accent" as string]: collection.accent, ...style }}
+    >
     <button
       type="button"
       className="libre-collection-folder"
-      style={{ ["--collection-accent" as string]: collection.accent, ...style }}
       onClick={onOpen}
+      onContextMenu={onContextMenu}
       aria-label={`Open the ${collection.title} collection — ${count} item${count === 1 ? "" : "s"}`}
       title={collection.blurb}
     >
@@ -65,20 +73,17 @@ export default function CollectionFolder({
                 </span>
               )}
             </span>
-            {m.status && (
-              <span
-                className={`libre-collection-folder-cell-status libre-collection-folder-cell-status--${m.status.toLowerCase()}`}
-              >
-                {m.status}
-              </span>
-            )}
           </span>
         ))}
       </div>
       <span className="libre-collection-folder-label">
-        <span className="libre-collection-folder-title">{collection.title}</span>
-        <span className="libre-collection-folder-count">{count}</span>
+        <span className="libre-collection-folder-tag">{collection.short}</span>
       </span>
     </button>
+    <span className="libre-collection-folder-title">
+      {collection.title}
+      <span className="libre-collection-folder-count">{count}</span>
+    </span>
+    </div>
   );
 }

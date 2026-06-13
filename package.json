@@ -12,8 +12,6 @@
     "vendor:soljson": "node scripts/vendor-soljson.mjs",
     "vendor:web": "node scripts/copy-vendor-to-public.mjs",
     "starter:web": "node scripts/extract-starter-courses.mjs",
-    "blocks:gen": "node scripts/generate-blocks.mjs",
-    "blocks:apply": "node scripts/apply-blocks.mjs",
     "audio:import": "node scripts/import-local-audio.mjs",
     "audio:upload": "node scripts/upload-lesson-audio.mjs",
     "tour:audio": "node scripts/generate-tour-audio.mjs",

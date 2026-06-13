@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { Course } from "../../data/types";
+import { languageMeta } from "../../lib/languages";
 import LanguageChip from "../LanguageChip/LanguageChip";
 import { useT } from "../../i18n/i18n";
 // Card chrome lives in CourseLibrary.css alongside the grid +
@@ -176,7 +177,13 @@ function CourseCardImpl({
         <div className="libre-library-card-progress" aria-hidden>
           <div
             className="libre-library-card-progress-fill"
-            style={{ width: `${pct * 100}%` }}
+            // Language-accent fill — same recipe as the Challenges cards
+            // and the shelf BookCover strip, so progress reads the same
+            // colour everywhere a course appears.
+            style={{
+              width: `${pct * 100}%`,
+              background: languageMeta(course.language).color,
+            }}
           />
         </div>
         <div className="libre-library-card-meta">

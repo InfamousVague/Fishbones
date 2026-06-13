@@ -20,6 +20,7 @@ import { TOUR_STEPS, type TourPage } from "./components/Tour/tourSteps";
 import { stopTourAudio } from "./components/Tour/useTourAudio";
 import { stopLessonAudio } from "./hooks/useLessonAudio";
 const ChallengesView = lazy(() => import("./components/Challenges/ChallengesView"));
+const MonkeysPawView = lazy(() => import("./components/MonkeysPaw/MonkeysPawView"));
 const PracticeView = lazy(() => import("./components/Practice/PracticeView"));
 import EvmDockBanner from "./components/ChainDock/EvmDockBanner";
 import BitcoinDockBanner from "./components/BitcoinChainDock/BitcoinDockBanner";
@@ -70,6 +71,7 @@ import { useIngestRun } from "./hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 const AiAssistant = lazy(() => import("./components/AiAssistant/AiAssistant"));
 import XpBurst, { fireXpBurst } from "./components/Shared/XpBurst";
+import AppToast, { type AppToastData } from "./components/Shared/AppToast";
 import { harvestPracticeItems } from "./components/Practice/practiceHarvest";
 import { loadAllRecords, summariseStats } from "./components/Practice/practiceStore";
 import { InstallBanner } from "./components/banners/InstallBanner/InstallBanner";
@@ -246,6 +248,9 @@ export default function App() {
     string | null
   >(null);
   const [importOpen, setImportOpen] = useState(false);
+  /// One-shot success/failure pill for actions that otherwise finish
+  /// invisibly (course reinstall). Single slot — latest wins.
+  const [appToast, setAppToast] = useState<AppToastData | null>(null);
   // Catalog browser modal — discovery surface for the Libre
   // library. Default seed only ships TRPL + Mastering Ethereum +
   // challenges; users add anything else from here.
@@ -1048,10 +1053,16 @@ export default function App() {
     | "library"
     | "discover"
     | "challenges"
+    | "monkeyspaw"
     | "practice"
     | "paths"
     | "certificates"
   >("library");
+
+  // Deep-link target for the Paths page — set when a collection's
+  // "Learning path" card routes there, consumed as PathsPage's
+  // initial selection, cleared when Paths is opened normally.
+  const [pendingPathId, setPendingPathId] = useState<string | null>(null);
 
   /// `useTransition` lets us mark the view-switch state update as
   /// non-urgent. React then renders the NEW view in the background
@@ -1871,6 +1882,22 @@ export default function App() {
     }
   }
 
+  /// Direct, no-dialog course removal — used by the collection-level
+  /// "Delete collection" bulk action, where ONE confirm covers the whole
+  /// set and per-course dialogs would be noise. Platform-aware: desktop
+  /// runs the delete_course IPC (+ cache clear); web drops the stored
+  /// course row. Open tabs close and the course list refreshes either way.
+  async function deleteCourseDirect(courseId: string) {
+    if (isWeb) {
+      const { storage } = await import("./lib/storage");
+      await storage.deleteCourse(courseId);
+      setOpenTabs((prev) => prev.filter((t) => t.courseId !== courseId));
+      await refreshCourses();
+      return;
+    }
+    await performDelete(courseId);
+  }
+
   /// Import a previously-exported `.libre` (or legacy `.kata`) archive.
   /// Shared importer used by BOTH the file-picker path and the
   /// drag-drop path. Hands `archivePath` (an absolute fs path on
@@ -2223,7 +2250,7 @@ export default function App() {
 
       <div className="libre__body">
         <NavigationRail
-          activeView={view}
+          activeView={view === "monkeyspaw" ? "practice" : view}
           onLibrary={() => setView("library")}
           // Resume chip — drops the learner back into their most-
           // recently-focused course at the first uncompleted lesson.
@@ -2239,7 +2266,7 @@ export default function App() {
           onChallenges={() => setView("challenges")}
           onPractice={() => setView("practice")}
           practiceDue={practiceDue}
-          onPaths={() => setView("paths")}
+          onPaths={() => { setPendingPathId(null); setView("paths"); }}
           onCertificates={() => setView("certificates")}
           onSandbox={() => setView("sandbox")}
           onSettings={() => setSettingsOpen(true)}
@@ -2320,8 +2347,11 @@ export default function App() {
               }}
               onResetCourse={clearCourseCompletionsSynced}
             />
+          ) : view === "monkeyspaw" ? (
+            <MonkeysPawView onBack={() => setView("practice")} />
           ) : view === "practice" ? (
             <PracticeView
+              onMonkeysPaw={() => setView("monkeyspaw")}
               courses={courses}
               completed={completed}
               history={history}
@@ -2332,6 +2362,7 @@ export default function App() {
             />
           ) : view === "paths" ? (
             <PathsPage
+              initialSelectedId={pendingPathId}
               courses={courses}
               completed={completed}
               onOpenCourse={openCourseFromLibrary}
@@ -2410,6 +2441,11 @@ export default function App() {
                 onImportArchive={isWeb ? undefined : importCourseArchive}
                 onExport={isWeb ? undefined : exportCourse}
                 onDelete={deleteCourseFromLibrary}
+                onDeleteCourseDirect={deleteCourseDirect}
+                onOpenPath={(id) => {
+                  setPendingPathId(id);
+                  setView("paths");
+                }}
                 onSettings={(id) => setCourseSettingsId(id)}
                 onBulkExport={isWeb ? undefined : bulkExportLibrary}
                 onUpdateCourse={handleReapplyBundledStarter}
@@ -2485,6 +2521,11 @@ export default function App() {
                 onImportArchive={isWeb ? undefined : importCourseArchive}
                 onExport={isWeb ? undefined : exportCourse}
                 onDelete={deleteCourseFromLibrary}
+                onDeleteCourseDirect={deleteCourseDirect}
+                onOpenPath={(id) => {
+                  setPendingPathId(id);
+                  setView("paths");
+                }}
                 onSettings={(id) => setCourseSettingsId(id)}
                 onBulkExport={isWeb ? undefined : bulkExportLibrary}
                 onUpdateCourse={handleReapplyBundledStarter}
@@ -2833,6 +2874,11 @@ export default function App() {
       <UpdateBanner onOpenSettings={openSettings} />
       <XpBurst />
 
+      {/* App-level status pill — success/failure feedback for
+          course reinstall (and future one-shot actions). Renders
+          null when there's nothing to show. */}
+      <AppToast toast={appToast} onDismiss={() => setAppToast(null)} />
+
       {/* First-launch sign-in nudge. Self-gates on
           `cloud.user === false` (= no token, not signed in) and on
           a localStorage "permanent dismiss" flag, so this stays
@@ -3174,6 +3220,8 @@ export default function App() {
   /// picks up the new content. Used from cmd+K AND from the
   /// Library cover badge.
   async function handleReapplyBundledStarter(courseId: string) {
+    const title =
+      courses.find((c) => c.id === courseId)?.title ?? courseId;
     try {
       await syncBundledToInstalled(courseId);
       // Re-pull the summary list + re-hydrate this course's body
@@ -3181,8 +3229,16 @@ export default function App() {
       // page reload.
       await refreshCourses();
       await hydrateCourse(courseId);
+      setAppToast({
+        tone: "success",
+        message: `Reinstalled “${title}” from the latest course JSON.`,
+      });
     } catch (e) {
       console.error("[libre] reapply bundled starter failed:", e);
+      setAppToast({
+        tone: "error",
+        message: `Couldn't reinstall “${title}”: ${e instanceof Error ? e.message : String(e)}`,
+      });
     }
   }
 }

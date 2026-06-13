@@ -25,6 +25,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
 import { layers } from "@base/primitives/icon/icons/layers";
+import { hand } from "@base/primitives/icon/icons/hand";
 import { clock } from "@base/primitives/icon/icons/clock";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
@@ -64,6 +65,10 @@ interface Props {
   /// Forwarded to the session so card feedback can deep-link
   /// back to the originating lesson.
   onOpenLesson?: (courseId: string, lessonId: string) => void;
+  /// Open the Monkey's Paw — adversarial test-writing duels. The Paw
+  /// lives under Practice as a practice TYPE (its rail chip was
+  /// retired); the mode cards at the top of this page route there.
+  onMonkeysPaw?: () => void;
 }
 
 const SESSION_LIMITS = [5, 10, 25] as const;
@@ -79,6 +84,7 @@ export default function PracticeView({
   completed,
   history,
   onOpenLesson,
+  onMonkeysPaw,
 }: Props) {
   const t = useT();
   // Harvest is cheap; rerun whenever the inputs change so author
@@ -187,9 +193,58 @@ export default function PracticeView({
     );
   }
 
+  // Practice types — the page is the umbrella for every way to drill.
+  // Built once and rendered in BOTH the main view and the empty state:
+  // the Monkey's Paw doesn't depend on having review cards, so it must
+  // stay reachable before the learner's first completion.
+  const practiceTypesSection = onMonkeysPaw ? (
+    <div className="libre-practice-types" role="list">
+      <div
+        className="libre-practice-type libre-practice-type--active"
+        role="listitem"
+      >
+        <span className="libre-practice-type-icon" aria-hidden>
+          <Icon icon={dumbbell} size="lg" color="currentColor" />
+        </span>
+        <span className="libre-practice-type-text">
+          <span className="libre-practice-type-title">Review deck</span>
+          <span className="libre-practice-type-desc">
+            Spaced repetition over everything you've learned — quizzes
+            and puzzles resurface right before you'd forget them.
+          </span>
+        </span>
+        <span className="libre-practice-type-meta">
+          {stats.dueCount > 0 ? `${stats.dueCount} due` : "Up to date"}
+        </span>
+      </div>
+      <button
+        type="button"
+        className="libre-practice-type"
+        role="listitem"
+        onClick={onMonkeysPaw}
+      >
+        <span className="libre-practice-type-icon" aria-hidden>
+          <Icon icon={hand} size="lg" color="currentColor" />
+        </span>
+        <span className="libre-practice-type-text">
+          <span className="libre-practice-type-title">
+            The Monkey's Paw
+          </span>
+          <span className="libre-practice-type-desc">
+            Adversarial duels — you write only the tests, the Paw writes
+            the laziest code that passes them.
+          </span>
+        </span>
+        <span className="libre-practice-type-meta libre-practice-type-meta--go">
+          Open →
+        </span>
+      </button>
+    </div>
+  ) : null;
+
   // ----- Render: empty state -----
   if (items.length === 0) {
-    return <EmptyState history={history} />;
+    return <EmptyState history={history} extra={practiceTypesSection} />;
   }
 
   const heroSub =
@@ -219,6 +274,8 @@ export default function PracticeView({
               attemptsToday={stats.attemptsToday}
             />
           </section>
+
+          {practiceTypesSection}
 
           {/* Primary CTA — one tap to start a session. The button
               IS the page. Customize lives below; default settings
@@ -605,13 +662,22 @@ function StatTile({
 // ---------------------------------------------------------------------------
 // EmptyState — first-run / nothing-touched-yet message.
 
-function EmptyState({ history }: { history?: readonly Completion[] }) {
+function EmptyState({
+  history,
+  extra,
+}: {
+  history?: readonly Completion[];
+  /// Rendered above the empty-state copy — carries the practice-type
+  /// cards so the Monkey's Paw stays reachable with an empty deck.
+  extra?: React.ReactNode;
+}) {
   const t = useT();
   const recent = history?.length ?? 0;
   return (
     <div className="libre-practice">
       <div className="libre-practice-scroll">
         <div className="libre-practice-inner libre-practice-inner--empty">
+          {extra}
           <div className="libre-practice-empty-icon" aria-hidden>
             <Icon icon={dumbbell} size="xl" color="currentColor" />
           </div>

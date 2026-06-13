@@ -288,6 +288,20 @@ function wrapFiguresWithCaption(html: string): string {
       img.setAttribute("loading", "lazy");
       const figure = doc.createElement("figure");
       figure.className = "libre-figure";
+      // Size-class marker: authors prefix the alt text with `hero:`,
+      // `wide:`, `float:`, `tall:`, or `seal:` to pick the figure's
+      // layout — a centered half-column card (hero, the default), a
+      // centered two-thirds card (wide), a small right-floated card the
+      // prose wraps around (float / tall), or a small left-floated badge
+      // (seal). The marker is stripped from the visible alt.
+      const altRaw = img.getAttribute("alt") || "";
+      const sizeMatch = altRaw.match(/^(hero|wide|float|tall|seal):\s*/);
+      if (sizeMatch) {
+        img.setAttribute("alt", altRaw.slice(sizeMatch[0].length));
+        if (sizeMatch[1] !== "hero") {
+          figure.classList.add(`libre-figure--${sizeMatch[1]}`);
+        }
+      }
       figure.appendChild(img); // moves the <img> out of the <p>
       if (caption) {
         const fc = doc.createElement("figcaption");

@@ -1,0 +1,69 @@
+/* App-level status toast — same bottom-center pill treatment as the
+   archive-import progress toast (ArchiveDropOverlay.css), with a
+   per-tone accent. Clickable (dismiss), unlike the import pill. */
+
+.libre-app-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Above the command palette (~1100) — an error toast must stay
+     visible regardless of what surface triggered the action. */
+  z-index: 1200;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  max-width: min(560px, calc(100vw - 48px));
+  background: rgba(20, 20, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--libre-radius-pill);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 36px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary, rgba(255, 255, 255, 0.96));
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  animation: libre-app-toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes libre-app-toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libre-app-toast {
+    animation: none;
+  }
+}
+
+.libre-app-toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.libre-app-toast--success .libre-app-toast__icon {
+  color: #8fd6a8;
+}
+
+.libre-app-toast--error .libre-app-toast__icon {
+  color: #ff9d8f;
+}
+
+.libre-app-toast--error {
+  border-color: rgba(255, 110, 90, 0.35);
+}
+
+.libre-app-toast__label {
+  letter-spacing: -0.005em;
+  /* Long error messages (fetch URLs) wrap instead of stretching the
+     pill across the window. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

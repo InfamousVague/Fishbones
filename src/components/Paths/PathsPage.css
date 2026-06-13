@@ -1,9 +1,8 @@
-/* Curated learning-paths surface — list (cards) + detail (tree).
+/* Curated learning-paths surface — list (cover-fan cards) + detail
+   (vertical difficulty-grouped syllabus).
    Both top-level containers are direct children of the
    overflow:hidden `.libre__main` flex column, so they MUST own
-   their own scroll (flex:1 / min-height:0 / overflow). The
-   original bug: `.libre-paths-page` set only padding/width, so it
-   collapsed and the cards clipped + became unclickable. */
+   their own scroll (flex:1 / min-height:0 / overflow). */
 
 .libre-paths-page,
 .libre-path-detail {
@@ -47,8 +46,37 @@
 
 .libre-paths-page__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+/* ─── Shared chips ───────────────────────────────────────────────
+   Tinted-pill recipe (translucent wash of the accent, accent text)
+   — same language as the Challenges cards + collection folders. */
+.libre-path-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--chip-accent, var(--color-text-primary)) 16%,
+    transparent
+  );
+  color: var(--chip-accent, var(--color-text-primary));
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.libre-path-chip--muted {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--color-text-secondary);
+}
+.libre-path-chip--level {
+  font-size: 10px;
+  padding: 2px 8px;
 }
 
 /* ─── Path card (list) ───────────────────────────────────────── */
@@ -56,471 +84,442 @@
 .libre-path-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  background: var(--color-bg-secondary, #241b2f);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.07));
-  border-radius: 14px;
-  /* It's a <button> now — strip the UA chrome + left-align. */
+  padding: 0;
   text-align: left;
   font: inherit;
   color: inherit;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-card);
+  border-radius: 14px;
+  overflow: hidden;
   cursor: pointer;
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.12s ease;
+    border-color var(--libre-motion-snappy),
+    background var(--libre-motion-snappy);
 }
-
 .libre-path-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-border-default, rgba(255, 255, 255, 0.07)) 40%,
-    var(--color-accent, #d4c5a1) 60%
-  );
-  transform: translateY(-2px);
+  border-color: var(--color-border-card-strong);
+  background: var(--color-bg-tertiary);
 }
-
 .libre-path-card:focus-visible {
   outline: 2px solid var(--color-accent, #d4c5a1);
   outline-offset: 2px;
 }
 
-.libre-path-card--complete {
-  background: color-mix(
-    in srgb,
-    var(--color-bg-secondary, #241b2f) 92%,
-    var(--color-accent, #d4c5a1) 8%
+/* Fanned cover strip — overlapping 2:3 book covers leaning like a
+   shelf pulled half out. Fades into the card body. */
+.libre-path-card__covers {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 148px;
+  padding: 16px 16px 0;
+  background: var(--color-bg-primary);
+  overflow: hidden;
+}
+.libre-path-card__coverframe {
+  display: block;
+  width: 88px;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 6px 0 16px rgba(0, 0, 0, 0.45);
+  margin-right: -34px;
+  overflow: hidden;
+  transform: rotate(-2deg) translateY(6px);
+}
+.libre-path-card__coverframe:nth-child(2n) {
+  transform: rotate(2.5deg) translateY(12px);
+}
+.libre-path-card__coverframe:nth-child(3n) {
+  transform: rotate(-1deg) translateY(9px);
+}
+.libre-path-card__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* ~10% zoom crops the art's baked-in paper-edge border. */
+  transform: scale(1.1);
+}
+.libre-path-card__covers-fade {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-bg-secondary)
   );
-  border-color: color-mix(
-    in srgb,
-    var(--color-border-default, rgba(255, 255, 255, 0.07)) 60%,
-    var(--color-accent, #d4c5a1) 40%
-  );
+  pointer-events: none;
+}
+
+.libre-path-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 18px;
 }
 
 .libre-path-card__head {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  align-items: center;
+  gap: 10px;
 }
-
 .libre-path-card__icon {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.07));
-  color: var(--color-text-primary, #f5f5f7);
+  display: inline-flex;
+  color: var(--color-text-secondary);
 }
-
-.libre-path-card--complete .libre-path-card__icon {
-  background: var(--color-accent, #d4c5a1);
-  border-color: var(--color-accent, #d4c5a1);
-  color: var(--color-accent-fg, #111111);
-}
-
-.libre-path-card__head-text {
-  min-width: 0;
-  flex: 1;
-}
-
 .libre-path-card__title {
-  margin: 0 0 4px;
+  flex: 1;
+  margin: 0;
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--color-text-primary, #f5f5f7);
+  color: var(--color-text-primary);
+}
+.libre-path-card__open {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+  transition: transform var(--libre-motion-snappy);
+}
+.libre-path-card:hover .libre-path-card__open {
+  transform: translateX(3px);
 }
 
 .libre-path-card__blurb {
   margin: 0;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.65));
-}
-
-.libre-path-card__open {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.4));
-  transition: transform 0.14s ease, color 0.14s ease;
-}
-
-.libre-path-card:hover .libre-path-card__open {
-  color: var(--color-text-primary, #f5f5f7);
-  transform: translateX(3px);
-}
-
-/* ─── Progress bar (shared by card + detail header) ──────────── */
-
-.libre-path-card__bar,
-.libre-path-detail__bar {
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.22);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-[data-theme="light"] .libre-path-card__bar,
-[data-theme="light"] .libre-path-detail__bar {
-  background: rgba(0, 0, 0, 0.08);
+.libre-path-card__chips {
+  display: flex;
+  gap: 8px;
 }
 
-.libre-path-card__bar-fill,
-.libre-path-detail__bar-fill {
+.libre-path-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.libre-path-card__bar {
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.libre-path-card__bar-fill {
   height: 100%;
-  border-radius: inherit;
-  background: var(--color-success, #22c55e);
-  transition: width 0.5s ease;
+  background: var(--color-text-primary);
+  transition: width 0.4s ease;
 }
-
-.libre-path-card__progress-meta,
-.libre-path-detail__progress-meta {
+.libre-path-card--complete .libre-path-card__bar-fill {
+  background: #4d9e6a;
+}
+.libre-path-card__progress-meta {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 7px;
-  font-size: 11px;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.5));
+  font-size: 11.5px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 
-.libre-path-card__pct,
-.libre-path-detail__pct {
-  font-weight: 600;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.65));
+/* ─── Detail: header ─────────────────────────────────────────── */
+
+.libre-path-detail {
+  overflow-y: auto;
+  padding: 28px 32px 80px;
 }
 
-/* ─── Detail view ────────────────────────────────────────────── */
-
-.libre-path-detail__header {
-  flex-shrink: 0;
-  padding: 28px 32px 20px;
-  border-bottom: 1px solid
-    var(--color-border-default, rgba(255, 255, 255, 0.07));
+.libre-path-detail__header,
+.libre-path-detail__list {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
 }
 
 .libre-path-detail__back {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px 6px 6px;
-  margin-bottom: 14px;
-  background: transparent;
-  border: 0;
-  border-radius: 8px;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.65));
-  font: inherit;
+  align-self: flex-start;
+  margin-bottom: 18px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--libre-radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition:
+    border-color var(--libre-motion-snappy),
+    background var(--libre-motion-snappy);
 }
-
 .libre-path-detail__back:hover {
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
-  color: var(--color-text-primary, #f5f5f7);
+  border-color: var(--color-border-card-strong);
+  background: var(--color-bg-secondary);
 }
 
 .libre-path-detail__head-row {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
-
-.libre-path-detail__icon {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.07));
-  color: var(--color-text-primary, #f5f5f7);
-}
-
 .libre-path-detail__title {
-  margin: 0 0 4px;
-  font-size: 22px;
+  margin: 0 0 6px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-text-primary, #f5f5f7);
+  color: var(--color-text-primary);
 }
-
 .libre-path-detail__blurb {
-  margin: 0;
-  max-width: 720px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.65));
+  margin: 0 0 10px;
+  max-width: 640px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.libre-path-detail__chips {
+  display: flex;
+  gap: 8px;
 }
 
 .libre-path-detail__progress {
-  max-width: 420px;
+  margin-bottom: 26px;
 }
-
-/* Horizontal scroll lane. The page owns vertical scroll; this
-   element owns horizontal. `align-items: center` so a tall fork
-   stack stays vertically centered against short trunk nodes. */
-.libre-path-detail__flow {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
+.libre-path-detail__bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.libre-path-detail__bar-fill {
+  height: 100%;
+  background: var(--color-text-primary);
+  transition: width 0.4s ease;
+}
+.libre-path-detail__progress-meta {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 40px 32px;
-}
-
-.libre-path-detail__flow:focus-visible {
-  outline: 2px solid var(--color-accent, #d4c5a1);
-  outline-offset: -4px;
-}
-
-.libre-path-stage {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.libre-path-stage--fork {
-  align-items: stretch;
-}
-
-/* Chevron connector between sequential nodes / stages. */
-.libre-path-connector {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 28px;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.35));
-}
-
-/* The connector feeding a fork is taller + accent-tinted so the
-   split reads as a deliberate branch point, not just another
-   step gap. */
-.libre-path-connector--split {
-  color: var(--color-accent, #d4c5a1);
-}
-
-.libre-path-run {
-  display: flex;
-  align-items: center;
-}
-
-.libre-path-run__cell {
-  display: flex;
-  align-items: center;
-}
-
-/* ─── Node card ──────────────────────────────────────────────── */
-
-.libre-path-node {
-  width: 210px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px;
-  background: var(--color-bg-secondary, #241b2f);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.07));
-  border-radius: 12px;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  transition:
-    border-color 0.14s ease,
-    transform 0.12s ease,
-    background 0.14s ease;
-}
-
-.libre-path-node:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-border-default, rgba(255, 255, 255, 0.07)) 40%,
-    var(--color-accent, #d4c5a1) 60%
-  );
-  transform: translateY(-2px);
-}
-
-.libre-path-node:focus-visible {
-  outline: 2px solid var(--color-accent, #d4c5a1);
-  outline-offset: 2px;
-}
-
-.libre-path-node--complete {
-  background: color-mix(
-    in srgb,
-    var(--color-bg-secondary, #241b2f) 90%,
-    var(--color-success, #22c55e) 10%
-  );
-  border-color: color-mix(
-    in srgb,
-    var(--color-border-default, rgba(255, 255, 255, 0.07)) 55%,
-    var(--color-success, #22c55e) 45%
-  );
-}
-
-.libre-path-node--not-installed {
-  border-style: dashed;
-  opacity: 0.78;
-}
-
-.libre-path-node__status {
-  display: inline-flex;
-  align-items: center;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.45));
-}
-
-.libre-path-node--complete .libre-path-node__status {
-  color: var(--color-success, #22c55e);
-}
-
-.libre-path-node--in-progress .libre-path-node__status {
-  color: var(--color-accent, #d4c5a1);
-}
-
-.libre-path-node__title {
-  font-size: 13.5px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--color-text-primary, #f5f5f7);
-}
-
-.libre-path-node--not-installed .libre-path-node__title {
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.6));
-}
-
-.libre-path-node__count {
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.5));
-}
-
-.libre-path-node__note {
+  justify-content: space-between;
   font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.5));
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ─── Fork ───────────────────────────────────────────────────── */
+/* ─── Detail: level dividers ─────────────────────────────────── */
 
-.libre-path-fork {
+.libre-path-level {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  /* Bracket: a left vertical rail that visually gathers the
-     stacked branch lanes into one split point. */
-  border-left: 2px solid
-    color-mix(
-      in srgb,
-      var(--color-accent, #d4c5a1) 55%,
-      transparent
-    );
-  border-radius: 3px;
-  padding: 6px 0 6px 16px;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 12px;
 }
-
-.libre-path-fork__label {
+.libre-path-level:first-child {
+  margin-top: 0;
+}
+.libre-path-level__label {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-accent, #d4c5a1);
-  padding-left: 2px;
+  color: var(--chip-accent, var(--color-text-secondary));
 }
-
-.libre-path-fork__branches {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.libre-path-branch {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: relative;
-}
-
-/* Short horizontal stub from the fork rail into each lane head —
-   makes the "this lane comes off the split" relationship explicit. */
-.libre-path-branch::before {
-  content: "";
-  position: absolute;
-  left: -16px;
-  top: 13px;
-  width: 14px;
-  height: 2px;
+.libre-path-level__rule {
+  flex: 1;
+  height: 1px;
   background: color-mix(
     in srgb,
-    var(--color-accent, #d4c5a1) 55%,
+    var(--chip-accent, var(--color-border-card)) 35%,
     transparent
   );
 }
 
-.libre-path-branch__head {
+/* ─── Detail: step rows ──────────────────────────────────────── */
+
+.libre-path-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-card);
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    border-color var(--libre-motion-snappy),
+    background var(--libre-motion-snappy);
+}
+.libre-path-row:hover {
+  border-color: var(--color-border-card-strong);
+  background: var(--color-bg-tertiary);
+}
+.libre-path-row:focus-visible {
+  outline: 2px solid var(--color-accent, #d4c5a1);
+  outline-offset: 2px;
+}
+.libre-path-row--complete {
+  opacity: 0.78;
+}
+
+.libre-path-row__num {
+  flex: none;
+  width: 28px;
+  font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+}
+
+.libre-path-row__coverwrap {
+  flex: none;
+  width: 52px;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-primary);
+}
+.libre-path-row__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* ~10% zoom crops the art's baked-in paper-edge border (the
+     coverwrap clips). */
+  transform: scale(1.1);
+}
+.libre-path-row--not-installed .libre-path-row__cover {
+  filter: grayscale(0.5) brightness(0.75);
+}
+
+.libre-path-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.libre-path-row__title-line {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  min-width: 0;
+}
+.libre-path-row__title {
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.libre-path-row__note {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
 }
 
-.libre-path-branch__label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-primary, #f5f5f7);
+.libre-path-row__status {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 52px;
 }
-
-.libre-path-branch__pct {
+.libre-path-row__state {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+}
+.libre-path-row__state--complete {
+  color: #4d9e6a;
+}
+.libre-path-row__state--in-progress {
+  color: #c2913a;
+}
+.libre-path-row__state-label {
   font-size: 10.5px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.5));
-}
-
-/* ─── Flow end cap ───────────────────────────────────────────── */
-
-.libre-path-flow__end {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.libre-path-flow__flag {
-  display: inline-flex;
-  align-items: center;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 999px;
-  background: var(--color-accent, #d4c5a1);
-  color: var(--color-accent-fg, #111111);
-  font-size: 12px;
-  font-weight: 700;
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ─── Narrow pane ────────────────────────────────────────────── */
+/* ─── Detail: fork / branches ────────────────────────────────── */
+
+.libre-path-fork {
+  margin: 26px 0 12px;
+  padding: 16px;
+  border: 1px dashed var(--color-border-card-strong);
+  border-radius: 14px;
+}
+.libre-path-fork__label {
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.libre-path-fork__branches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+.libre-path-branch__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.libre-path-branch__label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.libre-path-branch__pct {
+  font-size: 11.5px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Detail: end flag ───────────────────────────────────────── */
+
+.libre-path-end {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+.libre-path-end__flag {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-card);
+  background: var(--color-bg-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
 
 @media (max-width: 720px) {
-  .libre-paths-page {
-    padding: 32px 18px 64px;
-  }
   .libre-paths-page__grid {
     grid-template-columns: 1fr;
   }
-  .libre-path-detail__header {
-    padding: 20px 18px 16px;
-  }
-  .libre-path-detail__flow {
-    padding: 28px 18px;
+  .libre-path-row__num {
+    display: none;
   }
 }

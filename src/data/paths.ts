@@ -25,6 +25,8 @@
 /// `resolveAchievementIcon` indirection) so this module stays free
 /// of presentation imports.
 
+import type { LanguageId } from "./types";
+
 export type PathIconKey =
   | "briefcase"
   | "smartphone"
@@ -62,6 +64,8 @@ export interface LearningPath {
   title: string;
   /// One-paragraph pitch — what you'll be able to do at the end.
   blurb: string;
+  /// Primary language represented by this path (for badges/tooltips).
+  language: LanguageId;
   /// Presentation icon key (resolved in the component).
   icon: PathIconKey;
   /// Ordered stages, trunk left-to-right; forks fan out vertically.
@@ -72,10 +76,93 @@ export interface LearningPath {
 /// beginner-friendly first, specialised last.
 export const LEARNING_PATHS: readonly LearningPath[] = [
   {
+    id: "rust-developer",
+    title: "Rust Developer",
+    blurb:
+      "The complete Rust shelf, walked in order of difficulty. Start with the book that defines the language, drill it until ownership is reflex, learn to test like an engineer, then go async and finally under the hood with unsafe — or fork on-chain at the end.",
+    language: "rust",
+    icon: "cpu",
+    stages: [
+      {
+        kind: "step",
+        step: {
+          courseId: "the-rust-programming-language",
+          note: "The definitive first book — ownership, types, and the borrow checker.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rustlings",
+          note: "Small fix-the-code drills until compiler errors read like hints.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rust-by-example",
+          note: "The idioms, one runnable example at a time.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "exercism-rust",
+          note: "Structured practice — concept by concept, exercise by exercise.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "testing-rust",
+          note: "Unit to E2E: test Rust programs like a professional.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "challenges-rust-handwritten",
+          note: "Hard problems, no training wheels — prove the fundamentals.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rust-async-book",
+          note: "Futures, executors, and pinning — concurrency the Rust way.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rustonomicon",
+          note: "The dark arts: unsafe, raw pointers, and what the guarantees cost.",
+        },
+      },
+      {
+        kind: "fork",
+        label: "Specialise",
+        branches: [
+          {
+            id: "on-chain",
+            label: "On-chain Rust",
+            steps: [
+              {
+                courseId: "solana-programs",
+                note: "Put your Rust on the SVM — accounts, programs, and CPIs.",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "entry-level-developer",
     title: "Entry-Level Developer",
     blurb:
       "Your first job-ready stack. Learn one language end to end, drill the fundamentals until they're reflex, then add types and a database — the toolkit every junior role assumes you have.",
+    language: "typescript",
     icon: "briefcase",
     stages: [
       {
@@ -120,6 +207,7 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
     title: "Mobile App Developer",
     blurb:
       "Ship to phones. Pick a platform — native iOS with Swift, native Android with Kotlin, or cross-platform with Flutter's Dart — and follow that lane to fluency.",
+    language: "swift",
     icon: "smartphone",
     stages: [
       {
@@ -173,6 +261,7 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
     title: "Systems Engineer",
     blurb:
       "Work close to the metal. Master Rust the long way first, then branch into Zig for simplicity or C/C++ for the classic systems stack.",
+    language: "rust",
     icon: "cpu",
     stages: [
       {
@@ -237,6 +326,7 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
     title: "Backend Engineer",
     blurb:
       "Build the services behind the app. Learn Go the way production teams use it, drill it until it's muscle memory, and get fluent with SQL.",
+    language: "go",
     icon: "server",
     stages: [
       {
@@ -274,6 +364,7 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
     title: "Blockchain Developer",
     blurb:
       "Build on-chain. Understand Bitcoin and Ethereum from first principles and ship a DeFi flow, then specialise in one of the newer contract languages.",
+    language: "solidity",
     icon: "blocks",
     stages: [
       {
@@ -288,13 +379,6 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
         step: {
           courseId: "mastering-ethereum",
           note: "Smart contracts and the EVM, properly.",
-        },
-      },
-      {
-        kind: "step",
-        step: {
-          courseId: "hellotrade",
-          note: "Build a decentralized trading flow end to end.",
         },
       },
       {
@@ -340,6 +424,7 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
     title: "Functional Programmer",
     blurb:
       "Think in pure functions and immutable data. Start with a deep Haskell foundation, then branch into Elixir for production systems or the JVM/Lisp world.",
+    language: "haskell",
     icon: "workflow",
     stages: [
       {
