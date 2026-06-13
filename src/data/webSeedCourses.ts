@@ -505,7 +505,10 @@ function starterUrl(path: string): string {
 /// already-cached course otherwise).
 /// V32 — baked the first 97 per-lesson images into
 /// the-rust-programming-language (120/168 total; remainder pending art).
-const SEED_VERSION = 32;
+/// V33 — reflowed Rust-track figures: short exercise lessons downsized
+/// to the `small` float class so images no longer tower over a few
+/// lines of prose. Bump re-fetches the adjusted lesson bodies.
+const SEED_VERSION = 33;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +

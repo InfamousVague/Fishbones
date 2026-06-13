@@ -109,7 +109,9 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // rust-async-book (22); re-seed rewrites the installed packs.
 // V19 — baked the first 97 per-lesson images into
 // the-rust-programming-language (120/168 total; remainder pending art).
-const SEED_VERSION: u32 = 19;
+// V20 — reflowed Rust-track figures: short exercise lessons downsized
+// to the `small` float class so art no longer towers over the prose.
+const SEED_VERSION: u32 = 20;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes

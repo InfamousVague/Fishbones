@@ -1019,6 +1019,17 @@
 .libre-reader-body .libre-figure--tall {
   width: min(40%, 280px);
 }
+/* Small float — for short lessons (brief intro + an exercise editor)
+   where a full float would tower over the few lines of prose and leave
+   a blank gutter beside its lower half. The baker assigns this by
+   measuring how much text follows the figure. */
+.libre-reader-body .libre-figure--small {
+  width: min(30%, 220px);
+}
+.libre-reader-body .libre-figure--small figcaption {
+  padding: 7px 10px;
+  font-size: 11.5px;
+}
 .libre-reader-body .libre-figure--seal {
   float: left;
   width: min(30%, 180px);
@@ -1041,6 +1052,7 @@
   .libre-reader-body .libre-figure--wide,
   .libre-reader-body .libre-figure--float,
   .libre-reader-body .libre-figure--tall,
+  .libre-reader-body .libre-figure--small,
   .libre-reader-body .libre-figure--seal {
     float: none;
     width: 100%;

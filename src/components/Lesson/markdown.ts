@@ -295,7 +295,7 @@ function wrapFiguresWithCaption(html: string): string {
       // prose wraps around (float / tall), or a small left-floated badge
       // (seal). The marker is stripped from the visible alt.
       const altRaw = img.getAttribute("alt") || "";
-      const sizeMatch = altRaw.match(/^(hero|wide|float|tall|seal):\s*/);
+      const sizeMatch = altRaw.match(/^(hero|wide|float|tall|small|seal):\s*/);
       if (sizeMatch) {
         img.setAttribute("alt", altRaw.slice(sizeMatch[0].length));
         if (sizeMatch[1] !== "hero") {
