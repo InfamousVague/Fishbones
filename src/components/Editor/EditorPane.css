@@ -8,17 +8,12 @@
 .libre-editor-header {
   display: flex;
   align-items: center;
-  /* `gap` replaces the previous `space-between` because the
-     header now hosts THREE clusters: the left placeholder / mode
-     toggle, the file-tabs strip (flex: 1), and the right action
-     cluster. With gap-based layout the tabs grow to fill the gap
-     between the two end clusters without us having to wrangle
-     justify-content. */
+  /* Two clusters now: the left placeholder / mode toggle and the
+     right action+run cluster. File tabs moved to their own row
+     below (.libre-editor-tabs-row), so space-between anchors the
+     actions to the right edge again. */
+  justify-content: space-between;
   gap: 12px;
-  /* Top/bottom padding bumped slightly so the inline tabs have
-     enough air around them — the tabs were previously on their
-     own row with their own 4px top padding, which becomes part
-     of the shared header row now. */
   padding: 8px 12px;
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border-default);
@@ -422,6 +417,34 @@
    background on the active tab. Scrolls horizontally if the
    learner adds more tabs than fit between the left placeholder
    and the right action cluster. */
+/* File-tabs on their own row beneath the header. Full-width strip,
+   horizontally scrollable, with the active tab connecting to the
+   editor body below it (rounded top, flush bottom). */
+.libre-editor-tabs-row {
+  display: flex;
+  gap: 2px;
+  align-items: stretch;
+  padding: 4px 10px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.libre-editor-tabs-row::-webkit-scrollbar {
+  display: none;
+}
+.libre-editor-tabs-row .libre-editor-tab {
+  border-radius: var(--libre-radius-sm, 6px) var(--libre-radius-sm, 6px) 0 0;
+  padding: 6px 12px;
+  border-bottom: 2px solid transparent;
+}
+.libre-editor-tabs-row .libre-editor-tab--active {
+  background: var(--color-bg-primary);
+  border-bottom-color: var(--color-accent, #f2a93b);
+}
+
 .libre-editor-tabs {
   flex: 1;
   min-width: 0;

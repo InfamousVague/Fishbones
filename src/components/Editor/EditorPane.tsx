@@ -409,40 +409,6 @@ export default function EditorPane({
           // toggle shows on the left.
           <span aria-hidden />
         )}
-        {/* File tabs — slotted INTO the header row alongside the
-            help / run cluster instead of living on their own row
-            below. Takes `flex: 1` so the tabs span the gap between
-            the left placeholder + the actions; scrolls
-            horizontally when there are more tabs than fit. Only
-            rendered when there's actually more than one file
-            (single-file projects have nothing to switch between). */}
-        {multiFile && (
-          <div
-            className="libre-editor-tabs"
-            role="tablist"
-            aria-label={t("editor.tabsAriaLabel")}
-          >
-            {files.map((f, i) => (
-              <button
-                key={f.name}
-                role="tab"
-                aria-selected={i === safeIndex}
-                className={`libre-editor-tab ${
-                  i === safeIndex ? "libre-editor-tab--active" : ""
-                } ${f.readOnly ? "libre-editor-tab--readonly" : ""}`}
-                onClick={() => onActiveIndexChange(i)}
-                title={f.readOnly ? `${f.name} ${t("editor.readOnlyBadge")}` : f.name}
-              >
-                <span className="libre-editor-tab-name">{f.name}</span>
-                {f.readOnly && (
-                  <span className="libre-editor-tab-badge" aria-hidden>
-                    🔒
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
         <div className="libre-editor-actions">
           {showHelpCluster && (
             <div className="libre-editor-help" ref={helpRef}>
@@ -647,6 +613,38 @@ export default function EditorPane({
           </button>
         </div>
       </div>
+
+      {/* File tabs on their OWN row beneath the action/run header, so
+          file names get full width and aren't squeezed against the
+          Hint/run cluster. Horizontally scrollable; only shown for
+          multi-file projects (nothing to switch in a single file). */}
+      {multiFile && (
+        <div
+          className="libre-editor-tabs-row"
+          role="tablist"
+          aria-label={t("editor.tabsAriaLabel")}
+        >
+          {files.map((f, i) => (
+            <button
+              key={f.name}
+              role="tab"
+              aria-selected={i === safeIndex}
+              className={`libre-editor-tab ${
+                i === safeIndex ? "libre-editor-tab--active" : ""
+              } ${f.readOnly ? "libre-editor-tab--readonly" : ""}`}
+              onClick={() => onActiveIndexChange(i)}
+              title={f.readOnly ? `${f.name} ${t("editor.readOnlyBadge")}` : f.name}
+            >
+              <span className="libre-editor-tab-name">{f.name}</span>
+              {f.readOnly && (
+                <span className="libre-editor-tab-badge" aria-hidden>
+                  🔒
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {hasHints && open && revealed > 0 && (
         <div className="libre-editor-hints">
