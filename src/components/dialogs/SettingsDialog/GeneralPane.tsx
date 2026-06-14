@@ -325,13 +325,23 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
               className="libre-settings-primary"
               onClick={async () => {
                 try {
-                  const { relaunch } = await import(
-                    "@tauri-apps/plugin-process"
-                  );
-                  await relaunch();
-                } catch (e) {
-                  // eslint-disable-next-line no-console
-                  console.error("[settings] relaunch failed:", e);
+                  // Robust macOS-safe relaunch (see relaunch_for_update
+                  // in lib.rs): fully exits and reopens the updated
+                  // bundle once the process is gone, so the swap
+                  // registers. Falls back to the plugin relaunch if the
+                  // command bails (dev binary / non-macOS).
+                  const { invoke } = await import("@tauri-apps/api/core");
+                  await invoke("relaunch_for_update");
+                } catch {
+                  try {
+                    const { relaunch } = await import(
+                      "@tauri-apps/plugin-process"
+                    );
+                    await relaunch();
+                  } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.error("[settings] relaunch failed:", e);
+                  }
                 }
               }}
               autoFocus

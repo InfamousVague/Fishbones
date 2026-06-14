@@ -187,16 +187,29 @@ export function UpdateBanner({
     // state (which a banner-driven install never sets) — a
     // dead-end. A button that says "Restart now" must restart.
     try {
-      const { relaunch } = await import("@tauri-apps/plugin-process");
-      await relaunch();
-    } catch (e) {
-      // If relaunch genuinely fails (rare), fall back to opening
-      // Settings so the user still has a path forward, then surface
-      // the error. The update is already staged on disk, so a
-      // manual quit + reopen also applies it.
-      // eslint-disable-next-line no-console
-      console.error("[updater] relaunch failed:", e);
-      onOpenSettings?.();
+      // Prefer the Rust `relaunch_for_update` command: on macOS the
+      // plugin's plain `relaunch()` re-execs before the dying process
+      // releases the freshly-swapped bundle, so Launch Services reopens
+      // the OLD version ("doesn't stay closed long enough to register").
+      // The command fully exits and a detached helper reopens the
+      // updated bundle once we're gone. It exits the process on success,
+      // so this await never resolves; a rejection means it bailed early
+      // (e.g. dev binary) → fall back to the plugin relaunch.
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("relaunch_for_update");
+    } catch {
+      try {
+        const { relaunch } = await import("@tauri-apps/plugin-process");
+        await relaunch();
+      } catch (e) {
+        // If relaunch genuinely fails (rare), fall back to opening
+        // Settings so the user still has a path forward, then surface
+        // the error. The update is already staged on disk, so a
+        // manual quit + reopen also applies it.
+        // eslint-disable-next-line no-console
+        console.error("[updater] relaunch failed:", e);
+        onOpenSettings?.();
+      }
     }
   }, [onOpenSettings]);
 

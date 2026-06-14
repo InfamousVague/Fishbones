@@ -171,6 +171,48 @@ async fn start_oauth<R: tauri::Runtime>(
     Ok(())
 }
 
+/// Relaunch the app to apply a staged OTA update — robust against a
+/// macOS race where the process plugin's plain `relaunch()` re-execs so
+/// fast that the still-dying old process and the freshly-swapped `.app`
+/// bundle collide, and Launch Services reopens the OLD version (the
+/// "it didn't stay closed long enough to register" symptom). We spawn a
+/// detached `/bin/sh` that polls until THIS process is fully gone, pads
+/// a beat so the OS releases the bundle, then `open`s the updated
+/// bundle — guaranteeing the app is reliably closed before it reopens.
+/// The bundle-less `tauri dev` binary and non-macOS targets fall through
+/// to the standard restart, where the race doesn't apply.
+#[tauri::command]
+fn relaunch_for_update<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        // <App>.app/Contents/MacOS/<bin> → the bundle is three dirs up.
+        let bundle = exe
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .map(|p| p.to_path_buf());
+        if let Some(bundle) = bundle {
+            if bundle.extension().and_then(|e| e.to_str()) == Some("app") {
+                let pid = std::process::id();
+                let bundle_arg = bundle.to_string_lossy().replace('"', "\\\"");
+                let script = format!(
+                    "while kill -0 {pid} 2>/dev/null; do sleep 0.2; done; sleep 0.5; open \"{bundle_arg}\""
+                );
+                std::process::Command::new("/bin/sh")
+                    .arg("-c")
+                    .arg(&script)
+                    .spawn()
+                    .map_err(|e| format!("failed to spawn relaunch helper: {e}"))?;
+                // Exit cleanly so the OS releases the bundle; the detached
+                // helper reopens the updated app once we're fully gone.
+                std::process::exit(0);
+            }
+        }
+    }
+    app.restart();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // rustls 0.23+ refuses to auto-pick a default crypto provider when
@@ -284,6 +326,7 @@ pub fn run() {
             profiles::switch_profile,
             run_swift,
             start_oauth,
+            relaunch_for_update,
             // `mod haptics` is gated out on iOS/Android (see top of
             // file), so its command registration must carry the same
             // gate or the handler list references an unlinked module
