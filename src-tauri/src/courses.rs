@@ -111,7 +111,9 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // the-rust-programming-language (120/168 total; remainder pending art).
 // V20 — reflowed Rust-track figures: short exercise lessons downsized
 // to the `small` float class so art no longer towers over the prose.
-const SEED_VERSION: u32 = 20;
+// V21 — baked 10 more TRPL images (module-splitting + the vector
+// chapter); the-rust-programming-language now 130/168.
+const SEED_VERSION: u32 = 21;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes

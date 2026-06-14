@@ -508,7 +508,9 @@ function starterUrl(path: string): string {
 /// V33 — reflowed Rust-track figures: short exercise lessons downsized
 /// to the `small` float class so images no longer tower over a few
 /// lines of prose. Bump re-fetches the adjusted lesson bodies.
-const SEED_VERSION = 33;
+/// V34 — baked 10 more TRPL images (module-splitting + the vector
+/// chapter); the-rust-programming-language now 130/168.
+const SEED_VERSION = 34;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +
