@@ -510,7 +510,10 @@ function starterUrl(path: string): string {
 /// lines of prose. Bump re-fetches the adjusted lesson bodies.
 /// V34 — baked 10 more TRPL images (module-splitting + the vector
 /// chapter); the-rust-programming-language now 130/168.
-const SEED_VERSION = 34;
+/// V35 — TRPL `create-package-exercise` now ships a real two-file
+/// reference solution (src/lib.rs + src/main.rs) instead of collapsing
+/// the package to one inline-module file; bump re-fetches the lesson.
+const SEED_VERSION = 35;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +

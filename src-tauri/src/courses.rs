@@ -113,7 +113,10 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // to the `small` float class so art no longer towers over the prose.
 // V21 — baked 10 more TRPL images (module-splitting + the vector
 // chapter); the-rust-programming-language now 130/168.
-const SEED_VERSION: u32 = 21;
+// V22 — TRPL `create-package-exercise` now ships a real two-file
+// reference solution (src/lib.rs + src/main.rs) instead of collapsing
+// the package down to one inline-module file; re-seed rewrites it.
+const SEED_VERSION: u32 = 22;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
