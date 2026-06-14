@@ -81,6 +81,7 @@ const KIND_LABEL_KEYS: Record<PracticeItem["kind"], string> = {
   short: "practice.kindShort",
   blocks: "practice.kindBlocks",
   parsons: "practice.kindParsons",
+  spotbug: "practice.kindSpotbug",
 };
 
 export default function PracticeView({

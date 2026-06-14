@@ -647,6 +647,7 @@
     "kindShort": "Respuesta corta",
     "kindBlocks": "Bloques de código",
     "kindParsons": "Ordena las líneas",
+    "kindSpotbug": "Encuentra el error",
     "due": "Pendiente",
     "todayPct": "{pct}% hoy",
     "emptyTitleSeed": "Abre una lección para iniciar la baraja.",

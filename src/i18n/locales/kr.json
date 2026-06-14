@@ -647,6 +647,7 @@
     "kindShort": "단답형",
     "kindBlocks": "코드 블록",
     "kindParsons": "줄 순서 맞추기",
+    "kindSpotbug": "버그 찾기",
     "due": "예정",
     "todayPct": "오늘 {pct}%",
     "emptyTitleSeed": "덱을 시작하려면 레슨을 여세요.",

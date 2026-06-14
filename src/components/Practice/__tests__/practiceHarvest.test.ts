@@ -207,6 +207,49 @@ describe("harvestPracticeItems — Parsons (order-the-lines)", () => {
   });
 });
 
+describe("harvestPracticeItems — Spot-the-Bug", () => {
+  it("emits a spotbug atom for an exercise solution with a mutatable token", () => {
+    const ex = {
+      id: "ex-2",
+      title: "Is even",
+      kind: "exercise",
+      body: "b",
+      starter: "",
+      solution: "fn is_even(n: i32) -> bool {\n    n % 2 == 0\n}",
+      tests: "",
+    } as unknown as Lesson;
+    const items = harvestPracticeItems(
+      [courseWith([ex])],
+      completed("course-1:ex-2"),
+    );
+    const sb = items.find((i) => i.kind === "spotbug");
+    expect(sb).toBeTruthy();
+    expect(sb!.id).toBe("course-1:ex-2:spotbug:spotbug");
+    expect(sb!.spotbug!.lines).toHaveLength(3);
+    expect(sb!.spotbug!.lines[sb!.spotbug!.bugLine]).not.toBe(
+      sb!.spotbug!.original,
+    );
+  });
+
+  it("emits no spotbug when the solution has no mutatable token", () => {
+    const ex = {
+      id: "ex-3",
+      title: "x",
+      kind: "exercise",
+      body: "b",
+      starter: "",
+      solution: "let a = 1;\nlet b = 2;\nlet c = 3;",
+      tests: "",
+    } as unknown as Lesson;
+    expect(
+      harvestPracticeItems(
+        [courseWith([ex])],
+        completed("course-1:ex-3"),
+      ).find((i) => i.kind === "spotbug"),
+    ).toBeUndefined();
+  });
+});
+
 describe("harvestCompletedItems — summary lessons", () => {
   it("does not crash on a completed summary quiz lesson", () => {
     // The stricter "only completed lessons" harvester funnels through the

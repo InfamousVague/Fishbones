@@ -31,6 +31,7 @@
 import type { Course, Lesson } from "../../data/types";
 import type { PracticeItem } from "./types";
 import { isMobile } from "../../lib/platform";
+import { makeBugPuzzle, seedFromId } from "./practiceMutate";
 
 /// Build the practice deck from courses the learner has touched.
 ///
@@ -187,6 +188,28 @@ function appendItemsForLesson(
         topic: lesson.topic,
         parsons: { lines },
       });
+    }
+    // Spot-the-Bug: mutate ONE line of the solution into a subtle bug
+    // (deterministic per atom). Works on longer solutions than Parsons
+    // (you only tap a line, not reorder all of them), so it reaches
+    // exercises Parsons skips — but only when a mutatable token exists.
+    if (lines.length >= 3 && lines.length <= 16) {
+      const id = `${course.id}:${lesson.id}:spotbug:spotbug`;
+      const puzzle = makeBugPuzzle(lines, seedFromId(id));
+      if (puzzle) {
+        out.push({
+          id,
+          kind: "spotbug",
+          courseId: course.id,
+          courseTitle: course.title,
+          language: course.language,
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          difficulty: lesson.difficulty,
+          topic: lesson.topic,
+          spotbug: puzzle,
+        });
+      }
     }
   }
 }

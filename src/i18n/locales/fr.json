@@ -647,6 +647,7 @@
     "kindShort": "Réponse courte",
     "kindBlocks": "Blocs de code",
     "kindParsons": "Ordonner les lignes",
+    "kindSpotbug": "Trouvez le bug",
     "due": "À faire",
     "todayPct": "{pct}% aujourd'hui",
     "emptyTitleSeed": "Ouvrez une leçon pour démarrer le paquet.",

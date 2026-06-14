@@ -707,6 +707,7 @@
     "kindShort": "Short answer",
     "kindBlocks": "Code blocks",
     "kindParsons": "Order the lines",
+    "kindSpotbug": "Spot the bug",
     "due": "Due",
     "todayPct": "{pct}% today",
     "emptyTitleSeed": "Open a lesson to start the deck.",

@@ -647,6 +647,7 @@
     "kindShort": "Краткий ответ",
     "kindBlocks": "Блоки кода",
     "kindParsons": "Упорядочить строки",
+    "kindSpotbug": "Найдите ошибку",
     "due": "Срок",
     "todayPct": "{pct}% сегодня",
     "emptyTitleSeed": "Откройте урок, чтобы начать колоду.",

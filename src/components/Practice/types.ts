@@ -31,7 +31,12 @@ import type { BlocksData, Difficulty, LanguageId, QuizQuestion } from "../../dat
 /// (kept distinct so the session renderer can pick the right input
 /// affordance without re-narrowing); `blocks` is one full blocks
 /// puzzle from an exercise/mixed lesson.
-export type PracticeItemKind = "mcq" | "short" | "blocks" | "parsons";
+export type PracticeItemKind =
+  | "mcq"
+  | "short"
+  | "blocks"
+  | "parsons"
+  | "spotbug";
 
 /// One practiceable atom, denormalised for the session runner.
 /// Built from `harvestPracticeItems(courses, completed)` — see
@@ -72,6 +77,15 @@ export interface PracticeItem {
   /// their correct order. The runner shuffles them for display; the
   /// learner reorders; grading compares against this sequence.
   parsons?: { lines: string[] };
+  /// Spot-the-Bug payload: the solution with ONE line mutated into a
+  /// subtle bug. `bugLine` is the index the learner must tap; `original`
+  /// is the correct line shown on reveal; `category` labels the bug.
+  spotbug?: {
+    lines: string[];
+    bugLine: number;
+    original: string;
+    category: string;
+  };
 }
 
 /// Per-item learning state. Persisted to localStorage under

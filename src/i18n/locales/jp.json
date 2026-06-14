@@ -647,6 +647,7 @@
     "kindShort": "短文回答",
     "kindBlocks": "コードブロック",
     "kindParsons": "行を並べ替え",
+    "kindSpotbug": "バグを見つけよう",
     "due": "予定",
     "todayPct": "今日 {pct}%",
     "emptyTitleSeed": "レッスンを開いてデッキを始めましょう。",

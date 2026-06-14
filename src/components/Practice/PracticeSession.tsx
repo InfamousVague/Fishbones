@@ -39,6 +39,7 @@ import { comboMultiplier, xpForCorrect, warmupAnswerText } from "./practiceLadde
 import { fireXpBurst } from "../Shared/XpBurst";
 import PracticeBlocks from "./PracticeBlocks";
 import PracticeParsons from "./PracticeParsons";
+import PracticeSpotBug from "./PracticeSpotBug";
 import "./PracticeSession.css";
 
 interface Props {
@@ -298,7 +299,24 @@ export default function PracticeSession({
               )}
             </div>
 
-            {current.kind === "parsons" && current.parsons ? (
+            {current.kind === "spotbug" && current.spotbug ? (
+              <PracticeSpotBug
+                key={current.id}
+                lines={current.spotbug.lines}
+                bugLine={current.spotbug.bugLine}
+                original={current.spotbug.original}
+                category={current.spotbug.category}
+                committed={cardOutcome?.status !== "open"}
+                result={
+                  cardOutcome?.status === "correct"
+                    ? "correct"
+                    : cardOutcome?.status === "wrong"
+                      ? "wrong"
+                      : undefined
+                }
+                onResult={commitOutcome}
+              />
+            ) : current.kind === "parsons" && current.parsons ? (
               <PracticeParsons
                 key={current.id}
                 lines={current.parsons.lines}
