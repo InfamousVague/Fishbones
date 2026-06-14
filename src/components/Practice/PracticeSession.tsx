@@ -24,6 +24,7 @@ import { x as xIcon } from "@base/primitives/icon/icons/x";
 import { arrowLeft } from "@base/primitives/icon/icons/arrow-left";
 import { arrowRight } from "@base/primitives/icon/icons/arrow-right";
 import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
+import { flame } from "@base/primitives/icon/icons/flame";
 import "@base/primitives/icon/icon.css";
 import {
   type QuizQuestion,
@@ -34,6 +35,8 @@ import type { PracticeMode } from "./practiceQueue";
 import { MODE_LABELS } from "./practiceQueue";
 import { gradeAttempt } from "./practiceStore";
 import { formatDueIn } from "./practiceSchedule";
+import { comboMultiplier, xpForCorrect, warmupAnswerText } from "./practiceLadder";
+import { fireXpBurst } from "../Shared/XpBurst";
 import PracticeBlocks from "./PracticeBlocks";
 import "./PracticeSession.css";
 
@@ -41,6 +44,11 @@ interface Props {
   /// Pre-built queue of items to play. Length determines the
   /// session card count.
   queue: PracticeItem[];
+  /// Optional zero-stakes warm-up lap played BEFORE the graded
+  /// queue: recognition cards (prompt + revealed answer + one tap)
+  /// that prime the concepts about to resurface. Empty/omitted →
+  /// the session starts straight on the graded queue.
+  warmup?: PracticeItem[];
   /// Mode label shown in the session header. Doesn't affect
   /// behaviour — purely cosmetic context for the learner.
   mode: PracticeMode;
@@ -59,6 +67,7 @@ type CardOutcome =
 
 export default function PracticeSession({
   queue,
+  warmup,
   mode,
   onOpenLesson,
   onExit,
@@ -70,6 +79,21 @@ export default function PracticeSession({
     queue.map(() => ({ status: "open" as const })),
   );
 
+  // ----- Warm-up lap (zero-stakes recognition before the graded queue) -----
+  const warmupItems = warmup ?? [];
+  const [phase, setPhase] = useState<"warmup" | "main">(
+    warmupItems.length > 0 ? "warmup" : "main",
+  );
+  const [warmupCursor, setWarmupCursor] = useState(0);
+
+  // ----- In-session reward state (combo → multiplier → XP burst) -----
+  // Combo is the run of consecutive correct cards; it scales the XP
+  // burst and the on-screen pill. A miss resets it to 0 but never
+  // costs XP or touches the SRS streak — pure upside.
+  const [combo, setCombo] = useState(0);
+  const [bestCombo, setBestCombo] = useState(0);
+  const [sessionXp, setSessionXp] = useState(0);
+
   const current = queue[cursor];
   const cardOutcome = outcomes[cursor];
   const isDone = cursor >= queue.length;
@@ -79,11 +103,35 @@ export default function PracticeSession({
     if (cardOutcome?.status !== "open") return;
     const rec = gradeAttempt(current, correct);
     const nextDueMs = Math.max(0, rec.dueAt - Date.now());
+    if (correct) {
+      const newCombo = combo + 1;
+      setCombo(newCombo);
+      setBestCombo((b) => Math.max(b, newCombo));
+      const gain = xpForCorrect(newCombo, current.difficulty);
+      setSessionXp((x) => x + gain);
+      fireXpBurst(gain);
+    } else {
+      setCombo(0);
+    }
     setOutcomes((prev) => {
       const next = prev.slice();
       next[cursor] = correct
         ? { status: "correct", nextDueMs }
         : { status: "wrong", nextDueMs };
+      return next;
+    });
+  }
+
+  function finishWarmup() {
+    setPhase("main");
+  }
+  function advanceWarmup() {
+    setWarmupCursor((c) => {
+      const next = c + 1;
+      if (next >= warmupItems.length) {
+        setPhase("main");
+        return c;
+      }
       return next;
     });
   }
@@ -112,6 +160,18 @@ export default function PracticeSession({
   }, [cardOutcome, onExit]);
 
   // ----- Render -----
+
+  if (phase === "warmup" && warmupItems.length > 0) {
+    return (
+      <WarmupLap
+        items={warmupItems}
+        cursor={warmupCursor}
+        onNext={advanceWarmup}
+        onSkip={finishWarmup}
+        onExit={onExit}
+      />
+    );
+  }
 
   if (queue.length === 0) {
     return (
@@ -143,6 +203,8 @@ export default function PracticeSession({
             queue={queue}
             outcomes={outcomes}
             elapsedMs={Date.now() - startedAt.current}
+            sessionXp={sessionXp}
+            bestCombo={bestCombo}
             onExit={onExit}
             onOpenLesson={onOpenLesson}
           />
@@ -191,6 +253,23 @@ export default function PracticeSession({
               </div>
             </div>
             <div className="libre-practice-session__score">
+              {combo >= 2 && (
+                <span
+                  className={
+                    "libre-practice-session__combo" +
+                    (comboMultiplier(combo) > 1 ? " is-hot" : "")
+                  }
+                  aria-label={`${combo} correct in a row`}
+                >
+                  <Icon icon={flame} size="xs" color="currentColor" />
+                  <span className="libre-practice-session__combo-n">{combo}</span>
+                  {comboMultiplier(combo) > 1 && (
+                    <span className="libre-practice-session__combo-mult">
+                      {comboMultiplier(combo)}×
+                    </span>
+                  )}
+                </span>
+              )}
               <span className="libre-practice-session__score-correct">
                 <Icon icon={checkIcon} size="xs" color="currentColor" />{" "}
                 {correctCount}
@@ -426,12 +505,16 @@ function SessionSummary({
   queue,
   outcomes,
   elapsedMs,
+  sessionXp,
+  bestCombo,
   onExit,
   onOpenLesson,
 }: {
   queue: PracticeItem[];
   outcomes: CardOutcome[];
   elapsedMs: number;
+  sessionXp: number;
+  bestCombo: number;
   onExit: () => void;
   onOpenLesson?: (courseId: string, lessonId: string) => void;
 }) {
@@ -463,6 +546,19 @@ function SessionSummary({
         <div className="libre-practice-summary__sub">
           {accuracy}% accuracy · {minutes} min
         </div>
+        {sessionXp > 0 && (
+          <div className="libre-practice-summary__reward">
+            <span className="libre-practice-summary__reward-xp">
+              +{sessionXp} XP
+            </span>
+            {bestCombo >= 3 && (
+              <span className="libre-practice-summary__reward-combo">
+                <Icon icon={flame} size="xs" color="currentColor" /> best run{" "}
+                {bestCombo}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {wrongItems.length > 0 && (
@@ -500,6 +596,97 @@ function SessionSummary({
         >
           Back to deck
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WarmupLap — the zero-stakes opener. Prompt + the answer already shown,
+// one "Got it" tap. No grading, no SRS write, no streak risk — it just
+// primes the concepts about to resurface so the first graded card feels
+// familiar. Directly answers "the first 60 seconds are too hard."
+
+function WarmupLap({
+  items,
+  cursor,
+  onNext,
+  onSkip,
+  onExit,
+}: {
+  items: PracticeItem[];
+  cursor: number;
+  onNext: () => void;
+  onSkip: () => void;
+  onExit: () => void;
+}) {
+  const item = items[cursor];
+  if (!item) return null;
+  const prompt = item.question?.prompt ?? item.lessonTitle;
+  const answer = warmupAnswerText(item);
+  return (
+    <div className="libre-practice-session libre-practice-warmup">
+      <div className="libre-practice-session__scroll">
+        <div className="libre-practice-session__inner">
+          <header className="libre-practice-session__header">
+            <button
+              type="button"
+              className="libre-practice-session__back"
+              onClick={onExit}
+              aria-label="Back to practice deck"
+            >
+              <Icon icon={arrowLeft} size="xs" color="currentColor" />
+              <span>Back</span>
+            </button>
+            <div className="libre-practice-warmup__bar" aria-hidden>
+              {items.map((_, i) => (
+                <span
+                  key={i}
+                  className={
+                    "libre-practice-warmup__seg" + (i <= cursor ? " is-on" : "")
+                  }
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              className="libre-practice-warmup__skip"
+              onClick={onSkip}
+            >
+              Skip warm-up
+            </button>
+          </header>
+
+          <main className="libre-practice-session__card libre-practice-warmup__card">
+            <div className="libre-practice-warmup__tag">
+              <Icon icon={flame} size="xs" color="currentColor" />
+              Warm-up · no stakes
+            </div>
+            <div className="libre-practice-warmup__meta">
+              {item.courseTitle} · {item.lessonTitle}
+            </div>
+            <div className="libre-practice-warmup__prompt">{prompt}</div>
+            {answer && (
+              <div className="libre-practice-warmup__answer">
+                <span className="libre-practice-warmup__answer-label">
+                  Answer
+                </span>
+                <span className="libre-practice-warmup__answer-text">
+                  {answer}
+                </span>
+              </div>
+            )}
+            <button
+              type="button"
+              className="libre-practice-warmup__got"
+              onClick={onNext}
+              autoFocus
+            >
+              Got it
+              <Icon icon={arrowRight} size="xs" color="currentColor" />
+            </button>
+          </main>
+        </div>
       </div>
     </div>
   );

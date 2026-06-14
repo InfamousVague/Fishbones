@@ -551,3 +551,160 @@
     font-size: 48px;
   }
 }
+
+/* ─── Combo meter (in-session reward) ───────────────────────────────
+   A flame pill that appears once the learner strings 2+ correct in a
+   row, brightening into an ember when the XP multiplier kicks in. A
+   miss only resets the combo — it never costs anything. */
+.libre-practice-session__combo {
+  --combo-ember: #e0734d;
+  --combo-gold: #f2a93b;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--libre-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--combo-gold) 45%, transparent);
+  color: var(--combo-gold);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.libre-practice-session__combo.is-hot {
+  border-color: var(--combo-ember);
+  background: color-mix(in srgb, var(--combo-ember) 16%, transparent);
+  color: var(--combo-ember);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--combo-ember) 30%, transparent);
+}
+.libre-practice-session__combo-n {
+  font-size: 13px;
+}
+.libre-practice-session__combo-mult {
+  margin-left: 2px;
+  padding-left: 5px;
+  border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  font-size: 11px;
+  opacity: 0.95;
+}
+
+/* ─── Summary reward row ─────────────────────────────────────────── */
+.libre-practice-summary__reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+.libre-practice-summary__reward-xp {
+  padding: 5px 14px;
+  border-radius: var(--libre-radius-pill);
+  background: color-mix(in srgb, #f2a93b 16%, transparent);
+  border: 1px solid color-mix(in srgb, #f2a93b 45%, transparent);
+  color: #f2a93b;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.libre-practice-summary__reward-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-tertiary);
+  font-size: 12.5px;
+}
+
+/* ─── Warm-up lap (zero-stakes recognition opener) ──────────────── */
+.libre-practice-warmup__bar {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  max-width: 240px;
+}
+.libre-practice-warmup__seg {
+  height: 5px;
+  flex: 1;
+  border-radius: 3px;
+  background: var(--color-border-default);
+  transition: background 0.25s ease;
+}
+.libre-practice-warmup__seg.is-on {
+  background: #f2a93b;
+}
+.libre-practice-warmup__skip {
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.libre-practice-warmup__skip:hover {
+  color: var(--color-text-secondary);
+}
+.libre-practice-warmup__card {
+  align-items: flex-start;
+  gap: 14px;
+}
+.libre-practice-warmup__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e0734d;
+}
+.libre-practice-warmup__meta {
+  font-size: 12.5px;
+  color: var(--color-text-tertiary);
+}
+.libre-practice-warmup__prompt {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+.libre-practice-warmup__answer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--libre-radius-md);
+  background: color-mix(in srgb, #f2a93b 9%, var(--color-bg-secondary));
+  border: 1px solid color-mix(in srgb, #f2a93b 30%, transparent);
+}
+.libre-practice-warmup__answer-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.libre-practice-warmup__answer-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.libre-practice-warmup__got {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  align-self: flex-end;
+  margin-top: 4px;
+  padding: 10px 20px;
+  border-radius: var(--libre-radius-pill);
+  border: none;
+  cursor: pointer;
+  background: #f2a93b;
+  color: #1a1205;
+  font-size: 14px;
+  font-weight: 700;
+}
+.libre-practice-warmup__got:hover {
+  background: #e0734d;
+  color: #fff;
+}

@@ -48,6 +48,7 @@ import {
   type PracticeMode,
 } from "./practiceQueue";
 import { loadAllRecords, summariseStats } from "./practiceStore";
+import { pickWarmupItems } from "./practiceLadder";
 import type { PracticeItem, PracticeRecord, PracticeStats } from "./types";
 import PracticeSession from "./PracticeSession";
 import { useT } from "../../i18n/i18n";
@@ -170,6 +171,7 @@ export default function PracticeView({
 
   // ----- Session state -----
   const [activeQueue, setActiveQueue] = useState<PracticeItem[] | null>(null);
+  const [activeWarmup, setActiveWarmup] = useState<PracticeItem[]>([]);
 
   function startSession() {
     const queue = buildQueue(mode, items, records, {
@@ -179,6 +181,14 @@ export default function PracticeView({
       seed: Date.now(),
       now: Date.now(),
     });
+    // Gentle on-ramp: open with recently-seen recognition cards that
+    // prime the queue's concepts. Drop any atom already in the graded
+    // queue so the same card isn't revealed then immediately tested.
+    const queueIds = new Set(queue.map((q) => q.id));
+    const warmup = pickWarmupItems(items, records).filter(
+      (w) => !queueIds.has(w.id),
+    );
+    setActiveWarmup(warmup);
     setActiveQueue(queue);
   }
 
@@ -186,6 +196,7 @@ export default function PracticeView({
     return (
       <PracticeSession
         queue={activeQueue}
+        warmup={activeWarmup}
         mode={mode}
         onOpenLesson={onOpenLesson}
         onExit={() => setActiveQueue(null)}
