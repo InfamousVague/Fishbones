@@ -100,13 +100,6 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
       {
         kind: "step",
         step: {
-          courseId: "rust-by-example",
-          note: "The idioms, one runnable example at a time.",
-        },
-      },
-      {
-        kind: "step",
-        step: {
           courseId: "exercism-rust",
           note: "Structured practice — concept by concept, exercise by exercise.",
         },
