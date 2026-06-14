@@ -141,6 +141,72 @@ describe("harvestPracticeItems — malformed full lesson (defence in depth)", ()
   });
 });
 
+describe("harvestPracticeItems — Parsons (order-the-lines)", () => {
+  const exercise = {
+    id: "ex-1",
+    title: "Sum a slice",
+    kind: "exercise",
+    body: "Implement it.",
+    starter: "fn sum() {}",
+    solution:
+      "fn sum(xs: &[i32]) -> i32 {\n    let mut t = 0;\n    for x in xs {\n        t += x;\n    }\n    t\n}",
+    tests: "...",
+  } as unknown as Lesson;
+
+  it("produces a parsons atom from a short exercise solution", () => {
+    const items = harvestPracticeItems(
+      [courseWith([exercise])],
+      completed("course-1:ex-1"),
+    );
+    const parsons = items.find((i) => i.kind === "parsons");
+    expect(parsons).toBeTruthy();
+    expect(parsons!.id).toBe("course-1:ex-1:parsons:parsons");
+    expect(parsons!.parsons!.lines).toEqual([
+      "fn sum(xs: &[i32]) -> i32 {",
+      "    let mut t = 0;",
+      "    for x in xs {",
+      "        t += x;",
+      "    }",
+      "    t",
+      "}",
+    ]);
+  });
+
+  it("skips solutions too short or too long for a good puzzle", () => {
+    const tooShort = {
+      id: "s",
+      title: "s",
+      kind: "exercise",
+      body: "b",
+      starter: "",
+      solution: "let x = 1;\nlet y = 2;",
+      tests: "",
+    } as unknown as Lesson;
+    expect(
+      harvestPracticeItems(
+        [courseWith([tooShort])],
+        completed("course-1:s"),
+      ).find((i) => i.kind === "parsons"),
+    ).toBeUndefined();
+
+    const tooLong = {
+      id: "l",
+      title: "l",
+      kind: "exercise",
+      body: "b",
+      starter: "",
+      solution: Array.from({ length: 12 }, (_, i) => `line${i};`).join("\n"),
+      tests: "",
+    } as unknown as Lesson;
+    expect(
+      harvestPracticeItems(
+        [courseWith([tooLong])],
+        completed("course-1:l"),
+      ).find((i) => i.kind === "parsons"),
+    ).toBeUndefined();
+  });
+});
+
 describe("harvestCompletedItems — summary lessons", () => {
   it("does not crash on a completed summary quiz lesson", () => {
     // The stricter "only completed lessons" harvester funnels through the

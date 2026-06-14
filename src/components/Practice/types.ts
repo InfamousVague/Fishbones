@@ -31,7 +31,7 @@ import type { BlocksData, Difficulty, LanguageId, QuizQuestion } from "../../dat
 /// (kept distinct so the session renderer can pick the right input
 /// affordance without re-narrowing); `blocks` is one full blocks
 /// puzzle from an exercise/mixed lesson.
-export type PracticeItemKind = "mcq" | "short" | "blocks";
+export type PracticeItemKind = "mcq" | "short" | "blocks" | "parsons";
 
 /// One practiceable atom, denormalised for the session runner.
 /// Built from `harvestPracticeItems(courses, completed)` — see
@@ -68,6 +68,10 @@ export interface PracticeItem {
   /// Inline payload — exactly one of these is set per item kind.
   question?: QuizQuestion;
   blocks?: BlocksData;
+  /// Parsons payload: the reference solution's non-blank lines in
+  /// their correct order. The runner shuffles them for display; the
+  /// learner reorders; grading compares against this sequence.
+  parsons?: { lines: string[] };
 }
 
 /// Per-item learning state. Persisted to localStorage under

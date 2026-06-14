@@ -706,6 +706,7 @@
     "kindMcq": "Multiple choice",
     "kindShort": "Short answer",
     "kindBlocks": "Code blocks",
+    "kindParsons": "Order the lines",
     "due": "Due",
     "todayPct": "{pct}% today",
     "emptyTitleSeed": "Open a lesson to start the deck.",

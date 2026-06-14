@@ -164,6 +164,45 @@ function appendItemsForLesson(
       blocks: lesson.blocks,
     });
   }
+  // Parsons (order-the-lines): a gentler review of a code exercise than
+  // retyping it — reorder the solution's lines. Works on desktop + mobile
+  // (drag/tap, no typing). Only short, well-shaped single-file solutions
+  // make good puzzles, so we gate on a 3-10 non-blank-line range.
+  const solution = (lesson as { solution?: string }).solution;
+  if (
+    (lesson.kind === "exercise" || lesson.kind === "mixed") &&
+    typeof solution === "string"
+  ) {
+    const lines = parsonsLines(solution);
+    if (lines.length >= 3 && lines.length <= 10) {
+      out.push({
+        id: `${course.id}:${lesson.id}:parsons:parsons`,
+        kind: "parsons",
+        courseId: course.id,
+        courseTitle: course.title,
+        language: course.language,
+        lessonId: lesson.id,
+        lessonTitle: lesson.title,
+        difficulty: lesson.difficulty,
+        topic: lesson.topic,
+        parsons: { lines },
+      });
+    }
+  }
+}
+
+/// Split a reference solution into the non-blank lines a Parsons
+/// puzzle reorders. Normalises newlines, trims trailing whitespace,
+/// drops blank lines (leading indentation is kept — a visual cue, not
+/// graded). Duplicate lines are fine: grading compares the reassembled
+/// string sequence, so interchangeable lines (e.g. two closing braces)
+/// still validate in any order.
+function parsonsLines(solution: string): string[] {
+  return solution
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((l) => l.replace(/\s+$/, ""))
+    .filter((l) => l.trim().length > 0);
 }
 
 /// Group an item array by `courseId`. Returns insertion-ordered

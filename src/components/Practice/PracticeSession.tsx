@@ -38,6 +38,7 @@ import { formatDueIn } from "./practiceSchedule";
 import { comboMultiplier, xpForCorrect, warmupAnswerText } from "./practiceLadder";
 import { fireXpBurst } from "../Shared/XpBurst";
 import PracticeBlocks from "./PracticeBlocks";
+import PracticeParsons from "./PracticeParsons";
 import "./PracticeSession.css";
 
 interface Props {
@@ -297,7 +298,22 @@ export default function PracticeSession({
               )}
             </div>
 
-            {current.kind === "blocks" && current.blocks ? (
+            {current.kind === "parsons" && current.parsons ? (
+              <PracticeParsons
+                key={current.id}
+                lines={current.parsons.lines}
+                itemId={current.id}
+                committed={cardOutcome?.status !== "open"}
+                result={
+                  cardOutcome?.status === "correct"
+                    ? "correct"
+                    : cardOutcome?.status === "wrong"
+                      ? "wrong"
+                      : undefined
+                }
+                onResult={commitOutcome}
+              />
+            ) : current.kind === "blocks" && current.blocks ? (
               <PracticeBlocks
                 key={current.id}
                 blocks={current.blocks}

@@ -1,0 +1,125 @@
+/* Parsons puzzle — a reorderable list of code lines with up/down
+   controls. Shares the practice card vocabulary. */
+
+.libre-parsons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+.libre-parsons__hint {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.libre-parsons__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.libre-parsons__line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--libre-radius-md);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+}
+.libre-parsons__num {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.libre-parsons__code {
+  flex: 1;
+  font-family: var(--libre-font-mono, ui-monospace, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--color-text-primary);
+}
+.libre-parsons__arrows {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.libre-parsons__arrows button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: 5px;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.libre-parsons__arrows button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+.libre-parsons__arrows button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.libre-parsons__line.is-right {
+  border-color: color-mix(in srgb, #43b581 55%, transparent);
+  background: color-mix(in srgb, #43b581 12%, transparent);
+}
+.libre-parsons__line.is-right .libre-parsons__code {
+  color: #43b581;
+}
+.libre-parsons__line.is-wrong {
+  border-color: color-mix(in srgb, var(--color-danger, #d9534f) 55%, transparent);
+  background: color-mix(in srgb, var(--color-danger, #d9534f) 10%, transparent);
+}
+.libre-parsons__tick {
+  flex-shrink: 0;
+  color: #43b581;
+}
+.libre-parsons__check {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: var(--libre-radius-pill);
+  border: none;
+  cursor: pointer;
+  background: #f2a93b;
+  color: #1a1205;
+}
+.libre-parsons__check:hover {
+  background: #e0734d;
+  color: #fff;
+}
+.libre-parsons__solution {
+  border-top: 1px solid var(--color-border-default);
+  padding-top: 12px;
+}
+.libre-parsons__solution-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.libre-parsons__solution ol {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+.libre-parsons__solution code {
+  font-family: var(--libre-font-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+}

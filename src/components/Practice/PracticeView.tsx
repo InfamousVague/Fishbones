@@ -80,6 +80,7 @@ const KIND_LABEL_KEYS: Record<PracticeItem["kind"], string> = {
   mcq: "practice.kindMcq",
   short: "practice.kindShort",
   blocks: "practice.kindBlocks",
+  parsons: "practice.kindParsons",
 };
 
 export default function PracticeView({
