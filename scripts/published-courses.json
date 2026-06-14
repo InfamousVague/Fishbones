@@ -19,9 +19,9 @@
     "",
     "manifestVersion is written into manifest.json verbatim. It must",
     "NEVER decrease — the deploy guard refuses a version regression.",
-    "Bumped to 4 on 2026-06-10 to match the live manifest; 5 on 2026-06-10 when duplicate rustonomicon/solana-programs pack variants were removed.."
+    "Bumped to 4 on 2026-06-10 to match the live manifest; 5 on 2026-06-10 when duplicate rustonomicon/solana-programs pack variants were removed; 7 on 2026-06-14 when rust-by-example was re-added to the catalog (it is a complete Rust-track book referenced by the Rust Developer learning path)."
   ],
-  "manifestVersion": 6,
+  "manifestVersion": 7,
   "packIds": [
     "javascript-typescript",
     "a-to-zig",
@@ -99,6 +99,7 @@
     "python-koans",
     "react-native",
     "rust-async-book",
+    "rust-by-example",
     "testing-rust",
     "rustlings",
     "select-star-sql",
