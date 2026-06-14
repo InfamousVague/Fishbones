@@ -11,8 +11,10 @@
 /// overflow-y:auto — the contract every direct child of the
 /// overflow:hidden `.libre__main` must honour).
 
+import { useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { arrowLeft } from "@base/primitives/icon/icons/arrow-left";
+import { download } from "@base/primitives/icon/icons/download";
 import { circleCheck } from "@base/primitives/icon/icons/circle-check";
 import { circleDashed } from "@base/primitives/icon/icons/circle-dashed";
 import { circle } from "@base/primitives/icon/icons/circle";
@@ -49,6 +51,10 @@ interface Props {
   onBack: () => void;
   onOpenCourse?: (courseId: string) => void;
   onBrowseCatalog?: () => void;
+  /// Install a not-yet-installed course in place. When wired, a
+  /// not-installed step installs on click (and an "Install all" button
+  /// appears) instead of bouncing to Discover.
+  onInstallCourse?: (courseId: string) => Promise<void> | void;
 }
 
 const STEP_ICON: Record<StepState, string> = {
@@ -65,8 +71,35 @@ export default function PathDetail({
   onBack,
   onOpenCourse,
   onBrowseCatalog,
+  onInstallCourse,
 }: Props) {
   const t = useT();
+
+  // Per-course in-flight install state, so a clicked row (and the
+  // "Install all" button) can show a spinner + ignore repeat clicks.
+  const [installing, setInstalling] = useState<Set<string>>(new Set());
+
+  const installOne = async (courseId: string) => {
+    if (!onInstallCourse || installing.has(courseId)) return;
+    setInstalling((prev) => new Set(prev).add(courseId));
+    try {
+      await onInstallCourse(courseId);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[paths] install failed:", courseId, e);
+      // A handful of path courses aren't published as catalog entries
+      // (e.g. bundled-only books). If the in-place install can't resolve
+      // one, fall back to Discover so the learner still has a path
+      // forward instead of a silent no-op.
+      onBrowseCatalog?.();
+    } finally {
+      setInstalling((prev) => {
+        const next = new Set(prev);
+        next.delete(courseId);
+        return next;
+      });
+    }
+  };
 
   // Header rollup across trunk + branches.
   const allResolved: ResolvedStep[] = [];
@@ -84,10 +117,35 @@ export default function PathDetail({
   const overall = aggregate(allResolved);
   const range = difficultyRange(flattenSteps(path).map((s) => s.courseId));
 
-  const openStep = (s: ResolvedStep) =>
-    s.state === "not-installed"
-      ? onBrowseCatalog?.()
-      : onOpenCourse?.(s.courseId);
+  // Distinct not-yet-installed course ids, in path order — drives the
+  // "Install all" button + lets us know whether to offer in-place
+  // install at all.
+  const notInstalledIds = [
+    ...new Set(
+      allResolved.filter((s) => s.state === "not-installed").map((s) => s.courseId),
+    ),
+  ];
+  const canInstall = !!onInstallCourse;
+  const anyInstalling = installing.size > 0;
+
+  const installAll = async () => {
+    if (!onInstallCourse) return;
+    // Sequential so we don't hammer the catalog/host with N parallel
+    // fetches; each refreshes the library as it lands.
+    for (const id of notInstalledIds) {
+      // eslint-disable-next-line no-await-in-loop
+      await installOne(id);
+    }
+  };
+
+  const openStep = (s: ResolvedStep) => {
+    if (s.state === "not-installed") {
+      if (canInstall) void installOne(s.courseId);
+      else onBrowseCatalog?.();
+      return;
+    }
+    onOpenCourse?.(s.courseId);
+  };
 
   const diffChip = (d: CourseDifficulty | undefined) =>
     d ? (
@@ -101,17 +159,26 @@ export default function PathDetail({
 
   const renderRow = (s: ResolvedStep, num: number | null, key: string) => {
     const installed = s.state !== "not-installed";
+    const isInstalling = installing.has(s.courseId);
     const d = courseDifficulty(s.courseId);
     return (
       <button
         key={key}
         type="button"
-        className={`libre-path-row libre-path-row--${s.state}`}
+        className={
+          `libre-path-row libre-path-row--${s.state}` +
+          (isInstalling ? " is-installing" : "")
+        }
         onClick={() => openStep(s)}
+        disabled={isInstalling}
         title={
           installed
             ? t("paths.openCourse", { title: s.title })
-            : t("paths.findInDiscover", { title: s.title })
+            : isInstalling
+              ? t("paths.installing", { title: s.title })
+              : canInstall
+                ? t("paths.installCourse", { title: s.title })
+                : t("paths.findInDiscover", { title: s.title })
         }
       >
         {num !== null && (
@@ -147,13 +214,15 @@ export default function PathDetail({
             <Icon icon={STEP_ICON[s.state]} size="sm" color="currentColor" />
           </span>
           <span className="libre-path-row__state-label">
-            {s.state === "complete"
-              ? "Done"
-              : s.state === "in-progress"
-                ? `${s.done}/${s.total}`
-                : s.state === "not-started"
-                  ? "Start"
-                  : "Install"}
+            {isInstalling
+              ? t("paths.installingShort")
+              : s.state === "complete"
+                ? "Done"
+                : s.state === "in-progress"
+                  ? `${s.done}/${s.total}`
+                  : s.state === "not-started"
+                    ? "Start"
+                    : "Install"}
           </span>
         </span>
       </button>
@@ -287,6 +356,22 @@ export default function PathDetail({
             </span>
           </div>
         </div>
+
+        {canInstall && notInstalledIds.length > 0 && (
+          <button
+            type="button"
+            className="libre-path-detail__install-all"
+            onClick={installAll}
+            disabled={anyInstalling}
+          >
+            <Icon icon={download} size="sm" color="currentColor" />
+            <span>
+              {anyInstalling
+                ? t("paths.installingShort")
+                : t("paths.installAll", { count: notInstalledIds.length })}
+            </span>
+          </button>
+        )}
       </header>
 
       <div

@@ -41,8 +41,13 @@ interface Props {
   /// which lesson").
   onOpenCourse?: (courseId: string) => void;
   /// Route to Discover so the learner can install a step's course
-  /// that isn't in their library yet.
+  /// that isn't in their library yet. Fallback only — when
+  /// `onInstallCourse` is wired, not-installed steps install in place.
   onBrowseCatalog?: () => void;
+  /// Install a not-yet-installed course in place (resolve id →
+  /// catalog → fetch + save). Lets the learner build out a path from
+  /// the path screen without hunting in Discover.
+  onInstallCourse?: (courseId: string) => Promise<void> | void;
   /// Deep-link: open directly on this path's detail view (e.g. from
   /// a collection's path card). The list stays one Back away.
   initialSelectedId?: string | null;
@@ -60,6 +65,7 @@ export default function PathsPage({
   completed = new Set(),
   onOpenCourse,
   onBrowseCatalog,
+  onInstallCourse,
   initialSelectedId = null,
 }: Props) {
   const t = useT();
@@ -96,6 +102,7 @@ export default function PathsPage({
         onBack={() => setSelectedId(null)}
         onOpenCourse={onOpenCourse}
         onBrowseCatalog={onBrowseCatalog}
+        onInstallCourse={onInstallCourse}
       />
     );
   }

@@ -2367,6 +2367,7 @@ export default function App() {
               completed={completed}
               onOpenCourse={openCourseFromLibrary}
               onBrowseCatalog={() => setView("discover")}
+              onInstallCourse={installCourseById}
             />
           ) : view === "certificates" ? (
             <CertificatesPage
@@ -3132,6 +3133,22 @@ export default function App() {
         `Couldn't install ${entry.title}: ${e instanceof Error ? e.message : String(e)}`,
       );
     }
+  }
+
+  /// Install a course by id alone — resolve it against the catalog,
+  /// then reuse `handleInstallCatalogEntry`. Lets surfaces that only
+  /// know a course id (notably Learning Paths) install a book in place
+  /// without bouncing the learner to Discover to hunt for it. Throws
+  /// on failure so callers can keep a per-row "installing" spinner
+  /// honest; the underlying handler already surfaces an alert.
+  async function installCourseById(courseId: string): Promise<void> {
+    const { fetchCatalog } = await import("./lib/catalog");
+    const entries = await fetchCatalog();
+    const entry = entries.find((e) => e.id === courseId);
+    if (!entry) {
+      throw new Error(`course not in catalog: ${courseId}`);
+    }
+    await handleInstallCatalogEntry(entry);
   }
 
   /// Unified "Add course" handler — replaces the four separate

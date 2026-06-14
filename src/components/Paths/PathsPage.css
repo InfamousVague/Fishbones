@@ -523,3 +523,46 @@
     display: none;
   }
 }
+
+/* ── Install-in-place from a path ──────────────────────────────────
+   Clicking a not-installed step (or "Install all") downloads the book
+   in place — no detour to Discover. */
+.libre-path-detail__install-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-top: 14px;
+  padding: 9px 18px;
+  border-radius: var(--libre-radius-pill, 999px);
+  border: 1px solid color-mix(in srgb, #f2a93b 50%, transparent);
+  background: color-mix(in srgb, #f2a93b 14%, transparent);
+  color: #f2a93b;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.libre-path-detail__install-all:hover:not(:disabled) {
+  background: color-mix(in srgb, #f2a93b 22%, transparent);
+  border-color: #f2a93b;
+}
+.libre-path-detail__install-all:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Row mid-install: dim + a soft pulse so the click reads as "working". */
+.libre-path-row.is-installing {
+  cursor: default;
+  opacity: 0.72;
+  animation: libre-path-install-pulse 1.1s ease-in-out infinite;
+}
+@keyframes libre-path-install-pulse {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 0.95; }
+}
+.libre-path-row.is-installing .libre-path-row__state-label {
+  color: #f2a93b;
+}
