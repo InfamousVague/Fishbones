@@ -51,6 +51,8 @@ import { loadAllRecords, summariseStats } from "./practiceStore";
 import { pickWarmupItems } from "./practiceLadder";
 import type { PracticeItem, PracticeRecord, PracticeStats } from "./types";
 import PracticeSession from "./PracticeSession";
+import PracticeMatch from "./PracticeMatch";
+import { grid2x2 } from "@base/primitives/icon/icons/grid-2x2";
 import { useT } from "../../i18n/i18n";
 import "./PracticeView.css";
 
@@ -172,6 +174,21 @@ export default function PracticeView({
   // ----- Session state -----
   const [activeQueue, setActiveQueue] = useState<PracticeItem[] | null>(null);
   const [activeWarmup, setActiveWarmup] = useState<PracticeItem[]>([]);
+  const [activeMatch, setActiveMatch] = useState<PracticeItem[] | null>(null);
+
+  // Match Pairs draws from mcq atoms only (prompt ↔ correct option).
+  const mcqItems = useMemo(() => items.filter((i) => i.kind === "mcq"), [items]);
+
+  function startMatch() {
+    // Up to 6 pairs, biasing toward due/recently-seen for review value,
+    // shuffled so the board varies between plays.
+    const pool = mcqItems.slice();
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor((Date.now() * (i + 7)) % (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    setActiveMatch(pool.slice(0, 6));
+  }
 
   function startSession() {
     const queue = buildQueue(mode, items, records, {
@@ -201,6 +218,12 @@ export default function PracticeView({
         onOpenLesson={onOpenLesson}
         onExit={() => setActiveQueue(null)}
       />
+    );
+  }
+
+  if (activeMatch) {
+    return (
+      <PracticeMatch items={activeMatch} onExit={() => setActiveMatch(null)} />
     );
   }
 
@@ -248,6 +271,27 @@ export default function PracticeView({
         </span>
         <span className="libre-practice-type-meta libre-practice-type-meta--go">
           Open →
+        </span>
+      </button>
+      <button
+        type="button"
+        className="libre-practice-type"
+        role="listitem"
+        onClick={startMatch}
+        disabled={mcqItems.length < 4}
+      >
+        <span className="libre-practice-type-icon" aria-hidden>
+          <Icon icon={grid2x2} size="lg" color="currentColor" />
+        </span>
+        <span className="libre-practice-type-text">
+          <span className="libre-practice-type-title">Match Pairs</span>
+          <span className="libre-practice-type-desc">
+            A fast pairing game — tap a question, then its answer. No
+            typing, no streak risk; the gentlest way to drill.
+          </span>
+        </span>
+        <span className="libre-practice-type-meta libre-practice-type-meta--go">
+          {mcqItems.length >= 4 ? "Play →" : "Need more cards"}
         </span>
       </button>
     </div>

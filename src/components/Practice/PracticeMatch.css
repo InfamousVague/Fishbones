@@ -1,0 +1,176 @@
+/* Match Pairs mini-game. Shares the practice session's scroll/inner
+   shell vocabulary so it feels native, with its own tile grid. */
+
+.libre-match {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.libre-match__scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+.libre-match__inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+}
+
+.libre-match__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.libre-match__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.libre-match__back:hover {
+  color: var(--color-text-primary);
+}
+.libre-match__progress {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.libre-match__hud {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.libre-match__combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--libre-radius-pill);
+  border: 1px solid color-mix(in srgb, #f2a93b 45%, transparent);
+  color: #f2a93b;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.libre-match__combo.is-hot {
+  border-color: #e0734d;
+  background: color-mix(in srgb, #e0734d 16%, transparent);
+  color: #e0734d;
+}
+.libre-match__score {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f2a93b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tile grid — auto-fits 2-3 columns; tiles are tap targets that wrap
+   their prompt/answer text. */
+.libre-match__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+@media (max-width: 560px) {
+  .libre-match__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.libre-match__tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  padding: 12px 14px;
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--libre-radius-md);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+.libre-match__tile:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+.libre-match__tile-text {
+  font-size: 13.5px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+/* Answer tiles read as code-ish chips; prompt tiles read as prose. */
+.libre-match__tile--a .libre-match__tile-text {
+  font-family: var(--libre-font-mono, ui-monospace, monospace);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.libre-match__tile.is-selected {
+  border-color: #f2a93b;
+  background: color-mix(in srgb, #f2a93b 12%, var(--color-bg-secondary));
+  transform: translateY(-1px);
+}
+.libre-match__tile.is-wrong {
+  border-color: var(--color-danger, #d9534f);
+  background: color-mix(in srgb, var(--color-danger, #d9534f) 14%, transparent);
+  animation: libre-match-shake 0.4s ease;
+}
+.libre-match__tile.is-matched {
+  border-color: color-mix(in srgb, #43b581 55%, transparent);
+  background: color-mix(in srgb, #43b581 16%, transparent);
+  color: #43b581;
+  cursor: default;
+}
+@keyframes libre-match-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Done + empty states */
+.libre-match__done,
+.libre-match--empty .libre-match__inner {
+  text-align: center;
+  padding-top: 40px;
+}
+.libre-match__done-big {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+.libre-match__done-sub {
+  margin-top: 6px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+.libre-match__exit {
+  margin-top: 22px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: var(--libre-radius-pill);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.libre-match__exit:hover {
+  border-color: var(--color-border-strong);
+}
