@@ -15,8 +15,6 @@ import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
 import { eye } from "@base/primitives/icon/icons/eye";
 import { layoutPanelLeft } from "@base/primitives/icon/icons/layout-panel-left";
 import { layoutPanelTop } from "@base/primitives/icon/icons/layout-panel-top";
-import { bookOpen } from "@base/primitives/icon/icons/book-open";
-import { openDocsWindow } from "../../lib/docsPopout";
 import "@base/primitives/icon/icon.css";
 import { ShortcutHint } from "../ShortcutHint/ShortcutHint";
 import { useT } from "../../i18n/i18n";
@@ -548,24 +546,6 @@ export default function EditorPane({
               ⇱
             </button>
           )}
-          {/* Floating docs window — opens the official reference
-              docs for this lesson's language, re-rendered in the
-              app theme, positioned beside the cursor. */}
-          <button
-            type="button"
-            className="libre-editor-button libre-editor-button--glyph"
-            onClick={(e) =>
-              void openDocsWindow({
-                language,
-                screenX: e.screenX,
-                screenY: e.screenY,
-              })
-            }
-            title={t("docsViewer.open")}
-            aria-label={t("docsViewer.open")}
-          >
-            <Icon icon={bookOpen} size="sm" color="currentColor" />
-          </button>
           {onOpenInVSCode && (
             <button
               type="button"

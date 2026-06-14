@@ -23,7 +23,6 @@ import InlineSandbox from "./InlineSandbox";
 import TTSButton from "./TTSButton";
 import { estimateReadingMinutes } from "./readingTime";
 import { stopLessonAudio, useLessonAudio } from "../../hooks/useLessonAudio";
-import { openDocsWindow } from "../../lib/docsPopout";
 import { useLessonReadCursor } from "../../hooks/useLessonReadCursor";
 import DeviceAction from "../Ledger/DeviceAction";
 import { useT } from "../../i18n/i18n";
@@ -700,28 +699,6 @@ export default function LessonReader({
                 the time-to-read chip so a learner can see + act on
                 connection status without leaving the lesson scroll. */}
             {requiresDevice === "ledger" && <LedgerStatusPill />}
-            {/* Floating docs window — official reference docs for
-                this lesson's language, re-rendered in the app theme,
-                opened beside the cursor. Reading-only lessons fall
-                back to the default booklet (primaryLang is
-                "plaintext" there). */}
-            <button
-              type="button"
-              className="libre-reader-meta-glossary"
-              onClick={(e) =>
-                void openDocsWindow({
-                  language: primaryLang === "plaintext" ? undefined : primaryLang,
-                  screenX: e.screenX,
-                  screenY: e.screenY,
-                })
-              }
-              title={t("docsViewer.open")}
-            >
-              <span className="libre-reader-meta-glossary-icon" aria-hidden>
-                <Icon icon={bookOpen} size="xs" color="currentColor" />
-              </span>
-              {t("docsViewer.title")}
-            </button>
             {hasGlossary && (
               <button
                 type="button"

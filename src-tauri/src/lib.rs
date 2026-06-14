@@ -366,7 +366,6 @@ pub fn run() {
             ingest::extract_pdf_images,
             docs_crawl::crawl_docs_site,
             docs_crawl::extract_docs_nav,
-            docs_crawl::fetch_doc_page,
             http_proxy::proxy_http,
             image_gen::generate_cover_art,
             toolchain::probe_language_toolchain,

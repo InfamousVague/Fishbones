@@ -674,17 +674,6 @@
     "stubLessons": "Lessons",
     "stubBadges": "Badges"
   },
-  "docsViewer": {
-    "title": "Docs",
-    "open": "Open reference docs",
-    "booklet": "Documentation set",
-    "pages": "Pages",
-    "back": "Back",
-    "forward": "Forward",
-    "openInBrowser": "Open in browser",
-    "error": "Couldn't load this page.",
-    "retry": "Retry"
-  },
   "practice": {
     "title": "Practice",
     "ariaOverview": "Practice overview",
