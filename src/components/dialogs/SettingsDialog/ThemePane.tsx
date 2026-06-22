@@ -1,4 +1,11 @@
-import { THEMES, type ThemeName } from "../../../theme/themes";
+import { useState } from "react";
+import {
+  THEMES,
+  type ThemeName,
+  loadHue,
+  applyHue,
+  DEFAULT_GG_HUE,
+} from "../../../theme/themes";
 import LanguageDropdown from "../../LanguageDropdown/LanguageDropdown";
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import { VARIANTS, type VariantId } from "../../Sidebar/variants/registry";
@@ -21,6 +28,13 @@ const VARIANT_BLURB_KEYS: Record<VariantId, string> = {
 export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
   const [sidebarVariant, setSidebarVariant] = useSidebarVariant();
   const t = useT();
+  // GhostWire accent hue — only meaningful for the default-dark theme, whose
+  // whole palette derives from --gg-hue. The slider applies + persists live.
+  const [hue, setHue] = useState(() => loadHue());
+  const updateHue = (next: number) => {
+    setHue(next);
+    applyHue(next);
+  };
   return (
     <SettingsPage
       title={t("settings.appearance")}
@@ -110,6 +124,51 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
           ))}
         </div>
       </SettingsCard>
+
+      {/* Accent hue — only for the GhostWire default-dark theme, whose
+          accent, white→accent gradients, glows, glass rims and the aurora +
+          halftone all derive from a single --gg-hue. Drag to recolour the
+          whole theme live; the choice is persisted. */}
+      {theme === "default-dark" && (
+        <SettingsCard title={t("settings.accentHueCard")}>
+          <div className="libre-settings-row libre-settings-row--no-icon">
+            <div className="libre-settings-row__body">
+              <span className="libre-settings-row__label">
+                {t("settings.accentHue")}
+              </span>
+              <span className="libre-settings-row__sub">
+                {t("settings.accentHueDescription")}
+              </span>
+            </div>
+            <div className="libre-settings-row__control">
+              <div className="libre-settings-hue">
+                <span
+                  className="libre-settings-hue__swatch"
+                  style={{ background: `hsl(${hue} 74% 66%)` }}
+                  aria-hidden
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={359}
+                  step={1}
+                  value={hue}
+                  className="libre-settings-hue__slider"
+                  aria-label={t("settings.accentHue")}
+                  onChange={(e) => updateHue(Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  className="libre-settings-hue__reset"
+                  onClick={() => updateHue(DEFAULT_GG_HUE)}
+                >
+                  {t("settings.accentHueReset")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </SettingsCard>
+      )}
 
       {/* Sidebar layout — flip between the default list view and
           the higher-density grid view of numbered lesson cells.

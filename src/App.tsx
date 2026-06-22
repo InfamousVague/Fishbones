@@ -2102,6 +2102,11 @@ export default function App() {
         .filter(Boolean)
         .join(" ")}
     >
+      {/* GhostWire halftone-dot splash (default-dark only; styled + hidden
+          for other themes via src/theme/ghostwire.css). Decorative backdrop,
+          z-index:-1, pointer-transparent — kept as .libre's first child so it
+          persists across route changes and never catches the route-fade. */}
+      <div className="libre__halftone" aria-hidden="true" />
       {/* Fixed top-left sidebar toggle + invisible hover bridge,
           parked to the right of the macOS traffic lights (the
           window is `titleBarStyle: "Overlay"` so we paint into

@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
-import { applyTheme, loadTheme } from "./theme/themes";
+import { applyTheme, loadTheme, applyHue, loadHue } from "./theme/themes";
 import { prewarmCoursesSummary } from "./hooks/useCourses";
 import { isMobile } from "./lib/platform";
 import ErrorBoundary from "./components/Shared/ErrorBoundary";
@@ -24,6 +24,10 @@ import ErrorBoundary from "./components/Shared/ErrorBoundary";
 import "@mattmattmattmatt/base/site/styles/tokens.css";
 import "./theme/themes.css";
 import "./App.css";
+// GhostWire identity layer for default-dark (aurora + halftone + frosted
+// glass + seafoam accents). Imported LAST so its scoped rules win on source
+// order as well as specificity. See the file header for the revert recipe.
+import "./theme/ghostwire.css";
 import { I18nProvider } from "./i18n/i18n";
 
 // Boot-phase markers. Pushed to the dev console buffer (devconsole.js
@@ -42,6 +46,10 @@ bootLog("main.tsx start");
 // Apply the user's chosen theme (or system preference for the first-run
 // default) before React mounts so we don't flash the wrong palette.
 applyTheme(loadTheme());
+// Apply the persisted GhostWire accent hue (default-dark theme). No-op for
+// other themes — they don't read --gg-hue. Set before mount so the first
+// paint already carries the user's chosen hue.
+applyHue(loadHue());
 bootLog("theme applied");
 
 // Global link interceptor. Routes every external-URL click to the

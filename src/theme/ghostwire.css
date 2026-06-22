@@ -1,0 +1,405 @@
+/* ============================================================================
+   GhostWire identity layer — Libre's `default-dark` theme.
+
+   Mirrors Apps/ghosty/src/styles/app.css + app-background.css: the "ghostly
+   green" seafoam accent (#5fe9da, green leads blue), dark frosted glass, a
+   drifting aurora canvas, and a halftone-dot splash. Surfaces stay dark;
+   colour shows up only as accents — progress, active states, glows.
+
+   EVERYTHING here is scoped under [data-theme-name="default-dark"] (the attr
+   lives on <html>), so the other 17 themes are untouched. Loaded LAST in
+   main.tsx — after App.css + component CSS — and most rules also carry the
+   theme-attribute prefix, so they win on both specificity and source order.
+
+   The seafoam/glass/gradient TOKENS (--gg-*, the accent + glass + bg ladder)
+   live in themes.css inside the [data-theme-name="default-dark"] block. This
+   file only adds the things tokens can't express: the aurora, the halftone,
+   backdrop-filter glass, gradient progress fills, hover glows, and de-warmed
+   chrome.
+
+   To revert the whole look: delete this import from main.tsx and restore the
+   original default-dark token values in themes.css.
+   ============================================================================ */
+
+/* ---- 1. Aurora canvas -----------------------------------------------------
+   Near-black base lit by very soft teal/blue/indigo radial blooms so the
+   glass layered on top has something to refract. `.libre` is height:100vh /
+   overflow:hidden so it never scrolls — do NOT use background-attachment:fixed
+   (macOS WKWebView promotes a fixed-attachment background to its own layer
+   that blanks to BLACK when the app is occluded). Paint the blooms on the
+   element instead. position:relative anchors the bloom pseudos + halftone
+   WITHOUT creating a stacking context (no z-index/transform/filter on .libre),
+   so the z-index:-1 layers paint above .libre's background but below content,
+   and fixed-position children (sidebar toggle, bootloader) are unaffected. */
+[data-theme-name="default-dark"] .libre {
+  position: relative;
+  /* Form a stacking context (GhostWire's .app does this with
+     position:relative + z-index:0) so the z-index:-1 aurora + halftone
+     paint ABOVE .libre's own opaque #050507 base instead of vanishing
+     behind it. isolation:isolate creates the context WITHOUT making .libre
+     a containing block for fixed descendants (bootloader, mtab) or breaking
+     dnd-kit's DragOverlay — which a transform/filter would. */
+  isolation: isolate;
+  /* Left-only aurora — the right-side + centre blooms were removed per design;
+     the glow now lives on the left edge, matching the top-left halftone. */
+  background:
+    radial-gradient(120% 90% at 8% -10%, var(--gg-bloom-1-soft) 0%, transparent 48%),
+    #050507;
+}
+
+/* Two slow, blurred blooms drifting in opposite directions for gentle
+   parallax. z-index:-1 keeps them behind all content; pointer-transparent. */
+[data-theme-name="default-dark"] .libre::before,
+[data-theme-name="default-dark"] .libre::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(45px);
+  will-change: transform, opacity;
+}
+[data-theme-name="default-dark"] .libre::before {
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  background:
+    radial-gradient(46% 64% at 18% 28%, var(--gg-bloom-1), transparent 72%);
+  opacity: 0.7;
+  animation: libre-aurora-drift 28s ease-in-out infinite alternate;
+}
+[data-theme-name="default-dark"] .libre::after {
+  inset: auto -10% -25% -10%;
+  height: 65%;
+  background:
+    radial-gradient(42% 58% at 22% 92%, var(--gg-bloom-2), transparent 72%);
+  opacity: 0.55;
+  animation: libre-aurora-drift-2 36s ease-in-out infinite alternate;
+}
+@keyframes libre-aurora-drift {
+  0%   { transform: translate3d(-3%, -1%, 0) scale(1);   opacity: 0.55; }
+  50%  { opacity: 0.78; }
+  100% { transform: translate3d(4%, 3%, 0) scale(1.1);   opacity: 0.6; }
+}
+@keyframes libre-aurora-drift-2 {
+  0%   { transform: translate3d(2%, 2%, 0) scale(1.05);  opacity: 0.42; }
+  50%  { opacity: 0.62; }
+  100% { transform: translate3d(-3%, -2%, 0) scale(1);   opacity: 0.48; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme-name="default-dark"] .libre::before,
+  [data-theme-name="default-dark"] .libre::after { animation: none; }
+}
+
+/* ---- 2. Halftone dot splash (top-left) ------------------------------------
+   A diagonal cool-white -> blue -> indigo gradient revealed ONLY through a
+   fine 10px dot grid, then faded out from the corner so the dots thin into
+   the aurora. Its own element (mounted as .libre's first child in App.tsx)
+   because the dual mask can't share the bloom pseudos. */
+[data-theme-name="default-dark"] .libre__halftone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  width: min(820px, 66vw);
+  height: min(740px, 70vh);
+  background: var(--gg-halftone);
+  /* Layer 1 = fine dot grid; layer 2 = corner falloff. Intersect so only the
+     dots near the top-left survive, thinning toward the lower-right. */
+  -webkit-mask-image:
+    radial-gradient(circle at center, #000 0 1.05px, transparent 1.5px),
+    radial-gradient(150% 150% at 0% 0%, #000 12%, transparent 76%);
+  mask-image:
+    radial-gradient(circle at center, #000 0 1.05px, transparent 1.5px),
+    radial-gradient(150% 150% at 0% 0%, #000 12%, transparent 76%);
+  -webkit-mask-size: 10px 10px, 100% 100%;
+  mask-size: 10px 10px, 100% 100%;
+  -webkit-mask-position: top left, top left;
+  mask-position: top left, top left;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  opacity: 0.34;
+}
+
+/* ---- 3. Chrome glass ------------------------------------------------------
+   Sidebar / nav rail / top bar / glossary already apply backdrop-filter and
+   read --color-glass-bg (now translucent in themes.css). Bump the blur to
+   GhostWire's 36px so the aurora reads richly through the chrome. */
+[data-theme-name="default-dark"] .libre__topbar,
+[data-theme-name="default-dark"] .libre__sidebar,
+[data-theme-name="default-dark"] .libre-nav-rail,
+[data-theme-name="default-dark"] .libre-reader-glossary {
+  -webkit-backdrop-filter: blur(36px) saturate(150%);
+  backdrop-filter: blur(36px) saturate(150%);
+}
+/* Mobile floating tab bar hardcodes its own fill — bring it onto chrome glass. */
+[data-theme-name="default-dark"] .libre-mtab {
+  background: rgba(14, 15, 20, 0.82);
+  -webkit-backdrop-filter: blur(36px) saturate(150%);
+  backdrop-filter: blur(36px) saturate(150%);
+}
+
+/* ---- 4. Decorative cards -> frosted glass ---------------------------------
+   These read --color-bg-secondary / --color-bg-primary (opaque) today.
+   Repoint the fill to the translucent card glass + add blur + inset rim +
+   drop shadow so they float on the aurora. CODE surfaces (Monaco editor,
+   console/output, workbench inner panes) are deliberately EXCLUDED so text
+   never sits over a blurred backdrop. backdrop-filter blurs what's BEHIND the
+   card, never the card's own text, so text-dense cards stay crisp. */
+[data-theme-name="default-dark"] :is(
+  .libre-library-card,
+  .libre-collection-path,
+  .libre-collection-folder,
+  .libre-practice-cta,
+  .libre-practice-stat,
+  .libre-practice-ring,
+  .libre-practice-customize,
+  .libre-practice-type,
+  .libre-challenges__card,
+  .libre-confirm-panel,
+  .libre-settings-panel,
+  .libre-ai-panel,
+  .libre-library-filter-pop,
+  .libre-tray-panel
+) {
+  background: var(--gg-glass-card);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 30px rgba(0, 0, 0, 0.38);
+}
+
+/* Seafoam edge-glow on interactive card hover (the one place colour rims a
+   surface — everywhere else borders stay neutral). */
+[data-theme-name="default-dark"] :is(
+  .libre-library-card,
+  .libre-collection-path,
+  .libre-collection-folder,
+  .libre-practice-type,
+  .libre-challenges__card
+):hover {
+  border-color: hsl(var(--gg-hue) 70% 62% / 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px hsl(var(--gg-hue) 70% 62% / 0.30),
+    0 8px 28px hsl(var(--gg-hue) 68% 58% / 0.16),
+    0 12px 32px rgba(0, 0, 0, 0.42);
+}
+
+/* ---- 5. Progress bars -> white -> seafoam sweep ---------------------------
+   Most fills are solid white today (they read --color-text-primary or
+   --color-accent). Point them at the signature gradient. Tracks go to the
+   faint seafoam trough. */
+[data-theme-name="default-dark"] :is(
+  .libre-reader-progress-fill,
+  .libre__course-progress-fill,
+  .libre__carousel-progress-fill,
+  .libre-chgrid__chapter-bar-fill,
+  .libre-library-card-progress-fill,
+  .libre-book-progress-fill,
+  .libre-challenges__card-progress-fill,
+  .libre-path-card__bar-fill,
+  .libre-path-detail__bar-fill,
+  .libre-verify-progress-fill,
+  .m-prof__lang-bar-fill
+) {
+  background: var(--gg-grad);
+  opacity: 1;
+}
+/* Pseudo-element fills (mobile bars) — kept out of :is() (pseudo-elements are
+   invalid inside :is()). */
+[data-theme-name="default-dark"] .m-prof__level-bar::after,
+[data-theme-name="default-dark"] .m-prof__continue-bar::after,
+[data-theme-name="default-dark"] .m-outline__progress::after,
+[data-theme-name="default-dark"] .m-lib__tile-bar::after {
+  background: var(--gg-grad);
+}
+/* SVG ring fills: stroke can't take a CSS gradient without an inline <defs>
+   <linearGradient>, so use a flat seafoam stroke (the shared ProgressRing hits
+   TopBar + Sidebar + Profile at once). */
+[data-theme-name="default-dark"] .libre__progress-ring-fill,
+[data-theme-name="default-dark"] .libre-practice-ring-fill {
+  stroke: var(--gg-seafoam);
+}
+[data-theme-name="default-dark"] .libre__progress-ring-track,
+[data-theme-name="default-dark"] .libre-practice-ring-track {
+  stroke: var(--gg-track);
+}
+
+/* ---- 6. Active chrome accents -> seafoam ----------------------------------
+   The nav-rail active-route pill takes the signature sweep; the editor active
+   file-tab underline goes seafoam (was the demoted-white accent). */
+/* Nav-rail active indicator: GhostWire's outlined teal RING that slides
+   between items — not a filled pill. The sliding mechanism (the pill animating
+   translateY) is reused as-is; only its paint changes. The active item's icon
+   turns teal, and hovering the active item fills the ring faintly so the glow
+   rides along with it. */
+[data-theme-name="default-dark"] .libre-nav-rail__pill {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gg-teal) 34%, transparent);
+}
+/* Clean ring — drop the holographic foil that fills the pill (GhostWire's chip
+   is a plain ring; the foil would render as an iridescent square here). */
+[data-theme-name="default-dark"] .libre-nav-rail__pill > .libre-holo {
+  display: none;
+}
+[data-theme-name="default-dark"] .libre-nav-rail__item--active,
+[data-theme-name="default-dark"] .libre-nav-rail__item--active:hover {
+  color: var(--gg-teal);
+}
+[data-theme-name="default-dark"] .libre-nav-rail__top:has(.libre-nav-rail__item--active:hover) > .libre-nav-rail__pill {
+  background: color-mix(in srgb, var(--gg-teal) 18%, transparent);
+}
+[data-theme-name="default-dark"] .libre-editor-tabs-row .libre-editor-tab--active {
+  border-bottom-color: var(--gg-seafoam);
+}
+
+/* ---- 7. Focus + selection -> ghostly ------------------------------------- */
+[data-theme-name="default-dark"] *:focus-visible {
+  outline-color: var(--gg-seafoam);
+}
+[data-theme-name="default-dark"] ::selection {
+  background: hsl(var(--gg-hue) 70% 62% / 0.30);
+  color: #ffffff;
+}
+
+/* ---- 8. De-warm the non-semantic chrome -----------------------------------
+   The global scrollbar + welcome glyph use a warm bone-cream (#d4c5a1 /
+   #e8c46b) that clashes with seafoam. Cool them to ghost-white / seafoam.
+   Intentional warm beats — XP gold, streak fire, combo gold, warning callouts,
+   the parchment certificate — are LEFT intact; they carry meaning and mirror
+   GhostWire's own `--gg-hot` accent, so the palette keeps one warm note. */
+[data-theme-name="default-dark"] * {
+  scrollbar-color: hsl(var(--gg-hue) 64% 60% / 0.20) transparent;
+}
+[data-theme-name="default-dark"] *::-webkit-scrollbar-thumb {
+  background: hsl(var(--gg-hue) 60% 78% / 0.10);
+  background-clip: padding-box;
+}
+[data-theme-name="default-dark"] *:hover::-webkit-scrollbar-thumb {
+  background: hsl(var(--gg-hue) 64% 60% / 0.45);
+  background-clip: padding-box;
+}
+[data-theme-name="default-dark"] *::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--gg-hue) 64% 60% / 0.72);
+  background-clip: padding-box;
+}
+[data-theme-name="default-dark"] *::-webkit-scrollbar-thumb:active {
+  background: var(--gg-seafoam);
+  background-clip: padding-box;
+}
+[data-theme-name="default-dark"] .libre__welcome-glyph {
+  color: var(--gg-seafoam);
+}
+
+/* ---- 9. Settings → "Accent hue" control -----------------------------------
+   A rainbow hue slider (Settings → Appearance) that writes --gg-hue. Only
+   rendered for this theme. The track is a full-spectrum gradient so the
+   user sees where each hue sits; the live swatch + the whole app recolour
+   as it drags. */
+[data-theme-name="default-dark"] .libre-settings-hue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+[data-theme-name="default-dark"] .libre-settings-hue__swatch {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.20), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+[data-theme-name="default-dark"] .libre-settings-hue__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 200px;
+  max-width: 48vw;
+  height: 10px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    90deg,
+    hsl(0 80% 62%), hsl(60 80% 62%), hsl(120 80% 62%), hsl(180 80% 62%),
+    hsl(240 80% 62%), hsl(300 80% 62%), hsl(360 80% 62%)
+  );
+}
+[data-theme-name="default-dark"] .libre-settings-hue__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+[data-theme-name="default-dark"] .libre-settings-hue__slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+[data-theme-name="default-dark"] .libre-settings-hue__slider:focus-visible {
+  outline: 2px solid var(--gg-accent);
+  outline-offset: 3px;
+}
+[data-theme-name="default-dark"] .libre-settings-hue__reset {
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  border-radius: var(--libre-radius-md, 8px);
+  padding: 5px 11px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+[data-theme-name="default-dark"] .libre-settings-hue__reset:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+/* ---- 10. Code surfaces -> glass -------------------------------------------
+   The editor + console were intentionally opaque (so code stayed crisp). Per
+   request they now ride the glass too: the workbench CARD goes transparent
+   (keeps its border / radius / clip), the editor + output PANES become
+   translucent + blurred, and Monaco's own background layers are made
+   transparent so the aurora whispers through behind the code. --gg-glass-code
+   is more opaque than the decorative cards so syntax stays legible. The
+   web-preview <iframe> keeps its own solid background (it renders user HTML
+   that assumes an opaque backdrop). */
+[data-theme-name="default-dark"] .libre-workbench {
+  background: transparent;
+}
+[data-theme-name="default-dark"] .libre-editor,
+[data-theme-name="default-dark"] .libre-output {
+  background: var(--gg-glass-code);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+}
+/* Toolbars / file tabs / console header ride the pane glass. */
+[data-theme-name="default-dark"] .libre-editor-header,
+[data-theme-name="default-dark"] .libre-editor-tabs-row,
+[data-theme-name="default-dark"] .libre-output-header {
+  background: transparent;
+}
+/* Make Monaco see-through so the pane glass (and the aurora behind it) reads
+   through. Monaco paints its own opaque background layers — override them.
+   Syntax tokens, gutter numbers, selection + current-line sit on their own
+   layers and stay fully legible. */
+[data-theme-name="default-dark"] .libre-editor .monaco-editor,
+[data-theme-name="default-dark"] .libre-editor .monaco-editor .monaco-editor-background,
+[data-theme-name="default-dark"] .libre-editor .monaco-editor .margin,
+[data-theme-name="default-dark"] .libre-editor .monaco-editor .minimap,
+[data-theme-name="default-dark"] .libre-editor .monaco-editor .overflow-guard {
+  background: transparent !important;
+}
+/* Active file tab: a faint lift instead of the opaque #050507 plate. */
+[data-theme-name="default-dark"] .libre-editor-tabs-row .libre-editor-tab--active {
+  background: rgba(255, 255, 255, 0.06);
+}

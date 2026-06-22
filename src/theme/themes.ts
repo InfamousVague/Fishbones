@@ -42,7 +42,7 @@ export const THEMES: ThemeMeta[] = [
     id: "default-dark",
     label: "Libre Dark",
     description:
-      "The default dark theme — pure-white text on deep charcoal with the ribbon-snake orange as the accent.",
+      "The default dark theme — ghostly seafoam green on near-black glass, with a drifting aurora and halftone-dot splash.",
     monacoTheme: "vs-dark",
   },
   {
@@ -211,6 +211,53 @@ export function applyTheme(name: ThemeName) {
   doc.setAttribute("data-theme", isLight ? "light" : "dark");
   try {
     localStorage.setItem(STORAGE_KEY, meta.id);
+  } catch {
+    /* ignore */
+  }
+}
+
+/// ---- GhostWire accent hue (default-dark only) ----------------------------
+/// The default-dark theme's whole palette (accent, white→accent gradients,
+/// glows, glass rims, aurora + halftone) derives from a single `--gg-hue`
+/// custom property in themes.css. These helpers let Settings change that hue
+/// live + persist it. The hue only affects default-dark (the only theme whose
+/// CSS reads --gg-hue), but it's stored globally so it survives theme swaps.
+const HUE_STORAGE_KEY = "libre:ghostwire-hue";
+
+/// First-run accent hue. 18 = soft peach (≈ #FEA47F).
+export const DEFAULT_GG_HUE = 18;
+
+/// Normalise any number into the 0–359 hue range.
+function normaliseHue(n: number): number {
+  return ((Math.round(n) % 360) + 360) % 360;
+}
+
+/// Read the persisted accent hue (0–359), falling back to the pink default.
+export function loadHue(): number {
+  try {
+    const raw = localStorage.getItem(HUE_STORAGE_KEY);
+    if (raw != null) {
+      const n = Number(raw);
+      if (Number.isFinite(n)) return normaliseHue(n);
+    }
+  } catch {
+    /* private mode — fall through */
+  }
+  return DEFAULT_GG_HUE;
+}
+
+/// Apply + persist the accent hue. Writes `--gg-hue` inline on <html>, which
+/// overrides the themes.css default and cascades to every hue-derived token,
+/// recolouring the default-dark theme instantly.
+export function applyHue(hue: number) {
+  const h = normaliseHue(hue);
+  try {
+    document.documentElement.style.setProperty("--gg-hue", String(h));
+  } catch {
+    /* ignore */
+  }
+  try {
+    localStorage.setItem(HUE_STORAGE_KEY, String(h));
   } catch {
     /* ignore */
   }
