@@ -1,5 +1,8 @@
 # Libre
 
+# https://libre.academy/
+
+
 Learn to code through books and guided exercises. Mac + Windows (Tauri). Phone + Watch companions planned.
 
 Courses export to `.libre` archives; legacy `.kata` archives still import for backwards compatibility.
