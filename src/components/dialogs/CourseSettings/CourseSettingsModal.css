@@ -214,7 +214,7 @@
    top of the 1px border for the same double-ring effect. */
 .libre-coursesettings-lang-select:focus {
   outline: none;
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-coursesettings-lang-select:disabled {
@@ -233,15 +233,15 @@
 }
 
 .libre-coursesettings-btn--primary {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   font-weight: 600;
 }
 
 .libre-coursesettings-btn--primary:hover:not(:disabled) {
   opacity: 0.9;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
 }
 
 .libre-coursesettings-btn--danger {
@@ -351,7 +351,7 @@ select.libre-coursesettings-meta-input {
      which read as two distinct rings with a gap between them — the
      "double border" effect the user reported on the select box. */
   outline: none;
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-coursesettings-meta-input:disabled {

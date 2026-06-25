@@ -104,6 +104,10 @@ interface Props {
   /// is also where unauthenticated learners pick up the cloud-sync
   /// sign-in CTA — hiding it would orphan that path.
   stats?: StreakAndXp;
+  /// True once `stats`'s underlying data (courses + completion history)
+  /// has loaded. Forwarded to StatsChip so its streak/level cues don't
+  /// fire on the 0 → real hydration at launch.
+  statsReady?: boolean;
   /// Lesson-completion log. Optional — when supplied, the dropdown
   /// renders a 4-week mini-heatmap so the learner sees their recent
   /// activity rhythm without leaving the bar. The full 20-week grid
@@ -157,6 +161,13 @@ interface Props {
   /// selectLesson + sidebar tap-throughs; the search dropdown calls
   /// this when the user picks a lesson result.
   onOpenLesson?: (courseId: string, lessonId: string) => void;
+
+  /// Browser-style back / forward over the main view — the history arrows at
+  /// the left of the bar. Omit `onBack`/`onForward` to hide the arrows.
+  onBack?: () => void;
+  onForward?: () => void;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
 }
 
 /// Custom window top bar. The window is configured with
@@ -175,6 +186,7 @@ export default function TopBar({
   onCreateGroup,
   onRenameGroup,
   stats,
+  statsReady,
   history,
   shields,
   onOpenProfile,
@@ -188,6 +200,10 @@ export default function TopBar({
   onOpenSearch,
   courses,
   onOpenLesson,
+  onBack,
+  onForward,
+  canGoBack = false,
+  canGoForward = false,
 }: Props) {
   const t = useT();
   // Always show the chip when stats are wired — the dropdown carries
@@ -307,6 +323,58 @@ export default function TopBar({
       {!isWeb && (
         <div className="libre__topbar-window-controls" data-tauri-drag-region />
       )}
+      {/* Browser-style back / forward over the main view. Disabled at the ends
+          of the trail. */}
+      {(onBack || onForward) && (
+        <div className="libre__topbar-nav">
+          <button
+            type="button"
+            className="libre__topbar-navbtn"
+            onClick={onBack}
+            disabled={!canGoBack}
+            aria-label="Back"
+            title="Back"
+            data-tauri-drag-region={false}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="libre__topbar-navbtn"
+            onClick={onForward}
+            disabled={!canGoForward}
+            aria-label="Forward"
+            title="Forward"
+            data-tauri-drag-region={false}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      )}
       {/* Brand wordmark moved out of the top bar — it now lives in
           the Library page's header next to the title, where it's
           larger and reads as the page identity rather than chrome
@@ -332,7 +400,7 @@ export default function TopBar({
         >
           <Icon
             icon={sidebarCollapsed ? panelLeftOpen : panelLeftClose}
-            size="sm"
+            size="lg"
             color="currentColor"
           />
         </button>
@@ -397,7 +465,7 @@ export default function TopBar({
               )}
               <LanguageChip
                 language={tab.language}
-                size="xs"
+                size="sm"
                 iconOnly
                 className="libre__tab-lang"
               />
@@ -410,7 +478,7 @@ export default function TopBar({
                   onClose(i);
                 }}
               >
-                <Icon icon={xIcon} size="xs" color="currentColor" />
+                <Icon icon={xIcon} size="sm" color="currentColor" />
               </span>
             </button>
           );
@@ -579,7 +647,7 @@ export default function TopBar({
           aria-label={t("topBar.joinDiscord")}
           title={t("topBar.joinDiscord")}
         >
-          <DiscordMark size={16} />
+          <DiscordMark size={17} />
           <span className="libre__topbar-icon-btn-label">
             {t("topBar.joinDiscordShort")}
           </span>
@@ -600,6 +668,7 @@ export default function TopBar({
         {showStats && (
           <StatsChip
             stats={stats!}
+            statsReady={statsReady}
             history={history}
             shields={shields}
             onOpenProfile={onOpenProfile}

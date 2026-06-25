@@ -251,7 +251,7 @@
      buttons. Used --color-accent before, which resolved to bone-
      amber on default-dark and looked visibly off next to neighboring
      white buttons. */
-  background: var(--color-text-primary, #f5f5f7);
+  background: var(--gg-fill-white, #f5f5f7);
   color: var(--color-bg-primary, #0b0b10);
   border-color: transparent;
   font-weight: 500;
@@ -259,5 +259,5 @@
 
 .libre-fixapplier-btn--primary:hover:not(:disabled) {
   filter: brightness(0.92);
-  background: var(--color-text-primary, #f5f5f7);
+  background: var(--gg-fill-white, #f5f5f7);
 }

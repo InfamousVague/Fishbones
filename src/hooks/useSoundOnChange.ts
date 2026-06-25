@@ -20,6 +20,13 @@ interface SoundOnChangeOptions extends PlayOptions {
   /// (prev, next) pair. Use for milestone-only cues, e.g.
   /// `when: (_p, n) => [3, 7, 30, 100].includes(n)`.
   when?: (prev: number, next: number) => boolean;
+  /// Gate cues until the tracked data has finished loading. While
+  /// `ready` is false the hook keeps the baseline current but never
+  /// fires, and the not-ready → ready transition is absorbed as the
+  /// new baseline. This stops async hydration on app load — a value
+  /// going 0 → real once courses/history load — from reading as an
+  /// "increase" and firing a spurious cue on every launch. Default true.
+  ready?: boolean;
 }
 
 export function useSoundOnChange(
@@ -28,16 +35,24 @@ export function useSoundOnChange(
   options?: SoundOnChangeOptions,
 ): void {
   const prev = useRef(value);
+  const ready = options?.ready ?? true;
+  const wasReady = useRef(ready);
   useEffect(() => {
+    const becameReady = ready && !wasReady.current;
+    wasReady.current = ready;
     const before = prev.current;
     prev.current = value;
+    // Still loading, or data just finished loading this frame: adopt
+    // the current value as the baseline and never fire.
+    if (!ready || becameReady) return;
     if (value === before) return;
-    const { increaseOnly = true, when, ...playOpts } = options ?? {};
+    const { increaseOnly = true, when, ready: _ready, ...playOpts } =
+      options ?? {};
     if (increaseOnly && value <= before) return;
     if (when && !when(before, value)) return;
     playSound(cue, playOpts);
-    // Intentionally keyed on `value` only — `cue`/`options` are read
-    // fresh from the latest render's closure on each change.
+    // Keyed on `value` + `ready` — `cue`/`options` are read fresh from
+    // the latest render's closure on each change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, ready]);
 }

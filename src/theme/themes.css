@@ -30,6 +30,14 @@
   --color-glass-rim: rgba(255, 255, 255, 0.04);
   --color-glass-shadow: rgba(0, 0, 0, 0.35);
 
+  /* "Primary white" used as a FILL (button/progress/toggle/pill/indicator
+     backgrounds, SVG fills, focus rings) — distinct from text `color`, which
+     keeps reading --color-text-primary directly. Defaults to the theme's text
+     white so every theme is byte-identical to before; default-dark overrides
+     it to the tinted ghost-white so fills pick up the accent hue while text
+     stays pure white. Components reference this via `var(--gg-fill-white)`. */
+  --gg-fill-white: var(--color-text-primary);
+
   /* The "code surface" — mirrors the active Monaco theme's
      `editor.background` to every other surface that should read
      as a piece with the editor (console output pane, test output,
@@ -134,12 +142,16 @@
      ghostwire.css keep resolving — now hue-driven. */
   --gg-seafoam: var(--gg-accent);
   --gg-teal: var(--gg-accent-deep);
-  /* Tinted "ghost white" — white with just a 14% whisper of the accent (a
-     very slight pink at the default hue) for primary buttons / selected chips. */
-  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 14%, #ffffff);
-  /* Signature sweep: white → accent (progress fills, active pills, rails). */
-  --gg-grad: linear-gradient(90deg, #ffffff 0%, var(--gg-accent) 100%);
-  --gg-grad-diag: linear-gradient(135deg, #ffffff 0%, var(--gg-accent) 100%);
+  /* Tinted "ghost white" — white carrying a 20% whisper of the accent. Every
+     non-text white FILL (buttons, progress, toggles, pills, slider thumbs,
+     SVG fills, focus rings) routes here via --gg-fill-white, so the whole UI
+     picks up the accent tint while text `color` stays pure white. */
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff; /* pure white fills — tint removed (was var(--gg-ghost-white)) */
+  /* Signature sweep: ghost-white → accent (progress fills, active pills,
+     rails) — starts tinted, never pure white. */
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
   --gg-track: hsl(var(--gg-hue) 58% 60% / 0.12);   /* progress troughs */
   --gg-glow: hsl(var(--gg-hue) 72% 62% / 0.38);    /* edge / hover glow */
   /* Aurora blooms — three tones around the hue keep a multi-colour "aurora"
@@ -163,13 +175,18 @@
   /* Code surfaces (Monaco editor + console) — more opaque than the decorative
      cards so syntax stays crisp while the aurora still whispers through. */
   --gg-glass-code: rgba(10, 11, 16, 0.66);
+  /* Glass edges (matches GhostWire): a faint white border + top rim highlight
+     + blur radius — used for the frosted-glass icon-button hover. */
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
 
   /* Accent: demoted-white → hue ghost-white. Every var(--color-accent)
      consumer (Run button, nav-rail pill, library pills, slider thumb, focus
      rings, AI panel, …) picks this up at once. */
-  --color-accent: var(--gg-ghost-white);
-  --color-accent-fg: #150410;                        /* dark ink on ghost-white */
-  --color-accent-hover: var(--gg-accent);            /* was inherited base #ECECEF */
+  --color-accent: #ffffff;                           /* pure white primary fill — tint removed (was var(--gg-ghost-white)) */
+  --color-accent-fg: #150410;                        /* dark ink on white */
+  --color-accent-hover: #ececef;                     /* neutral light-grey hover — no peach tint (was var(--gg-accent)) */
   --color-accent-subtle: hsl(var(--gg-hue) 70% 60% / 0.12); /* was #222225 */
   --color-accent-text: var(--gg-accent);             /* accent text / links */
   /* Define the never-defined warm token so LanguageDropdown / PartnerKeyboard

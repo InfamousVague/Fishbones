@@ -104,7 +104,7 @@
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 .libre-signin-mode-btn--active {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 .libre-signin-mode-btn:hover:not(.libre-signin-mode-btn--active) {
@@ -257,7 +257,7 @@
 .libre-signin-primary {
   margin-top: 4px;
   padding: 10px 18px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md);
@@ -411,5 +411,5 @@
 .libre-firstlaunch-dontshow input {
   width: 14px;
   height: 14px;
-  accent-color: var(--color-text-primary);
+  accent-color: var(--gg-fill-white);
 }

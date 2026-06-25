@@ -192,7 +192,7 @@
      pigment INTO the white, matching the active project row's
      accent strip + the rest of the holographic "you are here"
      family across the app. */
-  background: var(--color-text-primary, #ffffff);
+  background: var(--gg-fill-white, #ffffff);
   /* The Hologram primitive blends with `mix-blend-mode`, which
      needs a stacking context to keep its blend confined to the
      strip. `isolation: isolate` creates that context without

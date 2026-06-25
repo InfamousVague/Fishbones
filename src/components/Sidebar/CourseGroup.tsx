@@ -11,6 +11,7 @@ import {
   isLings,
 } from "../../data/types";
 import LanguageChip from "../LanguageChip/LanguageChip";
+import { languageMeta } from "../../lib/languages";
 import { ProgressRing } from "../Shared/ProgressRing";
 import ChapterTree from "./ChapterTree";
 import ChapterGrid from "./ChapterGrid";
@@ -118,7 +119,17 @@ export default function CourseGroup({
           onClick={onCertificates}
           completed={completed}
         />
-        <div className="libre__course-body">
+        <div
+          className="libre__course-body"
+          // Scope the course-accent var to THIS course's language brand colour so
+          // its chapter/section completion rings + bars match it — otherwise they
+          // inherit the globally-active course's accent (e.g. a Rust tab tints an
+          // expanded TypeScript course's rings red). Only affects elements that
+          // read var(--gg-course-accent) (rings/bars), not the text colour.
+          style={{
+            ["--gg-course-accent" as string]: languageMeta(course.language).color,
+          }}
+        >
           {sidebarVariant === "grid" ? (
             <ChapterGrid
               chapters={course.chapters}
@@ -177,12 +188,28 @@ export default function CourseGroup({
           className="libre__course-row-ring"
           title={t("sidebar.lessonsCompleteTitle", { done: doneLessons, total: totalLessons })}
         >
-          <ProgressRing progress={pct} size={18} stroke={2} label="" />
+          <ProgressRing
+            progress={pct}
+            size={18}
+            stroke={2}
+            label=""
+            color={languageMeta(course.language).color}
+          />
         </span>
       </button>
 
       {expanded && (
-        <div className="libre__course-body">
+        <div
+          className="libre__course-body"
+          // Scope the course-accent var to THIS course's language brand colour so
+          // its chapter/section completion rings + bars match it — otherwise they
+          // inherit the globally-active course's accent (e.g. a Rust tab tints an
+          // expanded TypeScript course's rings red). Only affects elements that
+          // read var(--gg-course-accent) (rings/bars), not the text colour.
+          style={{
+            ["--gg-course-accent" as string]: languageMeta(course.language).color,
+          }}
+        >
           {/* Same disclosure tree as the active branch — section
               grouping needs to behave identically whether the user is
               peeking at an in-progress course or working in the

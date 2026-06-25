@@ -38,6 +38,10 @@
   border: 0;
   border-radius: 0;
   margin: 0;
+  /* Content column width — header + controls + grid centre into this on wide
+     windows (matches GhostWire's discovery `.search-page` max-width), via the
+     padding-inline rules on the header + body below. */
+  --libre-library-maxw: 1180px;
 }
 
 /* Inline variant trims the card's inner padding — the header, controls,
@@ -50,33 +54,21 @@
    `padding-left/right: 12px` here stacked on top of the body's 12px,
    inset the controls 24px from the panel edge while the cards
    underneath only inset 12px — the strip read as visually indented. */
-.libre-library-panel--inline .libre-library-header {
-  padding-left: 12px;
-  padding-right: 12px;
-}
-
-.libre-library-panel--inline .libre-library-controls {
-  /* Negative-margin out of the body's 12 px gutter so the strip's
-     border-bottom spans edge-to-edge instead of stopping short of
-     the panel's left + right edges. Compensating padding keeps the
-     visual content anchor unchanged (the user sees Search + Sort
-     pinned where they were; only the divider line gets longer). */
-  margin-left: -12px;
-  margin-right: -12px;
-  padding-left: 12px;
-  padding-right: 12px;
-}
-
+/* Inline body keeps the slimmer vertical insets; horizontal insets come from
+   the centering padding-inline on the base `.libre-library-body` rule, so the
+   header + controls + grid all share one centred content column. (The old
+   negative-margin trick that stretched a now-removed divider edge-to-edge is
+   gone — the controls strip just sits within the centred column.) */
 .libre-library-panel--inline .libre-library-body {
-  padding: 12px 12px 24px;
+  padding-block: 12px 24px;
 }
 
 .libre-library-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--color-border-default);
+  /* Centre into the content column on wide windows (min 22px gutter). */
+  padding: 18px max(22px, calc((100% - var(--libre-library-maxw, 1180px)) / 2));
   flex-shrink: 0;
 }
 
@@ -200,7 +192,7 @@
    dips opacity so the interaction feels the same as the other
    segments. */
 .libre-library-import-seg--primary {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 
@@ -209,13 +201,14 @@
    so the primary action in the row stays "Import → Book". Disabled
    when the library is empty. */
 .libre-library-bulk-export {
-  padding: 7px 14px;
+  padding: 9px 16px;
   background: transparent;
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm);
+  /* Pill — matches GhostWire's button shape (all actions are pills). */
+  border-radius: var(--libre-radius-pill);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
@@ -230,8 +223,29 @@
   cursor: not-allowed;
 }
 
+/* Web build's "Browse catalog" — the primary add-action when file imports
+   aren't available. Styled like the desktop "Add course" main button (filled
+   pill) so the header's primary affordance matches its size. Per-theme rules in
+   themes.css recolour it; the shape/size lives here. */
+.libre-library-import {
+  padding: 9px 16px;
+  background: var(--gg-fill-white);
+  color: var(--color-bg-primary);
+  border: 1px solid transparent;
+  border-radius: var(--libre-radius-pill);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--libre-motion-snappy);
+}
+
+.libre-library-import:hover {
+  filter: brightness(0.92);
+}
+
 .libre-library-import-seg--primary:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   opacity: 0.9;
 }
 
@@ -267,17 +281,15 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 22px;
-  border-bottom: 1px solid var(--color-border-default);
   flex-shrink: 0;
   flex-wrap: wrap;
   position: sticky;
   top: 0;
   z-index: 4;
   background: var(--color-bg-primary);
-  /* No `box-shadow: 0 1px 0 ...` here — it would paint a 1px line
-     directly underneath the strip's `border-bottom` and read as a
-     doubled divider. The border-bottom alone is enough to separate
-     the strip from the cards below it. */
+  /* No divider line — the header reads as one clean band. The solid
+     background alone keeps the sticky strip legible over the cards as
+     they scroll under it. */
 }
 
 .libre-library-pills {
@@ -308,8 +320,8 @@
 
 .libre-library-pill--active {
   color: var(--color-bg-primary);
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
+  background: var(--gg-fill-white);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-library-tools {
@@ -319,13 +331,13 @@
 }
 
 .libre-library-search {
-  padding: 6px 10px;
+  padding: 8px 12px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   min-width: 200px;
 }
 
@@ -349,7 +361,7 @@
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -361,14 +373,104 @@
    ────────────────────────────────────────────────────────────── */
 
 .libre-library-controls--compact {
+  /* Two stacked rows: the hero search on top, the slim filter/sort/view row
+     below (mirrors GhostWire's discovery: search hero → controls beneath).
+     Horizontal padding is 0 — the body's centring padding-inline already insets
+     the strip to the content column, so the search + grid share one edge. */
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   flex-wrap: nowrap;
-  padding: 10px 22px;
+  padding: 4px 0 10px;
   gap: 12px;
   /* Anchor the filter popover to this row — `position: relative`
      here means the popover (which is `position: absolute`) lands
      directly under the cluster. Keep it simple: no portal needed
      since the popover never has to escape this scrollable area. */
   position: relative;
+}
+
+/* Hero search — the library's focal point, mirroring GhostWire's discovery
+   `.search-bar-lg`: a full-width glass pill. Glass via the --gg-* tokens
+   (default-dark) with neutral fallbacks for other themes; accent-driven
+   focus glow. */
+.libre-library-hero-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--gg-glass-card, var(--color-bg-primary));
+  border: 1px solid var(--gg-glass-brd, var(--color-border-default));
+  box-shadow:
+    inset 0 1px 0 var(--gg-glass-rim, transparent),
+    0 10px 30px rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(var(--gg-blur, 24px)) saturate(150%);
+  backdrop-filter: blur(var(--gg-blur, 24px)) saturate(150%);
+  color: var(--color-text-tertiary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.libre-library-hero-search:focus-within {
+  border-color: color-mix(
+    in srgb,
+    var(--color-accent) 48%,
+    var(--gg-glass-brd, var(--color-border-default))
+  );
+  box-shadow:
+    inset 0 1px 0 var(--gg-glass-rim, transparent),
+    0 0 0 3px color-mix(in srgb, var(--color-accent) 15%, transparent),
+    0 10px 30px rgba(0, 0, 0, 0.38);
+}
+.libre-library-hero-search .libre-library-search-icon {
+  flex: none;
+  display: inline-flex;
+  color: var(--color-accent);
+}
+.libre-library-hero-search .libre-library-search {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--text-lg-size, 16px);
+  letter-spacing: -0.01em;
+}
+.libre-library-hero-search .libre-library-search::placeholder {
+  color: var(--color-text-tertiary);
+}
+.libre-library-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
+}
+.libre-library-search-clear:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+}
+
+/* Secondary controls row — slim, below the hero search. Filter cluster on the
+   left, sort + view on the right. */
+.libre-library-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
 }
 
 .libre-library-filter-cluster {
@@ -388,12 +490,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 4px 3px 10px;
+  padding: 5px 5px 5px 12px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -424,13 +526,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 8px 14px;
   background: transparent;
   border: 1px dashed var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.1px;
   cursor: pointer;
@@ -508,8 +610,8 @@
 
 .libre-library-filter-opt--active,
 .libre-library-filter-opt--active:hover {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
+  background: var(--gg-fill-white);
+  border-color: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 
@@ -535,8 +637,8 @@
 .libre-library-search-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 8px;
+  padding: 8px 12px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
@@ -559,7 +661,7 @@
   padding: 0;
   background: transparent;
   border: 0;
-  min-width: 160px;
+  min-width: 200px;
   color: var(--color-text-primary);
 }
 
@@ -572,10 +674,10 @@
    "sort" label since the up-down arrows are unambiguous. */
 .libre-library-sort--compact {
   gap: 4px;
-  padding: 4px 8px;
+  padding: 8px 12px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm);
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-tertiary);
 }
 
@@ -586,22 +688,15 @@
   color: var(--color-text-primary);
 }
 
-/* Icon-only viewmode buttons: square, just the lucide glyph. */
-.libre-library-viewmode-btn--icon {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Body + grid. Scrollable independently of the header/controls. */
+/* Body + grid. Scrollable independently of the header/controls. The
+   horizontal padding centres all body content (sticky controls + collections +
+   grid) into the content column on wide windows, while the scrollbar stays at
+   the window edge (min 22px gutter). */
 .libre-library-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 22px 26px;
+  padding: 20px max(22px, calc((100% - var(--libre-library-maxw, 1180px)) / 2)) 26px;
   position: relative;
 }
 
@@ -892,45 +987,6 @@
   line-height: 1.2;
 }
 
-/* View-mode segmented control — sits to the right of the sort dropdown.
-   Two pills, active state inverted. Mirrors the existing pill patterns
-   elsewhere in the app so it reads as standard chrome. */
-.libre-library-viewmode {
-  display: inline-flex;
-  align-items: stretch;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm);
-  overflow: hidden;
-  background: var(--color-bg-primary);
-}
-
-.libre-library-viewmode-btn {
-  padding: 5px 10px;
-  background: transparent;
-  border: 0;
-  color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
-}
-
-.libre-library-viewmode-btn + .libre-library-viewmode-btn {
-  border-left: 1px solid var(--color-border-default);
-}
-
-.libre-library-viewmode-btn:hover:not(.libre-library-viewmode-btn--active) {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-.libre-library-viewmode-btn--active {
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
-}
-
 /* Course cards. The main clickable area (button) holds metadata; a small
    actions row underneath handles Export / Delete so they don't compete
    with the default Open action. */
@@ -1116,7 +1172,7 @@
 
 .libre-library-card-progress-fill {
   height: 100%;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   transition: width 0.4s ease;
 }
 
@@ -1165,9 +1221,9 @@
  * placeholder card — solid fill instead of the outline treatment
  * the secondary actions (Export / Delete) get. */
 .libre-library-card-action--install {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   font-weight: 600;
   padding: 5px 12px;
 }
@@ -1234,7 +1290,7 @@
 
 .libre-library-empty-primary {
   padding: 9px 16px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: 7px;

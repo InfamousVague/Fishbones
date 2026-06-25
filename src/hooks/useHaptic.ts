@@ -75,17 +75,33 @@ export function useHapticOnChange<T>(
     /// on mount (e.g. an unlock modal that appears with the
     /// value already in its post-unlock state).
     skipInitial?: boolean;
+    /// Gate the haptic until the tracked data has loaded. While
+    /// `ready` is false the baseline tracks the value but never
+    /// buzzes, and the not-ready → ready transition is absorbed as
+    /// the baseline — so async hydration on app load (a value going
+    /// 0 → real once data loads) can't read as a change. Default true.
+    ready?: boolean;
   },
 ): void {
   const prev = useRef<T>(value);
   const isFirst = useRef(true);
   const skipInitial = options?.skipInitial ?? true;
+  const ready = options?.ready ?? true;
+  const wasReady = useRef(ready);
   const when = options?.when;
   useEffect(() => {
+    const becameReady = ready && !wasReady.current;
+    wasReady.current = ready;
     if (isFirst.current) {
       isFirst.current = false;
       prev.current = value;
       if (skipInitial) return;
+    }
+    // Still loading, or data just finished loading this frame: keep
+    // the baseline current and never fire.
+    if (!ready || becameReady) {
+      prev.current = value;
+      return;
     }
     if (Object.is(prev.current, value)) return;
     const previous = prev.current;
@@ -95,7 +111,7 @@ export function useHapticOnChange<T>(
     // The intent string is part of the dependency list so a
     // dynamic intent (rare, but possible) re-binds correctly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, intent]);
+  }, [value, intent, ready]);
 }
 
 // ─── useHapticOnVisible ───────────────────────────────────────

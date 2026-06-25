@@ -37,6 +37,7 @@ import {
 } from "../../data/tracks";
 import { useT } from "../../i18n/i18n";
 import { useCourseCover } from "../../hooks/useCourseCover";
+import { languageMeta } from "../../lib/languages";
 import "./ChallengesView.css";
 
 /// Default accent (matches the cover-art palette used elsewhere)
@@ -598,7 +599,14 @@ function TrackCardBody({
         <div className="libre-challenges__card-progress" aria-hidden>
           <span
             className="libre-challenges__card-progress-fill"
-            style={{ width: `${pct}%` }}
+            // Language-brand fill — matches the library cards so a track's
+            // progress reads the same colour everywhere the language appears.
+            style={{
+              width: `${pct}%`,
+              background: track.language
+                ? languageMeta(track.language).color
+                : undefined,
+            }}
           />
         </div>
       </div>

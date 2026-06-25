@@ -65,7 +65,7 @@
   background-position: right 12px center;
   background-size: 12px 12px;
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 13.5px;
@@ -118,7 +118,7 @@
   padding: 0 16px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 13.5px;
@@ -135,9 +135,9 @@
 
 .libre-sandbox-ai-btn--active,
 .libre-sandbox-ai-btn--active:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-sandbox-ai-btn:disabled {
@@ -160,7 +160,7 @@
   padding: 7px 12px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: 13px;
@@ -173,10 +173,10 @@
 
 .libre-sandbox-generate-submit {
   padding: 7px 14px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border: 1px solid var(--color-text-primary);
-  border-radius: 7px;
+  border: 1px solid var(--gg-fill-white);
+  border-radius: var(--libre-radius-pill);
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -212,150 +212,14 @@
   background: var(--color-bg-tertiary);
 }
 
-/* Segmented toggle group. One for device presets (web/threejs only) and
-   one for layout (split / editor / preview). Pills share chrome with
-   the language select so the header reads as a single row of controls. */
-.libre-sandbox-seg {
-  /* Track is a positioning context for the sliding active pill
-     (`.libre-sandbox-seg-pill`) — without `position: relative`
-     the pill's `position: absolute` would resolve against the
-     viewport / app root and end up far off-screen. */
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  /* Outer padding bumped 2→3 so the inner pills have room to
-     breathe at the new bigger size — without this the active
-     pill's edges touch the segmented track's border. */
-  padding: 3px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md);
-  gap: 2px;
-  /* Pin the track to the same 38px the language select + AI
-     buttons render at, so the three controls share one
-     horizontal baseline. Without it the seg track was ~40px
-     (inner padding + button line-height), which left it a
-     hair taller than its neighbours. `box-sizing: border-box`
-     here so the 1px border participates in that 38px. */
-  height: 38px;
-  box-sizing: border-box;
-}
-
-/* Sliding active pill. JS measures the active toggle's
-   offsetLeft + offsetWidth on every viewMode change and writes
-   those into the inline `transform` + `width` here; the CSS
-   transition glides the pill between positions over 220ms with
-   the same `ease-out`-ish curve the NavigationRail's vertical
-   pill uses, so the two pill animations across the app feel
-   like the same motion family. */
-.libre-sandbox-seg-pill {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 0;
-  background: var(--color-text-primary);
-  border-radius: var(--libre-radius-sm);
-  pointer-events: none;
-  /* Clip the Hologram foil to the pill's rounded edges — without
-     overflow:hidden the foil's iridescent corners would spill
-     past the radius. */
-  overflow: hidden;
-  z-index: 0;
-  /* GPU-promote — the pill animates ~1× per click; will-change
-     eliminates the first-transition layout-pass without
-     committing to a permanent compositor layer. */
-  will-change: transform, width;
-  transition:
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    width 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.libre-sandbox-seg-pill > .libre-holo {
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-/* Pill's hover-triggered shine sweep. The pill has
-   `pointer-events: none` so the Hologram's generic
-   `*:hover > .libre-holo` rule (in Hologram.css) can't fire on
-   it directly. We route the trigger through the active toggle
-   button via `:has()`: when the currently-active toggle is
-   hovered, the pill underneath kicks off the same 800ms shine
-   sweep every other holographic surface uses. */
-.libre-sandbox-seg:has(.libre-sandbox-seg-btn--active:hover)
-  > .libre-sandbox-seg-pill
-  > .libre-holo
-  > .libre-holo__shine {
-  animation: libre-holo-shine-hover 800ms ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .libre-sandbox-seg-pill {
-    transition: none;
-  }
-}
-
-.libre-sandbox-seg-btn {
-  /* `position: relative; z-index: 1` so the button sits ABOVE
-     the sliding active pill (`__seg-pill`, z-index: 0) — without
-     this the button's text would render behind the white pill
-     and the active label would be invisible. */
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  /* Padding 4×8 → 7×12, font 11.5 → 13. Brings the toggles up
-     to the same weight tier as the picker + AI buttons so the
-     header reads as one consistent control row. Icons inside
-     bumped from xs→sm in the TSX so the glyph next to each
-     label scales with the larger pill. */
-  padding: 7px 12px;
-  background: transparent;
-  border: 0;
-  border-radius: var(--libre-radius-sm);
-  color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  cursor: pointer;
-  /* `color` transition matches the pill-slide duration so the
-     text inverts at roughly the same time the pill arrives at
-     the new position. Without this they'd separate visually —
-     pill slides smoothly while text snap-flips its colour. */
-  transition: color 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Hover on idle pills: TEXT colour only — no background fill.
-   The active pill carries the holographic white treatment; idle
-   neighbours just bump their text contrast so the pointer feels
-   responsive without two competing background tints reading at
-   once. */
-.libre-sandbox-seg-btn:hover:not([disabled]):not(.libre-sandbox-seg-btn--active) {
-  color: var(--color-text-primary);
-}
-
-/* Active toggle: text colour flips to bg-primary so it reads
-   against the sliding white pill underneath. The background +
-   foil are owned by `.libre-sandbox-seg-pill` (rendered as a
-   sibling of the buttons) — the button itself stays transparent
-   so the pill can slide UNDER it during the transition.
-   Identical idle / hover state because the Hologram's hover-
-   shine sweep is the interaction signal; no colour flash needed. */
-.libre-sandbox-seg-btn--active,
-.libre-sandbox-seg-btn--active:hover {
-  color: var(--color-bg-primary);
-  background: transparent;
-}
-
-.libre-sandbox-seg-btn[disabled] {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
+/* The view-mode segmented control (Split / Editor / Output / Phone) is
+   the Base `<SegmentedControl>` (`.seg`, size lg) — see SandboxView.tsx.
+   The kit owns the track, segments, and sliding indicator; only the
+   responsive label hide below is app-specific. */
 
 /* Label next to the icon. Hide on narrow widths so the header never
-   wraps — the icon alone still conveys intent at small sizes. */
+   wraps — the icon (+ the option's title tooltip) still conveys intent
+   at small sizes. */
 @media (max-width: 960px) {
   .libre-sandbox-seg-label {
     display: none;

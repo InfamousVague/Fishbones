@@ -1,0 +1,150 @@
+/* Branded boot / updater loading screen — ported from GhostWire's
+   `.loadscreen`, themed with Libre's hue-driven --gg-* tokens (with neutral
+   fallbacks for the non-default-dark themes). Fills its positioned parent
+   (the fixed `.libre__bootloader` overlay). */
+.libre-loadscreen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 30%, #16161d 0%, #0b0b0f 55%, #060608 100%);
+  color: #f3f4f8;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* In the small frameless pre-launch splash window (?splash=1), fix to the
+   viewport and round the panel so the transparent window's corners show. */
+html.libre-splash-mode .libre-loadscreen {
+  position: fixed;
+  border-radius: 18px;
+}
+
+/* The brand halftone (hue → dot grid in the top-left corner), matching the
+   app shell's `.libre__halftone`, scaled down for the splash. Hue-driven via
+   --gg-halftone so it tracks the Settings "Primary colour" knob; falls back to
+   GhostWire's cool blue when --gg-* isn't defined (other themes). */
+.libre-loadscreen-halftone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 240px;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+  /* Dots are drawn on a <canvas> (HalftoneCanvas) — size-graded from the
+     corner, like the app-shell halftone. */
+  opacity: 0.32;
+}
+
+/* Soft accent aura behind the mark. */
+.libre-loadscreen-glow {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--gg-accent, #f3a361) 24%, transparent) 0%,
+    transparent 68%
+  );
+  filter: blur(14px);
+  opacity: 0.5;
+  animation: libre-loadscreen-breathe 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.libre-loadscreen-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 0 32px;
+}
+
+/* Brand loading mark — a 1/3 (120°) arc of the brand accent colour
+   spinning continuously. Conic-gradient arc clipped to a thin ring by
+   a radial mask (matches the inline preloader + shared LibreLoader). */
+.libre-loadscreen-mark {
+  --lw: 9px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--gg-accent, hsl(18 74% 66%)) 0deg 120deg,
+    transparent 120deg 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - var(--lw)), #000 calc(100% - var(--lw)));
+          mask: radial-gradient(farthest-side, #0000 calc(100% - var(--lw)), #000 calc(100% - var(--lw)));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gg-accent, #f3a361) 34%, transparent));
+  animation: libre-loadscreen-spin 0.9s linear infinite;
+}
+
+/* Slim progress track — determinate fill or an indeterminate sweep. */
+.libre-loadscreen-bar {
+  position: relative;
+  width: 240px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+.libre-loadscreen-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--gg-grad, linear-gradient(90deg, #ffffff, #f3a361));
+  transition: width 220ms ease;
+}
+.libre-loadscreen-bar.is-indeterminate .libre-loadscreen-bar-fill {
+  width: 40%;
+  transition: none;
+  animation: libre-loadscreen-sweep 1.15s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.libre-loadscreen-status {
+  font-size: 13px;
+  color: var(--color-text-secondary, #a4a4ad);
+  min-height: 1.1em;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+@keyframes libre-loadscreen-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes libre-loadscreen-sweep {
+  0% {
+    left: -42%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+@keyframes libre-loadscreen-breathe {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libre-loadscreen-glow,
+  .libre-loadscreen-mark,
+  .libre-loadscreen-bar.is-indeterminate .libre-loadscreen-bar-fill {
+    animation: none;
+  }
+}

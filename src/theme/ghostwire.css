@@ -94,6 +94,14 @@
    fine 10px dot grid, then faded out from the corner so the dots thin into
    the aurora. Its own element (mounted as .libre's first child in App.tsx)
    because the dual mask can't share the bloom pseudos. */
+/* Hidden on every theme by default — only GhostWire's default-dark renders the
+   halftone (rule below). This is REQUIRED, not cosmetic: a <canvas> with no
+   constrained CSS size feeds its own `width` back through the ResizeObserver
+   and balloons to fill the whole app. Non-default-dark themes must keep it
+   display:none (clientWidth 0 → the draw early-returns) rather than unsized. */
+.libre__halftone {
+  display: none;
+}
 [data-theme-name="default-dark"] .libre__halftone {
   position: absolute;
   top: 0;
@@ -102,23 +110,12 @@
   pointer-events: none;
   width: min(820px, 66vw);
   height: min(740px, 70vh);
-  background: var(--gg-halftone);
-  /* Layer 1 = fine dot grid; layer 2 = corner falloff. Intersect so only the
-     dots near the top-left survive, thinning toward the lower-right. */
-  -webkit-mask-image:
-    radial-gradient(circle at center, #000 0 1.05px, transparent 1.5px),
-    radial-gradient(150% 150% at 0% 0%, #000 12%, transparent 76%);
-  mask-image:
-    radial-gradient(circle at center, #000 0 1.05px, transparent 1.5px),
-    radial-gradient(150% 150% at 0% 0%, #000 12%, transparent 76%);
-  -webkit-mask-size: 10px 10px, 100% 100%;
-  mask-size: 10px 10px, 100% 100%;
-  -webkit-mask-position: top left, top left;
-  mask-position: top left, top left;
-  -webkit-mask-repeat: repeat, no-repeat;
-  mask-repeat: repeat, no-repeat;
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
+  display: block;
+  /* The size-graded dots are drawn on a <canvas> (HalftoneCanvas.tsx): each
+     dot's radius is computed from its distance to the top-left corner — large
+     at the corner, shrinking to nothing past the falloff. CSS masks can't vary
+     dot size per-position reliably across engines (WKWebView flattened it), so
+     it's canvas-drawn. */
   opacity: 0.34;
 }
 
@@ -192,17 +189,29 @@
    Most fills are solid white today (they read --color-text-primary or
    --color-accent). Point them at the signature gradient. Tracks go to the
    faint seafoam trough. */
+/* Course-scoped bars (reader, course header, carousel, sidebar chapters,
+   verify) follow the ACTIVE language's brand colour — --gg-course-accent is set
+   inline on <html> by applyLanguageHue while a course is open, and cleared
+   otherwise, so off-course these fall back to the white→accent gradient. */
 [data-theme-name="default-dark"] :is(
   .libre-reader-progress-fill,
   .libre__course-progress-fill,
   .libre__carousel-progress-fill,
   .libre-chgrid__chapter-bar-fill,
+  .libre-verify-progress-fill
+) {
+  background: var(--gg-course-accent, var(--gg-grad));
+  opacity: 1;
+}
+/* Multi-item list fills (library cards, book covers, Challenges cards, Path
+   cards) each set their OWN per-item language brand colour inline — those win
+   over this rule; the gradient only shows for any item without a brand colour. */
+[data-theme-name="default-dark"] :is(
   .libre-library-card-progress-fill,
   .libre-book-progress-fill,
   .libre-challenges__card-progress-fill,
   .libre-path-card__bar-fill,
   .libre-path-detail__bar-fill,
-  .libre-verify-progress-fill,
   .m-prof__lang-bar-fill
 ) {
   background: var(--gg-grad);
@@ -221,7 +230,7 @@
    TopBar + Sidebar + Profile at once). */
 [data-theme-name="default-dark"] .libre__progress-ring-fill,
 [data-theme-name="default-dark"] .libre-practice-ring-fill {
-  stroke: var(--gg-seafoam);
+  stroke: var(--gg-course-accent, var(--gg-seafoam));
 }
 [data-theme-name="default-dark"] .libre__progress-ring-track,
 [data-theme-name="default-dark"] .libre-practice-ring-track {
@@ -402,4 +411,107 @@
 /* Active file tab: a faint lift instead of the opaque #050507 plate. */
 [data-theme-name="default-dark"] .libre-editor-tabs-row .libre-editor-tab--active {
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 11. View roots that hard-anchor an opaque bg-primary plate -----------
+   A few view roots paint an opaque var(--color-bg-primary) "clean black field"
+   that covers the app canvas (aurora + halftone), so they read as a flat black
+   slab — unlike the transparent library. Go transparent under default-dark so
+   the canvas shows through and they match the rest of the app. */
+[data-theme-name="default-dark"] .libre-challenges,
+[data-theme-name="default-dark"] .libre-profile {
+  background: transparent;
+}
+/* Library sticky filter/sort strip painted an opaque bg-primary plate; drop it
+   so the controls sit on the canvas (the border-bottom still divides it from
+   the grid). */
+[data-theme-name="default-dark"] .libre-library-controls {
+  background: transparent;
+}
+/* Collection folders with fewer than 4 covers (Web, Solana, …) left empty grid
+   cells showing the mosaic's light --color-border-card backing as a grey slab.
+   Make the mosaic + blank cells transparent so empties take the folder's dark
+   bg — a partial folder reads as its covers on a clean dark field. */
+[data-theme-name="default-dark"] .libre-collection-folder-mosaic,
+[data-theme-name="default-dark"] .libre-collection-folder-cell-blank {
+  background: transparent;
+}
+/* The Challenges title strip blurred an opaque bg-primary gradient; drop it
+   entirely so the title sits cleanly on the canvas with no background plate or
+   frosted haze. */
+[data-theme-name="default-dark"] .libre-challenges__header {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ---- 12. Icon-button hover -> frosted glass -------------------------------
+   Icon + toolbar buttons lift to a GhostWire glass panel on hover (translucent
+   fill + faint white edge + top rim + backdrop blur) instead of the flat
+   --color-bg-tertiary wash. The light edge is what reads as "glass" over the
+   dark editor / chrome. Excludes the primary Run button (keeps its accent) and
+   the Discord button (keeps its blurple hover). */
+
+/* Bordered icon buttons (editor toolbar + top bar) — the 1px border recolours
+   to the glass edge. */
+[data-theme-name="default-dark"]
+  :is(
+    .libre-editor-button:not(.libre-editor-run):not(:disabled),
+    .libre-editor-help-main:not(:disabled),
+    .libre-editor-help-caret,
+    .libre-editor-hints-nav-btn:not(:disabled),
+    .libre-editor-hints-close,
+    .libre__topbar-icon-btn:not(.libre__topbar-icon-btn--discord)
+  ):hover {
+  background: var(--gg-glass-card);
+  border-color: var(--gg-glass-brd);
+  -webkit-backdrop-filter: blur(var(--gg-blur)) saturate(150%);
+  backdrop-filter: blur(var(--gg-blur)) saturate(150%);
+  box-shadow: inset 0 1px 0 var(--gg-glass-rim);
+}
+
+/* Borderless nav-rail icons — draw the glass edge with an inset ring so there's
+   no 1px layout shift from adding a border. */
+[data-theme-name="default-dark"]
+  .libre-nav-rail__item:not(.libre-nav-rail__item--active):hover {
+  background: var(--gg-glass-card);
+  -webkit-backdrop-filter: blur(var(--gg-blur)) saturate(150%);
+  backdrop-filter: blur(var(--gg-blur)) saturate(150%);
+  box-shadow:
+    inset 0 0 0 1px var(--gg-glass-brd),
+    inset 0 1px 0 var(--gg-glass-rim);
+}
+
+/* Sidebar course-tree rows (course / section / chapter headers + lesson rows)
+   — also borderless, so the same inset-ring glass replaces their flat
+   --color-bg-tertiary hover fill. The active lesson keeps its own highlight
+   (excluded). Per-row text colour from the base rules still applies. */
+[data-theme-name="default-dark"]
+  :is(
+    .libre__course-row,
+    .libre__section-title,
+    .libre__chapter-title,
+    .libre__nav-item:not(.libre__nav-item--active)
+  ):hover {
+  background: var(--gg-glass-card);
+  -webkit-backdrop-filter: blur(var(--gg-blur)) saturate(150%);
+  backdrop-filter: blur(var(--gg-blur)) saturate(150%);
+  box-shadow:
+    inset 0 0 0 1px var(--gg-glass-brd),
+    inset 0 1px 0 var(--gg-glass-rim);
+}
+
+/* ---- 13. Lesson text legibility over the halftone -------------------------
+   The reader sits transparent on the app canvas, so the corner halftone's
+   light dots bleed behind the lesson text and wash it out where they overlap.
+   A soft dark halo + drop shadow lifts the text off the dots — invisible over
+   the plain dark bg, only reads where the light dots are. Reset on code so
+   syntax highlighting stays crisp. */
+[data-theme-name="default-dark"] .libre-reader-inner {
+  text-shadow:
+    0 0 8px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+}
+[data-theme-name="default-dark"] .libre-reader-inner :is(code, pre, kbd) {
+  text-shadow: none;
 }

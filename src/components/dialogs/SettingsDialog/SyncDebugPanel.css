@@ -337,9 +337,9 @@
 }
 
 .libre-sync-debug__diff-cta.is-primary {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-sync-debug__diff-cta.is-primary:hover:not(:disabled) {

@@ -30,74 +30,32 @@
   color: var(--color-text-tertiary);
 }
 
-/* Editor / Blocks mode segmented toggle. Lives in the editor
-   header's left slot whenever the lesson ships authored blocks
-   data. Same warm-gold accent vocabulary the rest of the app uses;
-   compact enough to share the row with the action cluster on the
-   right. Mirrors the previous `.libre__lesson-mode-toggle`
-   shape — just relocated from above the workbench to inside the
-   editor's header. */
-.libre-editor-mode {
-  display: inline-flex;
-  gap: 0;
-  /* Padding bumped 2px → 3px so the segmented pill matches the
-     action-cluster's enlarged 28px baseline ("one size bigger"
-     across every editor-header control). */
-  padding: 3px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm);
-}
-
-.libre-editor-mode-btn {
-  /* Vertical padding 4px → matches the bumped action-cluster
-     button height (each segment becomes ~24px tall, so the
-     outer pill including its 3px wrapper padding lands at 28px
-     — flush with `.libre-editor-button`'s min-height). */
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 0;
-  border-radius: calc(var(--libre-radius-sm) - 2px);
-  cursor: pointer;
-  transition:
-    background 120ms ease,
-    color 120ms ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.libre-editor-mode-btn:hover:not(.libre-editor-mode-btn--active) {
-  color: var(--color-text-primary);
-}
-
-.libre-editor-mode-btn--active {
-  /* Active segment uses the brand accent — same primary-emphasis
-     treatment as the Run button (both are "the way to act"
-     controls on this toolbar). Theme-set via --color-accent so
-     each theme's brand colour drives the pill. */
-  background: var(--color-accent, var(--color-text-primary));
-  color: var(--color-accent-fg, var(--color-bg-primary));
-}
+/* Editor / Blocks mode toggle now renders as the Base
+   <SegmentedControl> (size lg) in the editor header's left slot.
+   The Base component owns the track, segments, sliding indicator,
+   and hover/active states, so the old hand-rolled
+   `.libre-editor-mode` / `.libre-editor-mode-btn` rules were
+   removed. */
 
 .libre-editor-actions {
   display: flex;
   align-items: stretch;
   gap: 6px;
   /* Shared toolbar control height — every button in the action
-     cluster (Help split, Pop-out, Open-in-VSCode, Run) inherits
+     cluster (Help split, Pop-out, Run) inherits
      this so the row reads as a single horizontal rail rather
      than a stagger of slightly-mismatched boxes. Bumped 24px →
      28px ("one size bigger") so the buttons read more
      prominently in the toolbar — the prior shrink left them
-     feeling cramped against the larger editor pane. */
-  --libre-editor-btn-h: 28px;
+     feeling cramped against the larger editor pane. Bumped again
+     28px → 36px to match the topbar + reader pill controls so the
+     whole app's button scale is unified. */
+  --libre-editor-btn-h: 36px;
 }
 
 .libre-editor-button {
   /* Vertical padding 3px — height is driven by `min-height` now
-     so the icon buttons (Pop-out, Open-in-VSCode) align flush
+     so the icon button (Pop-out) aligns flush
      with the Run button instead of out-pacing it. Horizontal
      padding 14px so the icon glyphs have room without crowding
      the border. */
@@ -105,7 +63,9 @@
   min-height: var(--libre-editor-btn-h, 28px);
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-xs);
+  /* Rounded square — these sit inside the square editor pane, so a
+     pill shape fought the container. Run + the glyph/pop-out buttons inherit. */
+  border-radius: var(--libre-radius-md);
   color: var(--color-text-primary);
   font-size: 12.5px;
   font-weight: 500;
@@ -121,7 +81,7 @@
    character, not an <Icon>, so its size is driven by font-size
    rather than a `size` prop. Bumped one scale up from the base
    button's 12.5px → 17px so it visually matches the enlarged
-   caret (sm) + VSCode (base) Icons in the same toolbar row —
+   help caret (sm) Icon in the same toolbar row —
    without this the glyph stays small while its neighbours grow.
    Line-height 1 keeps the taller glyph vertically centered in
    the shared 28px control height. */
@@ -154,9 +114,9 @@
          z-index lift. */
   position: relative;
   overflow: hidden;
-  background: var(--color-accent, var(--color-text-primary, #ffffff));
+  background: var(--color-accent, var(--gg-fill-white, #ffffff));
   color: var(--color-accent-fg, var(--color-bg-primary, #000000));
-  border-color: var(--color-accent, var(--color-text-primary, #ffffff));
+  border-color: var(--color-accent, var(--gg-fill-white, #ffffff));
   font-weight: 600;
   isolation: isolate;
   /* The ShortcutHint chip's own height used to drive Run's
@@ -168,7 +128,7 @@
 
 .libre-editor-run:hover:not(:disabled) {
   opacity: 0.92;
-  background: var(--color-accent, var(--color-text-primary, #ffffff));
+  background: var(--color-accent, var(--gg-fill-white, #ffffff));
 }
 
 /* Label + the shortcut hint live ABOVE the holo overlay so the
@@ -265,7 +225,7 @@
      (28px) when the variable isn't reachable. */
   min-height: var(--libre-editor-btn-h, 28px);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-xs);
+  border-radius: var(--libre-radius-md);
   overflow: hidden;
   background: transparent;
   box-sizing: border-box;
@@ -671,7 +631,7 @@
 }
 
 .libre-editor-hints-pip--current {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
 }
 
 .libre-editor-hints-pip--locked {

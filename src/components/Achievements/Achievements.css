@@ -846,7 +846,7 @@
      along with the tile tilt (2026-06 cleanup). */
   background-position: 50% 50%;
   background-repeat: no-repeat;
-  --sparkle-mask: url("/new-logo-tile.png");
+  --sparkle-mask: var(--libre-asset-snake, url("/new-logo-tile.png"));
   mask-image: var(--sparkle-mask);
   -webkit-mask-image: var(--sparkle-mask);
   /* Aspect-correct mask cells — the tile is roughly 4:1

@@ -113,7 +113,7 @@
 }
 
 .libre-challenges__search-input:focus {
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-challenges__search-input::placeholder {
@@ -246,7 +246,7 @@
 }
 
 .libre-challenges__card:hover {
-  border-color: var(--track-accent, var(--color-text-primary));
+  border-color: var(--track-accent, var(--gg-fill-white));
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.08) inset,
     0 32px 70px rgba(0, 0, 0, 0.65),
@@ -505,7 +505,7 @@
 .libre-challenges__card-progress-fill {
   display: block;
   height: 100%;
-  background: var(--track-accent, var(--color-text-primary));
+  background: var(--track-accent, var(--gg-fill-white));
   transition: width 0.4s ease;
 }
 

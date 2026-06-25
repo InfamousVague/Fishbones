@@ -33,7 +33,7 @@
 }
 
 .libre-device-action__button:hover:not(:disabled) {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 

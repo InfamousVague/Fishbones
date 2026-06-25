@@ -308,7 +308,7 @@
 
 .libre-trade-dock__env-input:focus {
   outline: none;
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 /* ── Body layout ───────────────────────────────────────────── */
@@ -389,7 +389,7 @@
 .libre-trade-dock__preset.is-active {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border-left-color: var(--color-text-primary);
+  border-left-color: var(--gg-fill-white);
 }
 
 .libre-trade-dock__preset-method {
@@ -480,14 +480,14 @@
 .libre-trade-dock__url:focus,
 .libre-trade-dock__method:focus {
   outline: none;
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-trade-dock__send {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md, 6px);

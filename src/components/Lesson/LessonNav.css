@@ -171,16 +171,16 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: var(--color-accent, var(--color-text-primary, #ffffff));
+  background: var(--color-accent, var(--gg-fill-white, #ffffff));
   color: var(--color-accent-fg, var(--color-bg-primary, #000000));
-  border-color: var(--color-accent, var(--color-text-primary, #ffffff));
+  border-color: var(--color-accent, var(--gg-fill-white, #ffffff));
   font-weight: 600;
 }
 
 .libre-lesson-nav-btn--cta:hover:not(:disabled) {
-  background: var(--color-accent, var(--color-text-primary, #ffffff));
+  background: var(--color-accent, var(--gg-fill-white, #ffffff));
   color: var(--color-accent-fg, var(--color-bg-primary, #000000));
-  border-color: var(--color-accent, var(--color-text-primary, #ffffff));
+  border-color: var(--color-accent, var(--gg-fill-white, #ffffff));
   /* Slight opacity tick on hover instead of the standard
      swap — the foil + base together are already the
      emphasis; a colour swap on top fights the hologram. */

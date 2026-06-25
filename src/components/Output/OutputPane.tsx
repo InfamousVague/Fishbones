@@ -7,6 +7,8 @@ import { externalLink } from "@base/primitives/icon/icons/external-link";
 import { copy as copyIcon } from "@base/primitives/icon/icons/copy";
 import { refreshCw } from "@base/primitives/icon/icons/refresh-cw";
 import "@base/primitives/icon/icon.css";
+import { SegmentedControl } from "@base/primitives/segmented-control";
+import "@base/primitives/segmented-control/segmented-control.css";
 import type { RunResult } from "../../runtimes";
 import { testSourceByName } from "../../lib/parseTestSource";
 import { highlightCode } from "../../lib/highlightCode";
@@ -388,54 +390,53 @@ export default function OutputPane({
             devtools where the active subview is the dominant chrome
             element rather than tucked under a generic "output" word. */}
         {showTabs && !previewUrl ? (
-          <div
-            className="libre-output-tabs"
-            role="tablist"
-            aria-label={t("output.ariaLabel")}
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "console"}
-              className={`libre-output-tab ${
-                activeTab === "console" ? "libre-output-tab--active" : ""
-              }`}
-              onClick={() => setActiveTab("console")}
-            >
-              <span>{t("output.consoleTab")}</span>
-              {hasLogs && (
-                <span className="libre-output-tab-badge">
-                  {result?.logs?.length ?? 0}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "tests"}
-              className={`libre-output-tab ${
-                activeTab === "tests" ? "libre-output-tab--active" : ""
-              } ${
-                failingCount > 0
-                  ? "libre-output-tab--has-failures"
-                  : ""
-              }`}
-              onClick={() => setActiveTab("tests")}
-            >
-              <span>{t("output.testsTab")}</span>
-              {hasTests && (
-                <span
-                  className={`libre-output-tab-badge ${
-                    failingCount > 0
-                      ? "libre-output-tab-badge--fail"
-                      : "libre-output-tab-badge--pass"
-                  }`}
-                >
-                  {passedCount}/{totalTests}
-                </span>
-              )}
-            </button>
-          </div>
+          <SegmentedControl
+            size="lg"
+            className="libre-output-seg"
+            ariaLabel={t("output.ariaLabel")}
+            value={activeTab}
+            onChange={(v) => setActiveTab(v as OutputTab)}
+            options={[
+              {
+                value: "console",
+                label: (
+                  <>
+                    {t("output.consoleTab")}
+                    {hasLogs && (
+                      <span className="libre-output-tab-badge">
+                        {result?.logs?.length ?? 0}
+                      </span>
+                    )}
+                  </>
+                ),
+              },
+              {
+                value: "tests",
+                label: (
+                  <>
+                    <span
+                      className={
+                        failingCount > 0 ? "libre-output-seg-attn" : undefined
+                      }
+                    >
+                      {t("output.testsTab")}
+                    </span>
+                    {hasTests && (
+                      <span
+                        className={`libre-output-tab-badge ${
+                          failingCount > 0
+                            ? "libre-output-tab-badge--fail"
+                            : "libre-output-tab-badge--pass"
+                        }`}
+                      >
+                        {passedCount}/{totalTests}
+                      </span>
+                    )}
+                  </>
+                ),
+              },
+            ]}
+          />
         ) : previewUrl ? (
           // Preview mode — surface a Browser / Console segmented
           // toggle so the user isn't blind to `console.log` output
@@ -454,43 +455,35 @@ export default function OutputPane({
           // exception 2 seconds after mount, etc.). Both are
           // visible in the Console tab; the badge sums both so
           // the user has one number to glance at.
-          <div
-            className="libre-output-mode-toggle"
-            role="group"
-            aria-label={t("output.ariaLabel")}
-          >
-            <button
-              type="button"
-              aria-pressed={activeTab !== "console"}
-              className={`libre-output-mode-btn ${
-                activeTab !== "console" ? "libre-output-mode-btn--active" : ""
-              }`}
-              onClick={() => setActiveTab("tests")}
-            >
-              browser
-            </button>
-            <button
-              type="button"
-              aria-pressed={activeTab === "console"}
-              className={`libre-output-mode-btn ${
-                activeTab === "console" ? "libre-output-mode-btn--active" : ""
-              }`}
-              onClick={() => setActiveTab("console")}
-            >
-              console
-              {(hasLogs || liveLogs.length > 0) && (
-                <span
-                  className={`libre-output-mode-btn-badge ${
-                    liveLogs.some((l) => l.level === "error")
-                      ? "libre-output-mode-btn-badge--error"
-                      : ""
-                  }`}
-                >
-                  {(result?.logs?.length ?? 0) + liveLogs.length}
-                </span>
-              )}
-            </button>
-          </div>
+          <SegmentedControl
+            size="lg"
+            className="libre-output-seg"
+            ariaLabel={t("output.ariaLabel")}
+            value={activeTab === "console" ? "console" : "browser"}
+            onChange={(v) => setActiveTab(v === "console" ? "console" : "tests")}
+            options={[
+              { value: "browser", label: "browser" },
+              {
+                value: "console",
+                label: (
+                  <>
+                    console
+                    {(hasLogs || liveLogs.length > 0) && (
+                      <span
+                        className={`libre-output-mode-btn-badge ${
+                          liveLogs.some((l) => l.level === "error")
+                            ? "libre-output-mode-btn-badge--error"
+                            : ""
+                        }`}
+                      >
+                        {(result?.logs?.length ?? 0) + liveLogs.length}
+                      </span>
+                    )}
+                  </>
+                ),
+              },
+            ]}
+          />
         ) : (
           <span className="libre-output-label">
             {previewUrl ? t("output.previewLabel") : t("output.consoleLabel")}

@@ -21,11 +21,10 @@
     "NEVER decrease — the deploy guard refuses a version regression.",
     "Bumped to 4 on 2026-06-10 to match the live manifest; 5 on 2026-06-10 when duplicate rustonomicon/solana-programs pack variants were removed.."
   ],
-  "manifestVersion": 6,
+  "manifestVersion": 11,
   "packIds": [
     "javascript-typescript",
     "a-to-zig",
-    "a-to-ts",
     "learning-ledger",
     "the-rust-programming-language",
     "the-rustonomicon",
@@ -100,6 +99,7 @@
     "react-native",
     "rust-async-book",
     "testing-rust",
+    "testing-javascript",
     "rustlings",
     "select-star-sql",
     "solidity-complete",

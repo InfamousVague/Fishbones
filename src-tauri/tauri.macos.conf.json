@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Libre",
+        "width": 1400,
+        "height": 920,
+        "resizable": true,
+        "center": true,
+        "minWidth": 900,
+        "minHeight": 600,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": { "x": 18, "y": 26 },
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "url": "index.html?splash=1",
+        "title": "Libre",
+        "width": 320,
+        "height": 340,
+        "resizable": false,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "skipTaskbar": true,
+        "visible": true
+      }
+    ]
+  }
+}

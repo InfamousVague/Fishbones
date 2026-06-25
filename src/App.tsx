@@ -47,7 +47,10 @@ import CourseLibrary from "./components/Library/CourseLibrary";
 import ArchiveDropOverlay from "./components/Library/ArchiveDropOverlay";
 import { useArchiveDrop } from "./hooks/useArchiveDrop";
 import { DeferredMount, LoadingPane } from "./components/Shared/DeferredMount";
-import LibreLoader from "./components/Shared/LibreLoader";
+import LoadingScreen from "./components/Shared/LoadingScreen";
+import HalftoneCanvas from "./components/Shared/HalftoneCanvas";
+import { usePrelaunchUpdate } from "./components/Shared/usePrelaunchUpdate";
+import { applyLanguageHue } from "./theme/languageHue";
 import { prefetchCovers } from "./hooks/useCourseCover";
 const ConfirmDialog = lazy(() => import("./components/dialogs/ConfirmDialog/ConfirmDialog"));
 const CourseSettingsModal = lazy(() => import("./components/dialogs/CourseSettings/CourseSettingsModal"));
@@ -297,6 +300,7 @@ export default function App() {
   const {
     completed,
     history,
+    loaded: progressLoaded,
     markCompleted,
     markCompletedBatch,
     clearLessonCompletion,
@@ -866,6 +870,11 @@ export default function App() {
   // data/types.ts.
   const shields = useStreakShields();
   const stats = useStreakAndXp(history, coursesAll, shields.frozenDays);
+  // Gate StatsChip's streak/level celebration cues until BOTH the
+  // course list and the completion history have loaded. Without this,
+  // `stats` hydrates 0 → real on launch and the streak sound/haptic
+  // fires on every load (reads as an "increase" from the placeholder).
+  const statsReady = coursesLoaded && progressLoaded;
 
   /// Track section / book completion transitions. We compare the
   /// previous completed Set to the new one whenever it changes;
@@ -1109,6 +1118,85 @@ export default function App() {
     [startViewTransition],
   );
 
+  // --- Browser-style back / forward history (like the arrows we added to
+  // GhostWire). GRANULAR: each entry tracks the view AND, while in the courses
+  // view, the active course + lesson — so the arrows step through individual
+  // lessons (sidebar clicks, Prev/Next, auto-advance, command palette, tab
+  // switches), not just top-level view switches. Entries off the courses view
+  // carry null course/lesson, so cross-view hops still behave like before. ---
+  type NavEntry = {
+    view: typeof view;
+    courseId: string | null;
+    lessonId: string | null;
+  };
+  // The active tab's course/lesson, but only while the courses view is showing
+  // it — elsewhere the open tab is incidental, not where the user "is".
+  const navTab = openTabs[activeTabIndex];
+  const navCourseId = view === "courses" ? navTab?.courseId ?? null : null;
+  const navLessonId = view === "courses" ? navTab?.lessonId ?? null : null;
+  const [navHist, setNavHist] = useState<{ stack: NavEntry[]; index: number }>(
+    () => ({
+      stack: [{ view, courseId: navCourseId, lessonId: navLessonId }],
+      index: 0,
+    }),
+  );
+  const navHistRef = useRef(navHist);
+  navHistRef.current = navHist;
+  // True while restoring a historical entry via the arrows — so the watcher
+  // below moves the pointer instead of branching a new trail (which would drop
+  // the forward stack).
+  const navSuppressRef = useRef(false);
+  // Apply a history entry: courses entries re-open the exact course + lesson via
+  // selectLesson; everything else is a plain view switch. Held in a ref so the
+  // goBack/goForward callbacks stay stable while still invoking the latest
+  // (non-memoised) selectLesson closure.
+  const restoreNavRef = useRef<(e: NavEntry) => void>(() => {});
+  restoreNavRef.current = (e) => {
+    if (e.view === "courses" && e.courseId && e.lessonId) {
+      selectLesson(e.courseId, e.lessonId);
+    } else {
+      setView(e.view);
+    }
+  };
+  useEffect(() => {
+    if (navSuppressRef.current) {
+      navSuppressRef.current = false;
+      return;
+    }
+    setNavHist((n) => {
+      const cur = n.stack[n.index];
+      if (
+        cur &&
+        cur.view === view &&
+        cur.courseId === navCourseId &&
+        cur.lessonId === navLessonId
+      ) {
+        return n; // not a real change
+      }
+      const arr = [
+        ...n.stack.slice(0, n.index + 1),
+        { view, courseId: navCourseId, lessonId: navLessonId },
+      ].slice(-100);
+      return { stack: arr, index: arr.length - 1 };
+    });
+  }, [view, navCourseId, navLessonId]);
+  const goBack = useCallback(() => {
+    const n = navHistRef.current;
+    if (n.index <= 0) return;
+    navSuppressRef.current = true;
+    const index = n.index - 1;
+    setNavHist({ ...n, index });
+    restoreNavRef.current(n.stack[index]);
+  }, []);
+  const goForward = useCallback(() => {
+    const n = navHistRef.current;
+    if (n.index >= n.stack.length - 1) return;
+    navSuppressRef.current = true;
+    const index = n.index + 1;
+    setNavHist({ ...n, index });
+    restoreNavRef.current(n.stack[index]);
+  }, []);
+
   /// Challenge-pack generation dialog visibility. Opened from the Profile
   /// page's "Generate challenge pack" CTA; runs through useIngestRun when
   /// submitted and closes itself.
@@ -1261,6 +1349,16 @@ export default function App() {
   useKeybinding("app.toggle-sidebar", () => {
     setSidebarCollapsed((v) => !v);
   });
+
+  // Pre-launch update fetcher (desktop Tauri) — drives the boot LoadingScreen
+  // with "Checking for updates…" / download progress, and keeps the loader up
+  // while an update installs before relaunching. No-op on web / mobile (busy
+  // releases immediately so the normal boot loader shows).
+  const {
+    status: updateStatus,
+    progress: updateProgress,
+    busy: updateBusy,
+  } = usePrelaunchUpdate();
 
   // Hand off from index.html's inline preloader to our React loader.
   // Runs in a layout-effect (post-DOM-mutate, pre-paint) so the inline
@@ -1534,6 +1632,75 @@ export default function App() {
   const activeCourse =
     coursesAll.find((c) => c.id === activeTab?.courseId) ?? null;
   const activeLesson = findLesson(activeCourse, activeTab?.lessonId);
+
+  // Language-aware tint: while reading a course (view "courses") OR coding in
+  // the Playground (view "sandbox"), point the GhostWire accent hue at that
+  // language's brand colour (Rust → oxblood, Go → cyan, Python → blue, …) so
+  // the whole palette — accent, gradients, glows, aurora, halftone — fits the
+  // language in front of you. In the Playground it follows the active project's
+  // language, so flipping the language picker re-tints the app to match.
+  // Restores the user's chosen hue everywhere else. Contextual (not persisted);
+  // only visible on the default-dark theme, which is the only one reading
+  // --gg-hue.
+  const tintLanguage =
+    view === "courses" && activeCourse
+      ? activeCourse.language
+      : view === "sandbox"
+        ? sandboxProjects.activeProject.language
+        : null;
+  useEffect(() => {
+    applyLanguageHue(tintLanguage);
+  }, [tintLanguage]);
+
+  // macOS splash hand-off: the main window starts hidden (tauri.macos.conf.json)
+  // while the small splash window runs the pre-launch update check AND this
+  // (hidden) window prefetches its data. Reveal the main window — and tell the
+  // splash to close (main://ready) — only once BOTH are true: courses have
+  // loaded AND the splash said "proceed" (no update). That way the boot loader
+  // never flashes here (everything prefetches behind the splash), and during an
+  // update download the window stays hidden until the relaunch. No-op on web;
+  // harmless on platforms where the main window is already visible.
+  const mainRevealedRef = useRef(false);
+  const splashProceedRef = useRef(false);
+  const coursesLoadedRef = useRef(coursesLoaded);
+  coursesLoadedRef.current = coursesLoaded;
+  const revealMainIfReady = useCallback(() => {
+    if (mainRevealedRef.current || isWeb) return;
+    if (!coursesLoadedRef.current || !splashProceedRef.current) return;
+    mainRevealedRef.current = true;
+    void (async () => {
+      try {
+        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        const w = getCurrentWindow();
+        await w.show().catch(() => {});
+        await w.setFocus().catch(() => {});
+        const { emit } = await import("@tauri-apps/api/event");
+        await emit("main://ready").catch(() => {});
+      } catch {
+        /* not Tauri */
+      }
+    })();
+  }, []);
+  // The splash emits "splash://proceed" when there is no update to install.
+  useEffect(() => {
+    if (isWeb) return;
+    let un: (() => void) | undefined;
+    void (async () => {
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        un = await listen("splash://proceed", () => {
+          splashProceedRef.current = true;
+          revealMainIfReady();
+        });
+      } catch {
+        /* not Tauri */
+      }
+    })();
+    return () => un?.();
+  }, [revealMainIfReady]);
+  useEffect(() => {
+    revealMainIfReady();
+  }, [coursesLoaded, revealMainIfReady]);
 
   function selectLesson(courseId: string, lessonId: string) {
     // Cancel any pending auto-advance — if a manual navigation
@@ -2106,7 +2273,7 @@ export default function App() {
           for other themes via src/theme/ghostwire.css). Decorative backdrop,
           z-index:-1, pointer-transparent — kept as .libre's first child so it
           persists across route changes and never catches the route-fade. */}
-      <div className="libre__halftone" aria-hidden="true" />
+      <HalftoneCanvas className="libre__halftone" />
       {/* Fixed top-left sidebar toggle + invisible hover bridge,
           parked to the right of the macOS traffic lights (the
           window is `titleBarStyle: "Overlay"` so we paint into
@@ -2132,11 +2299,14 @@ export default function App() {
           two layers is seamless on cold start. */}
       <div
         className={`libre__bootloader ${
-          coursesLoaded ? "libre__bootloader--hidden" : ""
+          coursesLoaded && !updateBusy ? "libre__bootloader--hidden" : ""
         }`}
-        aria-hidden={coursesLoaded}
+        aria-hidden={coursesLoaded && !updateBusy}
       >
-        <LibreLoader label="loading Libre…" />
+        <LoadingScreen
+          status={updateStatus ?? "loading Libre…"}
+          progress={updateProgress}
+        />
       </div>
 
       {/* Drag-and-drop import overlay. Listens at the app level via
@@ -2187,6 +2357,10 @@ export default function App() {
         : null}
 
       <TopBar
+        onBack={goBack}
+        onForward={goForward}
+        canGoBack={navHist.index > 0}
+        canGoForward={navHist.index < navHist.stack.length - 1}
         tabs={tabs}
         groups={tabGroups}
         activeIndex={activeTabIndex}
@@ -2204,6 +2378,7 @@ export default function App() {
         onCreateGroup={createGroupForTab}
         onRenameGroup={renameTabGroup}
         stats={stats}
+        statsReady={statsReady}
         history={history}
         shields={shields}
         onOpenProfile={() => setView("profile")}

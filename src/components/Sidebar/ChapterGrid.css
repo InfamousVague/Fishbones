@@ -166,7 +166,7 @@
      own border already uses border-default, so the cells need
      something a hair brighter to read as distinct elements rather
      than vanishing into the card outline. */
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gg-fill-white) 14%, transparent);
   border-radius: 5px;
   color: var(--color-text-secondary);
   font: inherit;

@@ -8,7 +8,7 @@
 
 .libre-addcourse-split {
   display: inline-flex;
-  border-radius: var(--libre-radius-md);
+  border-radius: var(--libre-radius-pill);
   overflow: hidden;
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
   background: var(--color-bg-tertiary, #1f1f28);
@@ -22,13 +22,13 @@
      emphasis on a dark surface," so they read as the same family.
      Default-dark's --color-text-primary is pure white (#ffffff)
      post-rebrand — different themes will get their own primary text. */
-  background: var(--color-text-primary, #f5f5f7);
+  background: var(--gg-fill-white, #f5f5f7);
   color: var(--color-bg-primary, #0b0b10);
   border: 0;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 9px 16px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -40,7 +40,7 @@
 }
 
 .libre-addcourse-caret {
-  padding: 6px 8px;
+  padding: 9px 11px;
   border-left: 1px solid rgba(0, 0, 0, 0.2);
 }
 

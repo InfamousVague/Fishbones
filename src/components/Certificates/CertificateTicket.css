@@ -181,7 +181,7 @@
      `mask-size`, but the cert wants `%` so the pattern
      density tracks the ticket's scale rather than disappearing
      when the cert renders smaller in the sidebar. */
-  --sparkle-mask: url("/new-logo-tile.png");
+  --sparkle-mask: var(--libre-asset-snake, url("/new-logo-tile.png"));
   mask-image: var(--sparkle-mask);
   -webkit-mask-image: var(--sparkle-mask);
   mask-size: 7% 17.5%;

@@ -83,7 +83,7 @@
   left: 0;
   width: 40px;
   height: 40px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   border-radius: var(--libre-radius-md);
   /* Clip the inner Hologram primitive's foil + shine to the
      pill's rounded edges. Without this the absolutely-positioned
@@ -179,9 +179,47 @@
   color: var(--color-text-primary);
 }
 
+/* "Coming soon" route — dimmed + non-interactive (the button keeps
+   `aria-disabled` rather than the native `disabled` attr so its
+   tooltip still surfaces on hover). The lock badge below marks it. */
+.libre-nav-rail__item--coming-soon {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.libre-nav-rail__item--coming-soon:hover {
+  /* No hover lift — it's not actionable. */
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+/* Small lock badge for a coming-soon rail item, anchored top-right
+   like the count badge but neutral-toned (it's a state marker, not a
+   count). */
+.libre-nav-rail__lock {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--color-bg-tertiary, #2a2a33);
+  color: var(--color-text-secondary);
+  box-shadow: 0 0 0 2px var(--color-bg-secondary, #1a1427);
+  pointer-events: none;
+}
+/* Clamp the lock glyph well inside the badge (the global `.icon--xs`
+   bump in App.css would otherwise render it ~18px). */
+.libre-nav-rail__lock svg {
+  width: 9px !important;
+  height: 9px !important;
+}
+
 .libre-nav-rail__item:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-text-primary);
+  box-shadow: 0 0 0 2px var(--gg-fill-white);
 }
 
 /* Active-route highlight. The bone-white fill is now drawn by the

@@ -485,50 +485,6 @@ button {
   /* height: NN% is written inline by the Workbench in vertical mode */
 }
 
-/* Editor / Blocks toggle. Sits above the workbench when the lesson
-   carries authored blocks data — when it doesn't, the toggle isn't
-   rendered at all (no point showing a control with one option).
-   Segmented-control look: a small inset background, two pill buttons,
-   the active one filled. Same warm-gold accent the TTS pill + cursor
-   highlight use so the design system stays coherent. */
-.libre__lesson-mode-toggle {
-  display: inline-flex;
-  gap: 0;
-  align-self: flex-start;
-  padding: 2px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md);
-}
-
-.libre__lesson-mode-btn {
-  padding: 4px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 0;
-  border-radius: calc(var(--libre-radius-md) - 2px);
-  cursor: pointer;
-  transition:
-    background 120ms ease,
-    color 120ms ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.libre__lesson-mode-btn:hover {
-  color: var(--color-text-primary);
-}
-
-.libre__lesson-mode-btn--active {
-  background: var(--color-text-primary);
-  color: var(--color-bg-primary);
-}
-
-.libre__lesson-mode-btn--active:hover {
-  color: var(--color-bg-primary);
-}
-
 /* Floating-phone path for RN lessons: editor takes the full workbench
    width without a paired output pane (the phone popout window IS the
    output surface). We mimic the Workbench's card chrome (border,
@@ -631,9 +587,9 @@ button {
 }
 
 .libre__workbench-popped-pill:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre__workbench-popped-pill-icon {
@@ -706,7 +662,7 @@ button {
 
 .libre__welcome-primary {
   padding: 10px 18px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md);

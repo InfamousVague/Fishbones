@@ -50,13 +50,14 @@ export const CORE_PACK_IDS = [
   // ── In-house "A to <lang>" tutorial books ──────────────────────
   // Flagship Libre-authored courses that walk a beginner from
   // zero to fluency in a single language. Bundled in core so every
-  // install opens with two opinionated, end-to-end tutorials.
+  // install opens with an opinionated, end-to-end tutorial.
+  // (`a-to-ts` was retired — "Learning JavaScript & TypeScript" below
+  // is the in-house TypeScript path now.)
   "a-to-zig",
-  "a-to-ts",
-  // JavaScript & TypeScript — the flagship original book (24 chapters,
-  // 139 lessons): JS beginner→pro in Parts I–III, TypeScript layered on
-  // in Part IV. 230 inline playgrounds, 53 diagrams, quizzes + blocks.
-  // Authored 2026-06; validated by .jsts-work/validate-jsts-course.mjs.
+  // Learning JavaScript & TypeScript — the flagship original book
+  // (27 chapters, 157 lessons): JS beginner→pro in Parts I–III,
+  // TypeScript layered on in Part IV. Inline playgrounds, diagrams,
+  // quizzes + blocks. Validated by .jsts-work/validate-jsts-course.mjs.
   "javascript-typescript",
 
   // Long-form books we want every install to start with.
@@ -64,6 +65,24 @@ export const CORE_PACK_IDS = [
   "learning-go",
   // (`learning-zig` was retired here — A to Zig is the in-house
   // replacement and is shipped above as its own bundled .libre.)
+
+  // Rustlings + Golings — the "make me compile" micro-exercise courses
+  // (Rust + its Go twin). Bundled core so their baked per-lesson art
+  // ships inline and the courses work offline on first launch.
+  "rustlings",
+  "golings",
+
+  // Testing JavaScript — in-house book modeled on Testing Rust: unit →
+  // doubles → property → snapshot → integration → async → e2e →
+  // capstone, with runnable Vitest-style exercises. Bundled core.
+  "testing-javascript",
+
+  // Ship the whole JavaScript/TypeScript leg by default (the targeted
+  // default stack alongside Rust + Go): the Exercism JS/TS tracks and the
+  // JS Koans install offline on first launch instead of remote-download.
+  "exercism-javascript",
+  "exercism-typescript",
+  "javascript-koans",
 
   // All challenge packs — kata-style learners are likely to bounce
   // through several languages, and the per-pack size is small
@@ -180,12 +199,22 @@ export const RELEASE_STATUS_OVERRIDES = {
   // verified cover-to-cover; they anchor the top of the Status sort.
   "the-rust-programming-language": "VERIFIED",
   "rustlings": "VERIFIED",
+  // The Go stack — shipped at full release alongside Rust + JS/TS as
+  // the platform's default languages: the Learning Go book, the
+  // Golings + Exercism Go exercise courses, and the Go challenge pack.
+  "learning-go": "VERIFIED",
+  "golings": "VERIFIED",
+  "exercism-go": "VERIFIED",
+  "challenges-go-handwritten": "VERIFIED",
 
   // ── Books bumped to BETA after substantive validation ─────────
   // JavaScript & TypeScript — flagship original book. Every exercise,
   // playground, quiz, blocks spec and diagram machine-validated
   // (88/88 exercises, 230/230 playgrounds) before release.
   "javascript-typescript": "BETA",
+  // Testing JavaScript — in-house book; all 13 exercises validated
+  // (solution passes / starter fails) against the runtime's test harness.
+  "testing-javascript": "BETA",
   // Updated to use viem-style runtime + verified passing through
   // the cmd+K verifier.
   "mastering-ethereum": "BETA",

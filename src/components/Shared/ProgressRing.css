@@ -15,7 +15,7 @@
 }
 
 .libre__progress-ring-fill {
-  stroke: var(--color-text-primary);
+  stroke: var(--gg-fill-white);
   transition: stroke-dashoffset 0.4s ease;
 }
 

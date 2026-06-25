@@ -212,7 +212,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 22px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md, 10px);
@@ -535,9 +535,9 @@
 }
 
 .libre-practice-pill.is-active {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .libre-practice-pill-count {

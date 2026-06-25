@@ -699,7 +699,7 @@
 .libre-settings-effort-range {
   width: 100%;
   margin: 0;
-  accent-color: var(--color-text-primary);
+  accent-color: var(--gg-fill-white);
   cursor: pointer;
 }
 
@@ -831,8 +831,8 @@
   margin-top: 10px;
   padding: 14px;
   border-radius: var(--libre-radius-sm);
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 30%, transparent);
-  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gg-fill-white) 30%, transparent);
+  background: color-mix(in srgb, var(--gg-fill-white) 4%, transparent);
 }
 
 .libre-settings-update-head {

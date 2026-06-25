@@ -74,13 +74,13 @@
 }
 
 .m-set__row--primary {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .m-set__row--primary:active {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   opacity: 0.85;
 }
 
@@ -158,7 +158,7 @@
 }
 
 .m-set__theme-row.is-active {
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   background: var(--color-bg-elevated, var(--color-bg-tertiary));
 }
 

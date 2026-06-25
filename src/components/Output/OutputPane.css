@@ -81,81 +81,39 @@
   display: none;
 }
 
-/* Browser / Console segmented toggle — used in the header when
-   a run produced a previewUrl. Matches the editor's
-   Editor/Blocks mode toggle (`.libre-editor-mode`) so the two
-   surfaces read as the same control vocabulary. Active button
-   inverts on the brand accent. */
-.libre-output-mode-toggle {
-  display: inline-flex;
-  gap: 0;
-  padding: 2px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm);
-}
-
-.libre-output-mode-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 12px;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: inherit;
-  letter-spacing: 0.2px;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 0;
-  border-radius: calc(var(--libre-radius-sm) - 2px);
-  cursor: pointer;
-  transition:
-    background 120ms ease,
-    color 120ms ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.libre-output-mode-btn:hover:not(.libre-output-mode-btn--active) {
-  color: var(--color-text-primary);
-}
-
-.libre-output-mode-btn--active {
-  background: var(--color-accent, var(--color-text-primary));
-  color: var(--color-accent-fg, var(--color-bg-primary));
-}
-
-/* Badge with the log count — same chrome family as the tab
-   badges (`.libre-output-tab-badge`) just sized for the smaller
-   segmented buttons. */
+/* Browser/Console + Console/Tests toggles are now the Base
+   `SegmentedControl` (`.seg`, size lg). Only the count badges below
+   are app-specific; the track / segments / sliding indicator come
+   from the kit. `.libre-output-seg` is the consumer hook for any
+   per-surface tweaks. */
 .libre-output-mode-btn-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 16px;
-  padding: 0 5px;
-  font-size: 9.5px;
+  min-width: 18px;
+  padding: 0 6px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--color-text-tertiary);
   background: var(--color-bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--libre-radius-pill);
   font-variant-numeric: tabular-nums;
 }
 
-.libre-output-mode-btn--active .libre-output-mode-btn-badge {
+/* On the active (white) segment, recolour so the count stays legible. */
+.seg__option--active .libre-output-mode-btn-badge {
   color: var(--color-accent, var(--color-text-primary));
   background: color-mix(in srgb, var(--color-accent-fg, var(--color-bg-primary)) 88%, transparent);
 }
 
-/* Error-tinted badge — fires when at least one of the captured
-   logs is at the `error` level. Drives the user's eye to the
-   console toggle when the preview shows a red error overlay
-   instead of the expected render. */
+/* Error-tinted badge — fires when at least one captured log is an
+   error, drawing the eye to the console segment. */
 .libre-output-mode-btn-badge--error {
   background: rgba(239, 111, 111, 0.18);
   color: #ef6f6f;
 }
 
-.libre-output-mode-btn--active .libre-output-mode-btn-badge--error {
+.seg__option--active .libre-output-mode-btn-badge--error {
   background: rgba(239, 111, 111, 0.85);
   color: #fff;
 }
@@ -175,13 +133,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0 14px;
   background: transparent;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm);
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--libre-motion-quick), border-color var(--libre-motion-quick);
@@ -399,7 +359,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   animation: libre-output-pulse 1.2s ease-in-out infinite;
 }
 
@@ -475,43 +435,9 @@
  * subview is the dominant chrome element — same treatment editors
  * and browser devtools use for switching between subordinate
  * panels. */
-.libre-output-tabs {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin: -2px 0;
-  /* No bottom-border — the header itself already has its own
-   * underline; doubling up would create a double rule. */
-}
-
-.libre-output-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: transparent;
-  border: 0;
-  border-radius: var(--libre-radius-sm);
-  color: var(--color-text-tertiary);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color 100ms ease, background 100ms ease;
-}
-
-.libre-output-tab:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.04));
-}
-
-.libre-output-tab--active {
-  color: var(--color-text-primary);
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
-}
-
+/* Console/Tests + Browser/Console toggles are the Base
+   `SegmentedControl` (`.seg`, size lg) — see OutputPane.tsx. Only the
+   count / pass-fail badges below are app-specific. */
 .libre-output-tab-badge {
   display: inline-flex;
   align-items: center;
@@ -521,7 +447,7 @@
   border-radius: var(--libre-radius-pill);
   background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
   color: var(--color-text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -536,14 +462,30 @@
   color: #f29c9c;
 }
 
-.libre-output-tab--has-failures {
-  /* Subtle pulse on the test tab when something failed — draws the
-   * eye so a learner who's looking at Console sees a hint to switch. */
+/* Badges on the filled (white) active segment — recolour so the count
+   stays legible on the bright pill instead of washing out. */
+.seg__option--active .libre-output-tab-badge {
+  color: var(--color-accent, var(--color-text-primary));
+  background: color-mix(in srgb, var(--color-accent-fg, var(--color-bg-primary)) 85%, transparent);
+}
+.seg__option--active .libre-output-tab-badge--pass {
+  background: #2f9e5a;
+  color: #fff;
+}
+.seg__option--active .libre-output-tab-badge--fail {
+  background: #d65656;
+  color: #fff;
+}
+
+/* Attention pulse on the Tests label when a run has failures — draws
+   the eye so a learner looking at Console sees a hint to switch.
+   Applied to the label span inside the Tests segment. */
+.libre-output-seg-attn {
   animation: libre-output-tab-attn 2.4s ease-in-out;
 }
 
 @keyframes libre-output-tab-attn {
-  0%, 100% { color: var(--color-text-secondary); }
+  0%, 100% { color: inherit; }
   20%, 80% { color: #f29c9c; }
 }
 

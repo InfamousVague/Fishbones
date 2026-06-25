@@ -298,7 +298,7 @@
 
 .libre-quiz-short-submit {
   padding: 0 14px;
-  background: var(--color-text-primary, #ffffff);
+  background: var(--gg-fill-white, #ffffff);
   color: var(--color-bg-primary, #000000);
   border: 0;
   border-radius: var(--libre-radius-sm);

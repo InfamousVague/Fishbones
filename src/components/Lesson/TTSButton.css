@@ -23,7 +23,7 @@
      affordance; box-sizing: border-box keeps padding + border inside
      the 30px so the ring (20px) and font (12px) both fit comfortably
      without forcing extra rim. */
-  height: 30px;
+  height: 36px;
   box-sizing: border-box;
   padding: 0 14px;
   line-height: 1;
@@ -32,7 +32,7 @@
   background: var(--color-bg-secondary, #1a1a1f);
   color: var(--color-text-secondary, #a4a4ad);
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
@@ -92,8 +92,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
 
@@ -101,8 +101,8 @@
   /* CSS-set width/height intentionally overrides the SVG element's
      `width="32" height="32"` attributes so we can shrink the ring
      without changing the JSX RADIUS / viewBox math. */
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   /* Rotate so the arc grows from 12 o'clock clockwise. SVG default
      starts at 3 o'clock; -90° rotation snaps it to the top. */
   transform: rotate(-90deg);
@@ -145,8 +145,8 @@
    am I in" rather than "press here." `!important` forces past the
    same-specificity `.icon--xs` rule in App.css. */
 .libre-tts-pill__icon svg {
-  width: 9px !important;
-  height: 9px !important;
+  width: 12px !important;
+  height: 12px !important;
 }
 
 /* Loader spin while the MP3 is fetching from the CDN on first play. */
