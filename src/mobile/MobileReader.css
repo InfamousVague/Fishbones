@@ -113,7 +113,7 @@
 .m-reader__continue {
   margin-top: 6px;
   padding: 14px 18px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-lg);

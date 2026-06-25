@@ -13,6 +13,8 @@ import { arrowUpDown } from "@base/primitives/icon/icons/arrow-up-down";
 import { layoutGrid } from "@base/primitives/icon/icons/layout-grid";
 import { rows3 } from "@base/primitives/icon/icons/rows-3";
 import "@base/primitives/icon/icon.css";
+import { SegmentedControl } from "@base/primitives/segmented-control";
+import "@base/primitives/segmented-control/segmented-control.css";
 import type { LanguageId } from "../../data/types";
 import {
   CATEGORY_PILLS,
@@ -145,126 +147,122 @@ export default function LibraryControls(p: LibraryControlsProps): ReactElement {
 
   return (
     <div className="libre-library-controls libre-library-controls--compact">
-      {/* Left side: active filter chips + Filter popover trigger.
-          The trigger pill itself doubles as a status when nothing's
-          active ("Filter ▾") and as the entry-point when chips are
-          present. */}
-      <div className="libre-library-filter-cluster" ref={wrapRef}>
-        {activeChips.map((c) => (
-          <span key={c.key} className="libre-library-filter-chip">
-            {c.label}
-            <button
-              type="button"
-              className="libre-library-filter-chip-x"
-              onClick={c.clear}
-              aria-label={t("library.removeFilter", { label: c.label })}
-            >
-              <Icon icon={xIcon} size="xs" color="currentColor" />
-            </button>
-          </span>
-        ))}
-        <button
-          type="button"
-          className={`libre-library-filter-trigger ${
-            filterOpen ? "libre-library-filter-trigger--open" : ""
-          }`}
-          onClick={() => setFilterOpen((v) => !v)}
-          aria-haspopup="dialog"
-          aria-expanded={filterOpen}
-        >
-          <Icon icon={filterIcon} size="xs" color="currentColor" />
-          <span>{activeChips.length === 0 ? t("library.filter") : t("library.more")}</span>
-        </button>
-
-        {filterOpen && (
-          <FilterPopover
-            categoryFilter={p.categoryFilter}
-            chainFilter={p.chainFilter}
-            langFilter={p.langFilter}
-            kindFilter={p.kindFilter}
-            categoryCounts={p.categoryCounts}
-            chainCounts={p.chainCounts}
-            countByLang={p.countByLang}
-            kindCounts={p.kindCounts}
-            totalCourses={p.totalCourses}
-            onSetCategory={p.onSetCategory}
-            onSetChain={p.onSetChain}
-            onSetLang={p.onSetLang}
-            onSetKind={p.onSetKind}
-          />
+      {/* Row 1 — hero search. The library's focal point, mirroring
+          GhostWire's discovery `.search-bar-lg`: a full-width glass pill
+          with a leading icon, instant filtering, and a clear button when
+          there's a query. */}
+      <label className="libre-library-hero-search">
+        <Icon
+          icon={searchIcon}
+          size="base"
+          color="currentColor"
+          className="libre-library-search-icon"
+        />
+        <input
+          type="search"
+          className="libre-library-search"
+          placeholder={t("library.searchPlaceholder")}
+          value={p.query}
+          onChange={(e) => p.onSetQuery(e.target.value)}
+        />
+        {p.query && (
+          <button
+            type="button"
+            className="libre-library-search-clear"
+            onClick={() => p.onSetQuery("")}
+            aria-label={t("library.clearSearch")}
+          >
+            <Icon icon={xIcon} size="sm" color="currentColor" />
+          </button>
         )}
-      </div>
+      </label>
 
-      {/* Right side: search + sort + view. The dominant tools row.
-          Sort + view collapse to icon buttons to save space. */}
-      <div className="libre-library-tools">
-        <label className="libre-library-search-wrap">
-          <Icon
-            icon={searchIcon}
-            size="xs"
-            color="currentColor"
-            className="libre-library-search-icon"
-          />
-          <input
-            type="search"
-            className="libre-library-search"
-            placeholder={t("library.searchPlaceholder")}
-            value={p.query}
-            onChange={(e) => p.onSetQuery(e.target.value)}
-          />
-        </label>
-        <label
-          className="libre-library-sort libre-library-sort--compact"
-          title={t("library.sortOrderTitle")}
-        >
-          <Icon icon={arrowUpDown} size="xs" color="currentColor" />
-          <select
-            className="libre-library-sort-select"
-            value={p.sortBy}
-            onChange={(e) => p.onSetSort(e.target.value as SortKey)}
-          >
-            <option value="name">{t("library.sortName")}</option>
-            <option value="recent">{t("library.sortRecent")}</option>
-            <option value="status">{t("library.sortStatus")}</option>
-            <option value="progress">{t("library.sortProgress")}</option>
-            <option value="lessons">{t("library.sortLessonCount")}</option>
-          </select>
-        </label>
-        <div
-          className="libre-library-viewmode"
-          role="tablist"
-          aria-label={t("library.viewMode")}
-        >
+      {/* Row 2 — secondary controls: active filter chips + Filter popover
+          trigger on the left, sort + view on the right. Slimmer, secondary
+          to the search. */}
+      <div className="libre-library-controls-row">
+        <div className="libre-library-filter-cluster" ref={wrapRef}>
+          {activeChips.map((c) => (
+            <span key={c.key} className="libre-library-filter-chip">
+              {c.label}
+              <button
+                type="button"
+                className="libre-library-filter-chip-x"
+                onClick={c.clear}
+                aria-label={t("library.removeFilter", { label: c.label })}
+              >
+                <Icon icon={xIcon} size="xs" color="currentColor" />
+              </button>
+            </span>
+          ))}
           <button
             type="button"
-            role="tab"
-            aria-selected={p.viewMode === "shelf"}
-            className={`libre-library-viewmode-btn libre-library-viewmode-btn--icon ${
-              p.viewMode === "shelf"
-                ? "libre-library-viewmode-btn--active"
-                : ""
+            className={`libre-library-filter-trigger ${
+              filterOpen ? "libre-library-filter-trigger--open" : ""
             }`}
-            onClick={() => p.onSetViewMode("shelf")}
-            title={t("library.shelfViewTitle")}
-            aria-label={t("library.shelfView")}
+            onClick={() => setFilterOpen((v) => !v)}
+            aria-haspopup="dialog"
+            aria-expanded={filterOpen}
           >
-            <Icon icon={rows3} size="xs" color="currentColor" />
+            <Icon icon={filterIcon} size="xs" color="currentColor" />
+            <span>{activeChips.length === 0 ? t("library.filter") : t("library.more")}</span>
           </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={p.viewMode === "grid"}
-            className={`libre-library-viewmode-btn libre-library-viewmode-btn--icon ${
-              p.viewMode === "grid"
-                ? "libre-library-viewmode-btn--active"
-                : ""
-            }`}
-            onClick={() => p.onSetViewMode("grid")}
-            title={t("library.gridViewTitle")}
-            aria-label={t("library.gridView")}
+
+          {filterOpen && (
+            <FilterPopover
+              categoryFilter={p.categoryFilter}
+              chainFilter={p.chainFilter}
+              langFilter={p.langFilter}
+              kindFilter={p.kindFilter}
+              categoryCounts={p.categoryCounts}
+              chainCounts={p.chainCounts}
+              countByLang={p.countByLang}
+              kindCounts={p.kindCounts}
+              totalCourses={p.totalCourses}
+              onSetCategory={p.onSetCategory}
+              onSetChain={p.onSetChain}
+              onSetLang={p.onSetLang}
+              onSetKind={p.onSetKind}
+            />
+          )}
+        </div>
+
+        <div className="libre-library-tools">
+          <label
+            className="libre-library-sort libre-library-sort--compact"
+            title={t("library.sortOrderTitle")}
           >
-            <Icon icon={layoutGrid} size="xs" color="currentColor" />
-          </button>
+            <Icon icon={arrowUpDown} size="xs" color="currentColor" />
+            <select
+              className="libre-library-sort-select"
+              value={p.sortBy}
+              onChange={(e) => p.onSetSort(e.target.value as SortKey)}
+            >
+              <option value="name">{t("library.sortName")}</option>
+              <option value="recent">{t("library.sortRecent")}</option>
+              <option value="status">{t("library.sortStatus")}</option>
+              <option value="progress">{t("library.sortProgress")}</option>
+              <option value="lessons">{t("library.sortLessonCount")}</option>
+            </select>
+          </label>
+          <SegmentedControl
+            size="lg"
+            ariaLabel={t("library.viewMode")}
+            value={p.viewMode}
+            onChange={(v) => p.onSetViewMode(v as ViewMode)}
+            options={[
+              {
+                value: "shelf",
+                title: t("library.shelfViewTitle"),
+                label: <Icon icon={rows3} size="sm" color="currentColor" />,
+              },
+              {
+                value: "grid",
+                title: t("library.gridViewTitle"),
+                label: <Icon icon={layoutGrid} size="sm" color="currentColor" />,
+              },
+            ]}
+          />
         </div>
       </div>
     </div>

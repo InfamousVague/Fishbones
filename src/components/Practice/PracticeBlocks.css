@@ -244,7 +244,7 @@
 
 .libre-practice-blocks__check {
   padding: 10px 18px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md, 10px);

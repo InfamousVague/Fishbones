@@ -42,6 +42,8 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { SegmentedControl } from "@base/primitives/segmented-control";
+import "@base/primitives/segmented-control/segmented-control.css";
 import {
   assembleBlocksSource,
   isBlocksAllCorrect,
@@ -657,38 +659,18 @@ function BlocksViewInner({
         {onExerciseModeChange && (
           <div className="libre-blocks__header">
             {exerciseMode && (
-              <div
-                className="libre-blocks__mode"
-                role="group"
-                aria-label="Exercise mode"
-              >
-                <button
-                  type="button"
-                  className={
-                    "libre-blocks__mode-btn" +
-                    (exerciseMode === "editor"
-                      ? " libre-blocks__mode-btn--active"
-                      : "")
-                  }
-                  onClick={() => onExerciseModeChange("editor")}
-                  aria-pressed={exerciseMode === "editor"}
-                >
-                  Editor
-                </button>
-                <button
-                  type="button"
-                  className={
-                    "libre-blocks__mode-btn" +
-                    (exerciseMode === "blocks"
-                      ? " libre-blocks__mode-btn--active"
-                      : "")
-                  }
-                  onClick={() => onExerciseModeChange("blocks")}
-                  aria-pressed={exerciseMode === "blocks"}
-                >
-                  Blocks
-                </button>
-              </div>
+              <SegmentedControl
+                size="lg"
+                ariaLabel="Exercise mode"
+                value={exerciseMode}
+                onChange={(v) =>
+                  onExerciseModeChange(v as "editor" | "blocks")
+                }
+                options={[
+                  { value: "editor", label: "Editor" },
+                  { value: "blocks", label: "Blocks" },
+                ]}
+              />
             )}
           </div>
         )}

@@ -23,6 +23,7 @@ import {
   difficultyRange,
 } from "../../data/courseDifficulty";
 import { catalogAssetBase } from "../../lib/catalog";
+import { languageMeta } from "../../lib/languages";
 import type { Course } from "../../data/types";
 import { useT } from "../../i18n/i18n";
 import { indexCourses, resolvePathProgress } from "./pathProgress";
@@ -193,7 +194,14 @@ export default function PathsPage({
                 <div className="libre-path-card__bar" aria-hidden>
                   <div
                     className="libre-path-card__bar-fill"
-                    style={{ width: `${progress.pct}%` }}
+                    // Language-brand fill — a path is single-language, so its
+                    // progress reads the same colour as that language elsewhere.
+                    style={{
+                      width: `${progress.pct}%`,
+                      background: path.language
+                        ? languageMeta(path.language).color
+                        : undefined,
+                    }}
                   />
                 </div>
                 <div className="libre-path-card__progress-meta">

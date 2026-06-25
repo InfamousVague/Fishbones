@@ -200,9 +200,9 @@
 }
 
 .m-lib__pill--active {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 .m-lib__pill-count {
@@ -421,6 +421,6 @@
   top: 0;
   bottom: 0;
   width: var(--m-lib-pct, 0%);
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   transition: width 0.3s ease;
 }

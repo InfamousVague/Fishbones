@@ -310,7 +310,7 @@
   top: 0;
   bottom: 0;
   width: var(--m-prof-pct, 0%);
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   transition: width 0.3s ease;
 }
 
@@ -393,7 +393,7 @@
   top: 0;
   bottom: 0;
   width: var(--m-prof-pct, 0%);
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   transition: width 0.3s ease;
 }
 
@@ -557,7 +557,7 @@
 
 .m-prof__lang-bar-fill {
   height: 100%;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   border-radius: var(--libre-radius-xs);
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }

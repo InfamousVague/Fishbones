@@ -407,7 +407,7 @@
 .libre-profile-lang-bar-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   border-radius: 999px;
   transition: width 0.35s ease;
 }

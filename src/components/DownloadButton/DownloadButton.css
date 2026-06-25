@@ -18,7 +18,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   /* Solid fill so the CTA pops on a translucent banner / hero
    * background. Per-theme override at the end of this file. */
-  background: var(--color-text-primary, #fafafa);
+  background: var(--gg-fill-white, #fafafa);
   color: var(--color-bg-primary, #0b0b10);
   font-family: inherit;
 }

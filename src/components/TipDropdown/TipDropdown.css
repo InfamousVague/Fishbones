@@ -8,21 +8,21 @@
   flex-shrink: 0;
 }
 
-/* Trigger sized to match the search button next to it (26px height,
+/* Trigger sized to match the other topbar controls (36px pill,
    chip metrics). Same active-state treatment as the topbar-search:
    subtle fill + brighter border on hover / open. */
 .libre__tip-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 10px;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md);
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.005em;
   cursor: pointer;

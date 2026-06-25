@@ -11,6 +11,7 @@
     "core:webview:allow-create-webview-window",
     "core:webview:allow-get-all-webviews",
     "core:window:allow-set-focus",
+    "core:window:allow-show",
     "core:window:allow-close",
     "core:window:allow-start-dragging",
     "core:webview:allow-webview-close",

@@ -316,7 +316,7 @@
      with bg-primary text. Pre-fix this used --color-accent which
      resolves to bone-amber on default-dark — visibly different
      from the white "Run" button it sits next to. */
-  background: var(--color-text-primary, #f5f5f7);
+  background: var(--gg-fill-white, #f5f5f7);
   color: var(--color-bg-primary, #0b0b10);
   border-color: transparent;
   font-weight: 500;
@@ -324,5 +324,5 @@
 
 .libre-verify-btn--primary:hover {
   filter: brightness(0.92);
-  background: var(--color-text-primary, #f5f5f7);
+  background: var(--gg-fill-white, #f5f5f7);
 }

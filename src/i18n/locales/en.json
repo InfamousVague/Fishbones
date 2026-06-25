@@ -24,6 +24,7 @@
     "sandbox": "Sandbox",
     "discover": "Discover",
     "practice": "Practice",
+    "comingSoon": "Coming soon",
     "paths": "Paths",
     "certificates": "Certificates",
     "challenges": "Challenges",
@@ -120,6 +121,7 @@
     "challenges": "Challenges",
     "challengesBlurb": "Per-language exercise packs — short coding problems sorted easy → hard.",
     "searchPlaceholder": "Search…",
+    "clearSearch": "Clear search",
     "filter": "Filter",
     "import": "Import",
     "importPdf": "PDF",
@@ -274,7 +276,6 @@
   "editor": {
     "run": "run",
     "popOut": "Open editor + console in a separate window",
-    "openInVSCode": "Open this lesson in VSCode",
     "splitSideBySide": "Side-by-side layout (article beside the editor)",
     "splitTopBottom": "Stacked layout (editor below the article)",
     "tabsAriaLabel": "Workbench files",

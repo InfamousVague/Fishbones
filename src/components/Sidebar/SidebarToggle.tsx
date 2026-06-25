@@ -55,7 +55,7 @@ export default function SidebarToggle({
       >
         <Icon
           icon={collapsed ? panelLeftOpen : panelLeftClose}
-          size="lg"
+          size="xl"
           color="currentColor"
         />
       </button>

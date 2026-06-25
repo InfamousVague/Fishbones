@@ -23,6 +23,7 @@ export function ProgressRing({
   label,
   sublabel,
   labelScale,
+  color,
   hideCheckOnComplete = false,
 }: {
   progress: number;
@@ -30,6 +31,12 @@ export function ProgressRing({
   stroke: number;
   label: string;
   sublabel?: string;
+  /// Explicit fill colour for the ring (e.g. a course's language brand
+  /// colour). Overrides the CSS-driven stroke so per-item rings — like the
+  /// sidebar's In-Progress list — can each show their own colour. The
+  /// completion checkmark inherits it too (via the wrapper's `color`). When
+  /// omitted, the ring keeps its theme-driven stroke.
+  color?: string;
   /// Multiplier for the inner label font. Defaults to 1 — the topbar chip
   /// variant keeps that. The Profile hero bumps this up so the level
   /// number reads at a glance inside a 120px ring.
@@ -68,7 +75,7 @@ export function ProgressRing({
       className={`libre__progress-ring ${
         isComplete ? "libre__progress-ring--complete" : ""
       }`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, ...(color ? { color } : null) }}
       aria-hidden
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -92,6 +99,8 @@ export function ProgressRing({
           strokeDashoffset={dashOffset}
           // Rotate -90deg so 0% starts at 12 o'clock, not 3 o'clock.
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          // Per-ring colour wins over the CSS-driven stroke when provided.
+          style={color ? { stroke: color } : undefined}
         />
         {isComplete && (
           // Inline SVG checkmark — drawn rather than imported as an

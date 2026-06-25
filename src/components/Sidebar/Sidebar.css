@@ -133,7 +133,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   flex-shrink: 0;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
@@ -294,7 +294,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--color-text-primary, #ffffff);
+  background: var(--gg-fill-white, #ffffff);
   color: var(--color-bg-primary, #000000);
   flex-shrink: 0;
   transition: opacity var(--libre-motion-snappy), transform var(--libre-motion-snappy);
@@ -358,7 +358,7 @@
 
 .libre__course-progress-fill {
   height: 100%;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   opacity: 0.85;
   transition: width 0.3s ease;
 }
@@ -640,8 +640,8 @@
 /* Done: filled white circle with a black kind icon inside — inverted
    colors flag completion at a glance without losing the what-kind cue. */
 .libre__lesson-status--done {
-  background: var(--color-text-primary);
-  border: 1.25px solid var(--color-text-primary);
+  background: var(--gg-fill-white);
+  border: 1.25px solid var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 
@@ -810,7 +810,7 @@
   align-items: center;
   gap: 6px;
   padding: 7px 12px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md);

@@ -116,7 +116,14 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // V22 — TRPL `create-package-exercise` now ships a real two-file
 // reference solution (src/lib.rs + src/main.rs) instead of collapsing
 // the package down to one inline-module file; re-seed rewrites it.
-const SEED_VERSION: u32 = 22;
+// V23 — JavaScript/TypeScript leg overhaul: added the new
+// `testing-javascript` book to the bundle (re-seed installs it into
+// every library); baked all 157 per-lesson images into
+// `javascript-typescript` + refreshed its course.json; promoted the JS
+// leg to core so `exercism-javascript`, `exercism-typescript` and
+// `javascript-koans` now auto-install; re-seed also re-extracts the
+// corrected `javascript-challenges` cover (the stale chibi placeholder).
+const SEED_VERSION: u32 = 23;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes

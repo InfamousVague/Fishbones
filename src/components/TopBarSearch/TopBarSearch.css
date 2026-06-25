@@ -17,17 +17,18 @@
 .libre__tbsearch-input-row {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 4px 0 8px;
-  /* 60% narrower than the previous 200/280px sizing. Tight enough to
-     mostly show the magnifying glass + the ⌘K kbd hint; the
-     placeholder text ellipsizes when there isn't room. */
-  min-width: 80px;
-  max-width: 112px;
+  gap: 7px;
+  height: 36px;
+  padding: 0 6px 0 12px;
+  /* Sized to sit alongside the other 36px topbar pills. A touch wider
+     than before so the placeholder + ⌘K hint read comfortably, while
+     still leaving the CommandPalette as the real search surface; the
+     placeholder ellipsizes when there isn't room. */
+  min-width: 132px;
+  max-width: 200px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md);
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font: inherit;
   cursor: pointer;
@@ -42,7 +43,7 @@
 }
 
 .libre__tbsearch-input-row:focus-visible {
-  outline: 2px solid var(--color-text-primary);
+  outline: 2px solid var(--gg-fill-white);
   outline-offset: 2px;
 }
 
@@ -59,7 +60,7 @@
 .libre__tbsearch-placeholder {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -72,7 +73,7 @@
 .libre__tbsearch-kbd {
   flex-shrink: 0;
   padding: 0 6px;
-  height: 18px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -81,7 +82,7 @@
   border: 1px solid var(--color-border-default);
   color: var(--color-text-tertiary);
   font: inherit;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.02em;
   pointer-events: none;

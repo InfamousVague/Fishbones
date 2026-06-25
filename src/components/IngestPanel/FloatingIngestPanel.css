@@ -57,7 +57,7 @@
   flex-shrink: 0;
 }
 .libre-floating-status-dot--running {
-  background: var(--color-text-primary, #fff);
+  background: var(--gg-fill-white, #fff);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
   animation: libre-floating-pulse 1.4s ease-in-out infinite;
 }
@@ -300,14 +300,14 @@
   background: var(--color-bg-tertiary);
 }
 .libre-floating-btn--primary {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   font-weight: 600;
 }
 .libre-floating-btn--primary:hover {
   opacity: 0.9;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 
@@ -387,7 +387,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   animation: libre-floating-pulse 1.4s ease-in-out infinite;
 }
 

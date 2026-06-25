@@ -13,9 +13,12 @@ import { arrowRight } from "@base/primitives/icon/icons/arrow-right";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
 import { eye } from "@base/primitives/icon/icons/eye";
+import { copy } from "@base/primitives/icon/icons/copy";
 import { layoutPanelLeft } from "@base/primitives/icon/icons/layout-panel-left";
 import { layoutPanelTop } from "@base/primitives/icon/icons/layout-panel-top";
 import "@base/primitives/icon/icon.css";
+import { SegmentedControl } from "@base/primitives/segmented-control";
+import "@base/primitives/segmented-control/segmented-control.css";
 import { ShortcutHint } from "../ShortcutHint/ShortcutHint";
 import { useT } from "../../i18n/i18n";
 import type { FileLanguage, LanguageId, WorkbenchFile } from "../../data/types";
@@ -103,14 +106,6 @@ interface Props {
   /// (e.g. when the EditorPane is already rendered inside the popped-out
   /// window).
   onPopOut?: () => void;
-  /// Hand the current lesson off to the Libre VSCode extension. When
-  /// supplied, renders a small button next to `onPopOut` that fires a
-  /// `vscode://libre-academy.libre/open?course=…&lesson=…` URL —
-  /// VSCode picks it up (if installed) and opens the lesson in its
-  /// own UI with the same shared progress.sqlite this app writes to.
-  /// Omit on surfaces where the handoff doesn't make sense (e.g. the
-  /// popped-out workbench window, where you're already detached).
-  onOpenInVSCode?: () => void;
   /// Outer split orientation + toggle. When both are supplied, the editor
   /// header renders a layout button that flips the article↔workbench split
   /// between side-by-side ("horizontal") and stacked ("vertical"). Omitted
@@ -213,7 +208,6 @@ export default function EditorPane({
   onReset,
   onRevealSolution,
   onPopOut,
-  onOpenInVSCode,
   splitOrientation,
   onToggleSplit,
   exerciseMode,
@@ -373,34 +367,21 @@ export default function EditorPane({
             ships authored blocks data. Replaces the previous static
             language label — the toggle is more useful in-context. */}
         {exerciseMode && onExerciseModeChange ? (
-          <div className="libre-editor-mode" role="group" aria-label={t("editor.ariaExerciseMode")}>
-            <button
-              type="button"
-              className={
-                "libre-editor-mode-btn" +
-                (exerciseMode === "editor"
-                  ? " libre-editor-mode-btn--active"
-                  : "")
-              }
-              onClick={() => onExerciseModeChange("editor")}
-              aria-pressed={exerciseMode === "editor"}
-            >
-              {t("editor.modeEditor")}
-            </button>
-            <button
-              type="button"
-              className={
-                "libre-editor-mode-btn" +
-                (exerciseMode === "blocks"
-                  ? " libre-editor-mode-btn--active"
-                  : "")
-              }
-              onClick={() => onExerciseModeChange("blocks")}
-              aria-pressed={exerciseMode === "blocks"}
-            >
-              {t("editor.modeBlocks")}
-            </button>
-          </div>
+          <SegmentedControl
+            size="lg"
+            // Kept purely as a selector hook for the product tour
+            // (tourSteps.json targets `.libre-editor-mode` for the
+            // "Blocks mode" step). No styling is attached to it —
+            // the Base component owns the visuals.
+            className="libre-editor-mode"
+            ariaLabel={t("editor.ariaExerciseMode")}
+            value={exerciseMode}
+            onChange={(v) => onExerciseModeChange(v as "editor" | "blocks")}
+            options={[
+              { value: "editor", label: t("editor.modeEditor") },
+              { value: "blocks", label: t("editor.modeBlocks") },
+            ]}
+          />
         ) : (
           // Empty placeholder so the header's flex layout still
           // anchors the action cluster on the right when no mode
@@ -439,7 +420,7 @@ export default function EditorPane({
                     {/* One scale up (xs→sm) — the toolbar icon row
                         was reading too small / cramped against the
                         editor pane. See sibling bumps on the
-                        pop-out + VSCode buttons. */}
+                        pop-out button. */}
                     <Icon icon={chevronDown} size="sm" color="currentColor" />
                   </button>
                 )}
@@ -542,41 +523,10 @@ export default function EditorPane({
               className="libre-editor-button libre-editor-button--glyph"
               onClick={onPopOut}
               title={t("editor.popOut")}
+              aria-label={t("editor.popOut")}
             >
-              ⇱
-            </button>
-          )}
-          {onOpenInVSCode && (
-            <button
-              type="button"
-              className="libre-editor-button"
-              onClick={onOpenInVSCode}
-              title={t("editor.openInVSCode")}
-              aria-label={t("editor.openInVSCode")}
-            >
-              {/* Official VSCode brand logo (Notion issue
-                  #b07aeebf23206a8d "Use new VSCode Icon" — links
-                  the canonical asset). Three prior glyph attempts
-                  (custom slab+chevron SVG, external-link,
-                  code-square) all read poorly or rendered
-                  partially at toolbar size. Now an <img> of the
-                  real full-colour VSCode mark, bundled at
-                  `public/vscode.png` (downscaled from the 1024²
-                  brand PNG to 64²). The colour variant is
-                  theme-safe — the saturated blue ribbon reads on
-                  both light and dark toolbar backgrounds, which
-                  is what the original "broken in dark and light
-                  mode" report needed. `import.meta.env.BASE_URL`
-                  prefix so the path resolves under the web
-                  build's `/learn/` sub-path too. */}
-              <img
-                src={`${import.meta.env.BASE_URL}vscode.png`}
-                alt=""
-                width={16}
-                height={16}
-                draggable={false}
-                style={{ display: "block" }}
-              />
+              {/* Two overlapping squares — pop the editor into its own window. */}
+              <Icon icon={copy} size="xs" color="currentColor" />
             </button>
           )}
           <button

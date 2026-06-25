@@ -35,6 +35,7 @@ const STAT_COLORS = {
 /// account row (sign-in / sign-out).
 export default function StatsChip({
   stats,
+  statsReady = true,
   history,
   shields,
   onOpenProfile,
@@ -45,6 +46,11 @@ export default function StatsChip({
   onSignOut,
 }: {
   stats: StreakAndXp;
+  /// True once the data `stats` is derived from (courses + completion
+  /// history) has loaded. The streak/level cues below gate on this so
+  /// the 0 → real hydration on app launch is absorbed as the baseline
+  /// instead of firing a celebratory sound/haptic on every load.
+  statsReady?: boolean;
   history?: Completion[];
   /// Streak-shield state. When wired, the dropdown renders a small
   /// "freezes" panel showing how many shields remain this week + a
@@ -93,9 +99,11 @@ export default function StatsChip({
   // (the chip re-mounts whenever the topbar route re-renders).
   useHapticOnChange(stats.streakDays, "streak-bump", {
     when: (prev, next) => next > prev,
+    ready: statsReady,
   });
   useHapticOnChange(stats.level, "level-up", {
     when: (prev, next) => next > prev,
+    ready: statsReady,
   });
   // Sound counterparts for the streak. The `streak-tick`/`streak-flame`
   // cues existed in sfx but were never wired to anything. A milestone
@@ -105,9 +113,11 @@ export default function StatsChip({
   const streakMilestones = [3, 7, 14, 30, 50, 100, 365];
   useSoundOnChange(stats.streakDays, "streak-tick", {
     when: (prev, next) => next > prev && !streakMilestones.includes(next),
+    ready: statsReady,
   });
   useSoundOnChange(stats.streakDays, "streak-flame", {
     when: (prev, next) => next > prev && streakMilestones.includes(next),
+    ready: statsReady,
   });
   // Streak BROKEN — the candle blow-out. Fires when the computed
   // streak drops mid-session (first completion after missed days
@@ -116,6 +126,7 @@ export default function StatsChip({
   useSoundOnChange(stats.streakDays, "flame-out", {
     increaseOnly: false,
     when: (prev, next) => next < prev && prev >= 2,
+    ready: statsReady,
   });
 
   /// Freeze-affordance state. The "Freeze yesterday" CTA shows only when:

@@ -152,14 +152,18 @@ body,
      individually opt out below. */
   -webkit-app-region: drag;
   app-region: drag;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--tray-accent) 14%, transparent),
-      color-mix(in srgb, var(--tray-accent) 5%, transparent) 70%,
-      transparent 100%
-    ),
-    var(--color-bg-primary);
+  /* Accent wash only — the base layer is TRANSPARENT so the
+     host's frosted-glass surface reads through the header strip
+     too (it used to sit on an opaque `--color-bg-primary`, which
+     painted a solid bar across the top of the otherwise-glass
+     panel). The `border-bottom` still separates header from body;
+     the glass is now continuous top-to-bottom like the nav rail. */
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--tray-accent) 14%, transparent),
+    color-mix(in srgb, var(--tray-accent) 5%, transparent) 70%,
+    transparent 100%
+  );
   /* Mode color changes shouldn't flash — fade through the
      gradient by transitioning the background blend instead. */
   transition: background 200ms ease;
@@ -633,8 +637,19 @@ body,
   width: 485px;
   max-width: calc(100vw - 28px);
   z-index: 91;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  /* Frosted-glass surface — same material as the navigation rail
+     + sidebar (theme/themes.css tokens, blur(28px) saturate(160%))
+     so the floating AI card reads as part of the same chrome
+     family instead of a flat opaque box. Uses the `-strong` glass
+     fill (82% vs the rail's 62%) because this panel is dense text
+     + code: the heavier tint keeps message/code contrast crisp
+     over a busy editor backdrop while still letting the aurora
+     glow through. The blur is what makes it "glass"; the slightly
+     stronger fill is the content-density adjustment. */
+  background: var(--color-glass-bg-strong);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--color-glass-border);
   border-radius: var(--libre-radius-lg);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
   overflow: hidden;
@@ -699,6 +714,13 @@ body,
   width: 100%;
   height: 100%;
   max-width: none;
+  /* Transparent so the host's frosted-glass surface reads through.
+     The standalone `.libre-ai-panel` (used outside the host) keeps
+     its opaque `--color-bg-secondary`; only the in-host instance
+     goes see-through, since the host now owns the glass. Without
+     this the panel's opaque fill would paint over the host's
+     backdrop-filter and there'd be no glass at all. */
+  background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;

@@ -273,6 +273,22 @@
   -webkit-mask-repeat: no-repeat;
 }
 
+/* Desktop fix. The Tauri webview (WKWebView) renders an isolated
+   `mix-blend-mode` layer that has no opaque backdrop as fully TRANSPARENT, so
+   the orb's `surface="light"` multiply foil vanished on the desktop app while
+   compositing fine in Chrome (the web build). The foil + snake mask are correct
+   on both engines — only the blend step differs — so composite the orb's foil
+   NORMALLY: the rainbow then shows directly through the snake mask, identically
+   everywhere. (Trades the subtle white-multiply "soak" for the mark actually
+   appearing — it's the AI button's icon, it has to render.) The compound
+   `.libre-ai-character__holo.libre-holo--light` selector (0,3,0) outranks the
+   primitive's `.libre-holo--light .libre-holo__foil` (0,2,0) regardless of
+   stylesheet order. */
+.libre-ai-character__holo.libre-holo--light .libre-holo__foil,
+.libre-ai-character__holo.libre-holo--light .libre-holo__shine {
+  mix-blend-mode: normal;
+}
+
 
 /* ---- Keyframes ------------------------------------------------- */
 

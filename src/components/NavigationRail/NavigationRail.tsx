@@ -32,6 +32,7 @@ import { terminal as terminalIcon } from "@base/primitives/icon/icons/terminal";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { circleHelp } from "@base/primitives/icon/icons/circle-help";
 import { play as playIcon } from "@base/primitives/icon/icons/play";
+import { lock } from "@base/primitives/icon/icons/lock";
 import { Tooltip } from "@base/primitives/tooltip";
 import "@base/primitives/icon/icon.css";
 import "@base/primitives/tooltip/tooltip.css";
@@ -138,30 +139,59 @@ interface RailItemProps {
   /// Optional count badge (e.g. spaced-repetition reviews due). Shown
   /// top-right of the icon when > 0; capped at "9+".
   badge?: number;
+  /// Marks the route as not-yet-shipped: the button is visually dimmed,
+  /// non-interactive (no onClick, `aria-disabled`), and wears a small
+  /// lock badge. We use `aria-disabled` rather than the native
+  /// `disabled` attribute so the "Coming soon" tooltip still appears on
+  /// hover (disabled buttons swallow pointer events in most engines).
+  comingSoon?: boolean;
+  /// Localised "Coming soon" suffix appended to the tooltip / accessible
+  /// name when `comingSoon` is set.
+  comingSoonLabel?: string;
 }
 
-function RailItem({ icon, label, onClick, active, pressed, badge }: RailItemProps) {
+function RailItem({
+  icon,
+  label,
+  onClick,
+  active,
+  pressed,
+  badge,
+  comingSoon,
+  comingSoonLabel,
+}: RailItemProps) {
+  const tip =
+    comingSoon && comingSoonLabel ? `${label} · ${comingSoonLabel}` : label;
   return (
-    <Tooltip content={label} placement="right" delay={120}>
+    <Tooltip content={tip} placement="right" delay={120}>
       <button
         type="button"
         className={
           "libre-nav-rail__item" +
-          (active ? " libre-nav-rail__item--active" : "")
+          (active ? " libre-nav-rail__item--active" : "") +
+          (comingSoon ? " libre-nav-rail__item--coming-soon" : "")
         }
-        onClick={onClick}
-        aria-label={badge && badge > 0 ? `${label} (${badge})` : label}
-        aria-pressed={pressed}
+        onClick={comingSoon ? undefined : onClick}
+        aria-disabled={comingSoon || undefined}
+        aria-label={tip}
+        aria-pressed={comingSoon ? undefined : pressed}
       >
         {/* size="xl" — bumped up from the original "sm" so the rail
             glyphs read as primary-nav, but stepped down from "2xl"
             which crowded the 40×40 button. xl (22px) leaves ~9px
             of ring inside the button for hover / active contrast. */}
         <Icon icon={icon} size="xl" color="currentColor" />
-        {badge !== undefined && badge > 0 && (
-          <span className="libre-nav-rail__badge" aria-hidden>
-            {badge > 9 ? "9+" : badge}
+        {comingSoon ? (
+          <span className="libre-nav-rail__lock" aria-hidden>
+            <Icon icon={lock} size="xs" color="currentColor" />
           </span>
+        ) : (
+          badge !== undefined &&
+          badge > 0 && (
+            <span className="libre-nav-rail__badge" aria-hidden>
+              {badge > 9 ? "9+" : badge}
+            </span>
+          )
         )}
       </button>
     </Tooltip>
@@ -176,7 +206,9 @@ export default function NavigationRail({
   onDiscover,
   onChallenges,
   onPractice,
-  practiceDue,
+  // `practiceDue` is still accepted on the props interface (callers
+  // pass it) but no longer read — the Practice route is "coming soon"
+  // and its rail item shows a lock instead of a review-count badge.
   onPaths,
   onCertificates,
   onSandbox,
@@ -330,7 +362,8 @@ export default function NavigationRail({
             label={t("nav.practice")}
             onClick={onPractice}
             active={activeView === "practice"}
-            badge={practiceDue}
+            comingSoon
+            comingSoonLabel={t("nav.comingSoon")}
           />
         )}
         {onCertificates && (

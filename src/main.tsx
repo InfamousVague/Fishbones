@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
 import { applyTheme, loadTheme, applyHue, loadHue } from "./theme/themes";
 import { prewarmCoursesSummary } from "./hooks/useCourses";
-import { isMobile } from "./lib/platform";
+import { isMobile, isWeb } from "./lib/platform";
 import ErrorBoundary from "./components/Shared/ErrorBoundary";
 // Base library's design tokens FIRST (light `:root` + `[data-theme=
 // "dark"]` blocks), then our theme overrides, then app shell styles.
@@ -28,6 +28,13 @@ import "./App.css";
 // glass + seafoam accents). Imported LAST so its scoped rules win on source
 // order as well as specificity. See the file header for the revert recipe.
 import "./theme/ghostwire.css";
+// Inlined holographic snake mask (base64 data: URI). Loaded after the
+// theme layers so its `:root` `--libre-asset-snake` default is in place
+// before the Hologram primitive paints. Replaces the old runtime-set
+// `url("/new-logo-tile.png")` which 404'd under the web `/learn/` base
+// and inside the Tauri WKWebView asset protocol — a failed mask renders
+// the foil transparent-black (the AI orb's blank disc).
+import "./theme/holo-assets.css";
 import { I18nProvider } from "./i18n/i18n";
 
 // Boot-phase markers. Pushed to the dev console buffer (devconsole.js
@@ -50,6 +57,12 @@ applyTheme(loadTheme());
 // other themes — they don't read --gg-hue. Set before mount so the first
 // paint already carries the user's chosen hue.
 applyHue(loadHue());
+// Expose the build target to CSS. Lets platform-specific rules key off
+// `[data-platform="desktop"]` / `[data-platform="web"]` — e.g. the
+// Hologram primitive composites its foil NORMALLY on desktop (WKWebView's
+// mix-blend-mode + filter regression flattens/blanks blended foils) while
+// keeping the designed multiply/plus-lighter blend on the web build.
+document.documentElement.setAttribute("data-platform", isWeb ? "web" : "desktop");
 bootLog("theme applied");
 
 // Global link interceptor. Routes every external-URL click to the
@@ -80,8 +93,12 @@ const isPhone = params.get("phone") === "1";
 const isEvmDock = params.get("evmDock") === "1";
 const isBtcDock = params.get("btcDock") === "1";
 const isSvmDock = params.get("svmDock") === "1";
+// macOS pre-launch updater/splash window (tauri.macos.conf.json loads
+// `index.html?splash=1` in a small frameless window while the main window is
+// hidden). Renders only the UpdaterSplash; never warms the library.
+const isSplash = params.get("splash") === "1";
 const popoutMode =
-  isPopped || isPhone || isEvmDock || isBtcDock || isSvmDock;
+  isPopped || isPhone || isEvmDock || isBtcDock || isSvmDock || isSplash;
 
 // Kick off the courses-summary IPC BEFORE React mounts. Skip on the
 // popout / dock variants — they don't render the library so warming
@@ -92,6 +109,29 @@ const popoutMode =
 if (!popoutMode) {
   prewarmCoursesSummary();
   bootLog("courses prewarm fired");
+}
+
+// macOS only: the main window starts hidden (tauri.macos.conf.json) while the
+// splash window runs the pre-launch update check + the (hidden) main window
+// prefetches its data. App.tsx reveals the window itself the moment courses
+// finish loading (its `coursesLoaded` effect) so the boot loader never flashes
+// here — everything loads behind the splash. This timer is a SAFETY NET only:
+// if that signal never fires (a load error, a wedged fetch), reveal anyway so a
+// hidden main window can't strand the app. No-op on web; harmless where the
+// window is already visible (iOS / Windows / Linux use tauri.conf.json).
+if (!popoutMode && !isWeb) {
+  void (async () => {
+    try {
+      const { getCurrentWindow } = await import("@tauri-apps/api/window");
+      const w = getCurrentWindow();
+      setTimeout(() => {
+        void w.show().catch(() => {});
+        void w.setFocus().catch(() => {});
+      }, 12_000);
+    } catch {
+      /* not Tauri */
+    }
+  })();
 }
 
 // Pick the right page lazily so we only download + parse the chunk
@@ -111,6 +151,7 @@ if (!popoutMode) {
 // hasn't been added yet (App / MobileApp does that on first commit),
 // so the user sees the preloader the whole time.
 const Page = (() => {
+  if (isSplash) return lazy(() => import("./components/Shared/UpdaterSplash"));
   if (isEvmDock) {
     return lazy(() =>
       import("./components/ChainDock/ChainDock").then((m) => ({

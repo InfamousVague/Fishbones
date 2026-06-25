@@ -108,7 +108,7 @@
 }
 
 .libre-book:focus-visible {
-  outline: 2px solid var(--color-text-primary);
+  outline: 2px solid var(--gg-fill-white);
   outline-offset: 2px;
 }
 
@@ -313,7 +313,7 @@
   /* Coloured by the book's language accent (set inline from langMeta),
      mirroring the challenge card's `--track-accent` fill; falls back to
      the text colour when no language accent is available. */
-  background: var(--color-text-primary, #fff);
+  background: var(--gg-fill-white, #fff);
   transition: width 0.4s ease;
 }
 

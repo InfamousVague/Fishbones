@@ -173,15 +173,15 @@
 
 .libre-docs-lang-btn--active,
 .libre-docs-lang-btn--active:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 /* Slider + ticks */
 .libre-docs-slider {
   width: 100%;
-  accent-color: var(--color-text-primary);
+  accent-color: var(--gg-fill-white);
 }
 
 .libre-docs-slider-ticks {
@@ -205,7 +205,7 @@
 }
 
 .libre-docs-toggle input {
-  accent-color: var(--color-text-primary);
+  accent-color: var(--gg-fill-white);
   cursor: pointer;
 }
 
@@ -242,7 +242,7 @@
 }
 
 .libre-docs-model--active {
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   background: var(--color-bg-tertiary);
 }
 
@@ -328,8 +328,8 @@
 
 .libre-docs-btn--primary,
 .libre-docs-btn--primary:hover:not(:disabled) {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   font-weight: 600;
 }

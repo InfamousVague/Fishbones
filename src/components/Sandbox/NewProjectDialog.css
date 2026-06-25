@@ -100,9 +100,9 @@
 
 .libre-newproj__btn--primary,
 .libre-newproj__btn--primary:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   font-weight: 600;
 }
 

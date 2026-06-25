@@ -8,7 +8,6 @@ import {
   isQuiz,
 } from "../../data/types";
 import { localizedLesson } from "../../data/localize";
-import { openExternal } from "../../lib/openExternal";
 import { useLocale } from "../../hooks/useLocale";
 import { useKeybinding } from "../../hooks/useKeybinding";
 import { setRunStatus } from "../../hooks/useRunStatus";
@@ -559,34 +558,6 @@ export default function LessonView({
     }
   }
 
-  /// Hand the current (course, lesson) off to the Libre VSCode
-  /// extension via a `vscode://libre-academy.libre/open` URL. The OS
-  /// routes the protocol to VSCode (if installed); the extension's
-  /// URI handler resolves the course + lesson out of the shared
-  /// libre data dir and opens its own panel. Progress writes back
-  /// to the same `progress.sqlite` we read so a completion in VSCode
-  /// shows up here as a checkmark the next time the page refreshes.
-  ///
-  /// We don't save the in-flight editor contents here — the extension
-  /// only ever reads the lesson's canonical `starter` from
-  /// course.json, not whatever's in the desktop app's localStorage.
-  /// Once VSCode is launched the user does the rest of their work
-  /// there. If they want to come back, they re-open the lesson in
-  /// the desktop app and the progress already reflects whatever they
-  /// did in VSCode.
-  async function handleOpenInVSCode() {
-    const encCourse = encodeURIComponent(courseId);
-    const encLesson = encodeURIComponent(lesson.id);
-    const url = `vscode://libre-academy.libre/open?course=${encCourse}&lesson=${encLesson}`;
-    /// `openExternal` shells out to the OS opener, which will route a
-    /// `vscode://` URL to the registered VSCode handler. If VSCode
-    /// isn't installed the OS shows its own "no handler" dialog —
-    /// good enough as a fallback; we don't try to detect VSCode
-    /// presence first because there's no reliable cross-platform
-    /// probe that doesn't shell out.
-    await openExternal(url);
-  }
-
   /// Bring the workbench back into the main window. Closes the popped
   /// window too so we don't leave a zombie detached view. The popped
   /// window's `beforeunload` also emits `closed` which flips our state,
@@ -845,7 +816,6 @@ export default function LessonView({
                 onReset={handleReset}
                 onRevealSolution={handleRevealSolution}
                 onPopOut={handlePopOut}
-                onOpenInVSCode={handleOpenInVSCode}
                 splitOrientation={splitOrientation}
                 onToggleSplit={toggleSplitOrientation}
                 exerciseMode={
@@ -886,7 +856,6 @@ export default function LessonView({
                   onReset={handleReset}
                   onRevealSolution={handleRevealSolution}
                   onPopOut={handlePopOut}
-                  onOpenInVSCode={handleOpenInVSCode}
                   splitOrientation={splitOrientation}
                   onToggleSplit={toggleSplitOrientation}
                   exerciseMode={

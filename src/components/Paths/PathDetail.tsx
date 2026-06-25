@@ -22,6 +22,7 @@ import { plus } from "@base/primitives/icon/icons/plus";
 import "@base/primitives/icon/icon.css";
 
 import type { LearningPath } from "../../data/paths";
+import { languageMeta } from "../../lib/languages";
 import { flattenSteps } from "../../data/paths";
 import {
   courseDifficulty,
@@ -341,7 +342,13 @@ export default function PathDetail({
           <div className="libre-path-detail__bar" aria-hidden>
             <div
               className="libre-path-detail__bar-fill"
-              style={{ width: `${overall.pct}%` }}
+              // Language-brand fill — matches the path card + library colours.
+              style={{
+                width: `${overall.pct}%`,
+                background: path.language
+                  ? languageMeta(path.language).color
+                  : undefined,
+              }}
             />
           </div>
           <div className="libre-path-detail__progress-meta">

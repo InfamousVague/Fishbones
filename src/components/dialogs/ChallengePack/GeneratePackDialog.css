@@ -119,16 +119,16 @@
 
 .libre-genpack-lang-btn--active,
 .libre-genpack-lang-btn--active:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
 }
 
 /* Count slider */
 
 .libre-genpack-slider {
   width: 100%;
-  accent-color: var(--color-text-primary);
+  accent-color: var(--gg-fill-white);
 }
 
 .libre-genpack-slider-ticks {
@@ -167,7 +167,7 @@
 }
 
 .libre-genpack-model--active {
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   background: var(--color-bg-tertiary);
 }
 
@@ -243,8 +243,8 @@
 
 .libre-genpack-btn--primary,
 .libre-genpack-btn--primary:hover {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   font-weight: 600;
 }

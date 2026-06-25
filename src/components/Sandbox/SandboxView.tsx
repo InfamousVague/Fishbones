@@ -1,10 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { code as codeIcon } from "@base/primitives/icon/icons/code";
 import { eye } from "@base/primitives/icon/icons/eye";
 import { columns2 } from "@base/primitives/icon/icons/columns-2";
 import { smartphone } from "@base/primitives/icon/icons/smartphone";
 import "@base/primitives/icon/icon.css";
+import { SegmentedControl } from "@base/primitives/segmented-control";
+import "@base/primitives/segmented-control/segmented-control.css";
 import type { LanguageId } from "../../data/types";
 import type { UseSandboxProjectsResult } from "../../hooks/useSandboxProjects";
 import { useToolchainStatus } from "../../hooks/useToolchainStatus";
@@ -381,37 +383,9 @@ export default function SandboxView({ projects }: SandboxViewProps) {
   const showEditor = viewMode !== "preview";
   const showOutput = viewMode !== "editor";
 
-  // Sliding active-pill measurement for the segmented control.
-  // Each toggle has a different rendered width (label + icon), so
-  // a CSS-only "active pill" wouldn't know how wide / where to
-  // sit. We measure the active button's `offsetLeft + offsetWidth`
-  // in a layout effect (runs synchronously before paint so the
-  // pill never flashes in at the wrong spot on first mount) and
-  // store it in state; the pill's transform + width animate over
-  // 220ms when the active toggle changes. Same pattern the
-  // NavigationRail's vertical pill uses for route highlights.
-  const segTrackRef = useRef<HTMLDivElement | null>(null);
-  const [segPill, setSegPill] = useState<{ left: number; width: number } | null>(
-    null,
-  );
-  useLayoutEffect(() => {
-    const track = segTrackRef.current;
-    if (!track) {
-      setSegPill(null);
-      return;
-    }
-    const active = track.querySelector(
-      ".libre-sandbox-seg-btn--active",
-    ) as HTMLElement | null;
-    if (!active) {
-      setSegPill(null);
-      return;
-    }
-    setSegPill({ left: active.offsetLeft, width: active.offsetWidth });
-    // Re-measure when the visible-options list changes (the Phone
-    // toggle gates on language) so the pill stays glued to the
-    // active button even when its neighbours appear / disappear.
-  }, [viewMode, visibleViewModeOptions]);
+  // The view-mode segmented control is the Base `<SegmentedControl>`
+  // (size lg); it owns its own sliding indicator, so the old
+  // measure-and-position-a-pill layout effect was removed.
   // Phone-eligible language in either `phone` or `split` view → render
   // the floating-phone modal over a full-width editor instead of the
   // old fixed right-pane phone stage. `editor` / `preview` view modes
@@ -702,53 +676,25 @@ export default function SandboxView({ projects }: SandboxViewProps) {
           </button>
         </div>
 
-        <div
+        <SegmentedControl
+          size="lg"
           className="libre-sandbox-seg"
-          role="group"
-          aria-label={t("sandbox.viewMode")}
-          ref={segTrackRef}
-        >
-          {/* Sliding active-pill. Absolutely positioned across the
-              segmented track; its transform + width animate over
-              220ms when the active toggle changes, so clicking a
-              different mode glides the highlight rather than
-              snapping. The hologram foil was retired here — the
-              iridescent treatment is now scoped to certificates +
-              the AI button so the segmented toggle reads as a
-              quiet flat indicator. Rendered as a sibling of the
-              buttons (not inside the active one) so the slide
-              transition doesn't unmount the pill. */}
-          {segPill && (
-            <span
-              className="libre-sandbox-seg-pill"
-              style={{
-                transform: `translateX(${segPill.left}px)`,
-                width: `${segPill.width}px`,
-              }}
-              aria-hidden
-            />
-          )}
-          {visibleViewModeOptions.map((opt) => {
-            const active = viewMode === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                className={`libre-sandbox-seg-btn ${
-                  active ? "libre-sandbox-seg-btn--active" : ""
-                }`}
-                onClick={() => setViewMode(opt.id)}
-                title={t(opt.labelKey)}
-                aria-pressed={active}
-              >
+          ariaLabel={t("sandbox.viewMode")}
+          value={viewMode}
+          onChange={(v) => setViewMode(v as ViewMode)}
+          options={visibleViewModeOptions.map((opt) => ({
+            value: opt.id,
+            title: t(opt.labelKey),
+            label: (
+              <>
                 <Icon icon={opt.icon} size="sm" color="currentColor" />
                 <span className="libre-sandbox-seg-label">
                   {t(opt.labelKey)}
                 </span>
-              </button>
-            );
-          })}
-        </div>
+              </>
+            ),
+          }))}
+        />
       </div>
 
       {/* Generate-from-prompt strip. Slides in under the header when

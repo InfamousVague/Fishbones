@@ -5,7 +5,7 @@
 .libre__topbar {
   display: flex;
   align-items: center;
-  height: 44px;
+  height: 52px;
   flex-shrink: 0;
   /* `backdrop-filter` creates a new stacking context. That bottles
      up the stats popover (which lives inside the topbar in the DOM
@@ -51,6 +51,36 @@
   height: 100%;
 }
 
+/* Browser-style back / forward history arrows, left of the tab strip. */
+.libre__topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+.libre__topbar-navbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: var(--libre-radius-pill, 999px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+.libre__topbar-navbtn:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+.libre__topbar-navbtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 /* Brand wordmark removed from the top bar — see TopBar.tsx. The
    Library page header now hosts the lockup at hero size; carrying
    it in the topbar too duplicated the brand presence and stole
@@ -80,13 +110,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 38px;
+  height: 38px;
   margin: 0 4px 0 0;
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: var(--libre-radius-sm);
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
@@ -131,12 +161,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md);
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: background var(--libre-motion-snappy),
@@ -149,10 +179,10 @@
    line up on the same baseline. */
 .libre__topbar-icon-btn--labeled {
   width: auto;
-  gap: 6px;
-  padding: 0 10px;
+  gap: 7px;
+  padding: 0 14px;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.005em;
 }
@@ -283,13 +313,14 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 3px 8px 3px 10px;
+  height: 36px;
+  padding: 0 10px 0 12px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3px;
@@ -320,8 +351,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   line-height: 1;
 }
 
@@ -753,9 +784,9 @@
   width: 100%;
   margin-top: 14px;
   padding: 9px 12px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border: 1px solid var(--color-text-primary);
+  border: 1px solid var(--gg-fill-white);
   border-radius: var(--libre-radius-md);
   font-family: inherit;
   font-size: 12.5px;
@@ -881,9 +912,9 @@
 /* "Sign in" — primary fill, same treatment as View-profile's primary
    variant so a signed-out learner sees a single dominant CTA. */
 .libre__topbar-stats-signin {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border: 1px solid var(--color-text-primary);
+  border: 1px solid var(--gg-fill-white);
   font-weight: 600;
   transition: opacity var(--libre-motion-snappy);
 }
@@ -909,13 +940,13 @@
 .libre__tab {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
+  gap: 9px;
+  padding: 7px 14px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 10px;
   color: var(--color-text-secondary);
-  font-size: 12.5px;
+  font-size: 13.5px;
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--libre-motion-snappy), background var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
@@ -957,7 +988,7 @@
   left: -3px;
   width: 2px;
   border-radius: 1px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   pointer-events: none;
 }
 .libre__tab--drag-over.libre__tab--drop-after::before {
@@ -1032,7 +1063,7 @@
   letter-spacing: 0.3px;
   text-transform: uppercase;
   color: var(--color-bg-primary);
-  background: var(--libre-tab-group-color, var(--color-text-primary));
+  background: var(--libre-tab-group-color, var(--gg-fill-white));
   /* Cap the badge width so a long group name doesn't push the
      tab's title off the strip. Truncation via ellipsis. */
   max-width: 80px;

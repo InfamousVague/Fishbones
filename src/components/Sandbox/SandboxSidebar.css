@@ -187,7 +187,7 @@
      identity used everywhere else (active file row + Run button
      + nav-rail pill) rather than a rainbow line against the
      sidebar's frosted-glass backdrop. */
-  background: var(--color-text-primary, #ffffff);
+  background: var(--gg-fill-white, #ffffff);
   /* mix-blend-mode on the Hologram needs its own stacking context
      to keep the blend confined to the strip; `isolation: isolate`
      gives us that without committing to an explicit z-index. */

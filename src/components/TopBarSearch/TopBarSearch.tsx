@@ -64,7 +64,7 @@ export default function TopBarSearch({ onOpenFullSearch }: Props) {
       >
         <Icon
           icon={searchIcon}
-          size="xs"
+          size="sm"
           color="currentColor"
           className="libre__tbsearch-icon"
         />

@@ -44,7 +44,7 @@
 }
 
 .m-quiz__choice--picked {
-  border-color: var(--color-text-primary);
+  border-color: var(--gg-fill-white);
   background: var(--color-bg-elevated);
 }
 
@@ -89,7 +89,7 @@
 .m-quiz__short-submit {
   align-self: flex-start;
   padding: 10px 16px;
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: 10px;
@@ -132,7 +132,7 @@
 }
 
 .m-quiz__btn--primary {
-  background: var(--color-text-primary);
+  background: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 
