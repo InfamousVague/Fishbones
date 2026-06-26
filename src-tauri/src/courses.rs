@@ -159,7 +159,9 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // placeholder, no in-zip cover); re-seed re-extracts it on desktop.
 // V33 — renamed jfb chapters: "...— Functions Chapter" -> "Functions",
 // final "JavaScript for Beginners" chapter -> "Final".
-const SEED_VERSION: u32 = 33;
+// V34 — baked 114/116 per-lesson images into ziglings (2 pending art);
+// re-seed rewrites the installed course so the art shows offline.
+const SEED_VERSION: u32 = 34;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes

@@ -49,17 +49,19 @@ export const COLLECTIONS: readonly Collection[] = [
     id: "python",
     title: "Python",
     short: "PY",
-    blurb: "Everything Python — the books, the Exercism track, the koans, and the challenge pack.",
+    blurb: "Everything Python — the in-house books, the Exercism track, the koans, and the challenge pack.",
     accent: "#3f8a7c",
     memberIds: new Set([
-      "automate-the-boring-stuff",
-      "dive-into-deep-learning",
-      "composing-programs",
-      "open-data-structures",
-      "algorithms-erickson",
+      // Mirrors the JS/Web shape: the two in-house books up front, then
+      // the practice set. The other Python books (Automate the Boring
+      // Stuff, Dive into Deep Learning, Composing Programs, Open Data
+      // Structures, Algorithms) stay published in Discover but are no
+      // longer pinned into this collection.
+      "learning-python",
+      "python-for-beginners",
       "exercism-python",
-      "challenges-python-handwritten",
       "python-koans",
+      "challenges-python-handwritten",
     ]),
   },
   {
