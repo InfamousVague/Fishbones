@@ -28,14 +28,19 @@ export default function LoadingScreen({ status, progress }: LoadingScreenProps) 
       <div className="libre-loadscreen-glow" aria-hidden />
       <div className="libre-loadscreen-body">
         <div className="libre-loadscreen-mark" aria-hidden />
-        <div
-          className={`libre-loadscreen-bar${pct === null ? " is-indeterminate" : ""}`}
-        >
-          <div
-            className="libre-loadscreen-bar-fill"
-            style={pct === null ? undefined : { width: `${Math.round(pct * 100)}%` }}
-          />
-        </div>
+        {/* Progress bar renders ONLY for determinate progress (e.g. an
+            update download, where the percentage is the only feedback).
+            On a normal boot the progress is indeterminate, so we show
+            just the spinning mark + status — no sweep bar competing with
+            the spinner. */}
+        {pct === null ? null : (
+          <div className="libre-loadscreen-bar">
+            <div
+              className="libre-loadscreen-bar-fill"
+              style={{ width: `${Math.round(pct * 100)}%` }}
+            />
+          </div>
+        )}
         {status ? <div className="libre-loadscreen-status">{status}</div> : null}
       </div>
     </div>

@@ -47,80 +47,59 @@ export const PUBLISHED_PACK_IDS = publishedDoc.packIds;
 export const MANIFEST_VERSION = publishedDoc.manifestVersion;
 
 export const CORE_PACK_IDS = [
-  // ── In-house "A to <lang>" tutorial books ──────────────────────
-  // Flagship Libre-authored courses that walk a beginner from
-  // zero to fluency in a single language. Bundled in core so every
-  // install opens with an opinionated, end-to-end tutorial.
-  // (`a-to-ts` was retired — "Learning JavaScript & TypeScript" below
-  // is the in-house TypeScript path now.)
-  "a-to-zig",
-  // Learning JavaScript & TypeScript — the flagship original book
-  // (27 chapters, 157 lessons): JS beginner→pro in Parts I–III,
-  // TypeScript layered on in Part IV. Inline playgrounds, diagrams,
-  // quizzes + blocks. Validated by .jsts-work/validate-jsts-course.mjs.
-  "javascript-typescript",
+  // The default loadout = the full Rust, Go, Zig and JavaScript/TypeScript
+  // learning TRACKS (the four "installed-by-default" collections), MINUS
+  // the pure front-end framework courses (Svelte / SolidJS / Astro / HTMX
+  // / Bun), which stay published-but-REMOTE — one-click installs from
+  // Discover. The SQL challenge pack rides along because it's the closing
+  // step of the Entry-Level Developer track.
+  //
+  // MUST stay in lockstep with `should_seed_pack` in
+  // `src-tauri/src/courses.rs` (the desktop first-launch seeder) — both
+  // list the same set, by the same bundle filename / pack id. Note a few
+  // pack ids differ from the in-zip course id (`the-rustonomicon` →
+  // `rustonomicon`, `javascript-challenges` → `challenges-javascript-handwritten`).
 
-  // Long-form books we want every install to start with.
+  // ── Rust track ─────────────────────────────────────────────────
   "the-rust-programming-language",
-  "learning-go",
-  // (`learning-zig` was retired here — A to Zig is the in-house
-  // replacement and is shipped above as its own bundled .libre.)
-
-  // Rustlings + Golings — the "make me compile" micro-exercise courses
-  // (Rust + its Go twin). Bundled core so their baked per-lesson art
-  // ships inline and the courses work offline on first launch.
   "rustlings",
+  "exercism-rust",
+  "testing-rust",
+  "challenges-rust-handwritten",
+  "rust-async-book",
+  "the-rustonomicon",
+
+  // ── Go track ───────────────────────────────────────────────────
+  "learning-go",
   "golings",
+  "exercism-go",
+  "challenges-go-handwritten",
 
-  // Testing JavaScript — in-house book modeled on Testing Rust: unit →
-  // doubles → property → snapshot → integration → async → e2e →
-  // capstone, with runnable Vitest-style exercises. Bundled core.
+  // ── Zig track ──────────────────────────────────────────────────
+  // A to Zig is the in-house book (replaced the retired `learning-zig`).
+  "a-to-zig",
+  "ziglings",
+  "exercism-zig",
+  "challenges-zig-handwritten",
+
+  // ── JavaScript / TypeScript track ──────────────────────────────
+  // JavaScript for Beginners (the absolute-beginner on-ramp) + the two
+  // other in-house books + You Don't Know JS Yet, plus the practice set
+  // we already shipped (Exercism JS/TS, Koans, JS Challenges). The other
+  // JS reference books (Eloquent JS, JavaScript.info, Functional-Light,
+  // Crafting Interpreters) and all front-end frameworks are browse-to-
+  // install from Discover.
+  "javascript-for-beginners",
+  "javascript-typescript",
   "testing-javascript",
-
-  // Ship the whole JavaScript/TypeScript leg by default (the targeted
-  // default stack alongside Rust + Go): the Exercism JS/TS tracks and the
-  // JS Koans install offline on first launch instead of remote-download.
+  "you-dont-know-js-yet",
   "exercism-javascript",
   "exercism-typescript",
   "javascript-koans",
-
-  // All challenge packs — kata-style learners are likely to bounce
-  // through several languages, and the per-pack size is small
-  // (~50-200 KB each). Cheap to ship them all.
-  "rust-challenges",
-  "go-challenges",
   "javascript-challenges",
-  "typescript-challenge-pack",
-  "python-challenges",
-  "react-native-challenges",
-  "c-challenges",
-  "cpp-challenges",
-  "java-challenges",
-  "kotlin-challenges",
-  "csharp-challenges",
-  "swift-challenges",
-  "assembly-challenges-arm64-macos",
 
-  // ── 2026 expansion ───────────────────────────────────────────
-  // Eleven Easy challenge packs added in the language expansion.
-  // Same naming convention as recent additions (`challenges-<lang>-
-  // handwritten`) so the in-zip course id matches the bundle
-  // filename. All small (5 lessons each), so they fit the "ship
-  // them all" rationale above.
-  "challenges-ruby-handwritten",
-  "challenges-lua-handwritten",
-  "challenges-dart-handwritten",
-  "challenges-haskell-handwritten",
-  "challenges-scala-handwritten",
+  // ── Entry-Level Developer track closer ─────────────────────────
   "challenges-sql-handwritten",
-  "challenges-elixir-handwritten",
-  "challenges-zig-handwritten",
-  // Move / Cairo / Sway runtimes are stubbed — Run currently surfaces
-  // an install-hint banner. The packs ship anyway so the content is
-  // installed and ready to run when the runtimes land.
-  "challenges-move-handwritten",
-  "challenges-cairo-handwritten",
-  "challenges-sway-handwritten",
 ];
 
 /// Back-compat alias for the publish list. Historically this was a
@@ -208,6 +187,10 @@ export const RELEASE_STATUS_OVERRIDES = {
   "challenges-go-handwritten": "VERIFIED",
 
   // ── Books bumped to BETA after substantive validation ─────────
+  // JavaScript for Beginners — in-house absolute-beginner on-ramp;
+  // all 12 exercises validated (solution passes / starter fails)
+  // against the runtime test harness.
+  "javascript-for-beginners": "BETA",
   // JavaScript & TypeScript — flagship original book. Every exercise,
   // playground, quiz, blocks spec and diagram machine-validated
   // (88/88 exercises, 230/230 playgrounds) before release.

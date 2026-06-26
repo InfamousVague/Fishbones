@@ -189,13 +189,33 @@ function ensureContext(): AudioContext | null {
   }
 }
 
-/// Attempt to resume the context. Browsers freeze the audio context
-/// in suspended state on page load until the first user gesture; the
-/// `resume()` returns a promise we can ignore — failure means the
-/// next play call will retry.
+/// Unlock audio output from the first user gesture. Must be called
+/// synchronously inside a real gesture handler (we wire it to the first
+/// `pointerdown` in App.tsx).
+///
+/// Browsers freeze the AudioContext in `suspended` state until a user
+/// gesture. Chrome only needs `resume()`. **Safari / WKWebView (the
+/// desktop + iOS webview) is stricter**: `resume()` flips the state to
+/// `running` but real audio OUTPUT stays gated until a buffer is
+/// actually *played* inside the gesture — so every later cue fires onto
+/// a "running" context yet you hear nothing. Playing a silent one-frame
+/// buffer here grants output for the rest of the session. Harmless on
+/// Chrome; the actual fix on Safari (this is why SFX work in the web
+/// build but went silent in the desktop app).
 export async function unlockAudioContext(): Promise<void> {
   const c = ensureContext();
   if (!c) return;
+  // Silent-buffer kick — synchronous, inside the gesture, BEFORE any
+  // await so Safari counts it as a user-initiated playback.
+  try {
+    const buf = c.createBuffer(1, 1, c.sampleRate);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.connect(c.destination);
+    src.start(0);
+  } catch {
+    /* best-effort — never let the unlock throw */
+  }
   if (c.state === "suspended") {
     try {
       await c.resume();

@@ -387,6 +387,12 @@
      uses negative margin to bleed across the full panel width even
      with this larger inset. */
   padding: 18px 20px 16px;
+  /* Scale the whole popup up a notch — the ring, text, heatmap, pips
+     and buttons all grow together (the panel is built from fixed px, so
+     `zoom` is the one-knob way to enlarge everything uniformly). Anchored
+     top-right, so it grows down-and-left and stays pinned to the chip.
+     Tune this single number to taste. */
+  zoom: 1.12;
   animation: libre-stats-enter 0.16s ease-out;
 }
 

@@ -123,7 +123,43 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // leg to core so `exercism-javascript`, `exercism-typescript` and
 // `javascript-koans` now auto-install; re-seed also re-extracts the
 // corrected `javascript-challenges` cover (the stale chibi placeholder).
-const SEED_VERSION: u32 = 23;
+// V24 — curated the default loadout down to FOUR language tracks (Rust,
+// Go, Zig, JS/TS): `should_seed_pack` no longer uses the
+// `contains("challenge")` catch-all, so the re-seed's de-seed prune
+// removes every other-language challenge pack + the extra Rust reference
+// books (Rustonomicon / Rust by Example / Rust Async Book / Exercism
+// Rust / Mastering Ethereum) from existing libraries. They stay in the
+// catalog as one-click remote installs; progress is preserved.
+// V25 — replaced off-brand covers with vintage-sci-fi art: the chibi
+// `javascript-koans` / `python-koans` / `kotlin-koans` covers, the
+// `testing-rust` "RS" text placeholder, and added the missing
+// `testing-javascript` cover. Re-seed re-extracts the new in-zip cover
+// for the bundled (core) ones; remote ones refresh on next download.
+// V26 — baked all 51 per-lesson images into `testing-javascript`; the
+// re-seed rewrites the installed course so the art shows offline.
+// V27 — expanded the default loadout from the lean 15 to the full Rust,
+// Go, Zig and JS/TS learning tracks (27 packs), MINUS the front-end
+// framework courses (Svelte/SolidJS/Astro/HTMX/Bun). Adds Testing Rust,
+// Rustonomicon, Rust Async Book, Exercism Rust/Go/Zig, SQL challenges,
+// and the JS reference books (Eloquent JS, JavaScript.info, YDKJS,
+// Functional-Light, Crafting Interpreters). Re-seed installs the new
+// ones; nothing is pruned.
+// V28 — trimmed the JS/TS default to the two in-house books + You Dont
+// Know JS Yet + the practice set (Exercism JS/TS, Koans, JS Challenges);
+// Eloquent JS, JavaScript.info, Functional-Light and Crafting
+// Interpreters drop to browse-only remote. Re-seed de-seeds them.
+// V29 — added the new `javascript-for-beginners` book to the bundle
+// (absolute-beginner JS on-ramp, 38 lessons); re-seed installs it into
+// every library as part of the JS track default.
+// V30 — baked all 38 per-lesson images into javascript-for-beginners;
+// re-seed rewrites the installed course so the art shows offline.
+// V31 — baked 97/105 per-lesson images into a-to-zig (8 pending art);
+// re-seed rewrites the installed course so the art shows offline.
+// V32 — added the real javascript-for-beginners cover (was a text
+// placeholder, no in-zip cover); re-seed re-extracts it on desktop.
+// V33 — renamed jfb chapters: "...— Functions Chapter" -> "Functions",
+// final "JavaScript for Beginners" chapter -> "Final".
+const SEED_VERSION: u32 = 33;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
@@ -195,11 +231,11 @@ pub fn is_archive_ext(ext: Option<&str>) -> bool {
 }
 
 /// Whether a course archive in `resources/bundled-packs/` should be
-/// auto-seeded into a fresh install. The default library is small —
-/// just two foundational books plus every challenge pack — and the
-/// user discovers + installs everything else from the in-app catalog
-/// browser (CatalogBrowser modal, served from
-/// libre.academy/catalog/manifest.json).
+/// auto-seeded into a fresh install. The default library is curated to
+/// four language tracks — Rust, Go, Zig and JavaScript/TypeScript (each
+/// book + "-lings"/exercise course + challenge pack) — and the user
+/// discovers + installs everything else from the in-app catalog browser
+/// (CatalogBrowser modal, served from libre.academy/catalog/manifest.json).
 ///
 /// In dev mode, `app.path().resource_dir()` resolves to the source
 /// `src-tauri/resources/` directory, which contains every archive
@@ -219,19 +255,49 @@ fn should_seed_pack(filename: &str) -> bool {
         .trim_end_matches(".academy")
         .trim_end_matches(".libre")
         .trim_end_matches(".kata");
+    // Curated default loadout: the full Rust, Go, Zig and JS/TS learning
+    // TRACKS (the four installed-by-default collections), MINUS the pure
+    // front-end framework courses (Svelte / SolidJS / Astro / HTMX / Bun),
+    // which stay in the binary for the catalog but install on demand from
+    // Discover. The SQL challenge pack rides along as the Entry-Level
+    // Developer track's closer. Match is by BUNDLE FILENAME (pack id), so
+    // a couple differ from the in-zip course id (`the-rustonomicon`,
+    // `javascript-challenges`). Keep in lockstep with CORE_PACK_IDS in
+    // scripts/course-tiers.mjs (web seed + manifest tiers).
     matches!(
         stem,
-        // The Rust collection ships installed by default — the books,
-        // the Exercism track, and Rustlings. (The Rust challenge packs
-        // come in via the `contains("challenge")` arm below.)
+        // Rust track
         "the-rust-programming-language"
-            | "the-rustonomicon"
-            | "rust-by-example"
-            | "rust-async-book"
-            | "exercism-rust"
             | "rustlings"
-            | "mastering-ethereum"
-    ) || stem.contains("challenge")
+            | "exercism-rust"
+            | "testing-rust"
+            | "challenges-rust-handwritten"
+            | "rust-async-book"
+            | "the-rustonomicon"
+            // Go track
+            | "learning-go"
+            | "golings"
+            | "exercism-go"
+            | "challenges-go-handwritten"
+            // Zig track
+            | "a-to-zig"
+            | "ziglings"
+            | "exercism-zig"
+            | "challenges-zig-handwritten"
+            // JavaScript / TypeScript track (the beginner on-ramp + two
+            // in-house books + YDKJS + the practice set; other JS reference
+            // books + frameworks browse-to-install from Discover)
+            | "javascript-for-beginners"
+            | "javascript-typescript"
+            | "testing-javascript"
+            | "you-dont-know-js-yet"
+            | "exercism-javascript"
+            | "exercism-typescript"
+            | "javascript-koans"
+            | "javascript-challenges"
+            // Entry-Level Developer track closer
+            | "challenges-sql-handwritten"
+    )
 }
 
 /// Mobile-build override. On phones we auto-install EVERY bundled

@@ -161,8 +161,8 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
       {
         kind: "step",
         step: {
-          courseId: "a-to-ts",
-          note: "Your first language, cover to cover — syntax to shipping.",
+          courseId: "javascript-typescript",
+          note: "Your first language, cover to cover — JavaScript then TypeScript, syntax to shipping.",
         },
       },
       {
