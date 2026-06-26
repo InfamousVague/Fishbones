@@ -67,6 +67,24 @@ export interface LibreCloudUser {
   has_password: boolean;
   apple_linked: boolean;
   google_linked: boolean;
+  /// Whether the email has been confirmed. Always true for Apple/Google
+  /// and for accounts that predate verification; a freshly-signed-up
+  /// password account can't reach a signed-in state until this is true
+  /// (the relay blocks login with 403 until then), so in practice the
+  /// `user` object the client holds always has this true.
+  email_verified: boolean;
+}
+
+/// Thrown by `signInEmail` when the relay rejects a correct-password
+/// login because the email hasn't been confirmed yet (HTTP 403). Carries
+/// the email so the dialog can pre-fill the "resend confirmation" action.
+export class UnverifiedEmailError extends Error {
+  readonly email: string;
+  constructor(email: string) {
+    super("Please confirm your email before signing in.");
+    this.name = "UnverifiedEmailError";
+    this.email = email;
+  }
 }
 
 export interface ProgressRow {
@@ -133,8 +151,26 @@ export interface UseLibreCloud {
   /// Last error from any cloud op. Cleared at the start of each call.
   error: string | null;
 
-  signUpEmail: (email: string, password: string, displayName?: string) => Promise<void>;
+  /// Register a new password account. The relay creates it *unverified*
+  /// and emails a confirmation link instead of issuing a session — so
+  /// this resolves with `{ verificationRequired: true, email }` and the
+  /// caller shows a "check your inbox" screen rather than treating the
+  /// user as signed in. Throws on 409 (email taken) / 400 (weak input).
+  signUpEmail: (
+    email: string,
+    password: string,
+    displayName?: string,
+  ) => Promise<{ verificationRequired: true; email: string }>;
+  /// Sign in with email + password. Throws `UnverifiedEmailError` when
+  /// the account exists but hasn't confirmed its email (relay 403) so
+  /// the dialog can show the verify/resend affordance; throws a generic
+  /// Error on bad credentials.
   signInEmail: (email: string, password: string) => Promise<void>;
+  /// Re-send the confirmation link for an unverified account. Always
+  /// resolves (relay returns 204 regardless of whether the email exists
+  /// or is already verified) — show "if it's unverified, a new link is
+  /// on the way" rather than confirming the address.
+  resendVerification: (email: string) => Promise<void>;
   signInApple: (identityToken: string, displayName?: string) => Promise<void>;
   signInGoogle: (identityToken: string, displayName?: string) => Promise<void>;
   /// Ask the relay to send a password-reset email. Always resolves
@@ -376,27 +412,115 @@ export function useLibreCloud(): UseLibreCloud {
   // `signin` is the conservative read. A future server-side
   // signup event from the relay can produce the precise count.
   const signUpEmail = useCallback(
-    async (email: string, password: string, displayName?: string) => {
-      await runAuth("/auth/signup", {
-        email,
-        password,
-        display_name: displayName,
-        device_label: deviceLabel,
-      });
-      track.signup("email");
+    async (
+      email: string,
+      password: string,
+      displayName?: string,
+    ): Promise<{ verificationRequired: true; email: string }> => {
+      // Signup no longer mints a session — the relay returns 202 with
+      // `{ verification_required, email }` and emails a link. So we
+      // can't route through `runAuth` (which expects `{ token, user }`);
+      // handle the request inline and surface the address to confirm.
+      setBusy(true);
+      setError(null);
+      try {
+        const res = await fetch(`${relayUrl}/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            display_name: displayName,
+          }),
+        });
+        if (!res.ok) {
+          const msg =
+            res.status === 409
+              ? "An account with that email already exists."
+              : res.status === 400
+                ? "Enter a valid email and a password of at least 8 characters."
+                : `Sign-up failed (${res.status}).`;
+          throw new Error(msg);
+        }
+        const json = (await res.json()) as {
+          verification_required: boolean;
+          email: string;
+        };
+        track.signup("email");
+        return { verificationRequired: true, email: json.email ?? email };
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+        throw e;
+      } finally {
+        setBusy(false);
+      }
     },
-    [runAuth, deviceLabel],
+    [relayUrl],
   );
   const signInEmail = useCallback(
     async (email: string, password: string) => {
-      await runAuth("/auth/login", {
-        email,
-        password,
-        device_label: deviceLabel,
-      });
-      track.signin("email");
+      // The relay returns 403 for a correct password on an unverified
+      // account. `runAuth` collapses non-2xx to a generic message, so
+      // intercept that one case first and throw the typed error the
+      // dialog keys its "resend confirmation" UI off of.
+      setBusy(true);
+      setError(null);
+      try {
+        const res = await fetch(`${relayUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, device_label: deviceLabel }),
+        });
+        if (res.status === 403) {
+          throw new UnverifiedEmailError(email);
+        }
+        if (!res.ok) {
+          const msg =
+            res.status === 401
+              ? "Email or password didn't match."
+              : res.status === 503
+                ? "That sign-in method isn't configured on the server."
+                : `Sign-in failed (${res.status}).`;
+          throw new Error(msg);
+        }
+        const json = (await res.json()) as {
+          token: string;
+          user: LibreCloudUser;
+        };
+        writeToken(json.token);
+        writeUser(json.user);
+        setToken(json.token);
+        setUser(json.user);
+        track.signin("email");
+      } catch (e) {
+        // Don't blast the generic error banner for the unverified case;
+        // the dialog renders a dedicated panel for it.
+        if (!(e instanceof UnverifiedEmailError)) {
+          setError(e instanceof Error ? e.message : String(e));
+        }
+        throw e;
+      } finally {
+        setBusy(false);
+      }
     },
-    [runAuth, deviceLabel],
+    [relayUrl, deviceLabel],
+  );
+  const resendVerification = useCallback(
+    async (email: string): Promise<void> => {
+      // Fire-and-forget from the UI's perspective — the relay always
+      // 204s (enumeration-safe), so there's nothing to branch on. We
+      // still await so the caller can show a "sent" state on resolve.
+      try {
+        await fetch(`${relayUrl}/auth/verify-email/resend`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+      } catch {
+        /* network hiccup — the user can tap Resend again */
+      }
+    },
+    [relayUrl],
   );
   const signInApple = useCallback(
     async (identityToken: string, displayName?: string) => {
@@ -889,6 +1013,7 @@ export function useLibreCloud(): UseLibreCloud {
       error,
       signUpEmail,
       signInEmail,
+      resendVerification,
       signInApple,
       signInGoogle,
       requestPasswordReset,
@@ -919,6 +1044,7 @@ export function useLibreCloud(): UseLibreCloud {
       error,
       signUpEmail,
       signInEmail,
+      resendVerification,
       signInApple,
       signInGoogle,
       requestPasswordReset,

@@ -95,6 +95,18 @@ pub fn build_router(state: Arc<AppState>) -> Router {
                 "/auth/password-reset/confirm",
                 post(auth::password_reset_confirm),
             )
+            // Email verification. `confirm` consumes the link from the
+            // signup email (and signs the user in); `resend` re-mints a
+            // link for an unverified account. Both unauthenticated and
+            // enumeration-safe, mirroring the password-reset pair above.
+            .route(
+                "/auth/verify-email/confirm",
+                post(auth::verify_email_confirm),
+            )
+            .route(
+                "/auth/verify-email/resend",
+                post(auth::verify_email_resend),
+            )
             // Direct id_token paths — clients call these when they have a
             // native-SDK token in hand.
             .route("/auth/apple", post(auth::apple))

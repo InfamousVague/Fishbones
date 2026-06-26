@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { UseLibreCloud } from "../../../hooks/useLibreCloud";
+import { UnverifiedEmailError } from "../../../hooks/useLibreCloud";
 import { isWeb } from "../../../lib/platform";
 import { setPendingOAuthSession } from "../../../lib/oauthSession";
 import { track } from "../../../lib/track";
@@ -94,10 +95,16 @@ export default function SignInDialog({
   ///                      to Sign in?"
   /// Cleared on the next submit attempt and on mode switches.
   const [emailError, setEmailError] = useState<string | null>(null);
-  /// Shown above the form once a freshly-created account is signed
-  /// in. Distinct from the existing `signedIn`-watcher close so the
-  /// learner sees a beat of "you're in" copy before the modal closes.
-  const [createdNotice, setCreatedNotice] = useState(false);
+  /// Set to the email address awaiting confirmation — either right
+  /// after a signup (the relay emailed a link instead of signing the
+  /// user in) or after a sign-in attempt the relay rejected with 403
+  /// because the account isn't verified yet. Drives the "check your
+  /// inbox + resend" panel. Cleared on mode switch / close.
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
+  /// Flipped once the user taps Resend so the button can confirm the
+  /// re-send without implying we know the address is real (the relay
+  /// 204s either way).
+  const [verifyResent, setVerifyResent] = useState(false);
   /// Shown after a successful password-reset email submit. The relay
   /// returns 204 whether or not the email is registered (anti-
   /// enumeration), so the copy is deliberately ambiguous: "if your
@@ -123,11 +130,18 @@ export default function SignInDialog({
   const onSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError(null);
-    setCreatedNotice(false);
+    setVerifyEmail(null);
+    setVerifyResent(false);
     try {
       await cloud.signInEmail(email, password);
       onClose();
     } catch (err) {
+      // Account exists, password is right, but the email was never
+      // confirmed — show the verify/resend panel instead of an error.
+      if (err instanceof UnverifiedEmailError) {
+        setVerifyEmail(err.email);
+        return;
+      }
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.toLowerCase().includes("didn't match") || msg.includes("401")) {
         setEmailError(
@@ -148,7 +162,8 @@ export default function SignInDialog({
   const onSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError(null);
-    setCreatedNotice(false);
+    setVerifyEmail(null);
+    setVerifyResent(false);
     if (password.length < PASSWORD_MIN_LENGTH) {
       setEmailError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
       return;
@@ -160,11 +175,13 @@ export default function SignInDialog({
     try {
       // No display_name yet — the user can set one in Settings →
       // Account once they're in. Keeping the modal small.
-      await cloud.signUpEmail(email, password);
-      setCreatedNotice(true);
-      // Don't close yet — the `createdNotice && cloud.signedIn`
-      // watcher below handles the dismiss after a short beat so
-      // the welcome notice has time to read.
+      //
+      // Signup no longer signs the user in: the relay creates the
+      // account unverified and emails a confirmation link. Show the
+      // "check your inbox" panel (keyed off `verifyEmail`) and keep the
+      // dialog open so Resend stays reachable.
+      const { email: pending } = await cloud.signUpEmail(email, password);
+      setVerifyEmail(pending);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       const lower = msg.toLowerCase();
@@ -188,9 +205,20 @@ export default function SignInDialog({
   const switchEmailMode = (next: EmailMode) => {
     setEmailMode(next);
     setEmailError(null);
-    setCreatedNotice(false);
+    setVerifyEmail(null);
+    setVerifyResent(false);
     setForgotSent(false);
     setPasswordConfirm("");
+  };
+
+  /// Re-send the confirmation link for the address in `verifyEmail`.
+  /// The relay 204s regardless of whether the email exists / is already
+  /// verified, so there's nothing to branch on — we just flip the
+  /// button into its "sent" state.
+  const onResendVerification = async () => {
+    if (!verifyEmail) return;
+    await cloud.resendVerification(verifyEmail);
+    setVerifyResent(true);
   };
 
   /// Submit the forgot-password email. The relay returns 204 in
@@ -234,23 +262,12 @@ export default function SignInDialog({
     }
   }, [awaitingOAuth, cloud.signedIn, onClose]);
 
-  /// Email-signup auto-close. `onSignUpSubmit` sets `createdNotice`
-  /// after `signUpEmail` resolves (which already flipped `signedIn`
-  /// via the same `runAuth` path the sign-in flow uses), then waits
-  /// for this watcher to dismiss the dialog. A small delay so the
-  /// "Welcome! Account created — signing you in…" notice is actually
-  /// readable before the modal disappears — without the delay the
-  /// notice would render for a single frame at most. This watcher
-  /// is paired with — not folded into — the OAuth one above so the
-  /// two flows can evolve their close-timing independently (OAuth
-  /// closes the instant the deep-link returns; email signup hangs
-  /// on the success notice for a beat).
-  useEffect(() => {
-    if (createdNotice && cloud.signedIn) {
-      const timer = window.setTimeout(onClose, 1200);
-      return () => window.clearTimeout(timer);
-    }
-  }, [createdNotice, cloud.signedIn, onClose]);
+  // (Email signup no longer auto-closes the dialog: the relay creates
+  // the account unverified and emails a confirmation link rather than
+  // signing the user in, so there's no `signedIn` flip to watch for.
+  // The dialog now stays open on the "check your inbox" panel until the
+  // user dismisses it or switches modes — see the `verifyEmail` render
+  // branch below.)
 
   /// Holds the popup-window handle on the web variant so we can poll
   /// `closed` (user dismissed it without finishing) and tear down the
@@ -535,10 +552,24 @@ export default function SignInDialog({
           {emailError && (
             <p className="libre-signin-error">{emailError}</p>
           )}
-          {createdNotice && !emailError && emailMode === "signUp" && (
-            <p className="libre-signin-helper libre-signin-helper--success">
-              Welcome! Account created — signing you in…
-            </p>
+          {verifyEmail && !emailError && (
+            <div className="libre-signin-verify">
+              <p className="libre-signin-helper libre-signin-helper--success">
+                Check your inbox — we sent a confirmation link to{" "}
+                <strong>{verifyEmail}</strong>. Click it to activate your
+                account, then sign in. The link expires in 24 hours.
+              </p>
+              <button
+                type="button"
+                className="libre-signin-secondary"
+                disabled={cloud.busy || verifyResent}
+                onClick={() => void onResendVerification()}
+              >
+                {verifyResent
+                  ? "Confirmation link re-sent ✓"
+                  : "Didn't get it? Resend"}
+              </button>
+            </div>
           )}
           {forgotSent && !emailError && (
             <p className="libre-signin-helper libre-signin-helper--success">

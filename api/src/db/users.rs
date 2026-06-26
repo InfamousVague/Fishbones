@@ -18,6 +18,11 @@ pub struct User {
     pub has_password: bool,
     pub apple_linked: bool,
     pub google_linked: bool,
+    /// Whether the email address has been confirmed. Always true for
+    /// Apple/Google identities (the provider verified it) and for
+    /// accounts that predate the verification feature; false for a
+    /// password signup that hasn't clicked its confirmation link yet.
+    pub email_verified: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,26 +143,31 @@ impl Database {
     ) -> anyhow::Result<String> {
         let conn = self.conn_lock();
         let id = uuid::Uuid::new_v4().to_string();
+        // email_verified = 0 explicitly: a password signup must click
+        // the confirmation link before it can sign in. This is the only
+        // insert path that opts out of the column's DEFAULT 1 — OAuth
+        // identities and pre-existing rows stay auto-verified.
         conn.execute(
-            "INSERT INTO users (id, email, password_hash, display_name) VALUES (?1, ?2, ?3, ?4)",
+            "INSERT INTO users (id, email, password_hash, display_name, email_verified) VALUES (?1, ?2, ?3, ?4, 0)",
             params![id, email, password_hash, display_name],
         )?;
         Ok(id)
     }
 
-    /// Returns (user_id, password_hash) when an email is registered
-    /// with a password. Used by the login endpoint to verify the
-    /// password before issuing a token.
+    /// Returns (user_id, password_hash, email_verified) when an email is
+    /// registered with a password. Used by the login endpoint to verify
+    /// the password AND gate sign-in on a confirmed email before issuing
+    /// a token.
     pub fn get_password_login(
         &self,
         email: &str,
-    ) -> anyhow::Result<Option<(String, String)>> {
+    ) -> anyhow::Result<Option<(String, String, bool)>> {
         let conn = self.conn_lock();
-        let row: Option<(String, String)> = conn
+        let row: Option<(String, String, bool)> = conn
             .query_row(
-                "SELECT id, password_hash FROM users WHERE email = ?1 AND password_hash IS NOT NULL",
+                "SELECT id, password_hash, email_verified FROM users WHERE email = ?1 AND password_hash IS NOT NULL",
                 params![email],
-                |r| Ok((r.get(0)?, r.get(1)?)),
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
             )
             .optional()?;
         Ok(row)
@@ -278,6 +288,90 @@ impl Database {
         Ok(n)
     }
 
+    // ── Email verification ───────────────────────────────────
+    //
+    // Same single-use / TTL-bounded / hash-by-lookup shape as the
+    // password-reset helpers above. The only behavioural difference is
+    // `consume_email_verification` flips `users.email_verified = 1` as
+    // part of consuming the token, so confirming the link both spends
+    // the token and unlocks the account in one atomic step.
+
+    pub fn create_email_verification(
+        &self,
+        token_hash: &str,
+        user_id: &str,
+        ttl_secs: i64,
+    ) -> anyhow::Result<()> {
+        let conn = self.conn_lock();
+        conn.execute(
+            "INSERT INTO email_verifications (token_hash, user_id, expires_at) \
+             VALUES (?1, ?2, datetime('now', ?3))",
+            params![token_hash, user_id, format!("+{ttl_secs} seconds")],
+        )?;
+        Ok(())
+    }
+
+    /// Atomically consume a verification token and mark the owning user
+    /// verified. Returns the user id on success; `None` for unknown /
+    /// expired / already-consumed tokens (collapsed so the handler
+    /// can't leak which case it was). The DELETE…RETURNING + UPDATE run
+    /// under the same connection lock so a token can't be redeemed
+    /// twice.
+    pub fn consume_email_verification(
+        &self,
+        token_hash: &str,
+    ) -> anyhow::Result<Option<String>> {
+        let conn = self.conn_lock();
+        let user_id: Option<String> = conn
+            .query_row(
+                "DELETE FROM email_verifications \
+                 WHERE token_hash = ?1 \
+                   AND consumed_at IS NULL \
+                   AND expires_at >= datetime('now') \
+                 RETURNING user_id",
+                params![token_hash],
+                |r| r.get(0),
+            )
+            .optional()?;
+        if let Some(uid) = &user_id {
+            conn.execute(
+                "UPDATE users SET email_verified = 1, updated_at = datetime('now') WHERE id = ?1",
+                params![uid],
+            )?;
+        }
+        Ok(user_id)
+    }
+
+    /// Sweep expired / consumed verification rows. Called from the
+    /// request handlers so the table self-prunes without a cron.
+    pub fn sweep_email_verifications(&self) -> anyhow::Result<usize> {
+        let conn = self.conn_lock();
+        let n = conn.execute(
+            "DELETE FROM email_verifications \
+             WHERE expires_at < datetime('now') OR consumed_at IS NOT NULL",
+            params![],
+        )?;
+        Ok(n)
+    }
+
+    /// Look up (user_id, email_verified) for an unverified-resend
+    /// request. Returns `None` for unknown emails so the handler stays
+    /// enumeration-safe (always 204 regardless).
+    pub fn find_unverified_user_by_email(
+        &self,
+        email: &str,
+    ) -> anyhow::Result<Option<String>> {
+        let conn = self.conn_lock();
+        let id: Option<String> = conn
+            .query_row(
+                "SELECT id FROM users WHERE email = ?1 AND email_verified = 0",
+                params![email],
+                |r| r.get(0),
+            )
+            .optional()?;
+        Ok(id)
+    }
+
     pub fn email_exists(&self, email: &str) -> anyhow::Result<bool> {
         let conn = self.conn_lock();
         let count: i64 = conn.query_row(
@@ -292,7 +386,7 @@ impl Database {
         let conn = self.conn_lock();
         let row = conn
             .query_row(
-                "SELECT id, email, display_name, password_hash IS NOT NULL, apple_user_id IS NOT NULL, google_user_id IS NOT NULL FROM users WHERE id = ?1",
+                "SELECT id, email, display_name, password_hash IS NOT NULL, apple_user_id IS NOT NULL, google_user_id IS NOT NULL, email_verified FROM users WHERE id = ?1",
                 params![user_id],
                 |r| {
                     Ok(User {
@@ -302,6 +396,7 @@ impl Database {
                         has_password: r.get(3)?,
                         apple_linked: r.get(4)?,
                         google_linked: r.get(5)?,
+                        email_verified: r.get(6)?,
                     })
                 },
             )

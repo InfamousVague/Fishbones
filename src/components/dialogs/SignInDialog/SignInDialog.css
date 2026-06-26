@@ -284,6 +284,43 @@
   border-radius: var(--libre-radius-sm);
 }
 
+/* "Check your inbox" panel shown after signup (or an unverified
+   sign-in attempt): the success-tinted helper line plus a low-key
+   Resend button. */
+.libre-signin-verify {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 12px;
+  background: rgba(108, 219, 166, 0.07);
+  border: 1px solid rgba(108, 219, 166, 0.25);
+  border-radius: var(--libre-radius-md);
+}
+
+/* Secondary (outline) button — used for Resend inside the verify
+   panel. Quieter than `.libre-signin-primary` so it reads as a
+   fallback action, not the main CTA. */
+.libre-signin-secondary {
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-secondary, rgba(255, 255, 255, 0.18));
+  border-radius: var(--libre-radius-md);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.libre-signin-secondary:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+.libre-signin-secondary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* OAuth panel — replaces the old paste-mode form for Apple + Google.
    Single primary button per provider, plus a "waiting" affordance once
    the system browser has been kicked off. */

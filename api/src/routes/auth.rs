@@ -53,7 +53,10 @@ pub struct SignupRequest {
     pub email: String,
     pub password: String,
     pub display_name: Option<String>,
-    pub device_label: Option<String>,
+    // No `device_label` here anymore: signup doesn't mint a session
+    // (the account must verify its email first), so there's no token to
+    // label. The field is harmlessly ignored if an older client still
+    // sends it — `SignupRequest` doesn't deny unknown fields.
 }
 
 #[derive(Serialize)]
@@ -62,10 +65,20 @@ pub struct AuthResponse {
     pub user: crate::db::User,
 }
 
+/// Response to a successful signup. No token: a password account must
+/// confirm its email before it can sign in, so instead of a session we
+/// hand back the address we emailed the link to (the client echoes it
+/// in the "check your inbox" screen + the Resend button).
+#[derive(Serialize)]
+pub struct SignupResponse {
+    pub verification_required: bool,
+    pub email: String,
+}
+
 pub async fn signup(
     State(state): State<Arc<AppState>>,
     Json(body): Json<SignupRequest>,
-) -> Result<Json<AuthResponse>, StatusCode> {
+) -> Result<(StatusCode, Json<SignupResponse>), StatusCode> {
     let email = body.email.trim().to_lowercase();
     if !email.contains('@') || body.password.len() < 8 {
         return Err(StatusCode::BAD_REQUEST);
@@ -79,21 +92,22 @@ pub async fn signup(
     }
     let pw_hash = hash_password(&body.password)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // Account is created with email_verified = 0 and NO token is
+    // issued — sign-in stays blocked (login returns 403) until the
+    // user clicks the link we email below. This is what stops someone
+    // registering with an address they don't control.
     let user_id = state
         .db
         .create_password_user(&email, &pw_hash, body.display_name.as_deref())
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    let token = issue_token(
-        &state,
-        &user_id,
-        body.device_label.as_deref().unwrap_or("desktop"),
-    )?;
-    let user = state
-        .db
-        .get_user(&user_id)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(AuthResponse { token, user }))
+    send_verification_email(&state, &email, &user_id).await;
+    Ok((
+        StatusCode::ACCEPTED,
+        Json(SignupResponse {
+            verification_required: true,
+            email,
+        }),
+    ))
 }
 
 #[derive(Deserialize)]
@@ -113,17 +127,26 @@ pub async fn login(
         .get_password_login(&email)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::UNAUTHORIZED)?;
-    if !verify_password(&body.password, &row.1) {
+    let (user_id, password_hash, email_verified) = row;
+    if !verify_password(&body.password, &password_hash) {
         return Err(StatusCode::UNAUTHORIZED);
+    }
+    // Block sign-in until the email is confirmed. We check this AFTER
+    // the password so an attacker can't use the 403-vs-401 split to
+    // tell "right password, unverified" from "wrong password" without
+    // already knowing the password. 403 is the client's cue to show
+    // the "check your inbox / resend" affordance (see SignInDialog).
+    if !email_verified {
+        return Err(StatusCode::FORBIDDEN);
     }
     let token = issue_token(
         &state,
-        &row.0,
+        &user_id,
         body.device_label.as_deref().unwrap_or("desktop"),
     )?;
     let user = state
         .db
-        .get_user(&row.0)
+        .get_user(&user_id)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(AuthResponse { token, user }))
@@ -427,4 +450,136 @@ pub async fn password_reset_confirm(
     }
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+// ── Email verification ───────────────────────────────────────────
+//
+// New password signups land here. The token shape + enumeration-safe
+// resend mirror the password-reset flow above; the difference is the
+// confirm step flips `email_verified` and signs the user in rather than
+// changing a password.
+
+/// 24 hours — verification links are clicked less urgently than a
+/// password reset (people sign up, get distracted, come back later), so
+/// we give the link a comfortably long life. A `resend` mints a fresh
+/// one if it does lapse.
+const VERIFY_TTL_SECS: i64 = 24 * 3600;
+
+/// Mint a verification token for `user_id`, persist its hash, and email
+/// the confirmation link. Best-effort: a mail/DB failure is logged but
+/// not surfaced to the caller (signup + resend both stay
+/// enumeration-safe and don't want to leak backend state). Shared by
+/// `signup` and `verify_email_resend`.
+async fn send_verification_email(state: &AppState, email: &str, user_id: &str) {
+    if let Err(e) = state.db.sweep_email_verifications() {
+        tracing::warn!("[verify:send] sweep failed: {e}");
+    }
+    // 32 bytes / 256 bits of entropy, base64-url without padding —
+    // same construction the reset flow uses.
+    let token = {
+        use base64::Engine;
+        let bytes: [u8; 32] = rand::random();
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(bytes)
+    };
+    let token_hash = crate::auth::hash_lookup_token(&token);
+    if let Err(e) =
+        state
+            .db
+            .create_email_verification(&token_hash, user_id, VERIFY_TTL_SECS)
+    {
+        tracing::error!("[verify:send] insert failed for user_id={user_id}: {e}");
+        return;
+    }
+
+    let link = format!(
+        "{}/verify-email?token={}",
+        state.web_base_url.trim_end_matches('/'),
+        token
+    );
+    let html = format!(
+        "<p>Welcome to Libre! Confirm this email address to finish setting up your account.</p>\
+         <p><a href=\"{link}\">Confirm your email</a></p>\
+         <p>The link expires in 24 hours. If you didn't create a Libre account, you can safely ignore this email — no account will be activated.</p>",
+    );
+    let text = format!(
+        "Welcome to Libre! Confirm this email address to finish setting up your account.\n\n\
+         Confirm your email: {link}\n\n\
+         The link expires in 24 hours. If you didn't create a Libre account, you can safely ignore this email — no account will be activated."
+    );
+
+    state
+        .mailer
+        .send(email, "Confirm your Libre email", &html, &text)
+        .await;
+}
+
+#[derive(Deserialize)]
+pub struct VerifyEmailConfirmBody {
+    pub token: String,
+    pub device_label: Option<String>,
+}
+
+/// Confirm an email from the link in the inbox. Consumes the token,
+/// flips `email_verified`, and signs the user in (returns a token) so
+/// the web `/verify-email` page lands them straight in their account.
+/// All invalid/expired/used tokens collapse to 401 — no distinction
+/// that would help a brute-forcer.
+pub async fn verify_email_confirm(
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<VerifyEmailConfirmBody>,
+) -> Result<Json<AuthResponse>, StatusCode> {
+    if body.token.is_empty() {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+    let token_hash = crate::auth::hash_lookup_token(&body.token);
+    let user_id = state
+        .db
+        .consume_email_verification(&token_hash)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    let token = issue_token(
+        &state,
+        &user_id,
+        body.device_label.as_deref().unwrap_or("web"),
+    )?;
+    let user = state
+        .db
+        .get_user(&user_id)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(AuthResponse { token, user }))
+}
+
+#[derive(Deserialize)]
+pub struct VerifyEmailResendBody {
+    pub email: String,
+}
+
+/// Re-send the confirmation link for an unverified account. Always
+/// returns 204 regardless of whether the email exists or is already
+/// verified — same anti-enumeration stance as password-reset request.
+pub async fn verify_email_resend(
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<VerifyEmailResendBody>,
+) -> StatusCode {
+    let email = body.email.trim().to_lowercase();
+    if email.is_empty() || !email.contains('@') {
+        return StatusCode::NO_CONTENT;
+    }
+    match state.db.find_unverified_user_by_email(&email) {
+        Ok(Some(user_id)) => {
+            send_verification_email(&state, &email, &user_id).await;
+        }
+        Ok(None) => {
+            // Unknown email, or already verified. Spend a comparable
+            // slice of time (one hash) so the response timing doesn't
+            // betray which case it was.
+            let _ = crate::auth::hash_token("fb_unused_for_timing");
+        }
+        Err(e) => {
+            tracing::error!("[verify:resend] db lookup failed: {e}");
+        }
+    }
+    StatusCode::NO_CONTENT
 }

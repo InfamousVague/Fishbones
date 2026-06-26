@@ -41,6 +41,24 @@ impl Database {
     pub fn run_migrations(&self) -> anyhow::Result<()> {
         let conn = self.conn.lock().unwrap();
         conn.execute_batch(MIGRATIONS)?;
+        // Idempotent column add for databases created before
+        // `email_verified` existed. `execute_batch` can't carry an
+        // unconditional `ALTER TABLE … ADD COLUMN` — SQLite errors with
+        // "duplicate column name" on the second boot and aborts the
+        // whole batch — so we probe `table_info` and add only when
+        // absent. DEFAULT 1 backfills every pre-existing row as
+        // verified (grandfathering: no current account gets locked out
+        // when this ships).
+        let has_col: bool = conn
+            .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'email_verified'")?
+            .query_row([], |_| Ok(()))
+            .optional()?
+            .is_some();
+        if !has_col {
+            conn.execute_batch(
+                "ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 1;",
+            )?;
+        }
         Ok(())
     }
 
@@ -79,6 +97,14 @@ CREATE TABLE IF NOT EXISTS users (
     apple_user_id   TEXT UNIQUE,
     google_user_id  TEXT UNIQUE,
     display_name    TEXT,
+    -- 1 = email confirmed (clicked the verification link), or the
+    -- identity came from a provider that already verified it (Apple /
+    -- Google). DEFAULT 1 does double duty: fresh OAuth inserts (which
+    -- don't list this column) auto-verify, and the guarded ALTER in
+    -- `run_migrations` grandfathers every pre-existing row. Only the
+    -- password-signup path opts a new row into 0 — it must confirm
+    -- before it can sign in. See `should_seed`/verify-email flow.
+    email_verified  INTEGER NOT NULL DEFAULT 1,
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -151,6 +177,22 @@ CREATE TABLE IF NOT EXISTS password_resets (
 
 CREATE INDEX IF NOT EXISTS idx_password_resets_user
     ON password_resets(user_id);
+
+-- Email-confirmation tokens for new password signups. Same shape as
+-- password_resets: a single-use, TTL-bounded, SHA-256-hashed token the
+-- user clicks from their inbox to prove they own the address before the
+-- account can sign in. ON DELETE CASCADE clears tokens if the pending
+-- account is deleted.
+CREATE TABLE IF NOT EXISTS email_verifications (
+    token_hash    TEXT PRIMARY KEY,
+    user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at    TEXT NOT NULL,
+    consumed_at   TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_verifications_user
+    ON email_verifications(user_id);
 
 -- Per-lesson solution snapshots. Stores the learner's last-saved
 -- code for each lesson in plain text; conflict resolution is
