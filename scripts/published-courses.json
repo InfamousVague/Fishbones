@@ -21,7 +21,7 @@
     "NEVER decrease — the deploy guard refuses a version regression.",
     "Bumped to 4 on 2026-06-10 to match the live manifest; 5 on 2026-06-10 when duplicate rustonomicon/solana-programs pack variants were removed.."
   ],
-  "manifestVersion": 23,
+  "manifestVersion": 24,
   "packIds": [
     "javascript-for-beginners",
     "javascript-typescript",
@@ -96,6 +96,8 @@
     "kotlin-koans",
     "mastering-lightning-network",
     "pro-git",
+    "learning-python",
+    "python-for-beginners",
     "python-koans",
     "react-native",
     "rust-async-book",
