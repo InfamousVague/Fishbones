@@ -181,6 +181,14 @@ async fn start_oauth<R: tauri::Runtime>(
 /// bundle — guaranteeing the app is reliably closed before it reopens.
 /// The bundle-less `tauri dev` binary and non-macOS targets fall through
 /// to the standard restart, where the race doesn't apply.
+///
+/// IMPORTANT: we call `app.exit(0)` (Tauri's graceful shutdown) NOT
+/// `std::process::exit(0)`. The updater plugin stages the new .app and
+/// relies on Tauri's normal teardown sequence (plugin drop handlers,
+/// NSApplication terminate:) to finalize the swap. A raw `exit(0)`
+/// skips those handlers so the swap never completes and the shell
+/// helper's `open` reopens the old bundle — the exact bug the user saw
+/// where "Restart Now" loaded the old version.
 #[tauri::command]
 fn relaunch_for_update<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     #[cfg(target_os = "macos")]
@@ -196,17 +204,23 @@ fn relaunch_for_update<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<()
             if bundle.extension().and_then(|e| e.to_str()) == Some("app") {
                 let pid = std::process::id();
                 let bundle_arg = bundle.to_string_lossy().replace('"', "\\\"");
+                // 1.5 s delay (up from 0.5 s) gives macOS time to fully
+                // release the old bundle and flush any Launch Services
+                // registration after the graceful exit below.
                 let script = format!(
-                    "while kill -0 {pid} 2>/dev/null; do sleep 0.2; done; sleep 0.5; open \"{bundle_arg}\""
+                    "while kill -0 {pid} 2>/dev/null; do sleep 0.2; done; sleep 1.5; open \"{bundle_arg}\""
                 );
                 std::process::Command::new("/bin/sh")
                     .arg("-c")
                     .arg(&script)
                     .spawn()
                     .map_err(|e| format!("failed to spawn relaunch helper: {e}"))?;
-                // Exit cleanly so the OS releases the bundle; the detached
-                // helper reopens the updated app once we're fully gone.
-                std::process::exit(0);
+                // Graceful Tauri shutdown: signals the event loop, runs
+                // plugin teardown (including updater finalization), and
+                // calls NSApplication terminate: so macOS properly
+                // unregisters the running instance before we reopen.
+                app.exit(0);
+                return Ok(());
             }
         }
     }
