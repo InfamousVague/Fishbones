@@ -90,13 +90,12 @@
  * ───────────────────────────────────────────────────────────── */
 * {
   scrollbar-width: thin;
-  /* Default: barely-there bone-white tint (#d4c5a1 at ~9% alpha).
-     The track stays transparent. The thumb fades up to a strong
-     bone-white on hover via the webkit rules below; Firefox reads
-     `scrollbar-color` and doesn't have a hover state, so we keep
-     its default slightly more visible (~18% alpha) since it
-     can't fade up. */
-  scrollbar-color: rgba(212, 197, 161, 0.18) transparent;
+  /* The thumb is the BRAND accent (amber, hue-driven via --gg-accent;
+     the hex fallback covers themes that don't define it). DIMMED at rest,
+     brightening to the full brand colour on hover via the webkit rules
+     below. Firefox/standard `scrollbar-color` has no hover state, so it
+     sits at a middle, half-lit level. Track stays transparent. */
+  scrollbar-color: color-mix(in srgb, var(--gg-accent, #e88f68) 55%, transparent) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -109,13 +108,11 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  /* Default state: nearly invisible warm cream — `#d4c5a1`
-     (the wordmark mid-stroke, same value as `--color-accent`) at
-     ~9% alpha. Just enough to hint at scrollability without
-     competing with content. Hardcoded rgba so the alpha sweep
-     across :hover and :active states uses a single colour family
-     — variable-based rgba would need a custom interpolation. */
-  background: rgba(212, 197, 161, 0.09);
+  /* DIMMED brand accent at rest — clearly the brand hue, but subdued so
+     it doesn't shout when you're not using it. Brightens to the full
+     brand colour on hover (rules below). Hue follows the accent-hue
+     slider via --gg-accent; hex fallback for themes that don't define it. */
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 45%, transparent);
   border-radius: var(--libre-radius-pill);
   /* 2px transparent border = padding inside the track, so the thumb
      reads as a thin floating capsule rather than a wall-to-wall slab. */
@@ -132,19 +129,19 @@
    Catches "user is engaged with this region" — typical scrolling
    behavior moves the cursor over the surface first. */
 *:hover::-webkit-scrollbar-thumb {
-  background: rgba(212, 197, 161, 0.55);
+  background: var(--gg-accent, #e88f68);
   background-clip: padding-box;
 }
 
-/* Hovering the thumb directly: stronger bone-white, tactile. */
+/* Hovering the thumb directly: brand accent, tactile. */
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 197, 161, 0.85);
+  background: var(--gg-accent, #e88f68);
   background-clip: padding-box;
 }
 
-/* Active drag (mousedown): solid bone-white. */
+/* Active drag (mousedown): the deeper brand accent for a "pressed" feel. */
 *::-webkit-scrollbar-thumb:active {
-  background: #d4c5a1;
+  background: var(--gg-accent-deep, #df7649);
   background-clip: padding-box;
 }
 

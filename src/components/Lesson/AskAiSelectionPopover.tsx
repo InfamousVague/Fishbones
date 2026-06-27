@@ -24,6 +24,9 @@
 /// mounts at the end of LessonReader without affecting layout.
 
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "@base/primitives/icon";
+import { sparkles } from "@base/primitives/icon/icons/sparkles";
+import "@base/primitives/icon/icon.css";
 import "./AskAiSelectionPopover.css";
 
 interface Props {
@@ -132,7 +135,7 @@ export default function AskAiSelectionPopover({
       aria-label={`Ask AI about the selected text from ${lessonTitle}`}
     >
       <span className="libre-ask-selection-chip-spark" aria-hidden>
-        ✦
+        <Icon icon={sparkles} size="xs" color="currentColor" />
       </span>
       Ask AI
     </button>

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import {
+  resolveEffortParams,
+  type AiAgentSettings,
+} from "../lib/aiAgent/settings";
 
 /// Chat-with-local-LLM hook. Talks to the Rust `ai_chat_stream` command
 /// which in turn streams from the user's Ollama daemon. The hook owns
@@ -110,6 +114,11 @@ let nextStreamId = 1;
 /// remote variant at module load.
 export function useAiChatLocal(
   model?: string,
+  /// "Effort" rung — fast / balanced / thorough / ultra. Resolved to
+  /// Ollama sampling/context knobs and forwarded with every send so
+  /// chat respects the same quality dial as the agent loop. Omitting
+  /// it keeps Ollama's own defaults (pre-effort behaviour).
+  effort?: AiAgentSettings["effort"],
   /// Optional starting messages — used by the tray to restore a
   /// previously-saved session when the user switches between
   /// stored chats. State initialization only runs once per mount;
@@ -315,10 +324,18 @@ export function useAiChatLocal(
 
         activeUnlistenRef.current = cleanup;
 
+        // Resolve the effort rung to Ollama knobs. Tauri snake_cases
+        // the JS keys, so `numCtx` → `num_ctx` on the Rust command.
+        // `undefined` keys are dropped from the IPC payload, leaving
+        // Ollama on its defaults when no effort is set.
+        const eff = effort ? resolveEffortParams(effort) : null;
         await invoke("ai_chat_stream", {
           streamId,
           messages: outbound,
           model: model ?? null,
+          temperature: eff?.temperature,
+          numCtx: eff?.num_ctx,
+          numPredict: eff?.num_predict,
         });
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -334,7 +351,7 @@ export function useAiChatLocal(
         cleanup();
       }
     },
-    [messages, model, streaming],
+    [messages, model, streaming, effort],
   );
 
   // Best-effort cleanup on unmount so a long-running stream doesn't

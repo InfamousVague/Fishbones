@@ -274,29 +274,30 @@
   color: #ffffff;
 }
 
-/* ---- 8. De-warm the non-semantic chrome -----------------------------------
-   The global scrollbar + welcome glyph use a warm bone-cream (#d4c5a1 /
-   #e8c46b) that clashes with seafoam. Cool them to ghost-white / seafoam.
-   Intentional warm beats — XP gold, streak fire, combo gold, warning callouts,
-   the parchment certificate — are LEFT intact; they carry meaning and mirror
-   GhostWire's own `--gg-hot` accent, so the palette keeps one warm note. */
+/* ---- 8. Brand-coloured scrollbar + welcome glyph --------------------------
+   The scrollbar thumb is the BRAND accent (--gg-accent, hue-driven). It's
+   DIMMED at rest so it doesn't shout, and brightens to the full accent on
+   hover; active (dragging) uses the deeper accent for a pressed feel.
+   Firefox/standard `scrollbar-color` has no hover state, so it sits at a
+   middle, half-lit level. Intentional warm beats elsewhere (XP gold, streak
+   fire, combo gold, the parchment certificate) are LEFT intact. */
 [data-theme-name="default-dark"] * {
-  scrollbar-color: hsl(var(--gg-hue) 64% 60% / 0.20) transparent;
+  scrollbar-color: hsl(var(--gg-hue) 74% 66% / 0.55) transparent;
 }
 [data-theme-name="default-dark"] *::-webkit-scrollbar-thumb {
-  background: hsl(var(--gg-hue) 60% 78% / 0.10);
+  background: hsl(var(--gg-hue) 74% 66% / 0.45);
   background-clip: padding-box;
 }
 [data-theme-name="default-dark"] *:hover::-webkit-scrollbar-thumb {
-  background: hsl(var(--gg-hue) 64% 60% / 0.45);
+  background: hsl(var(--gg-hue) 80% 72%);
   background-clip: padding-box;
 }
 [data-theme-name="default-dark"] *::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--gg-hue) 64% 60% / 0.72);
+  background: hsl(var(--gg-hue) 84% 78%);
   background-clip: padding-box;
 }
 [data-theme-name="default-dark"] *::-webkit-scrollbar-thumb:active {
-  background: var(--gg-seafoam);
+  background: var(--gg-accent-deep);
   background-clip: padding-box;
 }
 [data-theme-name="default-dark"] .libre__welcome-glyph {

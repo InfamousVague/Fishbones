@@ -1,0 +1,241 @@
+/* Build Journal — "How this was built". Sits beneath the console
+   in the agent panel; shares the panel's surface tokens so it reads
+   as part of the same glass stack, with a teaching-accent treatment
+   on the "new to you" concept rows. */
+
+.libre-bj {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  max-height: 320px;
+}
+
+.libre-bj-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-default);
+  color: var(--color-accent, var(--color-text-secondary));
+}
+
+.libre-bj-title {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.libre-bj-meta {
+  flex: 1;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.libre-bj-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px 12px;
+}
+
+.libre-bj-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 4px 0 8px;
+}
+
+.libre-bj-section-label:not(:first-child) {
+  margin-top: 16px;
+}
+
+.libre-bj-section-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: var(--color-accent, var(--color-text-secondary));
+}
+
+/* ── Files ───────────────────────────────────────────────── */
+
+.libre-bj-files {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.libre-bj-file {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: var(--color-bg-secondary);
+}
+
+.libre-bj-file-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.libre-bj-file-path {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.libre-bj-file-purpose {
+  font-size: 10.5px;
+  color: var(--color-text-tertiary);
+}
+
+.libre-bj-file-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.libre-bj-chip {
+  font-size: 10px;
+  line-height: 1.4;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent, #888) 12%, transparent);
+  color: var(--color-text-secondary);
+  border: 1px solid
+    color-mix(in srgb, var(--color-accent, #888) 22%, transparent);
+}
+
+.libre-bj-chip--more {
+  background: transparent;
+  color: var(--color-text-tertiary);
+}
+
+/* ── Concepts / learning path ────────────────────────────── */
+
+.libre-bj-concepts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.libre-bj-concept {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--color-bg-secondary);
+}
+
+/* "New to you" concepts get the teaching-accent edge so the
+   learning path visibly leads with what to study next. */
+.libre-bj-concept--new {
+  border-color: color-mix(in srgb, var(--color-accent, #6aa) 45%, transparent);
+  background: color-mix(in srgb, var(--color-accent, #6aa) 7%, var(--color-bg-secondary));
+}
+
+.libre-bj-concept-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.libre-bj-concept-label {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.libre-bj-new-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--color-accent, #6aa);
+  background: color-mix(in srgb, var(--color-accent, #6aa) 14%, transparent);
+}
+
+.libre-bj-concept-blurb {
+  margin: 5px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.libre-bj-concept-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.libre-bj-learn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-accent, #6aa) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent, #6aa) 10%, transparent);
+  color: var(--color-accent, var(--color-text-primary));
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.libre-bj-learn:hover {
+  background: color-mix(in srgb, var(--color-accent, #6aa) 20%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent, #6aa) 60%, transparent);
+}
+
+.libre-bj-learn-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libre-bj-concept-nolesson {
+  margin-top: 7px;
+  font-size: 10.5px;
+  font-style: italic;
+  color: var(--color-text-tertiary);
+}
+
+/* ── Difficulty dots ─────────────────────────────────────── */
+
+.libre-bj-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.libre-bj-diff-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-border-strong, var(--color-border-default));
+}
+
+.libre-bj-diff-dot--on {
+  background: var(--color-accent, var(--color-text-secondary));
+}

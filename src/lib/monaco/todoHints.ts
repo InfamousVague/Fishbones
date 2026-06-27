@@ -24,6 +24,8 @@
 
 import type * as MonacoNS from "monaco-editor";
 import { aiHostUrl, readAiEnabled } from "../aiHost";
+import { loadSettings } from "../aiAgent/settings";
+import { DEFAULT_MODEL_ID } from "../ai/models";
 
 type Monaco = typeof MonacoNS;
 type ICodeEditor = MonacoNS.editor.IStandaloneCodeEditor;
@@ -46,14 +48,20 @@ function hintEndpoint(path: string): string {
   return aiHostUrl(path) ?? `${LOCAL_OLLAMA}${path}`;
 }
 
-/// Same default the AI assistant ships with; overridable via the
-/// (undocumented) localStorage key for tinkering without a rebuild.
+/// Which Ollama model the TODO hints use. Precedence:
+///   1. the legacy per-feature override key (kept for tinkering),
+///   2. the user's chosen assistant model from the agent settings
+///      (so picking Gemma in the settings sheet also moves the
+///      inline TODO hints onto Gemma — one model, everywhere),
+///   3. the package default.
 const HINT_MODEL_KEY = "libre:todo-hint-model";
 function hintModel(): string {
   try {
-    return localStorage.getItem(HINT_MODEL_KEY) || "qwen2.5-coder:7b";
+    const override = localStorage.getItem(HINT_MODEL_KEY);
+    if (override && override.trim()) return override.trim();
+    return loadSettings().model;
   } catch {
-    return "qwen2.5-coder:7b";
+    return DEFAULT_MODEL_ID;
   }
 }
 

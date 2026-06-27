@@ -13,6 +13,8 @@ import {
 import { buildContextBlock } from "../../lib/ai/context";
 import { buildMemoryBlock } from "../../lib/ai/memory";
 import { buildLinkGuard } from "../../lib/ai/linkGuard";
+import { loadSettings, type AiAgentSettings } from "../../lib/aiAgent/settings";
+import { pairModeSection, type PairMode } from "../../lib/aiAgent/pairMode";
 import { readAiEnabled } from "../../lib/aiHost";
 import TrayHeader from "../TrayPanel/TrayHeader";
 import { useTraySessions } from "../TrayPanel/useTraySessions";
@@ -134,7 +136,26 @@ export default function AiAssistant({
       window.removeEventListener("storage", onStorage);
     };
   }, []);
-  const chat = useAiChat();
+  // Selected local Ollama model. Source of truth for the CHAT hook
+  // (the agent reads settings.model internally). Initialised from
+  // the persisted agent settings so chat + agent always run the
+  // same model; kept in sync when the settings sheet's model picker
+  // changes it (see the onUpdateSettings wrapper passed to the
+  // panel below). Threading it into useAiChat is what makes the
+  // picker actually swap which model the tutor chat talks to.
+  const [localModel, setLocalModel] = useState(() => loadSettings().model);
+  // Effort rung mirrored out of the agent settings the same way as
+  // the model, so the CHAT hook applies the same Fast/…/Ultra dial
+  // the header dropdown sets (the agent reads settings.effort
+  // internally). Kept in sync via the onUpdateSettings wrapper below.
+  const [localEffort, setLocalEffort] = useState(() => loadSettings().effort);
+  // Co-working mode mirrored out of agent settings so the agent
+  // system prompt (built below, BEFORE the agent hook exists) can
+  // shape itself per mode. Kept in sync via onUpdateSettings.
+  const [localPairMode, setLocalPairMode] = useState(
+    () => loadSettings().pairMode,
+  );
+  const chat = useAiChat(localModel, localEffort);
 
   // Latch a celebration when the parent bumps `celebrateAt`. We
   // ignore the initial 0 / undefined so the very first mount doesn't
@@ -199,8 +220,8 @@ export default function AiAssistant({
   // demand without bloating every turn's context.
   const agentSystemPrompt = useMemo(
     () =>
-      buildAgentSystemPrompt(course ?? null, lesson ?? null),
-    [course, lesson],
+      buildAgentSystemPrompt(course ?? null, lesson ?? null, localPairMode),
+    [course, lesson, localPairMode],
   );
 
   // libre:// link guard — strips hallucinated lesson/course deep
@@ -215,6 +236,24 @@ export default function AiAssistant({
     tools: agentTools,
     postProcessAssistant: linkGuard,
   });
+
+  // Single settings-update entry point shared by BOTH the header
+  // dropdowns and the agent settings sheet. Persists + applies to
+  // the agent (its settingsRef updates so the next agent turn uses
+  // the new values), AND mirrors `model` + `effort` into
+  // AiAssistant's local state so the CHAT hook re-probes / re-applies
+  // them too. One funnel means the header and the sheet can't drift.
+  const handleUpdateSettings = useCallback(
+    (next: AiAgentSettings) => {
+      agent.updateSettings(next);
+      setLocalModel((cur) => (next.model !== cur ? next.model : cur));
+      setLocalEffort((cur) => (next.effort !== cur ? next.effort : cur));
+      setLocalPairMode((cur) =>
+        next.pairMode !== cur ? next.pairMode : cur,
+      );
+    },
+    [agent],
+  );
 
   // ── Stream-to-file parser (in-app parity with the tray) ─────
   //
@@ -621,6 +660,8 @@ export default function AiAssistant({
             mode={mode}
             setMode={setMode}
             probe={chat.probe}
+            settings={agent.settings}
+            onUpdateSettings={handleUpdateSettings}
             sessions={sessions.sessions}
             activeId={sessions.active.id}
             onSelectSession={sessions.selectSession}
@@ -631,6 +672,7 @@ export default function AiAssistant({
           {mode === "chat" ? (
             <AiChatPanel
               open={open}
+              model={localModel}
               messages={chat.messages}
               streaming={chat.streaming}
               error={chat.error}
@@ -659,6 +701,9 @@ export default function AiAssistant({
               confidence={agent.confidence}
               clarification={agent.clarification}
               settings={agent.settings}
+              courses={courses}
+              completed={completed}
+              currentCourseId={course?.id}
               onSend={handleAgentSend}
               onClose={() => setOpen(false)}
               onReset={agent.reset}
@@ -667,7 +712,7 @@ export default function AiAssistant({
               onStop={agent.stop}
               onAnswerClarification={agent.answerClarification}
               onCancelClarification={agent.cancelClarification}
-              onUpdateSettings={agent.updateSettings}
+              onUpdateSettings={handleUpdateSettings}
               onClearScope={agentScope.clear}
             />
           )}
@@ -790,6 +835,7 @@ function truncate(s: string, max: number): string {
 function buildAgentSystemPrompt(
   course: Course | null,
   lesson: Lesson | null,
+  pairMode: PairMode,
 ): string {
   const sections: string[] = [];
 
@@ -911,7 +957,7 @@ function buildAgentSystemPrompt(
 
   sections.push(
     [
-      "# Workflow: navigation / recommendations",
+      "# Workflow: navigation / recommendations / teaching",
       "",
       "When the user asks 'what should I learn next?' or 'find lessons about X':",
       "",
@@ -919,6 +965,14 @@ function buildAgentSystemPrompt(
       "2. **`list_courses`** to see the full library.",
       "3. **`search_lessons`** for keyword matches.",
       "4. Recommend specific lessons with `libre://lesson/<courseId>/<lessonId>` markdown links the user can click — those URLs come back from the tools verbatim. Don't invent URLs.",
+      "",
+      "When the user asks you to EXPLAIN a concept ('what is ownership?', 'how do closures work?', 'explain async/await'):",
+      "",
+      "- Call **`explain_concept`** FIRST. It returns a grounded skeleton: a definition, the difficulty, the prerequisite concepts to understand first, and the lessons in the USER'S installed courses that teach it (with real libre:// links + completed flags). Narrate a clear explanation around those facts, mention the prerequisites if they haven't learned them, and end with the lesson link(s) so they can go deeper. Cite the returned links verbatim; never invent one. If it returns `{ found: false }`, just explain in plain prose.",
+      "",
+      "When the user wants a LEARNING PATH ('where do I start with Rust?', 'what should I study about iterators?', or after a build when they want to understand it):",
+      "",
+      "- Call **`suggest_lessons`** (pass a `topic` and/or `language`). It returns concepts UNLEARNED-FIRST with lesson links. Present it as an ordered path: 'start here → then → then', leading with what's new to them.",
     ].join("\n"),
   );
 
@@ -1009,6 +1063,15 @@ function buildAgentSystemPrompt(
       "Frame questions tightly. 'TypeScript or JavaScript?' beats 'what language do you want?'. Multiple choice (with 2-3 specific options) beats open-ended. Always include a `context` arg explaining WHY you're asking so the user understands what's at stake.",
     ].join("\n"),
   );
+
+  // Co-working mode — appended LAST among the behavioural sections
+  // so it has final-word authority over the base prompt's "zero
+  // preamble / act first" stance. `build-for-me` returns null (the
+  // base prompt already encodes autonomous building); the teaching
+  // modes add narration / a Socratic question without weakening the
+  // build loop. See `lib/aiAgent/pairMode.ts`.
+  const pairSection = pairModeSection(pairMode);
+  if (pairSection) sections.push(pairSection);
 
   // Active lesson context — built by the context engine so the
   // agent sees what the chat path sees: lesson coordinates, a

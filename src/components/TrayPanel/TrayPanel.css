@@ -147,26 +147,18 @@ body,
   align-items: center;
   gap: 8px;
   padding: 10px 10px 10px 12px;
-  border-bottom: 1px solid var(--color-border-default);
+  /* Hairline divider in the glass-border token so it matches the
+     host card's edge instead of the heavier opaque default. */
+  border-bottom: 1px solid var(--color-glass-border);
   /* Drag region for the entire header strip — controls
      individually opt out below. */
   -webkit-app-region: drag;
   app-region: drag;
-  /* Accent wash only — the base layer is TRANSPARENT so the
-     host's frosted-glass surface reads through the header strip
-     too (it used to sit on an opaque `--color-bg-primary`, which
-     painted a solid bar across the top of the otherwise-glass
-     panel). The `border-bottom` still separates header from body;
-     the glass is now continuous top-to-bottom like the nav rail. */
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--tray-accent) 14%, transparent),
-    color-mix(in srgb, var(--tray-accent) 5%, transparent) 70%,
-    transparent 100%
-  );
-  /* Mode color changes shouldn't flash — fade through the
-     gradient by transitioning the background blend instead. */
-  transition: background 200ms ease;
+  /* Fully transparent — no accent gradient, no opaque base. The
+     host's single frosted-glass surface reads straight through
+     the header so the glass is uniform top-to-bottom like the
+     nav rail; only the hairline border-bottom marks the seam. */
+  background: transparent;
 }
 
 /* Mode toggle — two-pill segmented control with icons. Active
@@ -502,6 +494,181 @@ body,
   border-color: var(--color-border-strong);
 }
 
+/* ── Quick-settings subheader (model + effort dropdowns) ─────────
+   Second header strip below the mode/sessions row. Hosts the two
+   compact dropdowns promoted out of the agent settings sheet so
+   they're one click away in either mode. Transparent like the main
+   header so the host glass reads straight through; a hairline
+   border-bottom marks the seam to the message list. */
+.libre-tray-subheader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: transparent;
+  border-bottom: 1px solid var(--color-glass-border);
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+  /* MUST out-stack the panel BODY. The subheader and the
+     `.libre-ai-panel` body are siblings inside `.libre-ai-host`,
+     and the in-host body keeps `z-index: 91` (see the
+     `.libre-ai-host .libre-ai-panel` override). A numeric z-index
+     here establishes a stacking context that traps the open
+     dropdown panel inside it — so the subheader's own z-index, NOT
+     just the panel's, is what's compared against the body's 91.
+     Anything ≤ 91 makes the dropdown render BEHIND the agent/chat
+     content. Sit comfortably above it (and below the header's
+     sessions popover at 1100). */
+  z-index: 200;
+}
+
+.libre-tray-dd {
+  position: relative;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* Compact pill trigger: [icon] [label] [caret]. */
+.libre-tray-dd-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 200px;
+  padding: 4px 8px 4px 7px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+.libre-tray-dd-trigger:hover,
+.libre-tray-dd-trigger.is-open {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.libre-tray-dd-icon {
+  display: inline-flex;
+  color: var(--tray-accent);
+  flex-shrink: 0;
+}
+
+.libre-tray-dd-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libre-tray-dd-caret {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  margin-left: 1px;
+}
+
+/* Popover panel — frosted card dropped below the trigger. Uses the
+   strong glass fill so it stays legible over the message list, with
+   a blur + shadow so it reads as floating above the content. */
+.libre-tray-dd-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  border-radius: 12px;
+  background: var(--color-glass-bg-strong, rgba(14, 15, 20, 0.92));
+  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.1));
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  overflow: hidden;
+  animation: libre-tray-dd-in 120ms ease;
+}
+@keyframes libre-tray-dd-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Model panel wraps the full ModelPicker — give it room + scroll,
+   and strip the picker's settings-sheet chrome (it was styled to sit
+   atop the sheet with a bottom divider + outer padding). */
+.libre-tray-dd-panel--model {
+  width: 320px;
+  max-width: calc(100vw - 36px);
+  max-height: min(440px, 60vh);
+  overflow-y: auto;
+}
+.libre-tray-dd-panel--model .libre-model-picker {
+  padding: 6px 12px 12px;
+  border-bottom: none;
+}
+
+/* Effort panel — a short radio list of the four rungs. */
+.libre-tray-dd-panel--effort {
+  width: 250px;
+  padding: 5px;
+}
+.libre-tray-effort-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.libre-tray-effort-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.libre-tray-effort-item:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 7%, transparent);
+}
+.libre-tray-effort-item.is-active {
+  background: color-mix(in srgb, var(--tray-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--tray-accent) 45%, transparent);
+}
+.libre-tray-effort-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+.libre-tray-effort-max {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--tray-accent-fg, #fff);
+  background: var(--tray-accent);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.libre-tray-effort-blurb {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
 /* ── In-panel chip styling ──────────────────────────────────────
    The chat / agent panels render a stack of suggestion chips on
    their empty state. Inside the tray we want those chips to feel
@@ -605,6 +772,24 @@ body,
   --tray-ok: #46d49a;
   --tray-warn: #f3b14a;
   --tray-bad: #ef5a6f;
+  /* Glass remap — SCOPED to the AI panel. The base bg tokens are
+     fully OPAQUE in dark themes (#050507 / #101117 / #181a21), so
+     every inner surface that paints with them (context bar, input
+     field, code boxes, chips, HUD, settings/clarification sheets,
+     console + preview panes) would stamp a solid box over the
+     host's frosted glass and break the look. Remapping the three
+     tokens to translucent tints here makes ALL of those surfaces
+     read as raised-on-glass in one shot — no per-selector edits.
+     The tint is `color-mix` against `--color-text-primary` so it
+     adapts per theme automatically: a faint light wash on dark
+     glass, a faint dark wash on light glass. Inset controls stay
+     legible (they keep their borders); large surfaces become
+     near-transparent washes the host glass shows straight through.
+     Cascade only reaches descendants, so nothing outside the AI
+     panel is affected. */
+  --color-bg-primary: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+  --color-bg-secondary: color-mix(in srgb, var(--color-text-primary) 7%, transparent);
+  --color-bg-tertiary: color-mix(in srgb, var(--color-text-primary) 12%, transparent);
   display: flex;
   flex-direction: column;
   height: 100%;

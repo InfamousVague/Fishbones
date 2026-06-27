@@ -9,8 +9,10 @@ import { diagnoseRunError } from "../diagnosis";
 import {
   addFact,
   buildMemoryBlock,
+  conceptMasteryOf,
   EMPTY_MEMORY,
   loadMemory,
+  recordRewindOutcomeIn,
   recordStruggle,
   recordStruggleIn,
   removeFact,
@@ -150,5 +152,51 @@ describe("learner memory", () => {
 
   it("returns empty block for empty memory", () => {
     expect(buildMemoryBlock(structuredClone(EMPTY_MEMORY))).toBe("");
+  });
+});
+
+// ── Rewind mastery (Earn the Diff) ──────────────────────────
+
+describe("recordRewindOutcomeIn", () => {
+  it("bumps concept mastery on a pass", () => {
+    let m = structuredClone(EMPTY_MEMORY);
+    m = recordRewindOutcomeIn(m, "rust-borrowing", true);
+    m = recordRewindOutcomeIn(m, "rust-borrowing", true);
+    expect(m.mastery["rust-borrowing"]).toBe(2);
+    expect(conceptMasteryOf("rust-borrowing", m)).toBe(2);
+  });
+
+  it("does nothing on a miss (no punishment for an honest attempt)", () => {
+    const m = recordRewindOutcomeIn(structuredClone(EMPTY_MEMORY), "rust-borrowing", false);
+    expect(m.mastery["rust-borrowing"]).toBeUndefined();
+  });
+
+  it("eases struggle codes that map to the earned concept", () => {
+    let m = structuredClone(EMPTY_MEMORY);
+    m = recordStruggleIn(m, "rust-E0502"); // → rust-borrowing
+    m = recordStruggleIn(m, "rust-E0502");
+    m = recordStruggleIn(m, "rust-E0382"); // → rust-ownership (unrelated)
+    m = recordStruggleIn(m, "rust-E0382");
+    // Earning the borrowing diff decrements E0502 but leaves E0382.
+    m = recordRewindOutcomeIn(m, "rust-borrowing", true, (code) =>
+      code === "rust-E0502" ? "rust-borrowing" : "rust-ownership",
+    );
+    expect(m.struggles["rust-E0502"]).toBe(1);
+    expect(m.struggles["rust-E0382"]).toBe(2);
+    expect(m.mastery["rust-borrowing"]).toBe(1);
+  });
+
+  it("deletes a struggle code once it eases to zero", () => {
+    let m = structuredClone(EMPTY_MEMORY);
+    m = recordStruggleIn(m, "rust-E0502");
+    m = recordRewindOutcomeIn(m, "rust-borrowing", true, () => "rust-borrowing");
+    expect("rust-E0502" in m.struggles).toBe(false);
+  });
+
+  it("migrates a pre-mastery blob to an empty mastery map", () => {
+    saveMemory({ facts: [], struggles: { "rust-E0382": 1 } } as never);
+    const loaded = loadMemory();
+    expect(loaded.mastery).toEqual({});
+    expect(loaded.struggles["rust-E0382"]).toBe(1);
   });
 });

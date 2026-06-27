@@ -33,7 +33,11 @@
 }
 
 .libre-ask-selection-chip-spark {
-  font-size: 11px;
+  /* Seats the sparkles SVG icon (was a text ✦ glyph). inline-flex
+     keeps it baseline-aligned with the "Ask AI" label; the accent
+     color flows into the icon via currentColor. */
+  display: inline-flex;
+  align-items: center;
   color: var(--color-accent, #d4863a);
   line-height: 1;
 }

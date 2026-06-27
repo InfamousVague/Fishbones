@@ -15,6 +15,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { aiHostUrl, readAiHost } from "../lib/aiHost";
+import { DEFAULT_MODEL_ID, isModelInstalled } from "../lib/ai/models";
+import { resolveEffortParams, type AiAgentSettings } from "../lib/aiAgent/settings";
 import type {
   ChatMessage,
   InstallResult,
@@ -23,11 +25,10 @@ import type {
   UseAiChat,
 } from "./useAiChat";
 
-/// Default model. Mirrors `DEFAULT_MODEL` in `src-tauri/src/ai_chat.rs`
-/// so the desktop and mobile paths agree on what "the recommended
-/// setup" looks like. Override per-call if a future settings UI lets
-/// the user pick a different model.
-const DEFAULT_MODEL = "qwen2.5-coder:7b";
+/// Default model — the single source of truth in `lib/ai/models.ts`
+/// (which itself mirrors `DEFAULT_MODEL` in `src-tauri/src/ai_chat.rs`).
+/// Override per-call once the user picks a different model.
+const DEFAULT_MODEL = DEFAULT_MODEL_ID;
 
 /// Probe timeout. The local hook uses 3s in Rust; we match that here
 /// so a "host configured but unreachable" state surfaces quickly
@@ -48,10 +49,14 @@ function unsupportedInstallResult(action: string): InstallResult {
 
 export function useAiChatRemote(
   model?: string,
+  /// "Effort" rung — resolved to Ollama options and sent on the
+  /// `/api/chat` body so the remote (web / mobile) path respects the
+  /// same quality dial as desktop. Signature-parity with
+  /// `useAiChatLocal` so the picker in useAiChat.ts typechecks.
+  effort?: AiAgentSettings["effort"],
   /// Optional starting messages — kept signature-parity with
-  /// `useAiChatLocal` so the picker in useAiChat.ts can typecheck
-  /// `typeof useAiChatLocal`. The remote variant is used on web /
-  /// mobile where the tray's session feature doesn't run.
+  /// `useAiChatLocal`. The remote variant is used on web / mobile
+  /// where the tray's session feature doesn't run.
   initialMessages?: ChatMessage[],
 ): UseAiChat {
   const [messages, setMessages] = useState<ChatMessage[]>(
@@ -92,14 +97,10 @@ export function useAiChatRemote(
       const body = (await r.json()) as { models?: Array<{ name: string }> };
       const names = (body.models ?? []).map((m) => m.name);
       const wanted = model ?? DEFAULT_MODEL;
-      // Same `<name>` / `<name>:latest` matching the Rust probe does
-      // so a `qwen2.5-coder:7b` config matches a pull stored as
+      // Tag-aware match (shared with the registry + Rust probe) so a
+      // `qwen2.5-coder:7b` config matches a pull stored as
       // `qwen2.5-coder:7b:latest` and vice versa.
-      const has =
-        names.includes(wanted) ||
-        names.includes(`${wanted}:latest`) ||
-        (wanted.endsWith(":latest") &&
-          names.includes(wanted.slice(0, -":latest".length)));
+      const has = isModelInstalled(wanted, names);
       setProbe({
         reachable: true,
         models: names,
@@ -204,6 +205,10 @@ export function useAiChatRemote(
       }
 
       try {
+        // Effort knobs go straight into Ollama's `options` block
+        // (snake_case, the native /api/chat shape). Omitted when no
+        // effort is set so the host model keeps its own defaults.
+        const eff = effort ? resolveEffortParams(effort) : null;
         const r = await fetch(url, {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -211,6 +216,15 @@ export function useAiChatRemote(
             model: model ?? DEFAULT_MODEL,
             messages: reqMessages,
             stream: true,
+            ...(eff
+              ? {
+                  options: {
+                    temperature: eff.temperature,
+                    num_ctx: eff.num_ctx,
+                    num_predict: eff.num_predict,
+                  },
+                }
+              : {}),
           }),
           signal: ctrl.signal,
         });
@@ -303,7 +317,7 @@ export function useAiChatRemote(
         if (abortRef.current === ctrl) abortRef.current = null;
       }
     },
-    [model],
+    [model, effort],
   );
 
   const reset = useCallback(() => {

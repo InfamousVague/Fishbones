@@ -36,7 +36,16 @@ import {
 } from "./scope";
 import { diagnoseRunError } from "../ai/diagnosis";
 import {
+  analyzeConceptCoverage,
+  conceptsForLanguage,
+  conceptLangFor,
+  findConceptByName,
+  lessonsForConcept,
+  prerequisiteChain,
+} from "../ai/concepts";
+import {
   addFact,
+  conceptMasteryOf,
   loadMemory,
   recordStruggle,
   removeFact,
@@ -241,6 +250,136 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
           void score;
           return rest;
         });
+      },
+    },
+
+    // ── Tutor tools (concept-grounded, read-only) ─────────────
+    //
+    // These turn a fuzzy "explain X" / "what should I learn about
+    // X" into a STRUCTURED, can't-hallucinate answer: the blurb +
+    // prerequisite chain come from the concept engine, the lesson
+    // links come from the retrieval scorer over the user's INSTALLED
+    // courses (so every libre:// URL is real), and the learned flags
+    // come from the completion set. The model narrates around this
+    // skeleton instead of inventing it.
+    {
+      name: "explain_concept",
+      description:
+        "Look up a programming concept (e.g. 'ownership', 'closures', 'async/await', 'list comprehensions') and get a grounded teaching skeleton: a one-line definition, its difficulty, the prerequisite concepts to understand first, and the lessons in the USER'S installed courses that teach it (with real libre:// links + whether they've already completed each). Use this whenever the learner asks you to explain a concept — narrate around the returned facts; cite the lesson links verbatim; never invent a libre:// URL. Returns { found: false } when there's no structured concept — then answer in plain prose.",
+      parameters: {
+        type: "object",
+        properties: {
+          concept: {
+            type: "string",
+            description:
+              "The concept name or id, e.g. 'borrowing', 'rust-borrowing', 'react hooks'.",
+          },
+          language: {
+            type: "string",
+            description:
+              "Optional language hint ('rust' | 'python' | 'javascript' | 'typescript' | 'react' …) to disambiguate (a Python 'class' vs a Rust question).",
+          },
+        },
+        required: ["concept"],
+      },
+      auto: true,
+      async handler(args: { concept: string; language?: string }) {
+        const concept = findConceptByName(args.concept, args.language);
+        if (!concept) {
+          return {
+            found: false,
+            message: `No structured concept matches "${args.concept}". Answer in plain prose.`,
+          };
+        }
+        const chain = prerequisiteChain(concept.id)
+          .filter((c) => c.id !== concept.id)
+          .map((c) => c.label);
+        const lessons = lessonsForConcept(ctx.courses, concept, 3).map((l) => ({
+          courseId: l.courseId,
+          lessonId: l.lessonId,
+          courseTitle: l.courseTitle,
+          lessonTitle: l.lessonTitle,
+          link: l.link,
+          completed: ctx.completed.has(`${l.courseId}:${l.lessonId}`),
+        }));
+        return {
+          found: true,
+          id: concept.id,
+          label: concept.label,
+          blurb: concept.blurb,
+          difficulty: concept.difficulty,
+          prerequisites: chain,
+          mastery: conceptMasteryOf(concept.id),
+          lessons,
+        };
+      },
+    },
+    {
+      name: "suggest_lessons",
+      description:
+        "Build a pedagogically-ordered learning path for a topic or language: detects the relevant concepts, then returns them UNLEARNED-FIRST (hardest first within that), each with its difficulty, a one-line blurb, and the installed-course lessons that teach it (real libre:// links + completed flags). Use for 'what should I learn about X', 'where do I start with Rust', or to suggest next steps after a build. Prefer this over search_lessons when the learner wants a guided sequence, not a raw title match.",
+      parameters: {
+        type: "object",
+        properties: {
+          topic: {
+            type: "string",
+            description:
+              "A concept or topic to focus on, e.g. 'iterators', 'ownership and borrowing'. Omit to get a broad path for `language`.",
+          },
+          language: {
+            type: "string",
+            description:
+              "Language family to draw concepts from ('rust' | 'python' | 'javascript' | 'typescript'). Used when `topic` is broad or omitted.",
+          },
+          limit: {
+            type: "integer",
+            description: "Max concepts to return (default 6).",
+          },
+        },
+        required: [],
+      },
+      auto: true,
+      async handler(args: {
+        topic?: string;
+        language?: string;
+        limit?: number;
+      }) {
+        const limit = Math.min(Math.max(1, args.limit ?? 6), 12);
+        // Resolve the concept set: a named topic expands to that
+        // concept + its prerequisites; otherwise the language's pool.
+        let pool: ReturnType<typeof conceptsForLanguage> = [];
+        if (args.topic) {
+          const c = findConceptByName(args.topic, args.language);
+          if (c) pool = prerequisiteChain(c.id);
+        }
+        if (pool.length === 0 && args.language) {
+          const lang = conceptLangFor(args.language);
+          if (lang) pool = conceptsForLanguage(lang);
+        }
+        if (pool.length === 0) {
+          return {
+            found: false,
+            message:
+              "No concepts matched. Pass a `language` (rust/python/javascript/typescript) or a known `topic`.",
+          };
+        }
+        const coverage = analyzeConceptCoverage(pool, ctx.courses, ctx.completed);
+        return {
+          found: true,
+          path: coverage.slice(0, limit).map((c) => ({
+            id: c.concept.id,
+            label: c.concept.label,
+            difficulty: c.concept.difficulty,
+            blurb: c.concept.blurb,
+            learned: c.learned,
+            lessons: c.lessons.slice(0, 2).map((l) => ({
+              courseId: l.courseId,
+              lessonId: l.lessonId,
+              lessonTitle: l.lessonTitle,
+              link: l.link,
+            })),
+          })),
+        };
       },
     },
 

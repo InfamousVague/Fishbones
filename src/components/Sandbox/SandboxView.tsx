@@ -4,6 +4,7 @@ import { code as codeIcon } from "@base/primitives/icon/icons/code";
 import { eye } from "@base/primitives/icon/icons/eye";
 import { columns2 } from "@base/primitives/icon/icons/columns-2";
 import { smartphone } from "@base/primitives/icon/icons/smartphone";
+import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import "@base/primitives/icon/icon.css";
 import { SegmentedControl } from "@base/primitives/segmented-control";
 import "@base/primitives/segmented-control/segmented-control.css";
@@ -661,6 +662,7 @@ export default function SandboxView({ projects }: SandboxViewProps) {
             disabled={currentSource().trim().length === 0}
             title={t("sandbox.explainTooltip")}
           >
+            <Icon icon={sparkles} size="sm" color="currentColor" />
             {t("sandbox.explain")}
           </button>
           <button
@@ -672,6 +674,7 @@ export default function SandboxView({ projects }: SandboxViewProps) {
             aria-expanded={genOpen}
             title={t("sandbox.generateTooltip")}
           >
+            <Icon icon={sparkles} size="sm" color="currentColor" />
             {t("sandbox.generate")}
           </button>
         </div>

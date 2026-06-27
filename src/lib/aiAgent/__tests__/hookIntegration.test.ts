@@ -189,4 +189,52 @@ describe("useAiAgent integration", () => {
     expect(result.current.confidence).toBeNull();
     expect(result.current.usage.turns).toBe(0);
   });
+
+  it("sends the model the user picked (settings.model) to the transport", async () => {
+    // Capture the model id every turn sees on the wire.
+    let seenModel: string | null = null;
+    transportRef.current = {
+      async send(req) {
+        seenModel = req.model;
+        return { content: "ok\n<confidence>0.9</confidence>" };
+      },
+    };
+    const { result } = renderHook(() =>
+      useAiAgent({ systemPrompt: "", tools: [] }),
+    );
+    // Default model first.
+    await act(async () => {
+      await result.current.send("hi");
+    });
+    expect(seenModel).toBe("qwen2.5-coder:7b");
+
+    // Pick Gemma via the settings sheet path; the NEXT run uses it.
+    act(() => {
+      result.current.updateSettings({
+        ...result.current.settings,
+        model: "gemma3:12b",
+      });
+    });
+    await act(async () => {
+      await result.current.send("again");
+    });
+    expect(seenModel).toBe("gemma3:12b");
+  });
+
+  it("an explicit model prop overrides the settings model", async () => {
+    let seenModel: string | null = null;
+    transportRef.current = {
+      async send(req) {
+        seenModel = req.model;
+        return { content: "ok" };
+      },
+    };
+    const { result } = renderHook(() =>
+      useAiAgent({ systemPrompt: "", tools: [], model: "mistral:7b" }),
+    );
+    await act(async () => {
+      await result.current.send("hi");
+    });
+    expect(seenModel).toBe("mistral:7b");
+  });
 });

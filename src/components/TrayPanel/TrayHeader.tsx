@@ -23,14 +23,23 @@
 ///   menu-bar popover hides itself on blur, so it doesn't need
 ///   the affordance; the in-app slide-in panel does.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { ProbeResult } from "../../hooks/useAiChat";
+import ModelPicker from "../AiAssistant/ModelPicker";
+import { compactModelLabel } from "../../lib/ai/models";
+import { EFFORT_OPTIONS, type AiAgentSettings } from "../../lib/aiAgent/settings";
 import type { TraySession } from "./useTraySessions";
 
 interface Props {
   mode: "chat" | "agent";
   setMode: (mode: "chat" | "agent") => void;
   probe: ProbeResult | null;
+  /// Live assistant settings — the header's model + effort dropdowns
+  /// read the current selection from here and write changes back via
+  /// `onUpdateSettings`. Same object the agent settings sheet edits,
+  /// so the two stay in lockstep.
+  settings: AiAgentSettings;
+  onUpdateSettings: (next: AiAgentSettings) => void;
   sessions: readonly TraySession[];
   activeId: string;
   onSelectSession: (id: string) => void;
@@ -47,6 +56,8 @@ export default function TrayHeader({
   mode,
   setMode,
   probe,
+  settings,
+  onUpdateSettings,
   sessions,
   activeId,
   onSelectSession,
@@ -79,6 +90,7 @@ export default function TrayHeader({
   const status = computeStatus(probe);
 
   return (
+    <>
     <div className="libre-tray-header">
       <div className="libre-tray-header-mode" role="tablist" aria-label="Assistant mode">
         <button
@@ -218,6 +230,169 @@ export default function TrayHeader({
         </button>
       )}
     </div>
+
+    {/* Quick-settings strip — model + effort dropdowns, surfaced
+        from the (otherwise buried) agent settings sheet so they're
+        one click away in EITHER mode. Both write through
+        onUpdateSettings, which the host funnels into the agent AND
+        the chat hook. */}
+    <div className="libre-tray-subheader" aria-label="Assistant quick settings">
+      <ModelHeaderDropdown
+        settings={settings}
+        onUpdateSettings={onUpdateSettings}
+      />
+      <EffortHeaderDropdown
+        settings={settings}
+        onUpdateSettings={onUpdateSettings}
+      />
+    </div>
+    </>
+  );
+}
+
+// ── Header quick-settings dropdowns ─────────────────────────────
+// Two compact popover dropdowns living in the subheader strip:
+// the model selector (wraps the full ModelPicker so pulls work
+// straight from the header) and the effort dial. Both share a tiny
+// popover shell with click-outside + Escape dismissal.
+
+interface DropdownProps {
+  settings: AiAgentSettings;
+  onUpdateSettings: (next: AiAgentSettings) => void;
+}
+
+/// Shared dropdown shell. `renderPanel` receives a `close` fn so the
+/// panel content can dismiss the popover after committing a choice
+/// (model "Use" / effort pick) while staying open during slow work
+/// (a model pull, which doesn't call close until it auto-selects).
+function HeaderDropdown({
+  triggerIcon,
+  triggerLabel,
+  triggerTitle,
+  ariaLabel,
+  panelClassName,
+  renderPanel,
+}: {
+  triggerIcon: ReactNode;
+  triggerLabel: string;
+  triggerTitle: string;
+  ariaLabel: string;
+  panelClassName?: string;
+  renderPanel: (close: () => void) => ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as Node | null;
+      if (t && ref.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", onPointer);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onPointer);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="libre-tray-dd" ref={ref}>
+      <button
+        type="button"
+        className={"libre-tray-dd-trigger" + (open ? " is-open" : "")}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={triggerTitle}
+      >
+        <span className="libre-tray-dd-icon" aria-hidden>
+          {triggerIcon}
+        </span>
+        <span className="libre-tray-dd-label">{triggerLabel}</span>
+        <span className="libre-tray-dd-caret" aria-hidden>
+          <ChevronDownIcon />
+        </span>
+      </button>
+      {open && (
+        <div
+          className={"libre-tray-dd-panel " + (panelClassName ?? "")}
+          role="menu"
+          aria-label={ariaLabel}
+        >
+          {renderPanel(() => setOpen(false))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModelHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
+  return (
+    <HeaderDropdown
+      triggerIcon={<CpuIcon />}
+      triggerLabel={compactModelLabel(settings.model)}
+      triggerTitle={`Assistant model — ${settings.model}`}
+      ariaLabel="Assistant model"
+      panelClassName="libre-tray-dd-panel--model"
+      renderPanel={(close) => (
+        <ModelPicker
+          currentModel={settings.model}
+          onSelect={(id) => {
+            onUpdateSettings({ ...settings, model: id });
+            close();
+          }}
+        />
+      )}
+    />
+  );
+}
+
+function EffortHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
+  const current =
+    EFFORT_OPTIONS.find((o) => o.value === settings.effort) ?? EFFORT_OPTIONS[1];
+  return (
+    <HeaderDropdown
+      triggerIcon={<GaugeIcon />}
+      triggerLabel={current.label}
+      triggerTitle={`Effort — ${current.label}: ${current.blurb}`}
+      ariaLabel="Effort level"
+      panelClassName="libre-tray-dd-panel--effort"
+      renderPanel={(close) => (
+        <ul className="libre-tray-effort-list" role="none">
+          {EFFORT_OPTIONS.map((o) => (
+            <li key={o.value} role="none">
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={o.value === settings.effort}
+                className={
+                  "libre-tray-effort-item" +
+                  (o.value === settings.effort ? " is-active" : "")
+                }
+                onClick={() => {
+                  onUpdateSettings({ ...settings, effort: o.value });
+                  close();
+                }}
+              >
+                <span className="libre-tray-effort-name">
+                  {o.label}
+                  {o.value === "ultra" && (
+                    <span className="libre-tray-effort-max">MAX</span>
+                  )}
+                </span>
+                <span className="libre-tray-effort-blurb">{o.blurb}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    />
   );
 }
 
@@ -351,6 +526,66 @@ function XIcon() {
     >
       <line x1="4" y1="4" x2="12" y2="12" />
       <line x1="12" y1="4" x2="4" y2="12" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 6.5 8 10.5 12 6.5" />
+    </svg>
+  );
+}
+
+/// Model selector glyph — a little CPU/chip outline.
+function CpuIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="4.5" y="4.5" width="7" height="7" rx="1.2" />
+      <path d="M6.5 6.5h3v3h-3z" />
+      <path d="M6 2.5v2M10 2.5v2M6 11.5v2M10 11.5v2M2.5 6h2M2.5 10h2M11.5 6h2M11.5 10h2" />
+    </svg>
+  );
+}
+
+/// Effort dial glyph — a gauge with a needle.
+function GaugeIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M2.5 11a5.5 5.5 0 0 1 11 0" />
+      <path d="M8 11 10.5 6.5" />
+      <circle cx="8" cy="11" r="0.9" fill="currentColor" stroke="none" />
     </svg>
   );
 }

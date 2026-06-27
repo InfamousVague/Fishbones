@@ -9,7 +9,20 @@
 /// confidence prompts elevated, no auto-approve. Power users flip
 /// the toggles on once they trust the agent.
 
+import { DEFAULT_MODEL_ID } from "../ai/models";
+import {
+  clampPairMode,
+  DEFAULT_PAIR_MODE,
+  type PairMode,
+} from "./pairMode";
+
 export interface AiAgentSettings {
+  /// Ollama model id the local assistant runs (both chat + agent).
+  /// Free-form string — any tag the user has pulled is valid, so a
+  /// hand-pulled custom model works even if it's not in the curated
+  /// registry. The model picker writes this; the agent loop + chat
+  /// transport read it. Defaults to the historical `qwen2.5-coder:7b`.
+  model: string;
   /// When true, the agent loop dispatches every tool call without
   /// surfacing the approve / deny chip. The user opt-in to this is
   /// a deliberate "I trust the agent in my sandbox" choice; it
@@ -44,7 +57,7 @@ export interface AiAgentSettings {
   maxTurns: number;
   /// "Effort" knob — Notion issue #93e0c544cf11a200 ("add effort
   /// settings to the LLM so we can choose to use slower but better
-  /// LLM cycles"). Three rungs:
+  /// LLM cycles"). Four rungs:
   ///   - "fast"     — speed-first. Lower context window, fewer
   ///                  predict tokens, lower temperature so the model
   ///                  goes for the obvious answer in one shot.
@@ -54,9 +67,29 @@ export interface AiAgentSettings {
   ///                  budget, slight temperature bump so the model
   ///                  is willing to enumerate alternatives + write
   ///                  longer plans.
+  ///   - "ultra"    — max-out everything. The biggest context window
+  ///                  the model supports (32k), the longest responses,
+  ///                  and enough temperature headroom to explore
+  ///                  multiple approaches. Slowest, highest quality —
+  ///                  for hard multi-file builds + deep reasoning when
+  ///                  the user has the patience + RAM.
   /// Maps to Ollama `options.{temperature, num_ctx, num_predict}` at
   /// call time via `resolveEffortParams()` below.
-  effort: "fast" | "balanced" | "thorough";
+  effort: "fast" | "balanced" | "thorough" | "ultra";
+  /// Co-working spectrum — how tightly the learner builds alongside
+  /// the agent (see `pairMode.ts`):
+  ///   - "build-for-me"  — hands-off; the agent delivers a finished
+  ///                       working project (the historical behaviour).
+  ///   - "build-with-me" — the agent builds AND narrates the why of
+  ///                       each load-bearing step, then maps it to
+  ///                       lessons via the Build Journal. The default
+  ///                       — this is a learn-to-code app.
+  ///   - "socratic"      — the agent pauses at the key decision and
+  ///                       asks the learner to choose before coding it.
+  /// Shapes the agent system prompt via `pairModeSection()` and gates
+  /// the "Earn the Diff" rewind challenge (which only fires in the two
+  /// teaching modes).
+  pairMode: PairMode;
 }
 
 /// LLM call parameters resolved from the user's `effort` setting.
@@ -89,11 +122,31 @@ export function resolveEffortParams(
       return { temperature: 0.2, num_ctx: 4096, num_predict: 768 };
     case "thorough":
       return { temperature: 0.55, num_ctx: 16384, num_predict: 4096 };
+    case "ultra":
+      // Max-out: the largest context Qwen2.5-coder + most modern
+      // local models support (32k), the longest response budget,
+      // and enough temperature to explore alternatives. This is the
+      // "use all the cycles" rung — slowest + heaviest on RAM.
+      return { temperature: 0.6, num_ctx: 32768, num_predict: 8192 };
     case "balanced":
     default:
       return { temperature: 0.4, num_ctx: 8192, num_predict: -1 };
   }
 }
+
+/// Effort rungs as presentation metadata — drives the header effort
+/// dropdown + the (legacy) settings select. Ordered fast → ultra so
+/// the dropdown reads as a single escalating dial.
+export const EFFORT_OPTIONS: ReadonlyArray<{
+  value: AiAgentSettings["effort"];
+  label: string;
+  blurb: string;
+}> = [
+  { value: "fast", label: "Fast", blurb: "Quick, one-shot answers. Smallest context." },
+  { value: "balanced", label: "Balanced", blurb: "The tuned default — good speed/quality mix." },
+  { value: "thorough", label: "Thorough", blurb: "Slower + deeper. Bigger context, longer plans." },
+  { value: "ultra", label: "Ultra", blurb: "Max everything — 32k context, longest output. Slowest." },
+];
 
 export const DEFAULT_SETTINGS: AiAgentSettings = {
   // Auto-approve ships OFF by default (security review, May 2026).
@@ -120,6 +173,8 @@ export const DEFAULT_SETTINGS: AiAgentSettings = {
   toolConcurrency: 1,
   maxTurns: 20,
   effort: "balanced",
+  pairMode: DEFAULT_PAIR_MODE,
+  model: DEFAULT_MODEL_ID,
 };
 
 const STORAGE_KEY = "libre.aiAgent.settings";
@@ -171,13 +226,25 @@ export function mergeSettings(
     ),
     maxTurns: clampInt(partial.maxTurns ?? DEFAULT_SETTINGS.maxTurns, 1, 50),
     effort: clampEffort(partial.effort),
+    pairMode: clampPairMode(partial.pairMode),
+    model: clampModel(partial.model),
   };
+}
+
+/// Validate the persisted model id. Accept any non-empty trimmed
+/// string (custom hand-pulled tags are legitimate); fall back to
+/// the default for missing / blank / non-string values.
+function clampModel(v: unknown): string {
+  if (typeof v === "string" && v.trim().length > 0) return v.trim();
+  return DEFAULT_SETTINGS.model;
 }
 
 function clampEffort(
   v: AiAgentSettings["effort"] | undefined,
 ): AiAgentSettings["effort"] {
-  if (v === "fast" || v === "balanced" || v === "thorough") return v;
+  if (v === "fast" || v === "balanced" || v === "thorough" || v === "ultra") {
+    return v;
+  }
   return DEFAULT_SETTINGS.effort;
 }
 

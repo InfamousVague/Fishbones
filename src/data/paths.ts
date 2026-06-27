@@ -72,9 +72,217 @@ export interface LearningPath {
   stages: PathStage[];
 }
 
-/// Display order top-to-bottom on the Paths page. Roughly: broad /
-/// beginner-friendly first, specialised last.
+/// Display order top-to-bottom on the Paths page. The four core
+/// LANGUAGE tracks come first — pure "learn this language, easiest to
+/// hardest" trunks for someone who just wants a place to start. The
+/// role / outcome paths (Rust Developer, Backend Engineer, …) follow:
+/// they're deeper and branch into specialisations. Every `courseId`
+/// below is verified against the live catalog manifest
+/// (libre.academy/starter-courses/manifest.json).
 export const LEARNING_PATHS: readonly LearningPath[] = [
+  // ── Language tracks (easiest → hardest) ──────────────────────────
+  {
+    id: "rust",
+    title: "Rust",
+    blurb:
+      "Learn Rust from zero to the deep end. The official book teaches ownership and the borrow checker, the drills make compiler errors feel like hints, then you test, take on hard problems, go async, and finally lift the hood with unsafe.",
+    language: "rust",
+    icon: "cpu",
+    stages: [
+      {
+        kind: "step",
+        step: {
+          courseId: "the-rust-programming-language",
+          note: "Start here — the official book. Ownership, types, and the borrow checker from scratch.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rustlings",
+          note: "Tiny fix-the-code drills until compiler errors read like hints.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "exercism-rust",
+          note: "Structured practice — one concept at a time.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "testing-rust",
+          note: "Write tests like an engineer — unit through end-to-end.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "challenges-rust-handwritten",
+          note: "Harder problems, no hand-holding — prove the fundamentals.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rust-async-book",
+          note: "Futures, executors, and pinning — concurrency the Rust way.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "rustonomicon",
+          note: "The deep end: unsafe, raw pointers, and what the guarantees cost.",
+        },
+      },
+    ],
+  },
+  {
+    id: "go",
+    title: "Go",
+    blurb:
+      "Pick up Go the practical way. A from-the-ground-up book covers goroutines, interfaces, and the standard library; the drills and structured practice build fluency; then harder problems prove you've got it.",
+    language: "go",
+    icon: "server",
+    stages: [
+      {
+        kind: "step",
+        step: {
+          courseId: "learning-go",
+          note: "Start here — Go from the ground up: goroutines, interfaces, the standard library.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "golings",
+          note: "Small fix-the-code drills, rustlings-style, for Go.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "exercism-go",
+          note: "Structured practice — one concept at a time.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "challenges-go-handwritten",
+          note: "Harder problems to prove the fundamentals.",
+        },
+      },
+    ],
+  },
+  {
+    id: "python",
+    title: "Python",
+    blurb:
+      "Start programming with Python and keep going. From an absolute-beginner on-ramp to the full language, structured practice, Pythonic idioms, and finally problems with no training wheels.",
+    language: "python",
+    icon: "workflow",
+    stages: [
+      {
+        kind: "step",
+        step: {
+          courseId: "python-for-beginners",
+          note: "Start here — programming from zero, no experience assumed.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "learning-python",
+          note: "Go deeper: the full language — data structures, modules, and OOP.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "exercism-python",
+          note: "Structured practice — one concept at a time.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "python-koans",
+          note: "Learn Pythonic idioms by making failing tests pass.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "challenges-python-handwritten",
+          note: "Harder problems, no training wheels.",
+        },
+      },
+    ],
+  },
+  {
+    id: "javascript",
+    title: "JavaScript",
+    blurb:
+      "Learn the language of the web, end to end. Begin at absolute zero, work through the big in-house book into TypeScript, practise, master the quirks, understand how JS really works, then test like a pro and take on hard problems.",
+    language: "javascript",
+    icon: "blocks",
+    stages: [
+      {
+        kind: "step",
+        step: {
+          courseId: "javascript-for-beginners",
+          note: "Start here — JavaScript from absolute zero.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "javascript-typescript",
+          note: "The big one: JS in depth, then TypeScript layered on top.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "exercism-javascript",
+          note: "Structured practice — one concept at a time.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "javascript-koans",
+          note: "Learn the language's quirks by making failing tests pass.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "you-dont-know-js-yet",
+          note: "Go deep on how JavaScript really works under the hood.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "testing-javascript",
+          note: "Test JS like a pro — unit through end-to-end.",
+        },
+      },
+      {
+        kind: "step",
+        step: {
+          courseId: "challenges-javascript-handwritten",
+          note: "Hard problems to prove you've mastered it.",
+        },
+      },
+    ],
+  },
+  // ── Role / outcome paths ─────────────────────────────────────────
   {
     id: "rust-developer",
     title: "Rust Developer",

@@ -18,10 +18,15 @@ import type {
 import { renderMarkdown } from "../Lesson/markdown";
 import LibreLoader from "../Shared/LibreLoader";
 import { useT } from "../../i18n/i18n";
+import { findModelMeta } from "../../lib/ai/models";
 import "./AiChatPanel.css";
 
 interface Props {
   open: boolean;
+  /// The Ollama model the chat is configured to use — drives the
+  /// setup banner's pull command + size hint so it matches what the
+  /// header dropdown actually selected (not a hardcoded default).
+  model: string;
   messages: ChatMessage[];
   streaming: boolean;
   error: string | null;
@@ -46,6 +51,7 @@ interface Props {
 /// for paragraph-scale responses.
 export default function AiChatPanel({
   open,
+  model,
   messages,
   streaming,
   error,
@@ -274,6 +280,7 @@ export default function AiChatPanel({
           resolved so the user knows what's wrong. */}
       {!probeOk(probe) && (
         <SetupBanner
+          model={model}
           probe={probe}
           installStatus={installStatus}
           busy={setupBusy}
@@ -340,6 +347,7 @@ function probeOk(probe: ProbeResult | null): boolean {
 }
 
 function SetupBanner({
+  model,
   probe,
   installStatus,
   busy,
@@ -348,6 +356,7 @@ function SetupBanner({
   onStartOllama,
   onPullModel,
 }: {
+  model: string;
   probe: ProbeResult | null;
   installStatus: InstallStatus | null;
   busy: boolean;
@@ -462,18 +471,22 @@ function SetupBanner({
     );
   }
 
-  // 3. reachable but missing the default model → pull
+  // 3. reachable but missing the SELECTED model → pull it. Command +
+  // size come from the model the header dropdown actually chose, not
+  // a hardcoded default (a custom tag falls back to a generic size).
+  const meta = findModelMeta(model);
+  const sizeStr = meta ? `~${meta.sizeGb} GB` : "a few GB";
   return (
     <div className="libre-ai-panel-setup">
       <div className="libre-ai-panel-setup-title">
-        Download the coding model
+        Download {meta ? meta.label : model}
       </div>
       <p>
-        One-time ~4 GB download. You can keep using Libre in the
+        One-time {sizeStr} download. You can keep using Libre in the
         meantime — the button below kicks off the pull and the panel
         unlocks when it finishes.
       </p>
-      <pre className="libre-ai-panel-setup-cmd">ollama pull qwen2.5-coder:7b</pre>
+      <pre className="libre-ai-panel-setup-cmd">ollama pull {model}</pre>
       <button
         className="libre-ai-panel-setup-primary"
         onClick={() => void wrap(onPullModel)}
@@ -482,9 +495,9 @@ function SetupBanner({
         {busy ? "Downloading…" : "Download model"}
       </button>
       <p className="libre-ai-panel-setup-note">
-        On 16 GB RAM or less, swap the model name to{" "}
-        <code>qwen2.5-coder:3b</code> from the Settings panel for a
-        faster (slightly weaker) variant.
+        Want something lighter? Pick a smaller model from the{" "}
+        <strong>model dropdown</strong> in the panel header (e.g.{" "}
+        <code>qwen2.5-coder:3b</code>) for a faster, lower-RAM variant.
       </p>
       <ResultLog result={lastResult} />
       <button className="libre-ai-panel-setup-retry" onClick={onRetry}>

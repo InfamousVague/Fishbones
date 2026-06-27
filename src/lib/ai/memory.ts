@@ -31,6 +31,13 @@ export interface LearnerMemory {
   facts: MemoryFact[];
   /// topic/diagnosis-code → failure count.
   struggles: Record<string, number>;
+  /// concept-id → "earned the diff" count. Bumped each time the
+  /// learner correctly predicts a rewind challenge for that concept;
+  /// drives the rewind suppression gate (stop quizzing what they've
+  /// shown they know) and "you've nailed X N times" coaching. The
+  /// one good bone kept from the cut "Mastery Veil" idea — the
+  /// counter, not the hide-the-explanation UI.
+  mastery: Record<string, number>;
 }
 
 const STORAGE_KEY = "libre.ai.memory";
@@ -41,7 +48,11 @@ const MAX_FACTS = 24;
 const RENDERED_FACTS = 10;
 const RENDERED_STRUGGLES = 5;
 
-export const EMPTY_MEMORY: LearnerMemory = { facts: [], struggles: {} };
+export const EMPTY_MEMORY: LearnerMemory = {
+  facts: [],
+  struggles: {},
+  mastery: {},
+};
 
 export function loadMemory(): LearnerMemory {
   if (typeof localStorage === "undefined") return structuredClone(EMPTY_MEMORY);
@@ -59,6 +70,12 @@ export function loadMemory(): LearnerMemory {
       struggles:
         parsed.struggles && typeof parsed.struggles === "object"
           ? (parsed.struggles as Record<string, number>)
+          : {},
+      // Migration: blobs saved before the mastery store existed
+      // default to empty.
+      mastery:
+        parsed.mastery && typeof parsed.mastery === "object"
+          ? (parsed.mastery as Record<string, number>)
           : {},
     };
   } catch {
@@ -131,6 +148,50 @@ export function recordStruggleIn(
 /// exists; silently no-ops otherwise.
 export function recordStruggle(topic: string): void {
   saveMemory(recordStruggleIn(loadMemory(), topic));
+}
+
+/// Record the outcome of an "Earn the Diff" rewind challenge. On a
+/// PASS we bump the concept's mastery counter AND ease any struggle
+/// codes that map to that concept (the learner just demonstrated the
+/// fix). A miss changes nothing — the reveal + lesson link does the
+/// teaching, and we don't want to punish an honest attempt with a
+/// struggle bump. Pure; the host save-wraps via `recordRewindOutcome`.
+export function recordRewindOutcomeIn(
+  memory: LearnerMemory,
+  conceptId: string,
+  passed: boolean,
+  /// Injected for testability + to avoid importing the concept
+  /// engine at the type level here. Maps a diagnosis code to its
+  /// concept id (pass `conceptForDiagnosis(code)?.id`).
+  conceptOfCode?: (code: string) => string | undefined,
+): LearnerMemory {
+  if (!conceptId || !passed) return memory;
+  const mastery = {
+    ...memory.mastery,
+    [conceptId]: (memory.mastery[conceptId] ?? 0) + 1,
+  };
+  let struggles = memory.struggles;
+  if (conceptOfCode) {
+    const next = { ...memory.struggles };
+    let changed = false;
+    for (const code of Object.keys(next)) {
+      if (conceptOfCode(code) === conceptId && next[code] > 0) {
+        next[code] -= 1;
+        if (next[code] <= 0) delete next[code];
+        changed = true;
+      }
+    }
+    if (changed) struggles = next;
+  }
+  return { ...memory, mastery, struggles };
+}
+
+/// Mastery count for a concept (0 if never earned).
+export function conceptMasteryOf(
+  conceptId: string,
+  memory: LearnerMemory = loadMemory(),
+): number {
+  return memory.mastery[conceptId] ?? 0;
 }
 
 /// Render memory as a prompt block. Empty string when there's

@@ -1,0 +1,271 @@
+/* Local Ollama model picker — lives at the top of the agent
+   settings sheet. Reads as a list of model cards on the sheet's
+   glass surface: selectable when installed, with a "Get" pull
+   button when not. */
+
+.libre-model-picker {
+  padding: 4px 16px 14px;
+  border-bottom: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.08));
+}
+
+.libre-model-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 2px;
+}
+
+.libre-model-picker-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.01em;
+}
+
+.libre-model-picker-offline {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ff8a8a;
+  background: rgba(220, 95, 95, 0.14);
+  border: 1px solid rgba(220, 95, 95, 0.4);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
+.libre-model-picker-sub {
+  margin: 0 0 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.libre-model-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* One model row — flex with the metadata stack on the left and the
+   action (Use / Get / spinner / check) pinned right. */
+.libre-model-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 11px;
+  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.08));
+  border-radius: 9px;
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.libre-model-row:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+}
+
+/* Not-installed rows aren't directly clickable (you pull first), so
+   drop the pointer affordance on the row body. */
+.libre-model-row--remote {
+  cursor: default;
+}
+.libre-model-row--remote:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+}
+
+.libre-model-row--selected {
+  border-color: var(--color-accent, #d4863a);
+  background: color-mix(in srgb, var(--color-accent, #d4863a) 12%, transparent);
+}
+
+/* The selected model isn't actually installed (deleted in Ollama,
+   or the daemon is offline so we can't confirm). Warn rather than
+   showing a triumphant check — the user needs to re-pull it. */
+.libre-model-row--warn {
+  border-color: color-mix(in srgb, #e0a020 60%, var(--color-glass-border, rgba(255, 255, 255, 0.08)));
+  background: color-mix(in srgb, #e0a020 9%, transparent);
+}
+
+.libre-model-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.libre-model-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.libre-model-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.libre-model-badge--code {
+  color: #8fd1ff;
+  background: rgba(90, 160, 220, 0.14);
+  border-color: rgba(90, 160, 220, 0.35);
+}
+.libre-model-badge--general {
+  color: #c3b6e8;
+  background: rgba(150, 130, 220, 0.14);
+  border-color: rgba(150, 130, 220, 0.32);
+}
+.libre-model-badge--native {
+  color: #7cd9a0;
+  background: rgba(86, 201, 138, 0.14);
+  border-color: rgba(86, 201, 138, 0.35);
+}
+.libre-model-badge--emulated {
+  color: #e8c46b;
+  background: rgba(220, 180, 90, 0.12);
+  border-color: rgba(220, 180, 90, 0.32);
+}
+.libre-model-badge--warn {
+  color: #ffba6b;
+  background: rgba(224, 160, 32, 0.16);
+  border-color: rgba(224, 160, 32, 0.45);
+}
+
+.libre-model-row-blurb {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.libre-model-row-meta {
+  font-size: 10px;
+  color: var(--color-text-tertiary, #8a8a92);
+  font-variant-numeric: tabular-nums;
+}
+
+.libre-model-row-error {
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: #ff9a9a;
+  margin-top: 2px;
+}
+
+.libre-model-row-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.libre-model-row-selected-mark {
+  color: var(--color-accent, #d4863a);
+  display: inline-flex;
+}
+
+.libre-model-row-use {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 4px 10px;
+  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 6px;
+}
+.libre-model-row:hover .libre-model-row-use {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.22));
+}
+
+.libre-model-row-pull {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-accent, #d4863a) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent, #d4863a) 55%, transparent);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.libre-model-row-pull:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent, #d4863a) 26%, transparent);
+}
+.libre-model-row-pull:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* Re-pull variant on the warn row — amber instead of accent. */
+.libre-model-row-pull--warn {
+  color: #ffd9a8;
+  background: color-mix(in srgb, #e0a020 18%, transparent);
+  border-color: color-mix(in srgb, #e0a020 55%, transparent);
+}
+.libre-model-row-pull--warn:hover:not(:disabled) {
+  background: color-mix(in srgb, #e0a020 28%, transparent);
+}
+
+/* Web/mobile: pulls happen on the host machine, so not-installed
+   models show a muted label instead of a Get button. */
+.libre-model-row-remote-hint {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-tertiary, #8a8a92);
+  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 5px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+.libre-model-row-pulling {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.libre-model-row-spinner {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--color-glass-border, rgba(255, 255, 255, 0.2));
+  border-top-color: var(--color-accent, #d4863a);
+  animation: libre-model-spin 0.7s linear infinite;
+}
+
+@keyframes libre-model-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.libre-model-picker-toggle {
+  margin-top: 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-accent, #d4863a);
+  background: none;
+  border: 0;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+.libre-model-picker-toggle:hover {
+  text-decoration: underline;
+}

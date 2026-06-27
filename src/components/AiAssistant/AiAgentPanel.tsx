@@ -46,9 +46,22 @@ import {
 import {
   type AiAgentSettings,
 } from "../../lib/aiAgent/settings";
+import { PAIR_MODES, DEFAULT_PAIR_MODE } from "../../lib/aiAgent/pairMode";
+import type { Course } from "../../data/types";
+import { BuildJournalPanel, useBuildJournal } from "./BuildJournalPanel";
+import { EarnTheDiffTray, useRewindChallenge } from "./EarnTheDiffTray";
+import {
+  conceptMasteryOf,
+  loadMemory,
+  recordRewindOutcomeIn,
+  saveMemory,
+} from "../../lib/ai/memory";
+import { conceptForDiagnosis } from "../../lib/ai/concepts";
 import { useT } from "../../i18n/i18n";
 import "./AiChatPanel.css";
 import "./AiAgentHud.css";
+import "./BuildJournalPanel.css";
+import "./EarnTheDiffTray.css";
 
 interface Props {
   open: boolean;
@@ -73,6 +86,15 @@ interface Props {
   /// Current settings — auto-approve, etc. Drives the gear button
   /// state in the header.
   settings?: AiAgentSettings;
+  /// Installed courses + the learner's completed set — feed the
+  /// Build Journal ("How this was built") so it can link the
+  /// concepts the agent just used to lessons that teach them and
+  /// flag the ones the learner hasn't studied yet.
+  courses?: readonly Course[];
+  completed?: ReadonlySet<string>;
+  /// The course the learner is currently studying — biases the
+  /// journal's lesson links toward it on near-ties.
+  currentCourseId?: string;
   onSend: (prompt: string) => void;
   onClose: () => void;
   onReset: () => void;
@@ -105,6 +127,9 @@ export default function AiAgentPanel({
   confidence,
   clarification,
   settings,
+  courses,
+  completed,
+  currentCourseId,
   onSend,
   onClose,
   onReset,
@@ -388,6 +413,63 @@ export default function AiAgentPanel({
   useEffect(() => {
     if (latestRun) setConsoleOpen(true);
   }, [latestRun?.durationMs]);
+
+  // Build Journal — the deterministic "How this was built" worked
+  // example. Computed from the just-built sandbox's files + the
+  // run timeline (loaded from disk when the agent pauses). Auto-
+  // opens once a teachable build exists; collapsible thereafter.
+  const { journal: buildJournal } = useBuildJournal({
+    open,
+    streaming,
+    timeline,
+    courses,
+    completed,
+    currentCourseId,
+  });
+  const [journalOpen, setJournalOpen] = useState(true);
+  // Re-open the journal whenever a fresh teachable build lands so
+  // the learning path resurfaces after each completed build.
+  useEffect(() => {
+    if (buildJournal) setJournalOpen(true);
+  }, [buildJournal?.projectId, buildJournal?.files.length]);
+
+  // "Earn the Diff" — the one post-build rewind challenge. Computed
+  // deterministically (no model picks the line); fires once per
+  // completed build in a teaching mode. `rewindDoneSig` records the
+  // build signature the learner already answered/skipped so it
+  // doesn't re-appear for the same build.
+  const { challenge: rewindChallenge, signature: rewindSig } =
+    useRewindChallenge({
+      open,
+      streaming,
+      timeline,
+      pairMode: settings?.pairMode ?? DEFAULT_PAIR_MODE,
+      courses,
+      completed,
+      currentCourseId,
+      // Suppress the challenge for concepts the learner has already
+      // earned the diff on enough times.
+      conceptMastery: (id) => conceptMasteryOf(id),
+    });
+  const [rewindDoneSig, setRewindDoneSig] = useState<string | null>(null);
+  const showRewind =
+    !!rewindChallenge && rewindSig !== null && rewindSig !== rewindDoneSig;
+  const endRewind = (resolved?: { passed: boolean; conceptId: string }) => {
+    setRewindDoneSig(rewindSig);
+    if (resolved) {
+      // Bump per-concept mastery on a pass (and ease the matching
+      // struggle counters) so the gate stops re-quizzing what the
+      // learner has shown they know.
+      saveMemory(
+        recordRewindOutcomeIn(
+          loadMemory(),
+          resolved.conceptId,
+          resolved.passed,
+          (code) => conceptForDiagnosis(code)?.id,
+        ),
+      );
+    }
+  };
 
   // Auto-scroll the message list to follow the agent. The
   // previous implementation watched the messages/timeline/pending
@@ -700,6 +782,49 @@ export default function AiAgentPanel({
           Show console ({latestRun.logs.length} log
           {latestRun.logs.length === 1 ? "" : "s"}
           {latestRun.error ? " · errored" : ""})
+        </button>
+      )}
+
+      {/* Earn the Diff — the one post-build rewind challenge.
+          Appears after a teaching-mode build goes green; the learner
+          predicts the load-bearing line before the reveal. Sits
+          above the passive Build Journal because it's an active
+          invitation, not a summary. */}
+      {showRewind && (
+        <EarnTheDiffTray
+          challenge={rewindChallenge}
+          onResolved={(passed, conceptId) =>
+            endRewind({ passed, conceptId })
+          }
+          onDismiss={() => endRewind()}
+        />
+      )}
+
+      {/* Build Journal — "How this was built". The teaching half
+          of the brief: once the agent has actually built something,
+          this explains what each file does and links every concept
+          it used to lessons that teach it, flagging the ones the
+          learner hasn't studied yet. Computed deterministically so
+          it appears even when the small local model narrates
+          poorly. Collapsible like the console. */}
+      {buildJournal && journalOpen && (
+        <BuildJournalPanel
+          journal={buildJournal}
+          onClose={() => setJournalOpen(false)}
+        />
+      )}
+      {buildJournal && !journalOpen && (
+        <button
+          type="button"
+          className="libre-ai-panel-preview-restore"
+          onClick={() => setJournalOpen(true)}
+        >
+          Show how this was built ({buildJournal.concepts.length} concept
+          {buildJournal.concepts.length === 1 ? "" : "s"}
+          {buildJournal.newToYou.length > 0
+            ? ` · ${buildJournal.newToYou.length} new`
+            : ""}
+          )
         </button>
       )}
 
@@ -1732,6 +1857,54 @@ function SettingsSheet({
         </button>
       </div>
       <div className="libre-ai-panel-settings-body">
+        {/* Model + effort moved to the panel HEADER dropdowns (one
+            click away in either mode), so they're not duplicated
+            here. A pointer keeps anyone hunting for them oriented. */}
+        <p className="libre-ai-panel-settings-pointer">
+            Model &amp; effort live in the header dropdowns above.
+        </p>
+
+        {/* Co-working mode — the headline of the settings sheet. A
+            segmented dial from hands-off to hands-on, with the active
+            mode's blurb spelled out beneath so the choice is
+            self-explanatory. Shapes the agent prompt + gates the
+            Earn-the-Diff rewind. */}
+        <div className="libre-ai-pairmode">
+          <div className="libre-ai-pairmode-head">
+            <div className="libre-ai-panel-setting-label">Co-working mode</div>
+            <div className="libre-ai-panel-setting-hint">
+              How closely you build alongside the agent.
+            </div>
+          </div>
+          <div
+            className="libre-ai-pairmode-seg"
+            role="radiogroup"
+            aria-label="Co-working mode"
+          >
+            {PAIR_MODES.map((m) => {
+              const active = settings.pairMode === m.value;
+              return (
+                <button
+                  key={m.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  className={
+                    "libre-ai-pairmode-opt" + (active ? " is-active" : "")
+                  }
+                  onClick={() => set("pairMode", m.value)}
+                  title={m.blurb}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="libre-ai-pairmode-blurb">
+            {PAIR_MODES.find((m) => m.value === settings.pairMode)?.blurb}
+          </p>
+        </div>
+
         <SettingRow
           label="Auto-approve tool calls"
           hint="Tools run without the approve / deny chip. Low-confidence calls still pause unless you turn off the next setting."
@@ -1786,24 +1959,6 @@ function SettingsSheet({
               if (Number.isFinite(n)) set("maxTurns", n);
             }}
           />
-        </SettingRow>
-        <SettingRow
-          label="Effort"
-          hint="Tunes the underlying model call. Fast = small context, terse responses, snappy. Balanced = the default. Thorough = larger context + longer responses, slower but produces richer plans + multi-file work."
-        >
-          <select
-            value={settings.effort}
-            onChange={(e) =>
-              set(
-                "effort",
-                e.target.value as AiAgentSettings["effort"],
-              )
-            }
-          >
-            <option value="fast">Fast</option>
-            <option value="balanced">Balanced</option>
-            <option value="thorough">Thorough</option>
-          </select>
         </SettingRow>
       </div>
     </div>

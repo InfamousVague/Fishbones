@@ -27,6 +27,7 @@ import {
   resolveEffortParams,
   type AiAgentSettings,
 } from "../lib/aiAgent/settings";
+import { DEFAULT_MODEL_ID } from "../lib/ai/models";
 import {
   deriveConfidenceFromTool,
   estimateTokens,
@@ -355,8 +356,14 @@ export function useAiAgent(params: {
       try {
         await runAgentLoop({
           initialMessages: messages,
+          // Model precedence: an explicit `model` prop wins (lets a
+          // caller force a specific model), otherwise the user's
+          // chosen model from the settings sheet (settingsRef stays
+          // current as the picker writes it), falling back to the
+          // package default. This is what makes the model picker
+          // actually change which Ollama model the agent talks to.
           systemPrompt,
-          model: model ?? "qwen2.5-coder:7b",
+          model: model ?? settingsRef.current.model ?? DEFAULT_MODEL_ID,
           tools,
           userPrompt: trimmed,
           augmented,

@@ -116,6 +116,13 @@
      single baseline. */
   min-height: 38px;
   padding: 0 16px;
+  /* Flex row so the sparkles AI glyph sits inline before the
+     label. gap matches the segmented toggle's icon spacing so the
+     whole header row reads as one icon-and-label family. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);

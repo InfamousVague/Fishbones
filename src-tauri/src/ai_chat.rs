@@ -253,6 +253,14 @@ struct OllamaChatRequest<'a> {
     stream: bool,
     /// Keep the model resident between calls — see OLLAMA_KEEP_ALIVE.
     keep_alive: &'a str,
+    /// Effort-derived sampling/context knobs (temperature / num_ctx /
+    /// num_predict). The frontend's "effort" setting maps to these so
+    /// chat respects the same Fast/Balanced/Thorough/Ultra rungs the
+    /// agent loop does. Omitted entirely when the frontend didn't
+    /// send any (None → Ollama's own defaults), keeping older callers
+    /// and the existing behaviour intact.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    options: Option<&'a ModelOptions>,
 }
 
 /// Outbound request shape for the agent-turn (non-streaming)
@@ -379,6 +387,14 @@ pub async fn ai_chat_stream(
     stream_id: String,
     messages: Vec<ChatMessage>,
     model: Option<String>,
+    // Effort-derived model knobs (temperature / num_ctx /
+    // num_predict). Tauri lowercases + snake_cases the JS args, so
+    // the frontend sends `temperature`/`numCtx`/`numPredict`. Each is
+    // optional — omitting all three keeps Ollama's defaults (the
+    // pre-effort behaviour).
+    temperature: Option<f64>,
+    num_ctx: Option<u32>,
+    num_predict: Option<i64>,
 ) -> Result<(), String> {
     let model = model.unwrap_or_else(|| DEFAULT_MODEL.to_string());
     let start = Instant::now();
@@ -395,11 +411,22 @@ pub async fn ai_chat_stream(
     //
     // Shared pooled client (see HTTP) — connection reuse across
     // turns instead of a per-call TCP handshake.
+    let options = ModelOptions {
+        temperature,
+        num_ctx,
+        num_predict,
+    };
+    let options_ref = if options.is_empty() {
+        None
+    } else {
+        Some(&options)
+    };
     let payload = OllamaChatRequest {
         model: &model,
         messages: &messages,
         stream: true,
         keep_alive: OLLAMA_KEEP_ALIVE,
+        options: options_ref,
     };
 
     let url = format!("{OLLAMA_URL}/api/chat");
