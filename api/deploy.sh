@@ -308,11 +308,14 @@ libre.academy, www.libre.academy {
     header @starterCourses Access-Control-Expose-Headers "Content-Length, Content-Range, Accept-Ranges"
     header @starterCourses Access-Control-Max-Age "86400"
 
-    # Single SPA fallback. Real files (assets/, audio/,
-    # courses/<slug>.academy, etc.) are served verbatim by
-    # try_files's first probe; everything else falls through to
-    # /index.html so the React Router resolves the route.
-    try_files {path} {path}/ /index.html
+    # SPA + prerendered pages. scripts/prerender.mjs (in the
+    # Web/libre.academy repo) emits a flat <route>.html for every
+    # public route so crawlers that don't run JS see real content.
+    # Probe order: real files (assets/, audio/, courses/<slug>.academy)
+    # first, then the prerendered <route>.html, then a directory
+    # index, then /index.html for any route without a prerender. React
+    # boots on top of whichever HTML is served.
+    try_files {path} {path}.html {path}/index.html /index.html
     file_server
 }
 
