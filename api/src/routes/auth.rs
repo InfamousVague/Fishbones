@@ -180,6 +180,7 @@ pub async fn apple(
             &identity.subject,
             identity.email.as_deref(),
             display,
+            identity.email_verified,
         )
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let token = issue_token(
@@ -216,6 +217,7 @@ pub async fn google(
             &identity.subject,
             identity.email.as_deref(),
             display,
+            identity.email_verified,
         )
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let token = issue_token(

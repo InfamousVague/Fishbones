@@ -638,11 +638,13 @@ async fn finalize_oauth(
             &identity.subject,
             identity.email.as_deref(),
             display.as_deref(),
+            identity.email_verified,
         ),
         Provider::Google => state.db.find_or_create_google_user(
             &identity.subject,
             identity.email.as_deref(),
             display.as_deref(),
+            identity.email_verified,
         ),
     };
     let user_id = match user_id_res {

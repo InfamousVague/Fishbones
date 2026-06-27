@@ -78,7 +78,14 @@ impl Database {
         apple_user_id: &str,
         email: Option<&str>,
         display_name: Option<&str>,
+        email_verified: bool,
     ) -> anyhow::Result<String> {
+        // Normalize to the password path's storage form (trim + lowercase)
+        // so the by-email link lookup hits an existing email+password row
+        // instead of inserting a duplicate. Exact-string match (no alias
+        // canonicalization); empty-after-trim collapses to None.
+        let email_norm = email.map(|e| e.trim().to_lowercase()).filter(|e| !e.is_empty());
+        let email = email_norm.as_deref();
         let conn = self.conn_lock();
         let existing: Option<String> = conn
             .query_row(
@@ -96,6 +103,54 @@ impl Database {
             }
             return Ok(id);
         }
+        // No row carries this Apple subject yet. Before inserting a
+        // fresh user, try to LINK this identity onto an existing
+        // account with the same email (one created via email+password,
+        // or whose provider `sub` changed when the OAuth client moved
+        // Google Cloud projects) — otherwise the `users.email` UNIQUE
+        // constraint makes OAuth sign-in impossible for that person and
+        // the callback dies with `db_error`. We only auto-link when the
+        // provider asserts the email is verified: linking on an
+        // unverified address would let anyone able to mint a token for
+        // an arbitrary `email` claim seize a password account they
+        // don't own. Apple only returns verified / relay addresses so
+        // this is effectively always true for Apple, but we still gate.
+        if email_verified {
+            if let Some(e) = email {
+                let by_email: Option<(String, bool)> = conn
+                    .query_row(
+                        "SELECT id, email_verified FROM users WHERE email = ?1",
+                        params![e],
+                        |r| Ok((r.get(0)?, r.get::<_, i64>(1)? != 0)),
+                    )
+                    .optional()?;
+                if let Some((id, was_verified)) = by_email {
+                    if was_verified {
+                        // Trusted existing account — keep the password,
+                        // just attach the Apple identity.
+                        conn.execute(
+                            "UPDATE users SET apple_user_id = ?2, \
+                             display_name = COALESCE(display_name, ?3), \
+                             updated_at = datetime('now') WHERE id = ?1",
+                            params![id, apple_user_id, display_name],
+                        )?;
+                    } else {
+                        // Unverified existing row — reclaim it for the
+                        // Apple-proven owner and wipe the unproven
+                        // password (see the Google path for the full
+                        // pre-hijacking rationale).
+                        conn.execute(
+                            "UPDATE users SET apple_user_id = ?2, \
+                             display_name = COALESCE(display_name, ?3), \
+                             password_hash = NULL, email_verified = 1, \
+                             updated_at = datetime('now') WHERE id = ?1",
+                            params![id, apple_user_id, display_name],
+                        )?;
+                    }
+                    return Ok(id);
+                }
+            }
+        }
         let id = uuid::Uuid::new_v4().to_string();
         conn.execute(
             "INSERT INTO users (id, email, apple_user_id, display_name) VALUES (?1, ?2, ?3, ?4)",
@@ -109,7 +164,16 @@ impl Database {
         google_user_id: &str,
         email: Option<&str>,
         display_name: Option<&str>,
+        email_verified: bool,
     ) -> anyhow::Result<String> {
+        // Normalize to the password path's storage form (auth.rs trims +
+        // lowercases every email it writes) so the by-email link lookup
+        // below actually hits an existing email+password row instead of
+        // missing it and inserting a duplicate/orphan account. Email
+        // matching here is intentionally exact-string (no Gmail dot/plus
+        // canonicalization). Empty-after-trim collapses to None.
+        let email_norm = email.map(|e| e.trim().to_lowercase()).filter(|e| !e.is_empty());
+        let email = email_norm.as_deref();
         let conn = self.conn_lock();
         let existing: Option<String> = conn
             .query_row(
@@ -126,6 +190,59 @@ impl Database {
                 )?;
             }
             return Ok(id);
+        }
+        // No row carries this Google subject yet. Before inserting a
+        // fresh user, try to LINK this identity onto an existing
+        // account with the same email (one created via email+password,
+        // or whose Google `sub` changed because the OAuth client moved
+        // to a new Google Cloud project) — otherwise the `users.email`
+        // UNIQUE constraint makes Google sign-in impossible for that
+        // person and the callback dies with `db_error`. We only
+        // auto-link when Google asserts the email is verified: linking
+        // on an unverified address would let anyone able to mint a token
+        // for an arbitrary `email` claim seize a password account they
+        // don't own.
+        if email_verified {
+            if let Some(e) = email {
+                let by_email: Option<(String, bool)> = conn
+                    .query_row(
+                        "SELECT id, email_verified FROM users WHERE email = ?1",
+                        params![e],
+                        |r| Ok((r.get(0)?, r.get::<_, i64>(1)? != 0)),
+                    )
+                    .optional()?;
+                if let Some((id, was_verified)) = by_email {
+                    if was_verified {
+                        // Trusted existing account — the email owner
+                        // proved inbox control at signup (or it's a
+                        // prior OAuth row). Attach this provider
+                        // identity; keep their existing password.
+                        conn.execute(
+                            "UPDATE users SET google_user_id = ?2, \
+                             display_name = COALESCE(display_name, ?3), \
+                             updated_at = datetime('now') WHERE id = ?1",
+                            params![id, google_user_id, display_name],
+                        )?;
+                    } else {
+                        // The existing row's email was never verified —
+                        // it may be a squatter who pre-registered this
+                        // email with a password they know (account
+                        // pre-hijacking). Google has now proven the
+                        // current signer owns the inbox, so reclaim the
+                        // row for them: attach the identity, mark it
+                        // verified, and WIPE the unproven password so
+                        // the squatter's credentials stop working.
+                        conn.execute(
+                            "UPDATE users SET google_user_id = ?2, \
+                             display_name = COALESCE(display_name, ?3), \
+                             password_hash = NULL, email_verified = 1, \
+                             updated_at = datetime('now') WHERE id = ?1",
+                            params![id, google_user_id, display_name],
+                        )?;
+                    }
+                    return Ok(id);
+                }
+            }
         }
         let id = uuid::Uuid::new_v4().to_string();
         conn.execute(

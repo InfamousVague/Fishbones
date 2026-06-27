@@ -24,6 +24,13 @@ pub struct OauthIdentity {
     pub subject: String,
     pub email: Option<String>,
     pub name: Option<String>,
+    /// Whether the PROVIDER asserts it has verified `email`. Gates
+    /// auto-linking this identity onto an existing same-email account
+    /// in `db::find_or_create_{google,apple}_user` — linking on an
+    /// unverified address would be an account-takeover vector. Apple
+    /// only returns verified / Apple-relay addresses so it's always
+    /// true there; for Google we honor the `email_verified` claim.
+    pub email_verified: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -39,8 +46,36 @@ struct GoogleClaims {
     sub: String,
     email: Option<String>,
     name: Option<String>,
+    /// Google sends this as a JSON boolean. We also tolerate a
+    /// stringified "true"/"false"/"1"/"0". Any other value OR type
+    /// (number, array, object, null, missing) → None, which callers
+    /// treat as NOT verified (fail closed) — see `de_opt_bool`.
+    #[serde(default, deserialize_with = "de_opt_bool")]
+    email_verified: Option<bool>,
     #[allow(dead_code)]
     iss: String,
+}
+
+/// Deserialize an optional boolean a provider might encode as a real
+/// JSON bool OR a "true"/"false"/"1"/"0" string. Any other value OR
+/// type — number, array, object, null, missing — maps to `None` rather
+/// than erroring, so a novel `email_verified` representation can never
+/// hard-fail an otherwise-valid, signature-verified token. Callers
+/// treat `None` as NOT verified, so this is fail-closed.
+fn de_opt_bool<'de, D>(d: D) -> Result<Option<bool>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde_json::Value;
+    Ok(match Option::<Value>::deserialize(d)? {
+        Some(Value::Bool(b)) => Some(b),
+        Some(Value::String(s)) => match s.trim().to_ascii_lowercase().as_str() {
+            "true" | "1" => Some(true),
+            "false" | "0" => Some(false),
+            _ => None,
+        },
+        _ => None,
+    })
 }
 
 const APPLE_JWKS_URL: &str = "https://appleid.apple.com/auth/keys";
@@ -116,6 +151,10 @@ pub async fn verify_apple(token: &str, audience: &str) -> anyhow::Result<OauthId
         subject: data.claims.sub,
         email: data.claims.email,
         name: None,
+        // Apple only ever returns an address it has verified (or an
+        // Apple-owned private-relay address), so the email is always
+        // provider-verified.
+        email_verified: true,
     })
 }
 
@@ -141,5 +180,6 @@ pub async fn verify_google(token: &str, audience: &str) -> anyhow::Result<OauthI
         subject: data.claims.sub,
         email: data.claims.email,
         name: data.claims.name,
+        email_verified: data.claims.email_verified.unwrap_or(false),
     })
 }
