@@ -33,7 +33,11 @@ import { compactWireMessages } from "../ai/compaction";
 import {
   analyzeBuildState,
   buildContinuationNudge,
+  looksLikeBuildRequest,
 } from "../ai/buildState";
+import { resolveToolNative } from "../ai/toolCapability";
+import { emulatedBuildTier } from "../ai/models";
+import { findOrphans } from "./importGraph";
 import type {
   AgentMessage,
   AgentTransport,
@@ -41,6 +45,23 @@ import type {
   ToolDef,
   ToolResult,
 } from "./types";
+
+/// True when an Ollama transport error means "this model can't use
+/// the native tools API" — the 400 it returns for a model with no
+/// tool template (e.g. `deepseek-coder-v2:16b does not support
+/// tools`). Drives the loop's one-shot fallback to the emulated
+/// (prompt + text-parse) tool path. Matched on the stable substring
+/// Ollama emits rather than the HTTP code so a future wording tweak
+/// that keeps the phrase still trips it.
+export function isToolsUnsupportedError(message: string): boolean {
+  // Match the stable phrase Ollama emits today, plus a few plausible
+  // wordings, so a future version tweak (or another OpenAI-compatible
+  // backend) that keeps the gist still trips the fallback instead of
+  // hard-failing the run.
+  return /does not support tools|tools?\s+(?:are\s+)?not\s+supported|no\s+tools?\s+template/i.test(
+    message,
+  );
+}
 
 /// Host-supplied hooks the loop calls into for each event.
 ///
@@ -79,6 +100,17 @@ export interface AgentLoopHooks {
   /// message log (rendered as a muted system breadcrumb, not a
   /// user bubble).
   onNudge?: (nudge: string) => void;
+  /// Called once per run if the model turns out not to support
+  /// Ollama's native tools API (the loop caught the 400 and is
+  /// retrying this turn with wire tools stripped, falling back to
+  /// the emulated prompt+parse path). The host surfaces a one-time
+  /// breadcrumb so the user understands why the agent quietly
+  /// switched modes instead of erroring out.
+  onToolsUnsupported?: (model: string) => void;
+  /// Called when the loop auto-removes orphan files (created this run
+  /// but imported by nothing) from a freshly-built project. Lets the
+  /// host surface a "removed N unused files" breadcrumb.
+  onOrphanPruned?: (paths: string[]) => void;
   /// Approval gate for a gated tool. Returns "approved" or
   /// "denied" — denial appends a tool result the model can read
   /// to decide what to do next.
@@ -173,6 +205,14 @@ export interface AgentLoopOptions {
   autoContinue?: boolean;
   /// Max auto-continuation nudges per run. Default 2.
   maxNudges?: number;
+  /// Auto-remove orphan files (created this run, imported by nothing)
+  /// from a project the run freshly CREATED — the deterministic fix
+  /// for "the agent creates un-needed files". Only prunes files this
+  /// run wrote, only when the project was created this run (so the
+  /// file set is complete and reachability can't be misjudged against
+  /// unseen pre-existing files), and the import graph deliberately
+  /// under-prunes. Default true.
+  pruneOrphans?: boolean;
   /// Optional post-processor applied to terminal assistant content
   /// before it's stored (e.g. the libre:// link guard that strips
   /// hallucinated lesson links). Applied AFTER tool-call recovery
@@ -209,6 +249,7 @@ export async function runAgentLoop(
     effortParams,
     autoContinue = true,
     maxNudges = DEFAULT_MAX_NUDGES,
+    pruneOrphans = true,
     postProcessAssistant,
   } = options;
 
@@ -218,6 +259,19 @@ export async function runAgentLoop(
   const trimmedPrompt = userPrompt.trim();
   const trimmedAugmented =
     augmented !== undefined ? augmented.trim() : undefined;
+  // Whether THIS run is a build request — used to push a model that
+  // only preambled (idle, no project) to actually emit the create
+  // call, without nagging plain Q&A turns. True when the prompt reads
+  // build-y AND the agent actually has the project-creation tool.
+  const buildExpected =
+    tools.some((t) => t.name === "create_sandbox_project") &&
+    (looksLikeBuildRequest(trimmedPrompt) ||
+      (trimmedAugmented ? looksLikeBuildRequest(trimmedAugmented) : false));
+  // WEAK emulated models build via the fence-first protocol (no
+  // reliable tool-call channel) — their nudges must speak fences, not
+  // tool calls, to match the prompt they were given.
+  const fenceFirst =
+    !resolveToolNative(model) && emulatedBuildTier(model) === "weak";
   const userMsg: AgentMessage = {
     role: "user",
     content: trimmedPrompt,
@@ -241,6 +295,67 @@ export async function runAgentLoop(
   let nudgesUsed = 0;
   let endedBy: RunSummary["endedBy"] = "maxTurns";
   let finalConfidence: number | null = null;
+  // Flips true for the rest of the run once we learn (via the
+  // registry tier OR a caught 400) that this model can't use the
+  // native tools API — from then on every turn ships zero wire
+  // tools and relies on the emulated text-parse recovery.
+  let forceEmulated = false;
+  // Anti-churn: weak models (and occasionally strong ones) get stuck
+  // re-writing the SAME files turn after turn without adding anything
+  // new — the "stuck editing files it doesn't use" failure. We track
+  // how many distinct files have been written; a turn that does write
+  // work but grows that count by ZERO (all re-writes), while NOT in a
+  // legitimate fix-the-failed-run state, is a no-progress turn. Two in
+  // a row ends the build — it's done or wedged, either way more turns
+  // just burn time.
+  let prevFilesWritten = 0;
+  let stagnantWriteTurns = 0;
+  // path → latest content for every file written THIS run, rebuilt
+  // from successful tool-call arguments. Feeds the orphan-prune on
+  // terminal (we never touch files this run didn't write).
+  const runFiles = new Map<string, string>();
+
+  /// Remove orphan files (created this run, imported by nothing) from
+  /// a project the run freshly created. Conservative by construction:
+  /// only fires when a create happened this run (so `runFiles` is the
+  /// COMPLETE file set), only deletes files this run wrote, and the
+  /// import graph under-prunes. A best-effort cleanup — failures are
+  /// swallowed.
+  const pruneOrphanFiles = async (): Promise<void> => {
+    if (!pruneOrphans) return;
+    const st = analyzeBuildState(timeline);
+    if (!st.projectId || runFiles.size === 0) return;
+    const orphans = findOrphans(Object.fromEntries(runFiles));
+    if (orphans.length === 0) return;
+    const delTool =
+      toolMap.get("delete_sandbox_file") ?? toolMap.get("apply_sandbox_patch");
+    if (!delTool) return;
+    const pruned: string[] = [];
+    for (const path of orphans) {
+      try {
+        const args =
+          delTool.name === "apply_sandbox_patch"
+            ? { projectId: st.projectId, edits: [{ path, op: "delete" }] }
+            : { projectId: st.projectId, path };
+        await delTool.handler(args);
+        runFiles.delete(path);
+        pruned.push(path);
+        timeline.push({
+          toolCallId: `prune_${path}`,
+          name: delTool.name,
+          ok: true,
+          content: JSON.stringify({
+            ok: true,
+            pruned: path,
+            reason: "removed unused file — nothing imports it",
+          }),
+        });
+      } catch {
+        /* best-effort cleanup */
+      }
+    }
+    if (pruned.length) hooks.onOrphanPruned?.(pruned);
+  };
 
   for (let turnIdx = 0; turnIdx < maxTurns; turnIdx++) {
     // User-initiated stop checks. We poll the predicate at every
@@ -253,33 +368,68 @@ export async function runAgentLoop(
     }
     hooks.onTurnStart?.(turnIdx);
     let response;
+    // Wire tool schemas, sent on the structured `tool_calls`
+    // channel. ONLY for models that ship an Ollama tool template —
+    // emulated models (and any model that 400s "does not support
+    // tools", handled below) get an EMPTY list so Ollama doesn't
+    // reject the request, and reconstruct tool calls from text via
+    // the recovery layer instead. Without this gate, picking a model
+    // like deepseek-coder-v2:16b hard-fails every agent turn.
+    const wireToolDefs = tools.map((t) => ({
+      type: "function" as const,
+      function: {
+        name: t.name,
+        description: t.description,
+        parameters: t.parameters,
+      },
+    }));
+    const turnReq = {
+      model,
+      // Compaction keeps the payload small as agent runs grow:
+      // old tool results truncate, ancient rows drop, while the
+      // system prompt (KV-cache prefix) + the live request stay
+      // verbatim. Smaller prompts = faster prompt-eval on local
+      // models = snappier turns.
+      messages: compactWireMessages(toWireMessages(conversation)),
+      onChunk: hooks.onChunk,
+      onStreamId: hooks.onStreamId,
+      // Per-call model knobs from the user's "effort" setting —
+      // forwarded through unchanged. The Tauri transport reads
+      // these off the request body and stuffs them into the
+      // Ollama call's `options` block.
+      temperature: effortParams?.temperature,
+      num_ctx: effortParams?.num_ctx,
+      num_predict: effortParams?.num_predict,
+    };
+    // Daemon-aware: a model the user's Ollama reports as tool-capable
+    // (probed + cached by the UI on model change) uses the structured
+    // channel even if the static registry tier says "emulated". Cold
+    // cache falls back to the static tier; the 400-fallback below
+    // still self-heals an over-optimistic native guess.
+    const useWireTools = resolveToolNative(model) && !forceEmulated;
     try {
-      response = await transport.send({
-        model,
-        // Compaction keeps the payload small as agent runs grow:
-        // old tool results truncate, ancient rows drop, while the
-        // system prompt (KV-cache prefix) + the live request stay
-        // verbatim. Smaller prompts = faster prompt-eval on local
-        // models = snappier turns.
-        messages: compactWireMessages(toWireMessages(conversation)),
-        tools: tools.map((t) => ({
-          type: "function" as const,
-          function: {
-            name: t.name,
-            description: t.description,
-            parameters: t.parameters,
-          },
-        })),
-        onChunk: hooks.onChunk,
-        onStreamId: hooks.onStreamId,
-        // Per-call model knobs from the user's "effort" setting —
-        // forwarded through unchanged. The Tauri transport reads
-        // these off the request body and stuffs them into the
-        // Ollama call's `options` block.
-        temperature: effortParams?.temperature,
-        num_ctx: effortParams?.num_ctx,
-        num_predict: effortParams?.num_predict,
-      });
+      try {
+        response = await transport.send({
+          ...turnReq,
+          tools: useWireTools ? wireToolDefs : [],
+        });
+      } catch (innerErr) {
+        // Self-heal the "model has no tool template" 400. This
+        // catches CUSTOM models not in the registry (where we
+        // optimistically sent wire tools) as well as any registry
+        // gap. Strip wire tools for the rest of the run and retry
+        // THIS turn once via the emulated path. A 400 fails before
+        // any tokens stream, so the retry can't double-emit content.
+        const innerMsg =
+          innerErr instanceof Error ? innerErr.message : String(innerErr);
+        if (!forceEmulated && useWireTools && isToolsUnsupportedError(innerMsg)) {
+          forceEmulated = true;
+          hooks.onToolsUnsupported?.(model);
+          response = await transport.send({ ...turnReq, tools: [] });
+        } else {
+          throw innerErr;
+        }
+      }
     } catch (err) {
       // Transport failure. Two flavours:
       //   1. User-initiated stop — Rust side returned
@@ -416,7 +566,7 @@ export async function runAgentLoop(
       // the user clicked Stop.
       if (autoContinue && nudgesUsed < maxNudges && !hooks.shouldStop?.()) {
         const state = analyzeBuildState(timeline);
-        const nudge = buildContinuationNudge(state);
+        const nudge = buildContinuationNudge(state, { buildExpected, fenceFirst });
         if (nudge) {
           nudgesUsed += 1;
           const nudgeMsg: AgentMessage = {
@@ -430,6 +580,7 @@ export async function runAgentLoop(
         }
       }
       endedBy = "terminal";
+      await pruneOrphanFiles();
       break;
     }
 
@@ -460,8 +611,25 @@ export async function runAgentLoop(
     // Repeat-call bookkeeping runs over the batch in order either
     // way, so the stuck-retry detector sees the same sequence the
     // model emitted regardless of dispatch strategy.
+    // Per-RUN project dedupe: one build = one project. The junk-
+    // project flood came from auto-continuation nudges re-firing
+    // create_sandbox_project every turn. If a project already exists
+    // this run (prior turn) OR was created earlier in THIS batch,
+    // rewrite a further create into a no-op that points the model at
+    // the existing project instead of spawning a duplicate. Scoped to
+    // this run's timeline, so a deliberate "now build a second app" in
+    // a NEW run is unaffected.
+    const runProjectId = findExistingProjectId(
+      timeline.map((t) => ({ name: t.name, content: t.content })),
+    );
+    let sawCreateThisBatch = false;
     const plans: Array<{ call: ToolCall; halt: ToolResult | null }> = [];
     for (const call of toolCalls) {
+      // Signature bookkeeping runs FIRST — before the create-dedupe
+      // short-circuit — so a model that spams create_sandbox_project
+      // every turn (and gets politely deduped each time) still counts
+      // toward the stuck threshold and eventually trips the hard break
+      // below, instead of spinning until maxNudges.
       const sig = `${call.name}|${normaliseArgs(call.arguments)}`;
       if (sig === lastCallSignature) {
         consecutiveSameCount += 1;
@@ -469,6 +637,15 @@ export async function runAgentLoop(
         consecutiveSameCount = 0;
         lastCallSignature = sig;
       }
+
+      const isDupeCreate =
+        call.name === "create_sandbox_project" &&
+        (runProjectId || sawCreateThisBatch);
+      if (call.name === "create_sandbox_project") sawCreateThisBatch = true;
+
+      // Hard stuck-break takes precedence over the polite dedupe — a
+      // create repeated past the threshold is no longer "harmless
+      // duplicate", it's a wedged model.
       if (consecutiveSameCount >= maxSameCallRetries) {
         plans.push({
           call,
@@ -477,15 +654,49 @@ export async function runAgentLoop(
             name: call.name,
             content: JSON.stringify({
               error: true,
-              message: `Stop repeating ${call.name} with identical arguments — you've called it ${consecutiveSameCount} times in a row and it failed each time. Either: (a) inspect the previous error and change your arguments, (b) call a DIFFERENT tool first to fix the underlying issue, or (c) request user input via request_user_input.`,
+              message: `Stop repeating ${call.name} with identical arguments — you've called it ${consecutiveSameCount} times in a row with no progress. Either: (a) inspect the previous error and change your arguments, (b) call a DIFFERENT tool first to fix the underlying issue, or (c) request user input via request_user_input.`,
             }),
             ok: false,
           },
         });
         stuckThisTurn = true;
-      } else {
-        plans.push({ call, halt: null });
+        continue;
       }
+
+      // Per-RUN project dedupe: one build = one project. The junk-
+      // project flood came from auto-continuation nudges re-firing
+      // create_sandbox_project every turn. If a project already exists
+      // this run (prior turn) OR was created earlier in THIS batch,
+      // rewrite a further create into a no-op that points the model at
+      // the existing project instead of spawning a duplicate.
+      if (isDupeCreate) {
+        plans.push({
+          call,
+          halt: {
+            toolCallId: call.id,
+            name: call.name,
+            ok: true,
+            content: JSON.stringify(
+              runProjectId
+                ? {
+                    ok: true,
+                    projectId: runProjectId,
+                    deduped: true,
+                    message: `This build already has a project (${runProjectId}). Write files into it with write_sandbox_file — do NOT create another project.`,
+                  }
+                : {
+                    ok: true,
+                    deduped: true,
+                    message:
+                      "You already created a project this turn. Write files into it with write_sandbox_file — do NOT create another project.",
+                  },
+            ),
+          },
+        });
+        continue;
+      }
+
+      plans.push({ call, halt: null });
     }
 
     let results: ToolResult[];
@@ -526,6 +737,13 @@ export async function runAgentLoop(
       };
       conversation = [...conversation, toolMsg];
     }
+
+    // Track file CONTENT written this run (for the orphan-prune on
+    // terminal), reconstructed from the SUCCESSFUL calls' arguments.
+    for (let i = 0; i < plans.length; i++) {
+      if (results[i]?.ok) applyCallToRunFiles(runFiles, plans[i].call);
+    }
+
     if (stuckThisTurn) {
       endedBy = "stuckRetries";
       // Continue the loop one more time so the model gets the
@@ -533,6 +751,36 @@ export async function runAgentLoop(
       // Resetting the counter prevents the SAME signature from
       // tripping again on the next turn.
       consecutiveSameCount = 0;
+    }
+
+    // Anti-churn breaker. Did this turn do file-write work, and did it
+    // grow the set of distinct files written? If it wrote but added
+    // NOTHING new (re-writing the same files) — and isn't legitimately
+    // fixing a failed run — it's spinning. Two such turns in a row and
+    // we stop. (A failed run is a valid reason to re-edit a file, so
+    // the fix-loop is exempt.)
+    {
+      // Only WRITE/PATCH count as potential churn — a create call (even
+      // an empty one) is a one-time start, not a re-write, so it never
+      // trips the breaker on its own.
+      const didWriteWork = results.some(
+        (r) =>
+          r.ok &&
+          (r.name === "write_sandbox_file" || r.name === "apply_sandbox_patch"),
+      );
+      const postState = analyzeBuildState(timeline);
+      const grew = postState.filesWritten.length > prevFilesWritten;
+      prevFilesWritten = postState.filesWritten.length;
+      if (didWriteWork && !grew && postState.stage !== "ran-failed") {
+        stagnantWriteTurns += 1;
+        if (stagnantWriteTurns >= 2) {
+          endedBy = "terminal";
+          await pruneOrphanFiles();
+          break;
+        }
+      } else {
+        stagnantWriteTurns = 0;
+      }
     }
   }
 
@@ -555,8 +803,38 @@ export async function runAgentLoop(
 ///   2. Map `tool`-role rows to the OpenAI/Ollama shape (name +
 ///      tool_call_id).
 ///   3. Drop any extra fields the transport doesn't accept.
+///   4. Drop UI-only host breadcrumbs (`isSystemNote`) entirely —
+///      they're chrome for the human, never context for the model.
+/// Fold one successful tool call into the run's file map (path →
+/// latest content), mirroring what create/write/patch did to the
+/// project. Used to reconstruct the project file set for orphan
+/// pruning without reading from disk.
+function applyCallToRunFiles(runFiles: Map<string, string>, call: ToolCall): void {
+  let args: Record<string, unknown>;
+  try {
+    args = JSON.parse(call.arguments) as Record<string, unknown>;
+  } catch {
+    return;
+  }
+  if (call.name === "create_sandbox_project" && Array.isArray(args.files)) {
+    for (const f of args.files as Array<{ path?: unknown; content?: unknown }>) {
+      if (typeof f?.path === "string") runFiles.set(f.path, String(f.content ?? ""));
+    }
+  } else if (call.name === "write_sandbox_file" && typeof args.path === "string") {
+    runFiles.set(args.path, String(args.content ?? ""));
+  } else if (call.name === "apply_sandbox_patch" && Array.isArray(args.edits)) {
+    for (const e of args.edits as Array<{ path?: unknown; op?: unknown; content?: unknown }>) {
+      if (typeof e?.path !== "string") continue;
+      if (e.op === "delete") runFiles.delete(e.path);
+      else runFiles.set(e.path, String(e.content ?? ""));
+    }
+  }
+}
+
 function toWireMessages(messages: AgentMessage[]) {
-  return messages.map((m) => {
+  return messages
+    .filter((m) => !(m.role === "user" && m.isSystemNote))
+    .map((m) => {
     if (m.role === "user") {
       return {
         role: "user" as const,

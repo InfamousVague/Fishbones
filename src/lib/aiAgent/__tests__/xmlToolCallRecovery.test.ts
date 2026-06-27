@@ -107,6 +107,105 @@ describe("extractXmlToolCalls (unit)", () => {
     expect(r!.toolCalls).toHaveLength(1);
   });
 
+  it("recovers the plural <tools>{...}</tools> envelope (DeepSeek)", () => {
+    const content =
+      '<tools>{"name":"create_sandbox_project","arguments":{"name":"X","language":"react"}}</tools>';
+    const r = extractXmlToolCalls(content, tools);
+    expect(r!.toolCalls).toHaveLength(1);
+    expect(r!.toolCalls[0].name).toBe("create_sandbox_project");
+    expect(r!.cleaned).not.toContain("<tools>");
+  });
+
+  it("recovers the EXACT <tools> request_user_input shape from the bug report", () => {
+    const toolsWithClar: ToolDef[] = [
+      ...tools,
+      {
+        name: "request_user_input",
+        description: "",
+        parameters: { type: "object", properties: {} },
+        auto: false,
+        async handler() {
+          return { ok: true };
+        },
+      },
+    ];
+    // Verbatim shape from the screenshot.
+    const content =
+      '<tools> {"name": "request_user_input", "arguments": {"question": "Why do you think the code uses println!(\\"{}\\") instead of just println!(message)?", "context": "The user is asking about Rust syntax."}} </tools>';
+    const r = extractXmlToolCalls(content, toolsWithClar);
+    expect(r!.toolCalls).toHaveLength(1);
+    expect(r!.toolCalls[0].name).toBe("request_user_input");
+    expect(JSON.parse(r!.toolCalls[0].arguments).question).toContain("println");
+    expect(r!.cleaned).not.toContain("<tools>");
+  });
+
+  it("accepts bare <tool> and <function_call> envelopes", () => {
+    expect(
+      extractXmlToolCalls(
+        '<tool>{"name":"run_sandbox_project","arguments":{"projectId":"p1"}}</tool>',
+        tools,
+      )!.toolCalls,
+    ).toHaveLength(1);
+    expect(
+      extractXmlToolCalls(
+        '<function_call>{"name":"run_sandbox_project","arguments":{"projectId":"p1"}}</function_call>',
+        tools,
+      )!.toolCalls,
+    ).toHaveLength(1);
+  });
+
+  it("recovers a JSON ARRAY of calls in one <tools> envelope", () => {
+    const content =
+      '<tools>[{"name":"create_sandbox_project","arguments":{"name":"X","language":"react"}},{"name":"run_sandbox_project","arguments":{"projectId":"p1"}}]</tools>';
+    const r = extractXmlToolCalls(content, tools);
+    expect(r!.toolCalls.map((c) => c.name)).toEqual([
+      "create_sandbox_project",
+      "run_sandbox_project",
+    ]);
+  });
+
+  it("does NOT match a <tools> envelope wrapping a non-tool object (no false positive)", () => {
+    const content = '<tools>{"foo":"bar","count":3}</tools>';
+    expect(extractXmlToolCalls(content, tools)).toBeNull();
+  });
+
+  it("accepts a <tools> envelope carrying attributes", () => {
+    const content =
+      '<tools type="json">{"name":"create_sandbox_project","arguments":{"name":"X","language":"react"}}</tools>';
+    const r = extractXmlToolCalls(content, tools);
+    expect(r!.toolCalls).toHaveLength(1);
+    expect(r!.toolCalls[0].name).toBe("create_sandbox_project");
+  });
+
+  // ── Overlap resolution: a wrapper whose JSON body embeds a
+  //    Pattern-A example must NOT have its inner span spliced out
+  //    (which dropped surrounding prose + dispatched a phantom call).
+
+  it("does not drop trailing prose or dispatch a phantom call when a wrapper body embeds a <name>/<args> example", () => {
+    const content =
+      'BEFORE <tool_call>{"name":"create_sandbox_project","arguments":{"hint":"use <name>run_sandbox_project</name><args>{}</args> next"}}</tool_call> AFTER';
+    const r = extractXmlToolCalls(content, tools);
+    // Exactly ONE call — the outer wrapper. The nested <name> example
+    // inside the JSON string must NOT become a second dispatch.
+    expect(r!.toolCalls).toHaveLength(1);
+    expect(r!.toolCalls[0].name).toBe("create_sandbox_project");
+    // Surrounding prose survives on both sides.
+    expect(r!.cleaned).toContain("BEFORE");
+    expect(r!.cleaned).toContain("AFTER");
+    expect(r!.cleaned).not.toContain("<tool_call>");
+  });
+
+  it("keeps disjoint matches but drops a nested one (outermost wins)", () => {
+    const content =
+      '<tools>{"name":"create_sandbox_project","arguments":{"language":"react"}}</tools> mid <function-name>run_sandbox_project</function-name><arguments>{"projectId":"p1"}</arguments>';
+    const r = extractXmlToolCalls(content, tools);
+    expect(r!.toolCalls.map((c) => c.name)).toEqual([
+      "create_sandbox_project",
+      "run_sandbox_project",
+    ]);
+    expect(r!.cleaned).toContain("mid");
+  });
+
   it("recovers multiple paired tool calls in one response", () => {
     const content = [
       '<function-name>create_sandbox_project</function-name>',

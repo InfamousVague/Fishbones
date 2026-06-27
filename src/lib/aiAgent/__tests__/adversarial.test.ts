@@ -203,8 +203,8 @@ describe("agent receives back-to-back identical turns from a flaky model", () =>
         toolCalls: [
           {
             id: "c1",
-            name: "create_sandbox_project",
-            arguments: JSON.stringify({ name: "A", language: "javascript" }),
+            name: "ping",
+            arguments: JSON.stringify({ q: "A" }),
           },
         ],
       },
@@ -213,8 +213,8 @@ describe("agent receives back-to-back identical turns from a flaky model", () =>
         toolCalls: [
           {
             id: "c2",
-            name: "create_sandbox_project",
-            arguments: JSON.stringify({ name: "B", language: "javascript" }),
+            name: "ping",
+            arguments: JSON.stringify({ q: "B" }),
           },
         ],
       },
@@ -227,13 +227,13 @@ describe("agent receives back-to-back identical turns from a flaky model", () =>
       model: "test",
       tools: [
         {
-          name: "create_sandbox_project",
+          name: "ping",
           description: "",
           parameters: { type: "object", properties: {} },
           auto: true,
           async handler() {
             calls += 1;
-            return { ok: true, projectId: `p${calls}` };
+            return { ok: true };
           },
         },
       ],

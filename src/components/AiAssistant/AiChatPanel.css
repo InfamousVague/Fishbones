@@ -398,82 +398,11 @@
   word-wrap: break-word;
 }
 
-.libre-ai-bubble-stream {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-text-primary);
-  white-space: pre-wrap;
-  font-family: inherit;
-}
-
-.libre-ai-bubble-caret {
-  display: inline-block;
-  width: 7px;
-  height: 14px;
-  background: var(--color-text-tertiary);
-  vertical-align: text-bottom;
-  animation: libre-ai-caret-blink 1s steps(2) infinite;
-}
-
-@keyframes libre-ai-caret-blink {
-  to { opacity: 0; }
-}
-
-.libre-ai-bubble-markdown {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-text-primary);
-}
-
-/* Code blocks share the LessonReader markdown pipeline, which wraps
-   each fence in `.libre-code-block` (with its own border + 8px
-   radius) and inserts an "Ask Libre" `?` badge. Inside an AI
-   bubble both are redundant: the inner `<pre>` would get its own
-   border too, producing the double-nested look; the badge would
-   ask the AI to discuss its own answer. We flatten the wrapper —
-   no border, single bordered surface inherited from the inner
-   <pre>'s rules below. */
-.libre-ai-bubble-markdown .libre-code-block {
-  margin: 6px 0;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-md, 6px);
-  overflow: hidden;
-}
-
-.libre-ai-bubble-markdown .libre-code-block-ask {
-  display: none;
-}
-
-.libre-ai-bubble-markdown pre {
-  font-size: 12px;
-  padding: 8px 10px;
-  margin: 0;
-  background: var(--color-bg-secondary);
-  border: none;
-  border-radius: 0;
-  overflow-x: auto;
-  white-space: pre;
-}
-
-.libre-ai-bubble-markdown code {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.92em;
-}
-
-.libre-ai-bubble-markdown p {
-  margin: 0 0 8px;
-}
-
-.libre-ai-bubble-markdown p:last-child {
-  margin-bottom: 0;
-}
-
-.libre-ai-bubble-markdown ul,
-.libre-ai-bubble-markdown ol {
-  margin: 4px 0 8px;
-  padding-left: 20px;
-}
+/* Assistant bubble markdown + code styles now live in
+   AssistantMessage.css (shared by the chat + agent panels). The old
+   lesson-renderer overrides (`.libre-code-block` flatten, the
+   `.libre-ai-bubble-stream` raw-text view, the blinking caret) were
+   removed when both panels moved to the dedicated chat renderer. */
 
 /* ---- Error tray ------------------------------------------------ */
 
@@ -1417,4 +1346,15 @@
   word-break: break-word;
   max-height: 200px;
   overflow-y: auto;
+}
+
+/* Clickable file-write chip (jumps the editor to that file). */
+.libre-ai-file-chip--clickable {
+  cursor: pointer;
+  appearance: none;
+  font: inherit;
+  text-align: left;
+}
+.libre-ai-file-chip--clickable:hover {
+  filter: brightness(1.12);
 }

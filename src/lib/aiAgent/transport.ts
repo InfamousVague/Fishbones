@@ -56,8 +56,13 @@ export function createTauriTransport(): AgentTransport {
         const payload: Record<string, unknown> = {
           model: req.model,
           messages: req.messages,
-          tools: req.tools,
         };
+        // Only attach `tools` when there's at least one. The loop
+        // strips wire tools for emulated models (sending `[]`);
+        // omitting the key entirely means Ollama's request body has
+        // NO `tools` field, so a model with no tool template won't
+        // 400 on an empty-but-present array.
+        if (req.tools && req.tools.length > 0) payload.tools = req.tools;
         if (streamId) payload.streamId = streamId;
         // Effort-derived model knobs. Tauri 2 matches JS camelCase
         // args to Rust snake_case params, so `numCtx` lands on the

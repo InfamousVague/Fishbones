@@ -36,6 +36,11 @@ import {
 } from "./scope";
 import { diagnoseRunError } from "../ai/diagnosis";
 import {
+  dedupeProjectName,
+  validateFilePath,
+  validateProjectName,
+} from "./sandboxValidation";
+import {
   analyzeConceptCoverage,
   conceptsForLanguage,
   conceptLangFor,
@@ -83,6 +88,21 @@ export interface ToolContext {
   /// adjust its own working scope mid-conversation when the user
   /// agrees to broaden it.
   updateScope: (next: AgentScope) => void;
+  /// The sandbox project the user currently has OPEN in the editor
+  /// (the live `useSandboxProjects.activeProject`), or null when the
+  /// sandbox isn't initialised. This is the referent for "this
+  /// project / this file" — when the model omits `projectId` on a
+  /// sandbox tool call, it defaults to this, so "add a function to
+  /// this" edits what the user is looking at instead of erroring or
+  /// spawning a new project. Kept in sync with the agent's scope
+  /// focus by the host (AiAssistant bridges both directions).
+  currentSandbox?: {
+    projectId: string;
+    name: string;
+    language: string;
+    /// Path of the file the user has focused in the editor, when known.
+    activeFilePath?: string;
+  } | null;
 }
 
 /// Helper: find a lesson by `courseId` + `lessonId`. Returns null
@@ -470,6 +490,12 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
           activeProjectId: args.projectId || null,
         };
         ctx.updateScope(next);
+        // Make the EDITOR follow the agent's focus too, so "let's
+        // switch to project X" moves the user's open project. The
+        // sandbox's focus listener is equality-gated, so re-focusing
+        // the already-open project is a no-op (no event loop with
+        // the host's reverse mirror).
+        if (next.activeProjectId) focusSandbox(next.activeProjectId);
         return { ok: true, activeProjectId: next.activeProjectId };
       },
     },
@@ -571,6 +597,16 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
       },
       auto: true,
       async handler(args: { projectId: string; path: string }) {
+        if (!args.projectId && ctx.currentSandbox?.projectId) {
+          args.projectId = ctx.currentSandbox.projectId;
+        }
+        if (!args.projectId) {
+          return {
+            error: true,
+            message:
+              "read_sandbox_file: 'projectId' is required — open a project in the sandbox or pass one (list_sandbox_projects to find ids).",
+          };
+        }
         try {
           const project = (await invoke("sandbox_load_project", {
             id: args.projectId,
@@ -596,6 +632,16 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
       },
       auto: true,
       async handler(args: { projectId: string }) {
+        if (!args.projectId && ctx.currentSandbox?.projectId) {
+          args.projectId = ctx.currentSandbox.projectId;
+        }
+        if (!args.projectId) {
+          return {
+            error: true,
+            message:
+              "list_sandbox_files: 'projectId' is required — open a project in the sandbox or pass one (list_sandbox_projects to find ids).",
+          };
+        }
         try {
           const project = (await invoke("sandbox_load_project", {
             id: args.projectId,
@@ -634,6 +680,12 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
         path: string;
         content: string;
       }) {
+        // Default to the project the user has OPEN when the model
+        // omits one — "edit this file" should land in the editor the
+        // user is looking at, not error out.
+        if (!args.projectId && ctx.currentSandbox?.projectId) {
+          args.projectId = ctx.currentSandbox.projectId;
+        }
         // Up-front shape validation. Surfaces the same actionable
         // error the agent's retry-detector watches for so a model
         // that forgot a required arg gets a clear "you're missing
@@ -642,7 +694,7 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
           return {
             error: true,
             message:
-              "write_sandbox_file: 'projectId' is required. Call create_sandbox_project FIRST to get a projectId.",
+              "write_sandbox_file: 'projectId' is required. Call create_sandbox_project FIRST to get a projectId, or open a project in the sandbox.",
           };
         }
         if (!args.path) {
@@ -650,6 +702,13 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
             error: true,
             message:
               "write_sandbox_file: 'path' is required. Pass the project-relative path of the file you want to write, e.g. 'src/App.jsx'.",
+          };
+        }
+        const wPathCheck = validateFilePath(args.path);
+        if (!wPathCheck.ok) {
+          return {
+            error: true,
+            message: `write_sandbox_file: ${wPathCheck.reason}`,
           };
         }
         if (typeof args.content !== "string") {
@@ -777,11 +836,14 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
         projectId: string;
         edits: Array<{ path: string; op: "write" | "delete"; content?: string }>;
       }) {
+        if (!args.projectId && ctx.currentSandbox?.projectId) {
+          args.projectId = ctx.currentSandbox.projectId;
+        }
         if (!args.projectId) {
           return {
             error: true,
             message:
-              "apply_sandbox_patch: 'projectId' is required. Call create_sandbox_project or list_sandbox_projects first to get a valid id.",
+              "apply_sandbox_patch: 'projectId' is required. Call create_sandbox_project or list_sandbox_projects first to get a valid id, or open a project in the sandbox.",
           };
         }
         if (!Array.isArray(args.edits) || args.edits.length === 0) {
@@ -800,6 +862,22 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
               error: true,
               message: `apply_sandbox_patch: edit #${i} is missing 'path'.`,
             };
+          }
+          // Only enforce the junk-shape check on writes — that's where a
+          // bad name CREATES a junk file. A delete is an exact-name match
+          // against the existing in-memory file list (no traversal), so
+          // gating it would wrongly block removing a legit file whose name
+          // predates this validation.
+          if (edit.op !== "delete") {
+            const pPathCheck = validateFilePath(edit.path);
+            if (!pPathCheck.ok) {
+              return {
+                error: true,
+                message: `apply_sandbox_patch: edit #${i} path '${String(
+                  edit.path,
+                ).slice(0, 40)}' is invalid — ${pPathCheck.reason}`,
+              };
+            }
           }
           if (edit.op !== "write" && edit.op !== "delete") {
             return {
@@ -892,6 +970,9 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
       },
       auto: false,
       async handler(args: { projectId: string }) {
+        if (!args.projectId && ctx.currentSandbox?.projectId) {
+          args.projectId = ctx.currentSandbox.projectId;
+        }
         if (!args.projectId) {
           return {
             error: true,
@@ -1249,6 +1330,30 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
                 "create_sandbox_project: 'name' is required and must be a non-empty string.",
             };
           }
+          // STRICT name validation — an emulated model can mis-emit a
+          // tool-call fragment as the name (e.g. '"create_sandbox_project",
+          // "argu…'), which would spawn a junk project. Reject it so the
+          // model retries with a real title instead of polluting the panel.
+          const nameCheck = validateProjectName(args.name);
+          if (!nameCheck.ok) {
+            return {
+              error: true,
+              message: `create_sandbox_project: ${nameCheck.reason}`,
+            };
+          }
+          // Validate every supplied file path the same way — a bad path
+          // crashes the editor and usually means leaked tool-call text.
+          for (const f of args.files ?? []) {
+            const pathCheck = validateFilePath(f?.path);
+            if (!pathCheck.ok) {
+              return {
+                error: true,
+                message: `create_sandbox_project: file path '${String(
+                  f?.path,
+                ).slice(0, 40)}' is invalid — ${pathCheck.reason}`,
+              };
+            }
+          }
           if (!args.language || typeof args.language !== "string") {
             return {
               error: true,
@@ -1258,10 +1363,26 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
           }
 
           // Project ids: kebab-case slug + 5-char random suffix.
+          // Name-clash dedupe: a NEW build whose name collides with a
+          // PRIOR project gets a " 2"/" 3" suffix instead of a second
+          // identical-looking row. (Per-run dedupe in the loop already
+          // stops one build from spawning duplicates.)
+          let displayName = args.name;
+          try {
+            const existing = (await invoke("sandbox_list_projects")) as Array<{
+              name?: string;
+            }>;
+            displayName = dedupeProjectName(
+              args.name,
+              (existing ?? []).map((p) => p?.name ?? "").filter(Boolean),
+            );
+          } catch {
+            /* list unavailable (web/no disk) — use the name as-is */
+          }
           // Matches the shape `useSandboxProjects.makeProject` uses
           // so AI-created projects sit alongside hand-created ones
           // without looking different in the sidebar.
-          const id = `${slugify(args.name)}-${randomSuffix()}`;
+          const id = `${slugify(displayName)}-${randomSuffix()}`;
           const ts = new Date().toISOString();
 
           // Build the initial file list. Three paths:
@@ -1287,7 +1408,7 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
 
           const project = {
             id,
-            name: args.name,
+            name: displayName,
             language: args.language,
             createdAt: ts,
             updatedAt: ts,
@@ -1310,7 +1431,10 @@ export function buildToolRegistry(ctx: ToolContext): ToolDef[] {
           return {
             ok: true,
             projectId: id,
-            name: args.name,
+            // Report the name the project was actually saved under — a
+            // collision with a prior project gets a numeric suffix
+            // ("Blackjack 2"), so `displayName` ≠ the requested name.
+            name: displayName,
             language: args.language,
             files: projectFiles.map((f) => ({
               path: f.name,
@@ -1537,20 +1661,42 @@ function focusSandbox(projectId: string, path?: string): void {
   );
 }
 
-/// Sleep helper for the live-typing animation. Used between
-/// progressive saves so the user sees content appearing chunk-
-/// by-chunk in the sandbox editor instead of an instant full
-/// paste.
+/// Sleep helper for the file-write pill animation frames.
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-/// Apply a file write IN STAGES so the user sees the content
-/// type into the sandbox editor. Splits the target content into
-/// `chunks` slices, writes each one to disk + refreshes the
-/// sandbox between chunks. Total wall-time scales with file
-/// size: ~1.5s for a typical 1-2 KB file, capped at ~3s so
-/// large files don't trap the agent for tens of seconds.
+/// Emit a file-write progress event for the chat panel's
+/// FileWriteChip pill. In-memory + cheap (no disk, no editor
+/// re-pull) — this is how we keep the "agent is writing X" feedback
+/// WITHOUT the disk-thrash that the old per-chunk save loop caused.
+function emitFileWrite(
+  projectId: string,
+  path: string,
+  language: string,
+  bytes: number,
+  closed: boolean,
+): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("libre:agent-file-write", {
+      detail: { projectId, path, language, bytes, closed },
+    }),
+  );
+}
+
+/// Apply a file write to a sandbox project.
+///
+/// REWRITTEN (Iter 2, non-destructive co-editing): the old version
+/// sliced the content into up to 30 chunks and, per chunk, saved the
+/// WHOLE project to disk + fired a full `libre:sandbox-refresh`
+/// (re-pull) + a `libre:sandbox-focus` (editor jump) with a 45ms
+/// sleep. That was ~30 disk writes + 30 reconcile re-pulls + 30
+/// focus events for ONE file write — the documented jitter, and the
+/// amplifier of buffer-clobbering (every re-pull could overwrite the
+/// user's unsaved edits). Now: one disk save, one refresh, one focus.
+/// The "agent is writing" feedback is driven by a few cheap in-memory
+/// progress events for the chat pill instead of disk round-trips.
 async function liveTypeSave(
   project: {
     id: string;
@@ -1561,36 +1707,33 @@ async function liveTypeSave(
   path: string,
   fullContent: string,
 ): Promise<void> {
-  // Find or insert the target file. We carry the same project
-  // object through every chunk so adjacent files don't get
-  // clobbered by a stale snapshot.
   const inferred = inferLanguage(path);
   let idx = project.files.findIndex((f) => f.name === path);
   if (idx < 0) {
     project.files.push({ name: path, content: "", language: inferred });
     idx = project.files.length - 1;
   }
+  project.files[idx] = {
+    ...project.files[idx],
+    content: fullContent,
+    language: project.files[idx].language || inferred,
+  };
 
-  // Chunk count scales with file length but is capped — short
-  // files type in 4-6 frames, long files in ~30 frames. Anything
-  // smaller than 200 chars writes instantly (one chunk) so tiny
-  // edits don't feel artificially slow.
   const len = fullContent.length;
-  const chunks = len < 200 ? 1 : Math.min(30, Math.max(4, Math.ceil(len / 80)));
-  const step = Math.ceil(len / chunks);
-
-  for (let i = 1; i <= chunks; i++) {
-    const cut = i === chunks ? len : Math.min(len, i * step);
-    project.files[idx] = {
-      ...project.files[idx],
-      content: fullContent.slice(0, cut),
-      language: project.files[idx].language || inferred,
-    };
-    await invoke("sandbox_save_project", { project });
-    notifySandboxRefresh();
-    focusSandbox(project.id, path);
-    if (i < chunks) await sleep(45);
+  // Cheap pill animation: a handful of byte-growth frames so the
+  // chat shows the write filling in. No disk, no editor re-pull.
+  const frames = len < 160 ? 1 : Math.min(6, Math.max(2, Math.ceil(len / 400)));
+  for (let i = 1; i <= frames; i++) {
+    const shown = i === frames ? len : Math.round((len * i) / frames);
+    emitFileWrite(project.id, path, inferred, shown, false);
+    if (i < frames) await sleep(40);
   }
+
+  // The single source of truth lands in ONE save.
+  await invoke("sandbox_save_project", { project });
+  emitFileWrite(project.id, path, inferred, len, true);
+  notifySandboxRefresh();
+  focusSandbox(project.id, path);
 }
 
 /// Slugify a project name for use as the id. Matches the

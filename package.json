@@ -29,7 +29,8 @@
     "library:unreviewed": "node scripts/mark-bundled-unreviewed.mjs",
     "library:promote-status": "node scripts/set-release-statuses.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "probe:agent": "vite-node scripts/agent-probe.ts --"
   },
   "dependencies": {
     "@bitauth/libauth": "^3.0.0",

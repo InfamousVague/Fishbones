@@ -103,29 +103,51 @@ async function main() {
     "@babel/standalone/babel.min.js",
     "babel.min.js",
   );
-  // React 19 dropped UMD bundles; bundle the npm entrypoint instead.
-  // Output ESM so the iframe can `import` it natively.
-  await bundle(
-    join(NODE_MODULES, "react/index.js"),
-    "react.js",
-  );
-  await bundle(
-    join(NODE_MODULES, "react-dom/client.js"),
-    "react-dom-client.js",
-  );
+  // React 19 dropped UMD bundles, so we bundle the npm entrypoints.
+  //
+  // CRITICAL — single react instance: the iframe runtimes
+  // (src/runtimes/react.ts, reactnative.ts) import /vendor/react.js and
+  // /vendor/react-dom-client.js (and react-native-web.js) as SEPARATE
+  // ESM modules and render with react-dom. If each is bundled
+  // standalone, react-dom inlines its OWN copy of react — so React's
+  // hooks dispatcher (ReactSharedInternals.H) gets set on a different
+  // module instance than the one a component's hooks read from, and
+  // EVERY hook throws "null is not an object (evaluating 'i.H.useState')".
+  // esbuild code splitting (`splitting: true` + shared `outdir`) hoists
+  // react + react-dom into shared chunks that all three entry points
+  // import, guaranteeing exactly one react instance at runtime. Output
+  // ESM so the iframe can `import` the entry points natively.
+  await build({
+    entryPoints: {
+      react: join(NODE_MODULES, "react/index.js"),
+      "react-dom-client": join(NODE_MODULES, "react-dom/client.js"),
+      "react-native-web": join(NODE_MODULES, "react-native-web/dist/index.js"),
+    },
+    bundle: true,
+    splitting: true,
+    format: "esm",
+    target: ["es2022"],
+    minify: true,
+    legalComments: "none",
+    outdir: OUT,
+    platform: "browser",
+    define: {
+      "process.env.NODE_ENV": '"production"',
+      "process.env.JEST_WORKER_ID": "undefined",
+      global: "globalThis",
+    },
+  });
+  console.log("  bundle react.js + react-dom-client.js + react-native-web.js (shared react chunk)");
   await copyOne("three/build/three.module.js", "three.module.js");
   await copyOne("htmx.org/dist/htmx.min.js", "htmx.min.js");
 
-  // ---- React-Native-Web bundle ----
-  // RN-web's npm entrypoint imports React + react-dom via bare
-  // specifiers. The CDN (esm.sh) pre-resolves those to peer URLs;
-  // for the offline build we inline the whole tree into one ESM.
-  // Result: a ~600KB ESM that exports every RN component the
-  // runtime references (View, Text, Pressable, AppRegistry, etc).
-  await bundle(
-    join(NODE_MODULES, "react-native-web/dist/index.js"),
-    "react-native-web.js",
-  );
+  // ---- React-Native-Web ----
+  // Built in the shared-react splitting build above (alongside react +
+  // react-dom-client) so RN-web uses the SAME react instance — RN
+  // courses render through react-dom too, so a private react copy here
+  // would re-introduce the dispatcher-null hook crash. RN-web's
+  // entrypoint imports react + react-dom via bare specifiers; esbuild
+  // resolves them to the shared chunks rather than inlining a 2nd tree.
 
   // ---- Svelte bundles ----
   // Compiler is the heavy one (parses .svelte → JS); runtime is

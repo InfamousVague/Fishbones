@@ -63,6 +63,20 @@ applyHue(loadHue());
 // mix-blend-mode + filter regression flattens/blanks blended foils) while
 // keeping the designed multiply/plus-lighter blend on the web build.
 document.documentElement.setAttribute("data-platform", isWeb ? "web" : "desktop");
+
+// Mobile-only viewport directive. `interactive-widget=resizes-content`
+// is kept OUT of the static index.html tag because the desktop WKWebView
+// doesn't implement it and logs "Viewport argument key 'interactive-
+// widget' not recognized and ignored" on every boot. It only does
+// anything where a soft keyboard exists, so we append it at runtime on
+// mobile — the Partner Keyboard in the mobile Playground depends on it.
+if (isMobile) {
+  const vp = document.querySelector('meta[name="viewport"]');
+  const content = vp?.getAttribute("content") ?? "";
+  if (vp && !content.includes("interactive-widget")) {
+    vp.setAttribute("content", `${content}, interactive-widget=resizes-content`);
+  }
+}
 bootLog("theme applied");
 
 // Global link interceptor. Routes every external-URL click to the

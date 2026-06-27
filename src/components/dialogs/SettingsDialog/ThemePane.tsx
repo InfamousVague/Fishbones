@@ -6,6 +6,8 @@ import {
   applyHue,
   DEFAULT_GG_HUE,
 } from "../../../theme/themes";
+import { themeThumb } from "../ThemePicker/themeThumbs";
+import { THEME_PREVIEW } from "../../../theme/themePreviews";
 import LanguageDropdown from "../../LanguageDropdown/LanguageDropdown";
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import { VARIANTS, type VariantId } from "../../Sidebar/variants/registry";
@@ -70,7 +72,14 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
           className="libre-settings-model-group libre-settings-model-group--scroll"
           style={{ padding: "14px 20px" }}
         >
-          {THEMES.map((t) => (
+          {THEMES.map((t) => {
+            const thumb = themeThumb(t.id);
+            const colors = THEME_PREVIEW[t.id] ?? {
+              bg: "#000",
+              fg: "#fff",
+              accent: "#fff",
+            };
+            return (
             <label
               key={t.id}
               className={`libre-settings-model ${theme === t.id ? "is-active" : ""}`}
@@ -82,6 +91,22 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
                 checked={theme === t.id}
                 onChange={() => onThemeChange(t.id)}
               />
+              {/* Cover-art squircle — the source sci-fi cover the theme is
+                  painted from. The classic default-dark has no art, so it
+                  renders a colour tile from its preview palette instead. */}
+              <span
+                className="libre-settings-theme-squircle"
+                aria-hidden
+                style={
+                  thumb
+                    ? undefined
+                    : {
+                        background: `radial-gradient(120% 120% at 20% 12%, ${colors.accent}40 0%, transparent 46%), ${colors.bg}`,
+                      }
+                }
+              >
+                {thumb ? <img src={thumb} alt="" loading="lazy" /> : null}
+              </span>
               {/* Mini-app preview — a tiny mockup of the actual
                   layout (left nav rail, sidebar, top bar, and a
                   stack of "code line" blocks on the right). The
@@ -121,7 +146,8 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
                 <div className="libre-settings-model-hint">{t.description}</div>
               </div>
             </label>
-          ))}
+            );
+          })}
         </div>
       </SettingsCard>
 

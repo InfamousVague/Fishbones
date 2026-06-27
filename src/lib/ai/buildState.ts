@@ -113,12 +113,25 @@ export function analyzeBuildState(
 
   let stage: BuildStage = "idle";
   if (projectId !== null) {
-    if (ranAtLeastOnce) {
-      stage = lastRunOk ? "complete" : "ran-failed";
-    } else if (files.size > 0) {
-      stage = "writing";
-    } else {
+    if (ranAtLeastOnce && lastRunOk) {
+      // A successful run means the build works — always complete,
+      // even if file tracking couldn't see the writes (some write
+      // results don't echo a path).
+      stage = "complete";
+    } else if (files.size === 0) {
+      // Empty project with no successful run. Models often fire
+      // run_sandbox_project early — frequently with a placeholder id —
+      // which "fails" and would otherwise mis-stage this as
+      // `ran-failed`, sending the model off to "fix the broken build"
+      // by patching a file that doesn't exist (the empty-project
+      // debugging spiral the probe caught). The real next step on an
+      // empty project is always: WRITE FILES.
       stage = "created";
+    } else if (ranAtLeastOnce) {
+      // Files exist and the last run failed — a genuine fix loop.
+      stage = "ran-failed";
+    } else {
+      stage = "writing";
     }
   }
 
@@ -139,27 +152,88 @@ export function analyzeBuildState(
 /// Written as a terse user-voice instruction because that's the
 /// strongest signal position for instruction-tuned checkpoints:
 /// they treat the latest user message as the live task.
-export function buildContinuationNudge(state: BuildState): string | null {
+export function buildContinuationNudge(
+  state: BuildState,
+  opts?: {
+    /// True when this run is a BUILD request (the user asked the agent
+    /// to build/create something). Lets the idle stage push a model
+    /// that only preambled — without mis-firing on a plain Q&A turn
+    /// that legitimately ends with no project.
+    buildExpected?: boolean;
+    /// True for WEAK emulated models driven by the fence-first
+    /// protocol (no reliable tool-call channel). Their nudges speak
+    /// "write ```language:path fenced files", not "call a tool".
+    fenceFirst?: boolean;
+  },
+): string | null {
+  const fence = !!opts?.fenceFirst;
   switch (state.stage) {
+    case "idle":
+      // The model went terminal without starting the build — typically
+      // it wrote preamble ("Okay, let's build…") instead of acting.
+      // Only push when a build was actually expected, so non-build
+      // agent turns (answering a question) aren't nagged.
+      if (opts?.buildExpected) {
+        if (fence) {
+          return [
+            "You haven't written any files yet.",
+            "Start NOW: output the first file as a ```language:path fenced code block (for example ```jsx:src/App.jsx), then the next file, and so on.",
+            "No preamble, no plan, no tool calls — just the fenced files. The project is created automatically from them.",
+          ].join(" ");
+        }
+        return [
+          "You haven't started the build yet — no project exists.",
+          "Stop explaining and ACT NOW: emit a create_sandbox_project tool call with the project name + language, and pass the FULL files array so the whole project lands in one call.",
+          "Do not write any prose before the tool call.",
+        ].join(" ");
+      }
+      return null;
     case "created":
+      if (fence) {
+        return [
+          `Project ${state.projectId} exists but is empty.`,
+          "Write every file the app needs NOW as ```language:path fenced code blocks (e.g. ```jsx:src/App.jsx), back-to-back.",
+          "No prose, no tool calls — just the fenced files.",
+        ].join(" ");
+      }
       return [
-        `You created project ${state.projectId} but haven't written any files into it — the project only has its placeholder.`,
-        "Continue NOW without asking: write every file the build needs (write_sandbox_file or fenced blocks), then call run_sandbox_project to verify.",
+        `You created project ${state.projectId} but haven't written any files into it — the project is empty.`,
+        `Do NOT call create_sandbox_project again, and do NOT call run_sandbox_project yet — the project already exists as ${state.projectId} and has nothing to run.`,
+        `Continue NOW without asking and without reading files: write every file the build needs with write_sandbox_file (projectId: "${state.projectId}"). Use that EXACT projectId, never a placeholder. Then run_sandbox_project.`,
       ].join(" ");
     case "writing":
+      if (fence) {
+        return [
+          `You've written ${state.filesWritten.length} file(s) into ${state.projectId}.`,
+          "If any files are still missing, write them now as ```language:path fenced blocks. Otherwise you're done — stop.",
+        ].join(" ");
+      }
       return [
         `You've written ${state.filesWritten.length} file(s) into ${state.projectId} but never ran the project, so the build is unverified.`,
-        "Continue NOW without asking: write any remaining files, then call run_sandbox_project. The build isn't done until a run returns ok: true.",
+        `Continue NOW without asking: write any remaining files (projectId: "${state.projectId}"), then call run_sandbox_project. The build isn't done until a run returns ok: true.`,
       ].join(" ");
     case "ran-failed":
       return [
         `The last run of ${state.projectId} FAILED — the build is broken.`,
-        "Read the error in the run result above, fix the offending file with apply_sandbox_patch, and run again. Repeat until the run returns ok: true.",
+        `Read the error in the run result above, fix the offending EXISTING file (one of: ${state.filesWritten.join(", ")}) with apply_sandbox_patch, and run again. Do not create new files unless the error names a missing one. Repeat until the run returns ok: true.`,
       ].join(" ");
-    case "idle":
     case "complete":
       return null;
   }
+}
+
+/// Heuristic: does this user prompt ask the agent to BUILD something
+/// (vs. a question / navigation request)? Drives the idle-start nudge
+/// so a model that only preambles gets pushed to act — without nagging
+/// genuine Q&A turns. Deliberately conservative: a clear build verb
+/// near the start, or an explicit "in <language>" scaffold ask.
+export function looksLikeBuildRequest(prompt: string): boolean {
+  const p = prompt.toLowerCase();
+  return /\b(build|create|make|scaffold|generate|implement|code up|write me|write a|set up)\b/.test(
+    p,
+  ) && /\b(game|app|component|project|page|site|cli|tool|clone|demo|ui|api|script|function|class|website|form|calculator|dashboard|in react|in python|in js|in javascript|in typescript|in rust|in html)\b/.test(
+    p,
+  );
 }
 
 function parsePayload(content: string): Record<string, any> | null {

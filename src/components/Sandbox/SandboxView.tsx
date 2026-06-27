@@ -29,12 +29,77 @@ import Workbench from "../Workbench/Workbench";
 import MissingToolchainBanner from "../banners/MissingToolchain/MissingToolchainBanner";
 import { useT } from "../../i18n/i18n";
 import "./SandboxView.css";
+import { validateFilePath } from "../../lib/aiTools/sandboxValidation";
 
 /// Fire a `libre:ask-ai` event the way LessonReader / QuizView do.
 /// AiAssistant is mounted at the app root and listens window-wide, so a
 /// plain CustomEvent is enough plumbing — no prop drilling required.
 function askAi(detail: Record<string, unknown>): void {
   window.dispatchEvent(new CustomEvent("libre:ask-ai", { detail }));
+}
+
+/// A slim banner that appears while the AGENT is writing files into
+/// the open project. Listens to the same `libre:agent-file-write`
+/// progress events the chat panel's FileWriteChip pills use, so the
+/// user can SEE the assistant working in their editor instead of
+/// files silently swapping under them. Self-contained — manages its
+/// own visibility from the event stream.
+function AgentEditingBanner({ projectId }: { projectId: string }) {
+  const [editing, setEditing] = useState<{ path: string; done: boolean } | null>(
+    null,
+  );
+  useEffect(() => {
+    let clearTimer = 0;
+    const onWrite = (ev: Event) => {
+      const d = (
+        ev as CustomEvent<{ projectId?: string; path?: string; closed?: boolean }>
+      ).detail;
+      if (!d?.projectId || d.projectId !== projectId || !d.path) return;
+      // Render-boundary guard: never show a junk path (the old
+      // "tool_call></tool_call>" banner). Real writes always pass.
+      if (!validateFilePath(d.path).ok) return;
+      window.clearTimeout(clearTimer);
+      if (d.closed) {
+        setEditing({ path: d.path, done: true });
+        clearTimer = window.setTimeout(() => setEditing(null), 1100);
+      } else {
+        setEditing({ path: d.path, done: false });
+      }
+    };
+    // A new agent run clears any stale banner.
+    const onRunStart = () => {
+      window.clearTimeout(clearTimer);
+      setEditing(null);
+    };
+    window.addEventListener("libre:agent-file-write", onWrite);
+    window.addEventListener("libre:agent-run-start", onRunStart);
+    return () => {
+      window.removeEventListener("libre:agent-file-write", onWrite);
+      window.removeEventListener("libre:agent-run-start", onRunStart);
+      window.clearTimeout(clearTimer);
+    };
+  }, [projectId]);
+
+  if (!editing) return null;
+  return (
+    <div
+      className={
+        "libre-sandbox-agent-banner" +
+        (editing.done ? " libre-sandbox-agent-banner--done" : "")
+      }
+      role="status"
+      aria-live="polite"
+    >
+      <span className="libre-sandbox-agent-banner-spark" aria-hidden>
+        ✨
+      </span>
+      {editing.done ? (
+        <>AI updated <code>{editing.path}</code></>
+      ) : (
+        <>AI is editing <code>{editing.path}</code>…</>
+      )}
+    </div>
+  );
 }
 
 /// Cheap heuristic: does this JavaScript snippet touch the DOM? The
@@ -604,6 +669,9 @@ export default function SandboxView({ projects }: SandboxViewProps) {
       onChange={handleFileChange}
       onRun={handleRun}
       onReset={resetToTemplate}
+      // Enable the "✨ … with AI" right-click actions — the sandbox is
+      // where co-creation happens (they edit the open project).
+      aiSelectionActions
     />
   );
   const outputNode = (
@@ -624,6 +692,10 @@ export default function SandboxView({ projects }: SandboxViewProps) {
           touches the singleton chain. */}
       {chainActivity.evm && <EvmDockBanner />}
       {chainActivity.bitcoin && <BitcoinDockBanner />}
+      {/* "✨ AI is editing X" — surfaces the agent's live writes into
+          THIS project so co-creation is legible: the user sees the
+          assistant working in their editor, not silent file swaps. */}
+      <AgentEditingBanner projectId={activeProject.id} />
       {/* Header: language picker on the left, view toggle on the right.
           Eyebrow "LANGUAGE" label removed — the select's own caret
           + visible chip is enough affordance, and the label was

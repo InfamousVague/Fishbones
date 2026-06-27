@@ -25,6 +25,7 @@ import type { FileLanguage, LanguageId, WorkbenchFile } from "../../data/types";
 import { useActiveTheme } from "../../theme/useActiveTheme";
 import { MONACO_THEME_BY_APP_THEME, registerMonacoThemes } from "../../theme/monaco-themes";
 import { attachTodoHints } from "../../lib/monaco/todoHints";
+import { safeMonacoPath } from "../../lib/monaco/safePath";
 import "./EditorPane.css";
 
 // Themes + ambient CommonJS decls are still applied per-mount via
@@ -120,6 +121,12 @@ interface Props {
   /// switching between editor + blocks during a lesson.
   exerciseMode?: "editor" | "blocks";
   onExerciseModeChange?: (mode: "editor" | "blocks") => void;
+  /// Register the "✨ … with AI" Monaco context-menu actions
+  /// (Explain / Improve / Add comments) that send the current
+  /// selection to the assistant. ONLY the sandbox enables these —
+  /// they edit the open sandbox project, which makes no sense inside
+  /// a lesson exercise. Omitted/false = no AI actions.
+  aiSelectionActions?: boolean;
 }
 
 const MONACO_LANGUAGES: Record<FileLanguage, string> = {
@@ -212,6 +219,7 @@ export default function EditorPane({
   onToggleSplit,
   exerciseMode,
   onExerciseModeChange,
+  aiSelectionActions = false,
 }: Props) {
   const t = useT();
   // `language` no longer renders as a header label (the slot is now
@@ -647,8 +655,14 @@ export default function EditorPane({
             // cursor position, and scroll state are preserved per-tab. The
             // `key` prevents model leakage when the file list is swapped
             // wholesale (e.g. reveal-solution replacing everything).
-            key={active.name}
-            path={active.name}
+            //
+            // `path` MUST be sanitized: Monaco parses it as a URI, and an
+            // AI-written filename with an illegal scheme (e.g. a colon
+            // after a space/unicode, a stray `lang:` prefix, a URL) makes
+            // `Uri.parse` throw and crashes the whole editor. The tab
+            // still shows the real `active.name`. See lib/monaco/safePath.
+            key={safeMonacoPath(active.name)}
+            path={safeMonacoPath(active.name)}
             language={MONACO_LANGUAGES[active.language] ?? "plaintext"}
             value={active.content}
             theme={monacoTheme}
@@ -675,6 +689,63 @@ export default function EditorPane({
                 attachTodoHints(monaco, editor, {
                   language: active.language,
                   fileName: active.name,
+                });
+              }
+
+              // In-sandbox "✨ … with AI" actions (Explain / Improve /
+              // Add comments). They send the current selection (or the
+              // whole file when nothing's selected) to the assistant
+              // via the same `libre:ask-ai` bus the rest of the app
+              // uses; the agent edits the OPEN project in place. Only
+              // the sandbox opts in (not lesson exercises).
+              if (aiSelectionActions && !active.readOnly) {
+                const dispatchSelectionAsk = (
+                  action: "explain" | "improve" | "comment",
+                ) => {
+                  const model = editor.getModel();
+                  if (!model) return;
+                  const sel = editor.getSelection();
+                  const picked =
+                    sel && !sel.isEmpty()
+                      ? model.getValueInRange(sel)
+                      : "";
+                  const fileContent = model.getValue();
+                  // No selection → operate on the whole file.
+                  const selectedText = picked.trim() ? picked : fileContent;
+                  window.dispatchEvent(
+                    new CustomEvent("libre:ask-ai", {
+                      detail: {
+                        kind: "sandbox-selection",
+                        action,
+                        selectedText,
+                        filePath: active.name,
+                        language: active.language,
+                        fileContent,
+                      },
+                    }),
+                  );
+                };
+                editor.addAction({
+                  id: "libre.ai.explainSelection",
+                  label: "✨ Explain this with AI",
+                  contextMenuGroupId: "1_libre_ai",
+                  contextMenuOrder: 1,
+                  keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI],
+                  run: () => dispatchSelectionAsk("explain"),
+                });
+                editor.addAction({
+                  id: "libre.ai.improveSelection",
+                  label: "✨ Improve this with AI",
+                  contextMenuGroupId: "1_libre_ai",
+                  contextMenuOrder: 2,
+                  run: () => dispatchSelectionAsk("improve"),
+                });
+                editor.addAction({
+                  id: "libre.ai.commentSelection",
+                  label: "✨ Add comments with AI",
+                  contextMenuGroupId: "1_libre_ai",
+                  contextMenuOrder: 3,
+                  run: () => dispatchSelectionAsk("comment"),
                 });
               }
             }}

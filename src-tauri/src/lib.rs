@@ -418,6 +418,7 @@ pub fn run() {
             native_runners::run_zig,
             native_runners::run_rust,
             ai_chat::ai_chat_probe,
+            ai_chat::ai_chat_model_caps,
             ai_chat::ai_chat_stream,
             ai_chat::ai_chat_install_status,
             ai_chat::ai_chat_install_ollama,

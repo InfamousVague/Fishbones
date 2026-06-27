@@ -453,9 +453,14 @@ export default function MobileApp() {
   // without overlapping with React's onClick (which fires later
   // and is too late to satisfy the autoplay policy).
   useEffect(() => {
-    const onGesture = () => {
-      void unlockAudioContext();
-      window.removeEventListener("pointerdown", onGesture);
+    const onGesture = async () => {
+      // Keep listening until the context actually reaches "running" —
+      // on WKWebView the first gesture occasionally fails to flip it.
+      // The silent-buffer kick inside `unlockAudioContext` runs
+      // synchronously (before its first await), so the gesture still
+      // counts as user-initiated playback despite the async handler.
+      const unlocked = await unlockAudioContext();
+      if (unlocked) window.removeEventListener("pointerdown", onGesture);
     };
     window.addEventListener("pointerdown", onGesture, { passive: true });
     return () => window.removeEventListener("pointerdown", onGesture);

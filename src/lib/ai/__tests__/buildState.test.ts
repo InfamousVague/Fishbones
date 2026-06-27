@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   analyzeBuildState,
   buildContinuationNudge,
+  looksLikeBuildRequest,
 } from "../buildState";
 import { runAgentLoop } from "../../aiAgent/loop";
 import type {
@@ -108,14 +109,64 @@ describe("buildContinuationNudge", () => {
     expect(nudge).toContain("run_sandbox_project");
   });
 
-  it("nudges toward fixing when the last run failed", () => {
+  it("nudges toward fixing when the last run failed AND files exist", () => {
     const t = [
       tr("create_sandbox_project", true, { ok: true, projectId: "p1" }),
+      tr("write_sandbox_file", true, { ok: true, path: "a.js" }),
       tr("run_sandbox_project", false, { ok: false, error: "boom" }),
     ];
     const nudge = buildContinuationNudge(analyzeBuildState(t))!;
     expect(nudge).toContain("FAILED");
     expect(nudge).toContain("apply_sandbox_patch");
+  });
+
+  it("an EMPTY project + a (meaningless) failed run nudges to WRITE FILES, not 'fix the build'", () => {
+    // Regression for the empty-project debugging spiral the probe
+    // caught: the model fired run_sandbox_project on an empty project
+    // (often with a placeholder id), it 'failed', and the old nudge
+    // sent the model off to patch a file that doesn't exist.
+    const t = [
+      tr("create_sandbox_project", true, { ok: true, projectId: "p1" }),
+      tr("run_sandbox_project", false, { ok: false, error: "no entry" }),
+    ];
+    const state = analyzeBuildState(t);
+    expect(state.stage).toBe("created");
+    const nudge = buildContinuationNudge(state)!;
+    expect(nudge).toContain("write_sandbox_file");
+    expect(nudge).not.toContain("FAILED");
+  });
+
+  it("idle + buildExpected pushes the model to ACT; idle without it stays silent", () => {
+    const idle = analyzeBuildState([]);
+    expect(idle.stage).toBe("idle");
+    expect(buildContinuationNudge(idle)).toBeNull();
+    const pushed = buildContinuationNudge(idle, { buildExpected: true })!;
+    expect(pushed).toContain("create_sandbox_project");
+    expect(pushed.toLowerCase()).toContain("haven't started");
+  });
+
+  it("fenceFirst nudges speak fences, not tool calls (weak models)", () => {
+    const idle = analyzeBuildState([]);
+    const fence = buildContinuationNudge(idle, {
+      buildExpected: true,
+      fenceFirst: true,
+    })!;
+    expect(fence).toContain("language:path");
+    expect(fence).not.toContain("create_sandbox_project");
+  });
+});
+
+describe("looksLikeBuildRequest", () => {
+  it("matches build requests", () => {
+    expect(looksLikeBuildRequest("Build a blackjack game in React")).toBe(true);
+    expect(looksLikeBuildRequest("make me a fizzbuzz CLI in python")).toBe(true);
+    expect(looksLikeBuildRequest("create a todo app")).toBe(true);
+    expect(looksLikeBuildRequest("scaffold a dashboard component")).toBe(true);
+  });
+  it("does NOT match questions / navigation", () => {
+    expect(looksLikeBuildRequest("what is a closure?")).toBe(false);
+    expect(looksLikeBuildRequest("find me a lesson on recursion")).toBe(false);
+    expect(looksLikeBuildRequest("explain this code")).toBe(false);
   });
 });
 

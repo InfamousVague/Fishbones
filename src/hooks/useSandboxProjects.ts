@@ -231,6 +231,58 @@ function prettyLang(language: LanguageId): string {
   return map[language] ?? language;
 }
 
+/// Merge a project's on-disk files with the in-memory (editor)
+/// version during a disk re-pull, so an agent write to ONE file
+/// can't clobber the user's UNSAVED edits to ANOTHER file (or the
+/// same one). A file is "dirty" when its in-memory content diverges
+/// from the last-synced disk snapshot — i.e. the user edited it and
+/// the debounced write-back hasn't landed yet. Dirty files keep their
+/// in-memory content; every other file takes the FRESH disk content
+/// (so the agent's writes still show up). Disk order is preserved;
+/// local-only files (newly created, not yet saved) are appended.
+///
+/// Pure + exported so the non-destructive contract is unit-tested.
+export function mergeReconciledFiles(
+  disk: readonly WorkbenchFile[],
+  memory: readonly WorkbenchFile[],
+  lastSynced: readonly WorkbenchFile[] | undefined,
+): WorkbenchFile[] {
+  const memByName = new Map(memory.map((f) => [f.name, f]));
+  const lastByName = new Map((lastSynced ?? []).map((f) => [f.name, f]));
+  const out: WorkbenchFile[] = [];
+  const seen = new Set<string>();
+  for (const dsk of disk) {
+    seen.add(dsk.name);
+    const mem = memByName.get(dsk.name);
+    const last = lastByName.get(dsk.name);
+    // Dirty = edited in the editor since the last disk sync. Keeping
+    // the unsaved edit requires a BASELINE (`last`): without one we
+    // can't tell "user has an unsaved edit" from "we have no record
+    // yet", and on a fresh reconcile after an agent CREATE the memory
+    // buffer is stale — so default to disk and only override with
+    // memory when memory provably diverges from a known baseline.
+    const dirty = !!mem && !!last && mem.content !== last.content;
+    out.push(dirty ? mem! : dsk);
+  }
+  // Files in memory but NOT on disk. Three cases, distinguished by the
+  // baseline so an agent DELETE isn't silently resurrected:
+  //   - no baseline        → a genuinely new local file the user
+  //                          created this session → keep it.
+  //   - baseline, dirty    → existed before, user has unsaved edits,
+  //                          and it's now gone from disk (agent
+  //                          deleted it) → conflict; keep the human's
+  //                          edits rather than lose them.
+  //   - baseline, clean    → existed before, deleted on disk, user
+  //                          never touched it → HONOR the deletion.
+  for (const mem of memory) {
+    if (seen.has(mem.name)) continue;
+    seen.add(mem.name);
+    const last = lastByName.get(mem.name);
+    if (!last || mem.content !== last.content) out.push(mem);
+  }
+  return out;
+}
+
 // ── Hook ─────────────────────────────────────────────────────────
 
 export function useSandboxProjects(
@@ -345,7 +397,7 @@ export function useSandboxProjects(
         const full = await Promise.all(
           onDisk.map((m) => fsLoadProject(m.id).catch(() => null)),
         );
-        const merged: SandboxProject[] = full
+        const diskProjects: SandboxProject[] = full
           .filter((p): p is NonNullable<typeof p> => p !== null)
           .map((p) => ({
             id: p.id,
@@ -360,19 +412,41 @@ export function useSandboxProjects(
             createdAt: p.createdAt,
             updatedAt: p.updatedAt,
           }));
-        if (merged.length > 0) {
+        if (diskProjects.length > 0) {
           setPersisted((prev) => {
-            const stillValid = merged.some((p) => p.id === prev.activeId);
+            const memById = new Map(prev.projects.map((p) => [p.id, p]));
+            // Non-destructive merge: take the fresh disk content, but
+            // preserve the user's unsaved edits per-file (so an agent
+            // write to one file never clobbers a buffer the user is
+            // mid-edit in another). Pure `mergeReconciledFiles` owns
+            // the dirty logic.
+            const reconciled: SandboxProject[] = diskProjects.map((dp) => {
+              const mem = memById.get(dp.id);
+              if (!mem) return dp; // brand-new project from disk
+              const last = lastDiskStateRef.current.get(dp.id);
+              return {
+                ...dp,
+                files: mergeReconciledFiles(dp.files, mem.files, last?.files),
+              };
+            });
+            // Keep projects that exist only in memory (just created,
+            // not yet flushed to disk) so a re-pull can't drop them.
+            const diskIds = new Set(diskProjects.map((p) => p.id));
+            const memoryOnly = prev.projects.filter((p) => !diskIds.has(p.id));
+            const projects = [...reconciled, ...memoryOnly];
+            const stillValid = projects.some((p) => p.id === prev.activeId);
             return {
-              projects: merged,
-              activeId: stillValid ? prev.activeId : merged[0].id,
+              projects,
+              activeId: stillValid ? prev.activeId : (projects[0]?.id ?? prev.activeId),
             };
           });
-          // Refresh the dirty-tracker snapshot too — without
-          // this, the next mutation effect would see every
-          // re-pulled project as "different from disk" and
-          // pointlessly round-trip them back out.
-          lastDiskStateRef.current = new Map(merged.map((p) => [p.id, p]));
+          // Track the ACTUAL disk state (not the merged result): the
+          // dirty files we kept from memory genuinely differ from
+          // disk, so they should stay flagged dirty and get written
+          // back by the next mutation effect.
+          lastDiskStateRef.current = new Map(
+            diskProjects.map((p) => [p.id, p]),
+          );
         }
       }
       diskReadyRef.current = true;

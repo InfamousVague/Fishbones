@@ -392,6 +392,42 @@ export function useAiAgent(params: {
                 { role: "user", content: nudge, isNudge: true },
               ]);
             },
+            onToolsUnsupported: (m) => {
+              // The chosen model has no native tool template; the
+              // loop stripped wire tools and is retrying via the
+              // emulated text-parse path. Tell the user why the run
+              // didn't just error — rendered as a muted breadcrumb.
+              setMessages((prev) => [
+                ...prev,
+                {
+                  role: "user",
+                  content: `(${m} doesn't support native tools — switched to compatibility mode for this run. For the most reliable agent builds, pick a tool-native model like qwen2.5-coder.)`,
+                  // isNudge → muted breadcrumb styling; isSystemNote →
+                  // never re-sent to the model on a later turn (it's
+                  // host chrome, not conversation context).
+                  isNudge: true,
+                  isSystemNote: true,
+                },
+              ]);
+            },
+            onOrphanPruned: (paths) => {
+              // The loop removed files the model created but nothing
+              // imports — surfaced as a muted breadcrumb so the user
+              // sees the build was tidied, not silently altered.
+              const label =
+                paths.length === 1
+                  ? `1 unused file (${paths[0]})`
+                  : `${paths.length} unused files`;
+              setMessages((prev) => [
+                ...prev,
+                {
+                  role: "user",
+                  content: `(Removed ${label} — nothing in the project imported ${paths.length === 1 ? "it" : "them"}.)`,
+                  isNudge: true,
+                  isSystemNote: true,
+                },
+              ]);
+            },
             onTurnStart: (idx) => {
               // Each new turn starts a fresh live-content window
               // so the next chunk's token estimate counts the

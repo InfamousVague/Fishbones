@@ -15,11 +15,13 @@ import type {
   InstallStatus,
   InstallResult,
 } from "../../hooks/useAiChat";
-import { renderMarkdown } from "../Lesson/markdown";
+import { AssistantMessage } from "./AssistantMessage";
+import { useBubbleInteractions } from "./useBubbleInteractions";
 import LibreLoader from "../Shared/LibreLoader";
 import { useT } from "../../i18n/i18n";
 import { findModelMeta } from "../../lib/ai/models";
 import "./AiChatPanel.css";
+import "./AssistantMessage.css";
 
 interface Props {
   open: boolean;
@@ -149,92 +151,10 @@ export default function AiChatPanel({
   // below. Keeping `canSend` because the placeholder + disabled
   // gate still consume it.
 
-  // Link interception. Two categories handled here:
-  //
-  //   1. `libre://` URLs — the system prompt seeds a catalog of
-  //      installed courses + lessons keyed by `libre://course/<id>`
-  //      / `libre://lesson/<courseId>/<lessonId>` so the model can
-  //      recommend specific things. Those clicks dispatch a
-  //      CustomEvent the host window (App or TrayPanel) listens
-  //      for and routes to its normal lesson / course open path.
-  //
-  //   2. Any other absolute URL (http://, https://, mailto:, etc.)
-  //      — the AI sometimes cites external references; we want
-  //      those to open in the user's DEFAULT browser, NOT navigate
-  //      the WebView away from the app (which would replace the
-  //      chat panel with the linked page and trap the user). Uses
-  //      `@tauri-apps/plugin-opener`'s `openUrl`, which shells to
-  //      the OS on desktop and falls back to `window.open(_blank)`
-  //      on web via our stub in `lib/tauri-stubs/plugin-opener.ts`.
-  //
-  // Capture phase on the scroller so we beat the default
-  // navigation regardless of what other listeners do downstream.
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const onClick = (ev: MouseEvent) => {
-      let node = ev.target as Element | null;
-      // Walk up to the nearest <a> in case the click landed on a
-      // child element (e.g. inline `<code>` inside the link text).
-      while (node && node.tagName !== "A") {
-        node = node.parentElement;
-      }
-      if (!node) return;
-      const href = (node as HTMLAnchorElement).getAttribute("href") ?? "";
-      // libre:// — intercept and dispatch in-app navigation.
-      if (href.startsWith("libre://")) {
-        ev.preventDefault();
-        const courseMatch = href.match(/^libre:\/\/course\/([^/?#]+)/);
-        if (courseMatch) {
-          window.dispatchEvent(
-            new CustomEvent("libre:open-course", {
-              detail: { courseId: courseMatch[1] },
-            }),
-          );
-          return;
-        }
-        const lessonMatch = href.match(
-          /^libre:\/\/lesson\/([^/?#]+)\/([^/?#]+)/,
-        );
-        if (lessonMatch) {
-          window.dispatchEvent(
-            new CustomEvent("libre:open-lesson", {
-              detail: { courseId: lessonMatch[1], lessonId: lessonMatch[2] },
-            }),
-          );
-        }
-        return;
-      }
-      // Skip in-document anchors (`#section`), JS scheme hacks,
-      // and empty hrefs — let the browser handle scroll-to-id or
-      // do nothing.
-      if (!href || href.startsWith("#") || href.startsWith("javascript:")) {
-        return;
-      }
-      // Everything else → open in the OS default browser. Only
-      // route absolute URLs we recognise as openable. Relative
-      // hrefs would resolve against the WebView's index.html
-      // origin (a `tauri://` URL inside the app); shipping that
-      // to the system opener wouldn't make sense.
-      const isExternal =
-        /^[a-z][a-z0-9+.-]*:\/\//i.test(href) || href.startsWith("mailto:");
-      if (!isExternal) return;
-      ev.preventDefault();
-      void (async () => {
-        try {
-          const { openUrl } = await import("@tauri-apps/plugin-opener");
-          await openUrl(href);
-        } catch {
-          // Last-resort fallback if the dynamic import fails for
-          // any reason — open in a new tab so the click still
-          // does something useful.
-          window.open(href, "_blank", "noopener,noreferrer");
-        }
-      })();
-    };
-    el.addEventListener("click", onClick);
-    return () => el.removeEventListener("click", onClick);
-  }, []);
+  // Link interception (libre:// deep links + external URLs) AND
+  // code-block copy buttons, delegated on the scroller. Shared with
+  // the agent panel so the two can't drift — see useBubbleInteractions.
+  useBubbleInteractions(scrollerRef);
 
   return (
     <aside
@@ -585,55 +505,10 @@ function Bubble({
       }`}
     >
       {message.role === "assistant" ? (
-        <AssistantBody content={message.content} streaming={streaming} />
+        <AssistantMessage content={message.content} streaming={streaming} />
       ) : (
         <div className="libre-ai-bubble-text">{message.content}</div>
       )}
     </Card>
-  );
-}
-
-function AssistantBody({
-  content,
-  streaming,
-}: {
-  content: string;
-  streaming: boolean;
-}) {
-  const [html, setHtml] = useState("");
-  // While streaming we render the raw content as a plain preformatted
-  // string — markdown-it's block-level parser chokes on half-finished
-  // fences / bullets as tokens arrive. Final pass swaps in the real
-  // rendered HTML once the stream terminates.
-  useEffect(() => {
-    if (streaming) return;
-    let cancelled = false;
-    void renderMarkdown(content ?? "").then((rendered) => {
-      if (!cancelled) setHtml(rendered);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [content, streaming]);
-
-  if (streaming) {
-    return (
-      <div className="libre-ai-bubble-stream">
-        {content || <span className="libre-ai-bubble-caret" />}
-      </div>
-    );
-  }
-  if (!html) {
-    // Initial mount between "done streaming" and "markdown pass
-    // settled" — show the raw text so the transition isn't jumpy.
-    return <div className="libre-ai-bubble-stream">{content}</div>;
-  }
-  return (
-    <div
-      className="libre-ai-bubble-markdown"
-      // Markdown output comes from our own renderer (trusted) and is
-      // already escaped there; dangerously set is intentional.
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
   );
 }

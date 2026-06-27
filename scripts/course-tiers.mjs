@@ -153,7 +153,15 @@ export function isHiddenPack(packId) {
 /// to point at your own hosting.
 export const REMOTE_ARCHIVE_BASE =
   process.env.LIBRE_CATALOG_BASE_URL ??
-  "https://mattssoftware.com/fishbones/courses";
+  // Host the desktop download archives on libre's OWN box, not
+  // mattssoftware.com. The old mattssoftware/fishbones/courses/ path
+  // lived under /var/www/mattssoftware/, which the separate
+  // mattssoftware repo deploy `rsync --delete`-wipes on every push —
+  // it erased the uploaded archives within a day. libre.academy serves
+  // /courses/*.academy via the Caddyfile `@courseArchive` matcher
+  // (with CORS); the files live in /var/www/libre-academy/courses/ and
+  // the libre deploy's rsync `--exclude=courses/` protects them.
+  "https://libre.academy/courses";
 
 /// Editorial-tier overrides keyed by **pack id** (the .libre
 /// filename minus extension). Applied by the extract script AFTER

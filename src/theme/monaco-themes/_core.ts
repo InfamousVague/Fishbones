@@ -35,21 +35,16 @@ export type MonacoThemeName =
 /// editor disappears into the page in both modes.
 export const MONACO_THEME_BY_APP_THEME: Record<ThemeName, MonacoThemeName> = {
   "default-dark": "libre-dark",
-  "cipher-light": "libre-light",
-  "cipher-dark": "libre-dark",
-  synthwave: "libre-synthwave",
-  "claude-code-dark": "libre-claude-code-dark",
-  "ayu-light": "libre-light",
-  "ayu-mirage": "libre-ayu-mirage",
-  "ayu-dark": "libre-ayu-dark",
-  "catppuccin-latte": "libre-light",
-  "catppuccin-frappe": "libre-catppuccin-frappe",
-  "catppuccin-macchiato": "libre-catppuccin-macchiato",
-  "catppuccin-mocha": "libre-catppuccin-mocha",
-  "tokyo-night": "libre-tokyo-night",
-  "rose-pine": "libre-rose-pine",
-  "ubuntu-dark": "libre-ubuntu-dark",
-  "absent-contrast": "libre-absent-contrast",
-  vesper: "libre-vesper",
-  word: "libre-word",
+  // The image themes recolour the app chrome + halftone via CSS, but the editor
+  // surface is made transparent (ghostwire.css) so each theme's own background
+  // shows through — so every image theme reuses the shared, well-tuned dark
+  // syntax palette rather than a bespoke Monaco theme.
+  "retro-pulp": "libre-dark",
+  "raygun-gothic": "libre-dark",
+  "alien-invasion": "libre-dark",
+  "robot-menace": "libre-dark",
+  "time-warp": "libre-dark",
+  "lost-world": "libre-dark",
+  "cold-war-spy": "libre-dark",
+  "psychedelic-voyage": "libre-dark",
 };

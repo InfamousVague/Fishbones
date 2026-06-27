@@ -5,11 +5,15 @@ import {
   DEFAULT_MODEL_ID,
   OLLAMA_MODELS,
   compactModelLabel,
+  emulatedBuildTier,
   findModelMeta,
   isKnownModel,
   isModelInstalled,
+  isStrongBuilder,
   isToolNative,
+  modelParamsB,
   modelTagMatches,
+  streamsFilesLive,
 } from "../models";
 import {
   DEFAULT_SETTINGS,
@@ -75,6 +79,17 @@ describe("isToolNative", () => {
   });
   it("optimistically treats unknown custom models as native", () => {
     expect(isToolNative("my-custom-finetune:latest")).toBe(true);
+  });
+  it("resolves quant / instruct variants to their base registry tier", () => {
+    // Emulated base → variant stays emulated (gets compatibility mode + prompt).
+    expect(isToolNative("deepseek-coder-v2:16b-q4_K_M")).toBe(false);
+    expect(isToolNative("deepseek-coder-v2:16b-instruct-q5_0")).toBe(false);
+    expect(isToolNative("phi4:q8_0")).toBe(false);
+    // Native base → variant stays native.
+    expect(isToolNative("qwen2.5-coder:7b-instruct-q5_K_M")).toBe(true);
+    expect(isToolNative("qwen2.5-coder:14b-q4_0")).toBe(true);
+    // A genuinely unknown base is still unknown → optimistic native.
+    expect(isToolNative("totally-unknown:13b-q4")).toBe(true);
   });
 });
 
@@ -171,5 +186,39 @@ describe("compactModelLabel (header dropdown trigger)", () => {
       expect(label.length).toBeGreaterThan(0);
       expect(label).toContain(m.params);
     }
+  });
+});
+
+describe("model strength — drives live-streaming + emulated prompt tier", () => {
+  it("parses params labels into billions", () => {
+    expect(modelParamsB("qwen2.5-coder:7b")).toBe(7);
+    expect(modelParamsB("qwen2.5-coder:1.5b")).toBe(1.5);
+    expect(modelParamsB("gemma3:4b")).toBe(4);
+    expect(modelParamsB("deepseek-coder-v2:16b")).toBe(16);
+    expect(modelParamsB("totally-unknown:latest")).toBeNull();
+  });
+
+  it("treats native, code-specialist, and large general models as strong", () => {
+    expect(isStrongBuilder("qwen2.5-coder:7b")).toBe(true); // native
+    expect(isStrongBuilder("deepseek-coder-v2:16b")).toBe(true); // code specialist (emulated)
+    expect(isStrongBuilder("phi4")).toBe(true); // 14B general, emulated
+    expect(isStrongBuilder("custom-model:latest")).toBe(true); // unknown → optimistic
+  });
+
+  it("treats small general emulated models as weak", () => {
+    expect(isStrongBuilder("gemma3:4b")).toBe(false);
+    expect(isStrongBuilder("gemma3:1b")).toBe(false);
+  });
+
+  it("streams files live only for strong builders", () => {
+    expect(streamsFilesLive("qwen2.5-coder:7b")).toBe(true);
+    expect(streamsFilesLive("deepseek-coder-v2:16b")).toBe(true);
+    expect(streamsFilesLive("gemma3:4b")).toBe(false);
+  });
+
+  it("tiers the emulated prompt by strength", () => {
+    expect(emulatedBuildTier("deepseek-coder-v2:16b")).toBe("strong");
+    expect(emulatedBuildTier("gemma3:4b")).toBe("weak");
+    expect(emulatedBuildTier("phi4")).toBe("strong");
   });
 });

@@ -60,6 +60,14 @@ export type AgentMessage =
       /// a user bubble so the conversation doesn't show words in
       /// the learner's mouth.
       isNudge?: boolean;
+      /// True for purely-informational host breadcrumbs (e.g. the
+      /// "this model has no native tools, switched to compatibility
+      /// mode" note). Rendered like a nudge, but — unlike a nudge —
+      /// it is NEVER serialized to the model on a later turn
+      /// (`toWireMessages` drops it). It's UI chrome, not context;
+      /// re-sending it would read to the model as a stray user
+      /// instruction.
+      isSystemNote?: boolean;
     }
   | {
       role: "assistant";

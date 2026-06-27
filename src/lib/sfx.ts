@@ -202,9 +202,9 @@ function ensureContext(): AudioContext | null {
 /// buffer here grants output for the rest of the session. Harmless on
 /// Chrome; the actual fix on Safari (this is why SFX work in the web
 /// build but went silent in the desktop app).
-export async function unlockAudioContext(): Promise<void> {
+export async function unlockAudioContext(): Promise<boolean> {
   const c = ensureContext();
-  if (!c) return;
+  if (!c) return false;
   // Silent-buffer kick — synchronous, inside the gesture, BEFORE any
   // await so Safari counts it as a user-initiated playback.
   try {
@@ -223,6 +223,14 @@ export async function unlockAudioContext(): Promise<void> {
       /* swallow — next play call will retry */
     }
   }
+  const running = c.state === "running";
+  // Now that a gesture-born, running context exists, warm the recorded
+  // pack. This is intentionally gated behind the gesture: pre-fetching
+  // the pack at boot used to create the context too early (outside any
+  // gesture), which on WKWebView permanently mutes output — see
+  // `loadAsset` / the warm-up note below.
+  if (running) warmPack();
+  return running;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -801,7 +809,16 @@ function assetUrl(name: SfxName): string {
 
 function loadAsset(name: SfxName): void {
   if (assetBuffers.has(name) || assetLoading.has(name)) return;
-  const c = ensureContext();
+  // CRITICAL: never *create* the AudioContext here. On WKWebView (the
+  // desktop + iOS shell) a context constructed outside a user gesture
+  // is permanently denied audio OUTPUT — even a later `resume()` inside
+  // a real gesture won't revive it. The old boot-time warm-up created
+  // the context this way ~3.5 s after launch, before the user's first
+  // click, which silently muted every cue for the rest of the session.
+  // We therefore decode only into an *already-existing* (gesture-born)
+  // context; warm-up is kicked from `unlockAudioContext` / the first
+  // `playSound` after a gesture instead.
+  const c = ctx;
   if (!c) return;
   assetLoading.add(name);
   fetch(assetUrl(name))
@@ -818,6 +835,20 @@ function loadAsset(name: SfxName): void {
     .finally(() => {
       assetLoading.delete(name);
     });
+}
+
+/// Warm the whole recorded pack into the (gesture-born) context, once.
+/// Called from `unlockAudioContext` after the first user gesture, so
+/// the context is healthy on WKWebView and the first real cue of the
+/// session plays the recorded rendition rather than the synth stand-in.
+/// Staggered so the ~560 KB of fetch+decode stays off the critical path.
+let packWarmed = false;
+function warmPack(): void {
+  if (packWarmed || typeof window === "undefined") return;
+  packWarmed = true;
+  ALL_SFX.forEach((name, i) => {
+    window.setTimeout(() => loadAsset(name), i * 80);
+  });
 }
 
 /// Fire a sound-effect cue. Plays the recorded rendition when its
@@ -926,15 +957,9 @@ export const SFX_LABELS: Record<SfxName, string> = {
 };
 
 // ── Pack warm-up ─────────────────────────────────────────────────
-// Kick the whole pack's fetch+decode shortly after boot (staggered,
-// off the critical path) so the first real cue of the session plays
-// the recorded rendition rather than the synth stand-in. ~560 KB
-// total; decoding works on a suspended context, so no user gesture
-// is needed before warming.
-if (typeof window !== "undefined") {
-  window.setTimeout(() => {
-    ALL_SFX.forEach((name, i) => {
-      window.setTimeout(() => loadAsset(name), i * 120);
-    });
-  }, 3500);
-}
+// Warm-up is intentionally NOT kicked at boot anymore. Decoding needs
+// an AudioContext, and constructing one before the first user gesture
+// permanently mutes audio output on WKWebView (the desktop/iOS shell).
+// Instead the pack is warmed from `unlockAudioContext` — the first
+// real user gesture — via `warmPack()`, and any cue fired after that
+// gesture lazy-loads its own asset through `playSound` → `loadAsset`.

@@ -1,7 +1,7 @@
 babel.min.js	3137678
-react.js	7594
-react-dom-client.js	191450
-react-native-web.js	457783
+react.js	60
+react-dom-client.js	88
+react-native-web.js	265277
 three.module.js	1272972
 htmx.min.js	51238
 svelte-compiler.js	833153

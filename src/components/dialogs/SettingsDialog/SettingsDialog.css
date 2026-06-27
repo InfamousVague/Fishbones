@@ -1943,13 +1943,33 @@
  * there's less canvas to play with on phone widths.
  * ─────────────────────────────────────────────────────────────── */
 
+/* Cover-art squircle for each theme row — the vintage sci-fi cover the theme
+   is painted from, shown beside the mini app preview. default-dark has no art,
+   so ThemePane gives it an inline colour-tile background instead of an <img>. */
+.libre-settings-theme-squircle {
+  /* Match the full height of the app-mockup preview to its right (88px). */
+  flex: 0 0 88px;
+  width: 88px;
+  height: 88px;
+  border-radius: 26px; /* squircle-ish */
+  overflow: hidden;
+  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.12));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.libre-settings-theme-squircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .libre-settings-theme-preview {
-  flex: 0 0 108px;
-  width: 108px;
-  height: 68px;
+  flex: 0 0 140px;
+  width: 140px;
+  height: 88px;
   display: grid;
-  /* 8px rail | 22px sidebar | rest = main area */
-  grid-template-columns: 8px 22px 1fr;
+  /* 10px rail | 29px sidebar | rest = main area (scaled ~30% larger) */
+  grid-template-columns: 10px 29px 1fr;
   border-radius: 6px;
   border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
   overflow: hidden;
@@ -2021,24 +2041,15 @@
 /* Per-theme reference colours. Hardcoded (not pulled from the
    live `--color-*` tokens) so the preview always shows what the
    theme will look like, not what the CURRENT theme looks like. */
-.libre-settings-theme-preview[data-theme="default-dark"]      { --swatch-bg: #000000; --swatch-fg: #ffffff; --swatch-accent: #ffffff; }
-.libre-settings-theme-preview[data-theme="cipher-light"]      { --swatch-bg: #ecedf3; --swatch-fg: #0f1324; --swatch-accent: #a85e1c; }
-.libre-settings-theme-preview[data-theme="cipher-dark"]       { --swatch-bg: #0c0f15; --swatch-fg: #f5f6fa; --swatch-accent: #a85e1c; }
-.libre-settings-theme-preview[data-theme="synthwave"]         { --swatch-bg: #1f1147; --swatch-fg: #ffffff; --swatch-accent: #ff77e1; }
-.libre-settings-theme-preview[data-theme="claude-code-dark"]  { --swatch-bg: #1d1815; --swatch-fg: #f0e6d8; --swatch-accent: #d97757; }
-.libre-settings-theme-preview[data-theme="ayu-light"]         { --swatch-bg: #fafafa; --swatch-fg: #1a1f29; --swatch-accent: #d4863a; }
-.libre-settings-theme-preview[data-theme="ayu-mirage"]        { --swatch-bg: #1f2430; --swatch-fg: #cbccc6; --swatch-accent: #ffcc66; }
-.libre-settings-theme-preview[data-theme="ayu-dark"]          { --swatch-bg: #0a0e14; --swatch-fg: #b3b1ad; --swatch-accent: #ff8f40; }
-.libre-settings-theme-preview[data-theme="catppuccin-latte"]  { --swatch-bg: #eff1f5; --swatch-fg: #4c4f69; --swatch-accent: #8839ef; }
-.libre-settings-theme-preview[data-theme="catppuccin-frappe"] { --swatch-bg: #303446; --swatch-fg: #c6d0f5; --swatch-accent: #ca9ee6; }
-.libre-settings-theme-preview[data-theme="catppuccin-macchiato"] { --swatch-bg: #24273a; --swatch-fg: #cad3f5; --swatch-accent: #c6a0f6; }
-.libre-settings-theme-preview[data-theme="catppuccin-mocha"]  { --swatch-bg: #1e1e2e; --swatch-fg: #cdd6f4; --swatch-accent: #cba6f7; }
-.libre-settings-theme-preview[data-theme="tokyo-night"]       { --swatch-bg: #1a1b26; --swatch-fg: #c0caf5; --swatch-accent: #bb9af7; }
-.libre-settings-theme-preview[data-theme="rose-pine"]         { --swatch-bg: #191724; --swatch-fg: #e0def4; --swatch-accent: #ebbcba; }
-.libre-settings-theme-preview[data-theme="ubuntu-dark"]       { --swatch-bg: #2c001e; --swatch-fg: #eeeeec; --swatch-accent: #e95420; }
-.libre-settings-theme-preview[data-theme="absent-contrast"]   { --swatch-bg: #0d181d; --swatch-fg: #cbd5e1; --swatch-accent: #5eead4; }
-.libre-settings-theme-preview[data-theme="vesper"]            { --swatch-bg: #101010; --swatch-fg: #ffffff; --swatch-accent: #ffc799; }
-.libre-settings-theme-preview[data-theme="word"]              { --swatch-bg: #b1b1b1; --swatch-fg: #0000ee; --swatch-accent: #ff00ff; }
+.libre-settings-theme-preview[data-theme="default-dark"]      { --swatch-bg: #0a0806; --swatch-fg: #f3ead8; --swatch-accent: #f0e6cf; }
+.libre-settings-theme-preview[data-theme="retro-pulp"] { --swatch-bg: #070910; --swatch-fg: #f3f6f9; --swatch-accent: #2fd4c4; }
+.libre-settings-theme-preview[data-theme="raygun-gothic"] { --swatch-bg: #070605; --swatch-fg: #f6f1ea; --swatch-accent: #f0552a; }
+.libre-settings-theme-preview[data-theme="alien-invasion"] { --swatch-bg: #0b0810; --swatch-fg: #f3f7ec; --swatch-accent: #aef319; }
+.libre-settings-theme-preview[data-theme="robot-menace"] { --swatch-bg: #0c0d09; --swatch-fg: #f6f3e6; --swatch-accent: #f5cf2a; }
+.libre-settings-theme-preview[data-theme="time-warp"] { --swatch-bg: #0b0712; --swatch-fg: #f4eefb; --swatch-accent: #a855f7; }
+.libre-settings-theme-preview[data-theme="lost-world"] { --swatch-bg: #0c0d07; --swatch-fg: #f4efe0; --swatch-accent: #d6a72e; }
+.libre-settings-theme-preview[data-theme="cold-war-spy"] { --swatch-bg: #0c0a07; --swatch-fg: #f4ecdd; --swatch-accent: #cf9b4e; }
+.libre-settings-theme-preview[data-theme="psychedelic-voyage"] { --swatch-bg: #0a070f; --swatch-fg: #f7eef6; --swatch-accent: #ff5fb0; }
 
 /* Theme rows are bigger now that they carry a 108×68 preview
    panel — pad them out a bit so the preview has breathing room

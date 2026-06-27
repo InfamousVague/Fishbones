@@ -179,6 +179,96 @@ pub async fn ai_chat_probe(model_hint: Option<String>) -> ProbeResult {
     }
 }
 
+/// What `GET/POST /api/show` tells us about one model's tool support.
+#[derive(Debug, Serialize)]
+pub struct ModelCapsResult {
+    /// True if `/api/show` responded successfully for this model.
+    pub reachable: bool,
+    /// True when Ollama reports the model supports the native `tools`
+    /// capability. Only meaningful when `known` is true.
+    pub supports_tools: bool,
+    /// True when we got a DEFINITIVE answer — the response included a
+    /// `capabilities` array. False when the daemon / model predates
+    /// that field, so the frontend should keep its static registry
+    /// guess rather than trust `supports_tools`.
+    pub known: bool,
+    /// Populated when `reachable` is false; one-line reason.
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ShowResponse {
+    /// Present on Ollama >= 0.4-ish: e.g. ["completion", "tools",
+    /// "insert", "vision"]. Absent on older daemons.
+    #[serde(default)]
+    capabilities: Option<Vec<String>>,
+}
+
+/// Ask the local Ollama daemon whether a specific model exposes the
+/// native `tools` capability. This lets the frontend AUTO-DETECT a
+/// model's tool tier against the user's actual daemon instead of
+/// trusting a hardcoded registry — so e.g. a `deepseek-coder-v2`
+/// that gained a native tool template in a newer Ollama gets the
+/// structured channel automatically. Returns `known: false` (rather
+/// than guessing) when the daemon is too old to report capabilities.
+#[tauri::command]
+pub async fn ai_chat_model_caps(model: String) -> ModelCapsResult {
+    let client = match reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(4))
+        .build()
+    {
+        Ok(c) => c,
+        Err(e) => {
+            return ModelCapsResult {
+                reachable: false,
+                supports_tools: false,
+                known: false,
+                error: Some(format!("client init: {e}")),
+            };
+        }
+    };
+    let url = format!("{OLLAMA_URL}/api/show");
+    let body = serde_json::json!({ "model": model });
+    match client.post(&url).json(&body).send().await {
+        Ok(r) if r.status().is_success() => match r.json::<ShowResponse>().await {
+            Ok(show) => match show.capabilities {
+                Some(caps) => ModelCapsResult {
+                    reachable: true,
+                    supports_tools: caps.iter().any(|c| c.eq_ignore_ascii_case("tools")),
+                    known: true,
+                    error: None,
+                },
+                // Daemon answered but didn't list capabilities — too
+                // old to know. Don't override the static guess.
+                None => ModelCapsResult {
+                    reachable: true,
+                    supports_tools: false,
+                    known: false,
+                    error: None,
+                },
+            },
+            Err(e) => ModelCapsResult {
+                reachable: true,
+                supports_tools: false,
+                known: false,
+                error: Some(format!("parse show response: {e}")),
+            },
+        },
+        Ok(r) => ModelCapsResult {
+            reachable: false,
+            supports_tools: false,
+            known: false,
+            error: Some(format!("ollama returned {}", r.status())),
+        },
+        Err(e) => ModelCapsResult {
+            reachable: false,
+            supports_tools: false,
+            known: false,
+            error: Some(classify_reqwest_error(&e)),
+        },
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ChatMessage {
     pub role: String,
@@ -570,12 +660,25 @@ pub async fn ai_chat_agent_turn(
         Some(&options)
     };
 
+    // Coerce an empty/null `tools` to None so the serialized Ollama
+    // body OMITS the `tools` key entirely. A model with no tool
+    // template (emulated tier — e.g. deepseek-coder-v2) returns a
+    // 400 "does not support tools" if a `tools` field is present at
+    // all, even an empty array. The agent loop already strips wire
+    // tools for those models; this is defense-in-depth so a stray
+    // `[]` from any caller can't trip the same 400.
+    let tools_ref = match tools.as_ref() {
+        Some(serde_json::Value::Array(a)) if a.is_empty() => None,
+        Some(serde_json::Value::Null) => None,
+        other => other,
+    };
+
     let streaming = stream_id.is_some();
     let payload = OllamaAgentRequest {
         model: &model,
         messages: &messages,
         stream: streaming,
-        tools: tools.as_ref(),
+        tools: tools_ref,
         keep_alive: OLLAMA_KEEP_ALIVE,
         options: options_ref,
     };

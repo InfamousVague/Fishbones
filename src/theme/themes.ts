@@ -9,23 +9,14 @@
 
 export type ThemeName =
   | "default-dark"
-  | "cipher-light"
-  | "cipher-dark"
-  | "synthwave"
-  | "claude-code-dark"
-  | "ayu-light"
-  | "ayu-mirage"
-  | "ayu-dark"
-  | "catppuccin-latte"
-  | "catppuccin-frappe"
-  | "catppuccin-macchiato"
-  | "catppuccin-mocha"
-  | "tokyo-night"
-  | "rose-pine"
-  | "ubuntu-dark"
-  | "absent-contrast"
-  | "vesper"
-  | "word";
+  | "retro-pulp"
+  | "raygun-gothic"
+  | "alien-invasion"
+  | "robot-menace"
+  | "time-warp"
+  | "lost-world"
+  | "cold-war-spy"
+  | "psychedelic-voyage";
 
 export interface ThemeMeta {
   id: ThemeName;
@@ -40,121 +31,65 @@ export interface ThemeMeta {
 export const THEMES: ThemeMeta[] = [
   {
     id: "default-dark",
-    label: "Libre Dark",
+    label: "Noir",
     description:
-      "The default dark theme — ghostly seafoam green on near-black glass, with a drifting aurora and halftone-dot splash.",
+      "Smoky detective noir — warm cream type on sepia-black glass, lit by an amber streetlight glow, a drifting aurora and a halftone-dot splash. Tune the accent hue in Settings.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "cipher-light",
-    label: "Libre Light",
+    id: "retro-pulp",
+    label: "Retro Pulp",
     description:
-      "Cool-grey glass on cream paper with the Libre amber accent — daytime layout chrome, brand-orange highlights.",
-    monacoTheme: "vs",
+      "A starfield-black pulp cover lit by turquoise lettering and a magenta-to-orange comet streak — calm near-black chrome with a bright teal accent, hot-magenta and rocket-orange halftone, and deep cosmic blooms.",
+    monacoTheme: "vs-dark",
   },
   {
-    id: "cipher-dark",
-    label: "Cipher Dark",
+    id: "raygun-gothic",
+    label: "Raygun Gothic",
     description:
-      "Deep navy chrome with the Libre amber accent — slate-blue text on a near-black app surface, no sidebar lift.",
+      "A jet-black starfield lit by rocket exhaust — chrome-silver chrome over near-black space, ignited by vivid orange-red flame accents and warm amber star-glints.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "synthwave",
-    label: "Synesthesia Synthwave",
-    description: "Neon magenta + cyan on deep violet. Loud and happy.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "claude-code-dark",
-    label: "Claude Code Dark",
-    description: "Warm terracotta accents on deep brown — Anthropic-flavored.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "ayu-light",
-    label: "Ayu Light",
+    id: "alien-invasion",
+    label: "Alien Invasion",
     description:
-      "Clean off-white app chrome with the Libre amber accent (Ayu's stock orange swapped for the brand colour).",
-    // Light themes intentionally pair with the DARK Monaco theme:
-    // syntax-highlighting palettes designed for white backgrounds
-    // tend to be low-saturation pastels that wash out next to the
-    // app's chrome, while a dark editor frames the code as a
-    // distinct surface and keeps tokens crisp.
+      "A radioactive lime-green saucer beam slicing through a moody violet pulp-night, where toxic acid-green glows against deep ultraviolet shadow.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "ayu-mirage",
-    label: "Ayu Mirage",
-    description: "Muted dusty dark with soft cyan + orange accents.",
+    id: "robot-menace",
+    label: "Robot Menace",
+    description:
+      "Riveted iron dystopia where cadmium hazard-yellow signage blazes against gunmetal steel and a sooty olive-green factory sky, lit by the cold amber glow of a robot's eyes.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "ayu-dark",
-    label: "Ayu Dark",
-    description: "Near-black base with warm orange highlights.",
+    id: "time-warp",
+    label: "Time Warp",
+    description:
+      "A swirling time-vortex of electric violet and magenta chrome funneling into a glowing cyan portal, lit by parchment-cream highlights and brass-gear warmth.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "catppuccin-latte",
-    label: "Catppuccin Latte",
-    description: "Pastel lavender + green app chrome with dark code editor.",
-    // Light app chrome paired with dark Monaco — see the comment on
-    // ayu-light for the rationale.
+    id: "lost-world",
+    label: "Lost World",
+    description:
+      "A vine-choked Mayan ruin under a hazy amber sky — warm sepia-gold light cutting through deep olive-jungle shadow and aged-stone tan.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "catppuccin-frappe",
-    label: "Catppuccin Frappé",
-    description: "Milkier dark — indigo base with soft pastel syntax.",
+    id: "cold-war-spy",
+    label: "Cold War Spy",
+    description:
+      "A smoky noir dossier in aged sepia and tungsten amber — near-black film-stock chrome lit by a warm declassified-gold accent and a faint radar-green ghost in the halftone.",
     monacoTheme: "vs-dark",
   },
   {
-    id: "catppuccin-macchiato",
-    label: "Catppuccin Macchiato",
-    description: "Middle-dark flavor. Slightly cooler than Mocha.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "catppuccin-mocha",
-    label: "Catppuccin Mocha",
-    description: "Soothing pastel pink-and-lavender on deep indigo.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "tokyo-night",
-    label: "Tokyo Night",
-    description: "Deep midnight blue with electric purple + cyan accents.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "rose-pine",
-    label: "Rosé Pine",
-    description: "Soft natural palette — rose, gold, foam — on muted plum.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "ubuntu-dark",
-    label: "Ubuntu Dark",
-    description: "Ubuntu aubergine base with the signature warm orange accent.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "absent-contrast",
-    label: "Absent Contrast",
-    description: "Daylerees Rainglow — cool teal accents on slate; sage green for support tokens.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "vesper",
-    label: "Vesper",
-    description: "Rauno Freiberg's monochrome dark — warm peach accents and mint strings on near-black.",
-    monacoTheme: "vs-dark",
-  },
-  {
-    id: "word",
-    label: "Word",
-    description: "Microsoft Word 5.5 for DOS — deep blue document on gray chrome, magenta keywords + cyan constants.",
+    id: "psychedelic-voyage",
+    label: "Psychedelic Voyage",
+    description:
+      "A cosmic acid-trip in deep space — molten tangerine-and-magenta lettering melts over a near-black starfield, with rainbow-river halftone glow and an all-seeing electric-violet aura.",
     monacoTheme: "vs-dark",
   },
 ];
@@ -162,7 +97,7 @@ export const THEMES: ThemeMeta[] = [
 const STORAGE_KEY = "libre:theme";
 
 /// Read the user's stored theme choice. First-run default is the
-/// dark theme (Libre Dark) regardless of the OS `prefers-color-scheme`
+/// dark theme (Noir) regardless of the OS `prefers-color-scheme`
 /// setting — the app's visual identity is dark-first (monochrome code
 /// surfaces, accent-on-black brand palette), and users on light-mode
 /// OSes were getting a jarring Ayu Light first paint that didn't
@@ -183,11 +118,7 @@ export function loadTheme(): ThemeName {
 /// legacy `data-theme="light"` attribute the base-UI kit reads, and
 /// to gate any other "is this a light theme?" logic in the app
 /// (Monaco theme picking, Shiki dual-theme variants, image variants).
-const LIGHT_THEMES: ReadonlySet<ThemeName> = new Set([
-  "ayu-light",
-  "catppuccin-latte",
-  "cipher-light",
-]);
+const LIGHT_THEMES: ReadonlySet<ThemeName> = new Set([]);
 
 /// Predicate exposed for consumers that need to branch on light vs
 /// dark without re-importing the set. Cheap O(1) lookup. Defaults
@@ -206,9 +137,23 @@ export function applyTheme(name: ThemeName) {
   const meta = THEMES.find((t) => t.id === name) ?? THEMES[0];
   const doc = document.documentElement;
   doc.setAttribute("data-theme-name", meta.id);
+  // Every theme carries the GhostWire treatment (aurora + halftone + frosted
+  // glass), gated in ghostwire.css on this attribute rather than the specific
+  // default-dark name. Each theme defines its own --gg-* tokens.
+  doc.setAttribute("data-ghostwire", "on");
   // Keep the base kit happy by also setting the light/dark attribute.
   const isLight = LIGHT_THEMES.has(meta.id);
   doc.setAttribute("data-theme", isLight ? "light" : "dark");
+  // The inline --gg-hue (the Settings accent-hue slider) only drives
+  // default-dark; on every other theme it would override that theme's own CSS
+  // --gg-hue and mis-colour the halftone. So restore the saved hue for
+  // default-dark and clear the inline override for everything else (their
+  // themes.css block sets --gg-hue directly).
+  if (meta.id === "default-dark") {
+    doc.style.setProperty("--gg-hue", String(loadHue()));
+  } else {
+    doc.style.removeProperty("--gg-hue");
+  }
   try {
     localStorage.setItem(STORAGE_KEY, meta.id);
   } catch {
@@ -224,8 +169,9 @@ export function applyTheme(name: ThemeName) {
 /// CSS reads --gg-hue), but it's stored globally so it survives theme swaps.
 const HUE_STORAGE_KEY = "libre:ghostwire-hue";
 
-/// First-run accent hue. 18 = soft peach (≈ #FEA47F).
-export const DEFAULT_GG_HUE = 18;
+/// First-run accent hue. 38 = warm amber — the Noir theme's streetlight /
+/// whiskey glow (drives the halftone + aurora + glows on default-dark).
+export const DEFAULT_GG_HUE = 38;
 
 /// Normalise any number into the 0–359 hue range.
 function normaliseHue(n: number): number {
@@ -252,12 +198,19 @@ export function loadHue(): number {
 export function applyHue(hue: number) {
   const h = normaliseHue(hue);
   try {
-    document.documentElement.style.setProperty("--gg-hue", String(h));
+    localStorage.setItem(HUE_STORAGE_KEY, String(h));
   } catch {
     /* ignore */
   }
+  // Inline --gg-hue only applies to default-dark (the sole theme with the hue
+  // slider + whose CSS reads it). On any other theme, clear it so the theme's
+  // own --gg-hue drives the halftone.
   try {
-    localStorage.setItem(HUE_STORAGE_KEY, String(h));
+    if (readActiveTheme() === "default-dark") {
+      document.documentElement.style.setProperty("--gg-hue", String(h));
+    } else {
+      document.documentElement.style.removeProperty("--gg-hue");
+    }
   } catch {
     /* ignore */
   }

@@ -109,9 +109,9 @@
    (#d4c5a1) is now inlined here rather than indirected through the
    retired `--fb-bone-color` token. */
 [data-theme-name="default-dark"] {
-  --color-text-primary: #ffffff;     /* pure white, was bone-tinted #f4eedd */
-  --color-text-secondary: #a4a4ad;   /* cool gray, was warmed bone #c5bfae */
-  --color-text-tertiary: #71717a;    /* cool gray, was warmed bone #8a8576 */
+  --color-text-primary: #f3ead8;     /* warm cream/bone — the noir paperback title */
+  --color-text-secondary: #b3a890;   /* muted warm sepia */
+  --color-text-tertiary: #7e7363;    /* dim sepia */
   /* Pure white accent on the dark theme — primary-emphasis
      surfaces (Run button, mode-toggle pill, notification badge)
      paint as a single bright white-on-black family. The amber
@@ -127,12 +127,12 @@
      --gg-hue is the single knob: Settings → "Accent hue" writes it inline on
      <html> (persisted), and EVERYTHING below derives from it — so one slider
      recolours the accent, white→accent gradients, glows, glass rims, the
-     aurora + halftone together. Default 18 = soft peach (≈ #FEA47F); the
-     white buttons + progress sweeps carry just a 14% whisper of it.
-     GhostWire's own seafoam sat at hue ~184.
+     aurora + halftone together. Default 38 = warm amber (the noir
+     streetlight / whiskey glow); the cream buttons + progress sweeps
+     carry just a whisper of it. GhostWire's own seafoam sat at hue ~184.
      The aurora/halftone/glass rules that consume these live in
      src/theme/ghostwire.css (imported last). */
-  --gg-hue: 18;
+  --gg-hue: 38;
   /* Core accent (the old seafoam slot) — bright but slightly soft so it reads
      "ghostly", not neon. */
   --gg-accent: hsl(var(--gg-hue) 74% 66%);
@@ -184,9 +184,9 @@
   /* Accent: demoted-white → hue ghost-white. Every var(--color-accent)
      consumer (Run button, nav-rail pill, library pills, slider thumb, focus
      rings, AI panel, …) picks this up at once. */
-  --color-accent: #ffffff;                           /* pure white primary fill — tint removed (was var(--gg-ghost-white)) */
-  --color-accent-fg: #150410;                        /* dark ink on white */
-  --color-accent-hover: #ececef;                     /* neutral light-grey hover — no peach tint (was var(--gg-accent)) */
+  --color-accent: #f0e6cf;                           /* warm cream primary fill — the noir paperback title */
+  --color-accent-fg: #1a1308;                        /* warm dark ink on cream */
+  --color-accent-hover: #fff6e2;                     /* brighter warm cream hover */
   --color-accent-subtle: hsl(var(--gg-hue) 70% 60% / 0.12); /* was #222225 */
   --color-accent-text: var(--gg-accent);             /* accent text / links */
   /* Define the never-defined warm token so LanguageDropdown / PartnerKeyboard
@@ -236,11 +236,11 @@
        tertiary (#181818) — hover, active row, selected pill.
        elevated (#202020) — popovers, dropdowns.
        inset (#000000)   — inputs and the most recessed surfaces. */
-  --color-bg-primary: #050507;   /* aurora base (was pure #000) */
-  --color-bg-secondary: #101117; /* cards / editor header / workbench — kept OPAQUE */
-  --color-bg-tertiary: #181a21;  /* hover / active row / selected pill */
-  --color-bg-elevated: #1b1d25;  /* popovers / dropdowns */
-  --color-bg-inset: #050507;     /* inputs / recessed */
+  --color-bg-primary: #0a0806;   /* warm sepia near-black (noir aurora base) */
+  --color-bg-secondary: #13100a; /* cards / editor header / workbench — kept OPAQUE */
+  --color-bg-tertiary: #1c1711;  /* hover / active row / selected pill */
+  --color-bg-elevated: #221c14;  /* popovers / dropdowns */
+  --color-bg-inset: #080604;     /* inputs / recessed */
   /* Nav rail + sidebar ride --color-glass-bg. Dark-mode mirror
      of ayu-light: where the light theme commits to PURE white
      for its chrome surfaces, dark mode commits to PURE black.
@@ -281,870 +281,689 @@
   --color-border-card-strong: rgba(255, 255, 255, 0.32);
 }
 
-/* ---- Synesthesia Synthwave --------------------------------------------- */
-[data-theme-name="synthwave"] {
-  --color-bg-primary: #1a1427;
-  --color-bg-secondary: #241b2f;
-  --color-bg-tertiary: #342a40;
-  --color-border-default: rgba(255, 255, 255, 0.07);
-  --color-border-strong: rgba(255, 255, 255, 0.22);
-  --color-text-primary: #f9f1ff;
-  --color-text-secondary: #c9a5d8;
-  --color-text-tertiary: #8c7a98;
+/* ════════════════════════════════════════════════════════════════════════
+   Libre image themes — generated from cover art in ~/Desktop/LibreThemes via
+   .themes-work/gen-themes.mjs (palettes verified for contrast). Each carries
+   the full GhostWire token suite so the [data-ghostwire] aurora + halftone +
+   frosted glass recolour to the art. Do not hand-edit; re-run the generator.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ---- Retro Pulp — A starfield-black pulp cover lit by turquoise lettering and a magenta-to-orange comet streak — calm near-black chrome with a bright teal accent, hot-magenta and rocket-orange halftone, and deep cosmic blooms. ---- */
+[data-theme-name="retro-pulp"] {
+  --color-bg-primary: #070910;
+  --color-bg-secondary: #0d111b;
+  --color-bg-tertiary: #131826;
+  --color-bg-elevated: #181f30;
+  --color-bg-inset: #04060c;
+  --color-text-primary: #f3f6f9;
+  --color-text-secondary: #9fb0bd;
+  --color-text-tertiary: #697787;
+  --color-border-default: rgba(120, 220, 215, 0.10);
+  --color-border-strong: rgba(120, 220, 215, 0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f3f6f9 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #2fd4c4 40%, transparent);
+  --color-accent: #2fd4c4;
+  --color-accent-fg: #04201d;
+  --color-accent-hover: #4ee3d4;
+  --color-accent-text: #2fd4c4;
+  --color-accent-warm: #2fd4c4;
+  --color-accent-subtle: color-mix(in srgb, #2fd4c4 12%, transparent);
+  --color-glass-bg: rgba(13, 17, 27, 0.62);
+  --color-glass-bg-strong: rgba(13, 17, 27, 0.62);
+  --color-glass-border: rgba(120, 220, 215, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Retro Pulp" cover art. */
+  --gg-hue: 174;
+  --gg-accent: #2fd4c4;
+  --gg-accent-deep: #2fd4c4;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #2fd4c4 14%, transparent);
+  --gg-glow: color-mix(in srgb, #2fd4c4 38%, transparent);
+  --gg-bloom-1: #143a3a;
+  --gg-bloom-2: #3a1430;
+  --gg-bloom-3: #10202e;
+  --gg-bloom-1-soft: #143a3a;
+  --gg-bloom-2-soft: #3a1430;
+  --gg-bloom-3-soft: #10202e;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #ff5f2e 0%, #e6357f 44%, #2fd4c4 100%);
+  --gg-ht-c1: #ff5f2e;
+  --gg-ht-c2: #e6357f;
+  --gg-ht-c3: #2fd4c4;
+  --gg-glass-card: rgba(13, 17, 27, 0.62);
+  --gg-glass-filled: rgba(13, 17, 27, 0.62);
+  --gg-glass-elevated: rgba(13, 17, 27, 0.62);
+  --gg-glass-code: color-mix(in srgb, #04060c 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="retro-pulp"] .libre-editor-run,
+[data-theme-name="retro-pulp"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #2fd4c4 !important;
+  color: #04201d !important;
+  border-color: #2fd4c4 !important;
+}
+[data-theme-name="retro-pulp"] .libre__dot--done {
+  border-color: #2fd4c4;
+  background: #2fd4c4;
+  color: #070910;
+}
+[data-theme-name="retro-pulp"] .libre__dot--active {
+  border-color: #ff7a45;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #ff7a45 15%, transparent);
+}
+[data-theme-name="retro-pulp"] .libre-import-primary,
+[data-theme-name="retro-pulp"] .libre-settings-primary {
+  background: #2fd4c4;
+  color: #04201d;
+  border-color: #2fd4c4;
+}
+
+/* ---- Raygun Gothic — A jet-black starfield lit by rocket exhaust — chrome-silver chrome over near-black space, ignited by vivid orange-red flame accents and warm amber star-glints. ---- */
+[data-theme-name="raygun-gothic"] {
+  --color-bg-primary: #070605;
+  --color-bg-secondary: #100d0a;
+  --color-bg-tertiary: #17120d;
+  --color-bg-elevated: #1d1711;
+  --color-bg-inset: #040303;
+  --color-text-primary: #f6f1ea;
+  --color-text-secondary: #bcae9f;
+  --color-text-tertiary: #8a7d6f;
+  --color-border-default: rgba(246, 226, 196, 0.10);
+  --color-border-strong: rgba(248, 224, 190, 0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f6f1ea 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #f0552a 40%, transparent);
+  --color-accent: #f0552a;
+  --color-accent-fg: #1a0a04;
+  --color-accent-hover: #ff6c3d;
+  --color-accent-text: #f0552a;
+  --color-accent-warm: #f0552a;
+  --color-accent-subtle: color-mix(in srgb, #f0552a 12%, transparent);
+  --color-glass-bg: rgba(20, 16, 11, 0.6);
+  --color-glass-bg-strong: rgba(20, 16, 11, 0.6);
+  --color-glass-border: rgba(246, 226, 196, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Raygun Gothic" cover art. */
+  --gg-hue: 14;
+  --gg-accent: #f0552a;
+  --gg-accent-deep: #f0552a;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #f0552a 14%, transparent);
+  --gg-glow: color-mix(in srgb, #f0552a 38%, transparent);
+  --gg-bloom-1: #3a160c;
+  --gg-bloom-2: #52210e;
+  --gg-bloom-3: #2a1409;
+  --gg-bloom-1-soft: #3a160c;
+  --gg-bloom-2-soft: #52210e;
+  --gg-bloom-3-soft: #2a1409;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #ffd9a0 0%, #f4632c 44%, #7a2410 100%);
+  --gg-ht-c1: #ffd9a0;
+  --gg-ht-c2: #f4632c;
+  --gg-ht-c3: #7a2410;
+  --gg-glass-card: rgba(20, 16, 11, 0.6);
+  --gg-glass-filled: rgba(20, 16, 11, 0.6);
+  --gg-glass-elevated: rgba(20, 16, 11, 0.6);
+  --gg-glass-code: color-mix(in srgb, #040303 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="raygun-gothic"] .libre-editor-run,
+[data-theme-name="raygun-gothic"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #f0552a !important;
+  color: #1a0a04 !important;
+  border-color: #f0552a !important;
+}
+[data-theme-name="raygun-gothic"] .libre__dot--done {
+  border-color: #e6843a;
+  background: #e6843a;
+  color: #070605;
+}
+[data-theme-name="raygun-gothic"] .libre__dot--active {
+  border-color: #f0552a;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #f0552a 15%, transparent);
+}
+[data-theme-name="raygun-gothic"] .libre-import-primary,
+[data-theme-name="raygun-gothic"] .libre-settings-primary {
+  background: #f0552a;
+  color: #1a0a04;
+  border-color: #f0552a;
+}
+
+/* ---- Alien Invasion — A radioactive lime-green saucer beam slicing through a moody violet pulp-night, where toxic acid-green glows against deep ultraviolet shadow. ---- */
+[data-theme-name="alien-invasion"] {
+  --color-bg-primary: #0b0810;
+  --color-bg-secondary: #120d1a;
+  --color-bg-tertiary: #181122;
+  --color-bg-elevated: #1d1529;
+  --color-bg-inset: #070509;
+  --color-text-primary: #f3f7ec;
+  --color-text-secondary: #b6b0c4;
+  --color-text-tertiary: #817a92;
+  --color-border-default: rgba(190, 255, 120, 0.10);
+  --color-border-strong: rgba(190, 255, 120, 0.22);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f3f7ec 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #aef319 40%, transparent);
+  --color-accent: #aef319;
+  --color-accent-fg: #0b1500;
+  --color-accent-hover: #c4ff45;
+  --color-accent-text: #aef319;
+  --color-accent-warm: #aef319;
+  --color-accent-subtle: color-mix(in srgb, #aef319 12%, transparent);
+  --color-glass-bg: rgba(18, 13, 26, 0.6);
+  --color-glass-bg-strong: rgba(18, 13, 26, 0.6);
+  --color-glass-border: rgba(190, 255, 120, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Alien Invasion" cover art. */
+  --gg-hue: 79;
+  --gg-accent: #aef319;
+  --gg-accent-deep: #aef319;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #aef319 14%, transparent);
+  --gg-glow: color-mix(in srgb, #aef319 38%, transparent);
+  --gg-bloom-1: #2a3d0a;
+  --gg-bloom-2: #241636;
+  --gg-bloom-3: #13261a;
+  --gg-bloom-1-soft: #2a3d0a;
+  --gg-bloom-2-soft: #241636;
+  --gg-bloom-3-soft: #13261a;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #e8ff7a 0%, #9fe61a 44%, #3a1a5c 100%);
+  --gg-ht-c1: #e8ff7a;
+  --gg-ht-c2: #9fe61a;
+  --gg-ht-c3: #3a1a5c;
+  --gg-glass-card: rgba(18, 13, 26, 0.6);
+  --gg-glass-filled: rgba(18, 13, 26, 0.6);
+  --gg-glass-elevated: rgba(18, 13, 26, 0.6);
+  --gg-glass-code: color-mix(in srgb, #070509 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="alien-invasion"] .libre-editor-run,
+[data-theme-name="alien-invasion"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #aef319 !important;
+  color: #0b1500 !important;
+  border-color: #aef319 !important;
+}
+[data-theme-name="alien-invasion"] .libre__dot--done {
+  border-color: #aef319;
+  background: #aef319;
+  color: #0b0810;
+}
+[data-theme-name="alien-invasion"] .libre__dot--active {
+  border-color: #c4ff45;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #c4ff45 15%, transparent);
+}
+[data-theme-name="alien-invasion"] .libre-import-primary,
+[data-theme-name="alien-invasion"] .libre-settings-primary {
+  background: #aef319;
+  color: #0b1500;
+  border-color: #aef319;
+}
+
+/* ---- Robot Menace — Riveted iron dystopia where cadmium hazard-yellow signage blazes against gunmetal steel and a sooty olive-green factory sky, lit by the cold amber glow of a robot's eyes. ---- */
+[data-theme-name="robot-menace"] {
+  --color-bg-primary: #0c0d09;
+  --color-bg-secondary: #13140f;
+  --color-bg-tertiary: #1b1c15;
+  --color-bg-elevated: #22231a;
+  --color-bg-inset: #080804;
+  --color-text-primary: #f6f3e6;
+  --color-text-secondary: #bdb89e;
+  --color-text-tertiary: #85816a;
+  --color-border-default: rgba(244, 213, 71, 0.10);
+  --color-border-strong: rgba(244, 213, 71, 0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f6f3e6 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #f5cf2a 40%, transparent);
+  --color-accent: #f5cf2a;
+  --color-accent-fg: #1a1500;
+  --color-accent-hover: #ffe04a;
+  --color-accent-text: #f5cf2a;
+  --color-accent-warm: #f5cf2a;
+  --color-accent-subtle: color-mix(in srgb, #f5cf2a 12%, transparent);
+  --color-glass-bg: rgba(19, 20, 15, 0.6);
+  --color-glass-bg-strong: rgba(19, 20, 15, 0.6);
+  --color-glass-border: rgba(244, 213, 71, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Robot Menace" cover art. */
+  --gg-hue: 48;
+  --gg-accent: #f5cf2a;
+  --gg-accent-deep: #f5cf2a;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #f5cf2a 14%, transparent);
+  --gg-glow: color-mix(in srgb, #f5cf2a 38%, transparent);
+  --gg-bloom-1: #3a330e;
+  --gg-bloom-2: #4a3c12;
+  --gg-bloom-3: #2a2a10;
+  --gg-bloom-1-soft: #3a330e;
+  --gg-bloom-2-soft: #4a3c12;
+  --gg-bloom-3-soft: #2a2a10;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #fff0a0 0%, #f5cf2a 44%, #6e4a06 100%);
+  --gg-ht-c1: #fff0a0;
+  --gg-ht-c2: #f5cf2a;
+  --gg-ht-c3: #6e4a06;
+  --gg-glass-card: rgba(19, 20, 15, 0.6);
+  --gg-glass-filled: rgba(19, 20, 15, 0.6);
+  --gg-glass-elevated: rgba(19, 20, 15, 0.6);
+  --gg-glass-code: color-mix(in srgb, #080804 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="robot-menace"] .libre-editor-run,
+[data-theme-name="robot-menace"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #f5cf2a !important;
+  color: #1a1500 !important;
+  border-color: #f5cf2a !important;
+}
+[data-theme-name="robot-menace"] .libre__dot--done {
+  border-color: #c9a72a;
+  background: #c9a72a;
+  color: #0c0d09;
+}
+[data-theme-name="robot-menace"] .libre__dot--active {
+  border-color: #ffd633;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #ffd633 15%, transparent);
+}
+[data-theme-name="robot-menace"] .libre-import-primary,
+[data-theme-name="robot-menace"] .libre-settings-primary {
+  background: #f5cf2a;
+  color: #1a1500;
+  border-color: #f5cf2a;
+}
+
+/* ---- Time Warp — A swirling time-vortex of electric violet and magenta chrome funneling into a glowing cyan portal, lit by parchment-cream highlights and brass-gear warmth. ---- */
+[data-theme-name="time-warp"] {
+  --color-bg-primary: #0b0712;
+  --color-bg-secondary: #130d1f;
+  --color-bg-tertiary: #1a1129;
+  --color-bg-elevated: #221634;
+  --color-bg-inset: #080510;
+  --color-text-primary: #f4eefb;
+  --color-text-secondary: #bfb0d8;
+  --color-text-tertiary: #8b7aa6;
+  --color-border-default: rgba(196,160,255,0.10);
+  --color-border-strong: rgba(196,160,255,0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f4eefb 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #a855f7 40%, transparent);
+  --color-accent: #a855f7;
+  --color-accent-fg: #0b0712;
+  --color-accent-hover: #bd6bff;
+  --color-accent-text: #a855f7;
+  --color-accent-warm: #a855f7;
+  --color-accent-subtle: color-mix(in srgb, #a855f7 12%, transparent);
+  --color-glass-bg: rgba(19,13,31,0.62);
+  --color-glass-bg-strong: rgba(19,13,31,0.62);
+  --color-glass-border: rgba(196,160,255,0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Time Warp" cover art. */
+  --gg-hue: 276;
+  --gg-accent: #a855f7;
+  --gg-accent-deep: #a855f7;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #a855f7 14%, transparent);
+  --gg-glow: color-mix(in srgb, #a855f7 38%, transparent);
+  --gg-bloom-1: #2a1850;
+  --gg-bloom-2: #14304a;
+  --gg-bloom-3: #3d1a55;
+  --gg-bloom-1-soft: #2a1850;
+  --gg-bloom-2-soft: #14304a;
+  --gg-bloom-3-soft: #3d1a55;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #7ef0ff 0%, #a855f7 44%, #3a1d6b 100%);
+  --gg-ht-c1: #7ef0ff;
+  --gg-ht-c2: #a855f7;
+  --gg-ht-c3: #3a1d6b;
+  --gg-glass-card: rgba(19,13,31,0.62);
+  --gg-glass-filled: rgba(19,13,31,0.62);
+  --gg-glass-elevated: rgba(19,13,31,0.62);
+  --gg-glass-code: color-mix(in srgb, #080510 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="time-warp"] .libre-editor-run,
+[data-theme-name="time-warp"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #a855f7 !important;
+  color: #0b0712 !important;
+  border-color: #a855f7 !important;
+}
+[data-theme-name="time-warp"] .libre__dot--done {
+  border-color: #46d6c4;
+  background: #46d6c4;
+  color: #0b0712;
+}
+[data-theme-name="time-warp"] .libre__dot--active {
+  border-color: #c77dff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #c77dff 15%, transparent);
+}
+[data-theme-name="time-warp"] .libre-import-primary,
+[data-theme-name="time-warp"] .libre-settings-primary {
+  background: #a855f7;
+  color: #0b0712;
+  border-color: #a855f7;
+}
+
+/* ---- Lost World — A vine-choked Mayan ruin under a hazy amber sky — warm sepia-gold light cutting through deep olive-jungle shadow and aged-stone tan. ---- */
+[data-theme-name="lost-world"] {
+  --color-bg-primary: #0c0d07;
+  --color-bg-secondary: #13140c;
+  --color-bg-tertiary: #1b1c11;
+  --color-bg-elevated: #222314;
+  --color-bg-inset: #080904;
+  --color-text-primary: #f4efe0;
+  --color-text-secondary: #c2bb9c;
+  --color-text-tertiary: #8d8866;
+  --color-border-default: rgba(213, 196, 138, 0.10);
+  --color-border-strong: rgba(213, 196, 138, 0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f4efe0 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #d6a72e 40%, transparent);
+  --color-accent: #d6a72e;
+  --color-accent-fg: #0c0d07;
+  --color-accent-hover: #e8bb44;
+  --color-accent-text: #d6a72e;
+  --color-accent-warm: #d6a72e;
+  --color-accent-subtle: color-mix(in srgb, #d6a72e 12%, transparent);
+  --color-glass-bg: rgba(19, 20, 12, 0.6);
+  --color-glass-bg-strong: rgba(19, 20, 12, 0.6);
+  --color-glass-border: rgba(213, 196, 138, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Lost World" cover art. */
+  --gg-hue: 42;
+  --gg-accent: #d6a72e;
+  --gg-accent-deep: #d6a72e;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #d6a72e 14%, transparent);
+  --gg-glow: color-mix(in srgb, #d6a72e 38%, transparent);
+  --gg-bloom-1: #3a3214;
+  --gg-bloom-2: #2c3318;
+  --gg-bloom-3: #43340f;
+  --gg-bloom-1-soft: #3a3214;
+  --gg-bloom-2-soft: #2c3318;
+  --gg-bloom-3-soft: #43340f;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #f1d77a 0%, #c08f2c 44%, #4a5526 100%);
+  --gg-ht-c1: #f1d77a;
+  --gg-ht-c2: #c08f2c;
+  --gg-ht-c3: #4a5526;
+  --gg-glass-card: rgba(19, 20, 12, 0.6);
+  --gg-glass-filled: rgba(19, 20, 12, 0.6);
+  --gg-glass-elevated: rgba(19, 20, 12, 0.6);
+  --gg-glass-code: color-mix(in srgb, #080904 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="lost-world"] .libre-editor-run,
+[data-theme-name="lost-world"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #d6a72e !important;
+  color: #0c0d07 !important;
+  border-color: #d6a72e !important;
+}
+[data-theme-name="lost-world"] .libre__dot--done {
+  border-color: #8a9a4a;
+  background: #8a9a4a;
+  color: #0c0d07;
+}
+[data-theme-name="lost-world"] .libre__dot--active {
+  border-color: #e2b53a;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #e2b53a 15%, transparent);
+}
+[data-theme-name="lost-world"] .libre-import-primary,
+[data-theme-name="lost-world"] .libre-settings-primary {
+  background: #d6a72e;
+  color: #0c0d07;
+  border-color: #d6a72e;
+}
+
+/* ---- Cold War Spy — A smoky noir dossier in aged sepia and tungsten amber — near-black film-stock chrome lit by a warm declassified-gold accent and a faint radar-green ghost in the halftone. ---- */
+[data-theme-name="cold-war-spy"] {
+  --color-bg-primary: #0c0a07;
+  --color-bg-secondary: #13100b;
+  --color-bg-tertiary: #1b1610;
+  --color-bg-elevated: #221c13;
+  --color-bg-inset: #080603;
+  --color-text-primary: #f4ecdd;
+  --color-text-secondary: #bcae96;
+  --color-text-tertiary: #8a7d66;
+  --color-border-default: rgba(214, 184, 130, 0.10);
+  --color-border-strong: rgba(214, 184, 130, 0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f4ecdd 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #cf9b4e 40%, transparent);
+  --color-accent: #cf9b4e;
+  --color-accent-fg: #1a1207;
+  --color-accent-hover: #e0ad5e;
+  --color-accent-text: #cf9b4e;
+  --color-accent-warm: #cf9b4e;
+  --color-accent-subtle: color-mix(in srgb, #cf9b4e 12%, transparent);
+  --color-glass-bg: rgba(19, 16, 11, 0.6);
+  --color-glass-bg-strong: rgba(19, 16, 11, 0.6);
+  --color-glass-border: rgba(214, 184, 130, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Cold War Spy" cover art. */
+  --gg-hue: 38;
+  --gg-accent: #cf9b4e;
+  --gg-accent-deep: #cf9b4e;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #cf9b4e 14%, transparent);
+  --gg-glow: color-mix(in srgb, #cf9b4e 38%, transparent);
+  --gg-bloom-1: #3a2c14;
+  --gg-bloom-2: #2a2616;
+  --gg-bloom-3: #14271a;
+  --gg-bloom-1-soft: #3a2c14;
+  --gg-bloom-2-soft: #2a2616;
+  --gg-bloom-3-soft: #14271a;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #f2dca6 0%, #c9933f 44%, #5c3f17 100%);
+  --gg-ht-c1: #f2dca6;
+  --gg-ht-c2: #c9933f;
+  --gg-ht-c3: #5c3f17;
+  --gg-glass-card: rgba(19, 16, 11, 0.6);
+  --gg-glass-filled: rgba(19, 16, 11, 0.6);
+  --gg-glass-elevated: rgba(19, 16, 11, 0.6);
+  --gg-glass-code: color-mix(in srgb, #080603 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="cold-war-spy"] .libre-editor-run,
+[data-theme-name="cold-war-spy"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #cf9b4e !important;
+  color: #1a1207 !important;
+  border-color: #cf9b4e !important;
+}
+[data-theme-name="cold-war-spy"] .libre__dot--done {
+  border-color: #7c9a5e;
+  background: #7c9a5e;
+  color: #0c0a07;
+}
+[data-theme-name="cold-war-spy"] .libre__dot--active {
+  border-color: #cf9b4e;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #cf9b4e 15%, transparent);
+}
+[data-theme-name="cold-war-spy"] .libre-import-primary,
+[data-theme-name="cold-war-spy"] .libre-settings-primary {
+  background: #cf9b4e;
+  color: #1a1207;
+  border-color: #cf9b4e;
+}
+
+/* ---- Psychedelic Voyage — A cosmic acid-trip in deep space — molten tangerine-and-magenta lettering melts over a near-black starfield, with rainbow-river halftone glow and an all-seeing electric-violet aura. ---- */
+[data-theme-name="psychedelic-voyage"] {
+  --color-bg-primary: #0a070f;
+  --color-bg-secondary: #120c19;
+  --color-bg-tertiary: #1a1124;
+  --color-bg-elevated: #22162f;
+  --color-bg-inset: #06040a;
+  --color-text-primary: #f7eef6;
+  --color-text-secondary: #bda7c4;
+  --color-text-tertiary: #948099;
+  --color-border-default: rgba(240, 180, 230, 0.10);
+  --color-border-strong: rgba(244, 130, 210, 0.24);
+  --color-border-subtle: transparent;
+  --color-border-card: color-mix(in srgb, #f7eef6 16%, transparent);
+  --color-border-card-strong: color-mix(in srgb, #ff5fb0 40%, transparent);
+  --color-accent: #ff5fb0;
+  --color-accent-fg: #1a0410;
+  --color-accent-hover: #ff7dc0;
+  --color-accent-text: #ff5fb0;
+  --color-accent-warm: #ff5fb0;
+  --color-accent-subtle: color-mix(in srgb, #ff5fb0 12%, transparent);
+  --color-glass-bg: rgba(18, 12, 25, 0.62);
+  --color-glass-bg-strong: rgba(18, 12, 25, 0.62);
+  --color-glass-border: rgba(240, 180, 230, 0.10);
+  --color-glass-rim: rgba(255, 255, 255, 0.06);
+  --color-glass-shadow: rgba(0, 0, 0, 0.4);
+
+  /* GhostWire suite — drives the aurora + halftone + frosted glass that the
+     [data-ghostwire] rules in ghostwire.css consume. Colours sampled from the
+     "Psychedelic Voyage" cover art. */
+  --gg-hue: 328;
+  --gg-accent: #ff5fb0;
+  --gg-accent-deep: #ff5fb0;
+  --gg-seafoam: var(--gg-accent);
+  --gg-teal: var(--gg-accent-deep);
+  --gg-ghost-white: color-mix(in srgb, var(--gg-accent) 20%, #ffffff);
+  --gg-fill-white: #ffffff;
+  --gg-grad: linear-gradient(90deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-grad-diag: linear-gradient(135deg, var(--gg-ghost-white) 0%, var(--gg-accent) 100%);
+  --gg-track: color-mix(in srgb, #ff5fb0 14%, transparent);
+  --gg-glow: color-mix(in srgb, #ff5fb0 38%, transparent);
+  --gg-bloom-1: #3a1640;
+  --gg-bloom-2: #54183a;
+  --gg-bloom-3: #241a55;
+  --gg-bloom-1-soft: #3a1640;
+  --gg-bloom-2-soft: #54183a;
+  --gg-bloom-3-soft: #241a55;
+  /* Halftone splash: explicit 3-stop gradient + the per-stop colours the
+     canvas (HalftoneCanvas.tsx) reads (--gg-ht-c1/c2/c3) so the dot splash
+     matches this theme's signature light. */
+  --gg-halftone: linear-gradient(135deg, #ffd86b 0%, #ff5f8f 44%, #7b2bd6 100%);
+  --gg-ht-c1: #ffd86b;
+  --gg-ht-c2: #ff5f8f;
+  --gg-ht-c3: #7b2bd6;
+  --gg-glass-card: rgba(18, 12, 25, 0.62);
+  --gg-glass-filled: rgba(18, 12, 25, 0.62);
+  --gg-glass-elevated: rgba(18, 12, 25, 0.62);
+  --gg-glass-code: color-mix(in srgb, #06040a 82%, transparent);
+  --gg-glass-brd: rgba(255, 255, 255, 0.1);
+  --gg-glass-rim: rgba(255, 255, 255, 0.06);
+  --gg-blur: 24px;
+}
+
+[data-theme-name="psychedelic-voyage"] .libre-editor-run,
+[data-theme-name="psychedelic-voyage"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
+  background: #ff5fb0 !important;
+  color: #1a0410 !important;
+  border-color: #ff5fb0 !important;
+}
+[data-theme-name="psychedelic-voyage"] .libre__dot--done {
+  border-color: #ffb24d;
+  background: #ffb24d;
+  color: #0a070f;
+}
+[data-theme-name="psychedelic-voyage"] .libre__dot--active {
+  border-color: #ff5fb0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #ff5fb0 15%, transparent);
+}
+[data-theme-name="psychedelic-voyage"] .libre-import-primary,
+[data-theme-name="psychedelic-voyage"] .libre-settings-primary {
+  background: #ff5fb0;
+  color: #1a0410;
+  border-color: #ff5fb0;
 }
-
-[data-theme-name="synthwave"] .libre-editor-run,
-[data-theme-name="synthwave"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ff7edb !important;
-  color: #1a1427 !important;
-  border-color: #ff7edb !important;
-}
-
-[data-theme-name="synthwave"] .libre__dot--done {
-  border-color: #36f9f6;
-  background: #36f9f6;
-  color: #1a1427;
-}
-
-[data-theme-name="synthwave"] .libre__dot--active {
-  border-color: #ff7edb;
-  box-shadow: 0 0 0 3px rgba(255, 126, 219, 0.15);
-}
-
-[data-theme-name="synthwave"] .libre-import-primary,
-[data-theme-name="synthwave"] .libre-settings-primary {
-  background: #ff7edb;
-  color: #1a1427;
-  border-color: #ff7edb;
-}
-
-/* ---- Claude Code Dark -------------------------------------------------- */
-[data-theme-name="claude-code-dark"] {
-  --color-bg-primary: #14110d;
-  --color-bg-secondary: #1c1814;
-  --color-bg-tertiary: #2a241c;
-  --color-border-default: rgba(255, 245, 230, 0.07);
-  --color-border-strong: rgba(255, 245, 230, 0.22);
-  --color-text-primary: #f5ebdc;
-  --color-text-secondary: #c9b299;
-  --color-text-tertiary: #8a7560;
-}
-
-[data-theme-name="claude-code-dark"] .libre-editor-run,
-[data-theme-name="claude-code-dark"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #d97757 !important;
-  color: #14110d !important;
-  border-color: #d97757 !important;
-}
-
-[data-theme-name="claude-code-dark"] .libre__dot--done {
-  border-color: #d97757;
-  background: #d97757;
-  color: #14110d;
-}
-
-[data-theme-name="claude-code-dark"] .libre__dot--active {
-  border-color: #e6c097;
-  box-shadow: 0 0 0 3px rgba(230, 192, 151, 0.15);
-}
-
-[data-theme-name="claude-code-dark"] .libre-import-primary,
-[data-theme-name="claude-code-dark"] .libre-settings-primary {
-  background: #d97757;
-  color: #14110d;
-  border-color: #d97757;
-}
-
-/* ---- Ayu Mirage --------------------------------------------------------- */
-/* From ayu-theme/vscode-ayu. Mirage is the middle-dark variant: softer than
-   Ayu Dark, higher contrast than Ayu Light. Signature is the dusty
-   blue-gray base with warm orange (#FFA759) for keywords and teal-cyan
-   (#95E6CB) for punctuation. Border uses the theme's own editorGroup
-   border color (#171B24) but lifted to #2D3340 for visibility on our
-   secondary surface. */
-[data-theme-name="ayu-mirage"] {
-  --color-bg-primary: #1f2430;
-  --color-bg-secondary: #191e2a;
-  --color-bg-tertiary: #242a3a;
-  --color-border-default: #2d3340;
-  --color-border-strong: #4a5568;
-  --color-text-primary: #cbccc6;
-  --color-text-secondary: #8a9199;
-  --color-text-tertiary: #5c6773;
-}
-
-[data-theme-name="ayu-mirage"] .libre-editor-run,
-[data-theme-name="ayu-mirage"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ffa759 !important;
-  color: #1f2430 !important;
-  border-color: #ffa759 !important;
-}
-
-[data-theme-name="ayu-mirage"] .libre__lesson-status--done {
-  background: #bae67e;
-  border-color: #bae67e;
-  color: #1f2430;
-}
-
-[data-theme-name="ayu-mirage"] .libre__lesson-status--active {
-  border-color: #73d0ff;
-  box-shadow: 0 0 0 3px rgba(115, 208, 255, 0.15);
-  color: #73d0ff;
-}
-
-[data-theme-name="ayu-mirage"] .libre-import-primary,
-[data-theme-name="ayu-mirage"] .libre-settings-primary,
-[data-theme-name="ayu-mirage"] .libre-library-import,
-[data-theme-name="ayu-mirage"] .libre-library-import-seg--primary,
-[data-theme-name="ayu-mirage"] .libre-welcome-primary,
-[data-theme-name="ayu-mirage"] .libre-library-pill--active {
-  background: #ffa759;
-  color: #1f2430;
-  border-color: #ffa759;
-}
-
-/* ---- Catppuccin Mocha --------------------------------------------------- */
-/* From catppuccin/vscode. Mocha is the flagship dark variant. Canonical
-   palette naming (base/mantle/surface0/text/subtext/overlay/…) — see
-   https://github.com/catppuccin/catppuccin for the full spec. The border
-   uses "surface0" (#313244) which is the theme's own divider color. */
-[data-theme-name="catppuccin-mocha"] {
-  --color-bg-primary: #1e1e2e;   /* base */
-  --color-bg-secondary: #181825; /* mantle */
-  --color-bg-tertiary: #313244;  /* surface0 */
-  --color-border-default: #313244;
-  --color-border-strong: #585b70;
-  --color-text-primary: #cdd6f4; /* text */
-  --color-text-secondary: #a6adc8; /* subtext0 */
-  --color-text-tertiary: #7f849c; /* overlay1 */
-}
-
-[data-theme-name="catppuccin-mocha"] .libre-editor-run,
-[data-theme-name="catppuccin-mocha"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #cba6f7 !important; /* mauve */
-  color: #1e1e2e !important;
-  border-color: #cba6f7 !important;
-}
-
-[data-theme-name="catppuccin-mocha"] .libre__lesson-status--done {
-  background: #a6e3a1; /* green */
-  border-color: #a6e3a1;
-  color: #1e1e2e;
-}
-
-[data-theme-name="catppuccin-mocha"] .libre__lesson-status--active {
-  border-color: #89b4fa; /* blue */
-  box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.18);
-  color: #89b4fa;
-}
-
-[data-theme-name="catppuccin-mocha"] .libre-import-primary,
-[data-theme-name="catppuccin-mocha"] .libre-settings-primary,
-[data-theme-name="catppuccin-mocha"] .libre-library-import,
-[data-theme-name="catppuccin-mocha"] .libre-library-import-seg--primary,
-[data-theme-name="catppuccin-mocha"] .libre-welcome-primary,
-[data-theme-name="catppuccin-mocha"] .libre-library-pill--active {
-  background: #cba6f7;
-  color: #1e1e2e;
-  border-color: #cba6f7;
-}
-
-/* ---- Ayu Light ---------------------------------------------------------- */
-/* Cream-paper surfaces straight from Ayu's daytime palette, but
-   with the Libre amber (`#d4863a`) substituted for Ayu's stock
-   tangerine `#fa8d3e`. The brand amber is shared with default-dark
-   (defined there with a longer hue-shift note); the lesson-status
-   colours stay Ayu's (green for done, blue for active) — they're
-   a graded stoplight tied to lesson lifecycle, not the brand
-   accent, and keeping them distinct from the primary CTA amber
-   prevents "everything is the same colour" mush. */
-[data-theme-name="ayu-light"] {
-  --color-bg-primary: #fcfcfc;
-  --color-bg-secondary: #fafafa;
-  --color-bg-tertiary: #f0f0f0;
-  --color-border-default: #e7ebed;
-  --color-border-strong: #a8b0b7;
-  --color-text-primary: #5c6166;
-  --color-text-secondary: #8a9199;
-  --color-text-tertiary: #abb0b6;
-  /* Primary accent is pure black on light themes — every CTA
-     surface (Run button, primary import, settings primary,
-     welcome primary, library pill-active) inherits this and
-     reads as a single black-on-white identity. The previous
-     amber `#d4863a` was the brand-warm hand-off from the dark
-     themes; on white chrome the amber competed with the orange
-     wordmark, so light themes commit to monochrome instead. */
-  --color-accent: #000000;
-  --color-accent-fg: #ffffff;
-}
-
-[data-theme-name="ayu-light"] .libre-editor-run,
-[data-theme-name="ayu-light"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  /* Black run button + next-on-hover. Same shape as the dark
-     themes (high-contrast filled pill) but inverted: black fill,
-     white text. The hover-next selector keeps its CTA bump
-     visible against the white sidebar / nav rail. */
-  background: #000000 !important;
-  color: #ffffff !important;
-  border-color: #000000 !important;
-}
-
-[data-theme-name="ayu-light"] .libre__lesson-status--done {
-  background: #86b300;
-  border-color: #86b300;
-  color: #ffffff;
-}
-
-[data-theme-name="ayu-light"] .libre__lesson-status--active {
-  border-color: #399ee6;
-  box-shadow: 0 0 0 3px rgba(57, 158, 230, 0.15);
-  color: #399ee6;
-}
-
-[data-theme-name="ayu-light"] .libre-import-primary,
-[data-theme-name="ayu-light"] .libre-settings-primary,
-[data-theme-name="ayu-light"] .libre-library-import,
-[data-theme-name="ayu-light"] .libre-library-import-seg--primary,
-[data-theme-name="ayu-light"] .libre-welcome-primary,
-[data-theme-name="ayu-light"] .libre-library-pill--active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-}
-
-/* ---- Ayu Dark ----------------------------------------------------------- */
-[data-theme-name="ayu-dark"] {
-  --color-bg-primary: #0b0e14;
-  --color-bg-secondary: #0d1017;
-  --color-bg-tertiary: #151a22;
-  --color-border-default: #1b212a;
-  --color-border-strong: #3a4454;
-  --color-text-primary: #bfbdb6;
-  --color-text-secondary: #787b80;
-  --color-text-tertiary: #4d5566;
-}
-
-[data-theme-name="ayu-dark"] .libre-editor-run,
-[data-theme-name="ayu-dark"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ffb454 !important;
-  color: #0b0e14 !important;
-  border-color: #ffb454 !important;
-}
-
-[data-theme-name="ayu-dark"] .libre__lesson-status--done {
-  background: #aad94c;
-  border-color: #aad94c;
-  color: #0b0e14;
-}
-
-[data-theme-name="ayu-dark"] .libre__lesson-status--active {
-  border-color: #59c2ff;
-  box-shadow: 0 0 0 3px rgba(89, 194, 255, 0.15);
-  color: #59c2ff;
-}
-
-[data-theme-name="ayu-dark"] .libre-import-primary,
-[data-theme-name="ayu-dark"] .libre-settings-primary,
-[data-theme-name="ayu-dark"] .libre-library-import,
-[data-theme-name="ayu-dark"] .libre-library-import-seg--primary,
-[data-theme-name="ayu-dark"] .libre-welcome-primary,
-[data-theme-name="ayu-dark"] .libre-library-pill--active {
-  background: #ffb454;
-  color: #0b0e14;
-  border-color: #ffb454;
-}
-
-/* ---- Catppuccin Latte (light) ------------------------------------------ */
-[data-theme-name="catppuccin-latte"] {
-  --color-bg-primary: #eff1f5;    /* base */
-  --color-bg-secondary: #e6e9ef;  /* mantle */
-  --color-bg-tertiary: #ccd0da;   /* surface0 */
-  --color-border-default: #ccd0da;
-  --color-border-strong: #8c8fa1;
-  --color-text-primary: #4c4f69;  /* text */
-  --color-text-secondary: #6c6f85; /* subtext0 */
-  --color-text-tertiary: #9ca0b0; /* overlay0 */
-  /* Primary accent forced to black across light themes — see
-     `ayu-light` block above for the rationale (single
-     black-on-white CTA identity instead of competing with the
-     workspace palette). The original Latte mauve `#8839ef` would
-     have been the on-brand choice here; users explicitly asked
-     for monochrome on light. */
-  --color-accent: #000000;
-  --color-accent-fg: #ffffff;
-}
-
-[data-theme-name="catppuccin-latte"] .libre-editor-run,
-[data-theme-name="catppuccin-latte"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #000000 !important;
-  color: #ffffff !important;
-  border-color: #000000 !important;
-}
-
-[data-theme-name="catppuccin-latte"] .libre__lesson-status--done {
-  background: #40a02b; /* green */
-  border-color: #40a02b;
-  color: #eff1f5;
-}
-
-[data-theme-name="catppuccin-latte"] .libre__lesson-status--active {
-  border-color: #1e66f5; /* blue */
-  box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.18);
-  color: #1e66f5;
-}
-
-[data-theme-name="catppuccin-latte"] .libre-import-primary,
-[data-theme-name="catppuccin-latte"] .libre-settings-primary,
-[data-theme-name="catppuccin-latte"] .libre-library-import,
-[data-theme-name="catppuccin-latte"] .libre-library-import-seg--primary,
-[data-theme-name="catppuccin-latte"] .libre-welcome-primary,
-[data-theme-name="catppuccin-latte"] .libre-library-pill--active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-}
-
-/* ---- Catppuccin Frappé -------------------------------------------------- */
-[data-theme-name="catppuccin-frappe"] {
-  --color-bg-primary: #303446;
-  --color-bg-secondary: #292c3c;
-  --color-bg-tertiary: #414559;
-  --color-border-default: #414559;
-  --color-border-strong: #737994;
-  --color-text-primary: #c6d0f5;
-  --color-text-secondary: #a5adce;
-  --color-text-tertiary: #737994;
-}
-
-[data-theme-name="catppuccin-frappe"] .libre-editor-run,
-[data-theme-name="catppuccin-frappe"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ca9ee6 !important;
-  color: #303446 !important;
-  border-color: #ca9ee6 !important;
-}
-
-[data-theme-name="catppuccin-frappe"] .libre__lesson-status--done {
-  background: #a6d189;
-  border-color: #a6d189;
-  color: #303446;
-}
-
-[data-theme-name="catppuccin-frappe"] .libre__lesson-status--active {
-  border-color: #8caaee;
-  box-shadow: 0 0 0 3px rgba(140, 170, 238, 0.18);
-  color: #8caaee;
-}
-
-[data-theme-name="catppuccin-frappe"] .libre-import-primary,
-[data-theme-name="catppuccin-frappe"] .libre-settings-primary,
-[data-theme-name="catppuccin-frappe"] .libre-library-import,
-[data-theme-name="catppuccin-frappe"] .libre-library-import-seg--primary,
-[data-theme-name="catppuccin-frappe"] .libre-welcome-primary,
-[data-theme-name="catppuccin-frappe"] .libre-library-pill--active {
-  background: #ca9ee6;
-  color: #303446;
-  border-color: #ca9ee6;
-}
-
-/* ---- Catppuccin Macchiato ---------------------------------------------- */
-[data-theme-name="catppuccin-macchiato"] {
-  --color-bg-primary: #24273a;
-  --color-bg-secondary: #1e2030;
-  --color-bg-tertiary: #363a4f;
-  --color-border-default: #363a4f;
-  --color-border-strong: #6e738d;
-  --color-text-primary: #cad3f5;
-  --color-text-secondary: #a5adcb;
-  --color-text-tertiary: #6e738d;
-}
-
-[data-theme-name="catppuccin-macchiato"] .libre-editor-run,
-[data-theme-name="catppuccin-macchiato"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #c6a0f6 !important;
-  color: #24273a !important;
-  border-color: #c6a0f6 !important;
-}
-
-[data-theme-name="catppuccin-macchiato"] .libre__lesson-status--done {
-  background: #a6da95;
-  border-color: #a6da95;
-  color: #24273a;
-}
-
-[data-theme-name="catppuccin-macchiato"] .libre__lesson-status--active {
-  border-color: #8aadf4;
-  box-shadow: 0 0 0 3px rgba(138, 173, 244, 0.18);
-  color: #8aadf4;
-}
-
-[data-theme-name="catppuccin-macchiato"] .libre-import-primary,
-[data-theme-name="catppuccin-macchiato"] .libre-settings-primary,
-[data-theme-name="catppuccin-macchiato"] .libre-library-import,
-[data-theme-name="catppuccin-macchiato"] .libre-library-import-seg--primary,
-[data-theme-name="catppuccin-macchiato"] .libre-welcome-primary,
-[data-theme-name="catppuccin-macchiato"] .libre-library-pill--active {
-  background: #c6a0f6;
-  color: #24273a;
-  border-color: #c6a0f6;
-}
-
-/* ---- Tokyo Night -------------------------------------------------------- */
-/* From enkia.tokyo-night. Storm-blue base (#1a1b26) with electric blue
-   for functions (#7aa2f7), purple for keywords (#bb9af7), green for
-   strings (#9ece6a). Border uses the theme's editorGroup.border
-   #16161e lifted to #292e42 for surface visibility. */
-[data-theme-name="tokyo-night"] {
-  --color-bg-primary: #1a1b26;
-  --color-bg-secondary: #16161e;
-  --color-bg-tertiary: #292e42;
-  --color-border-default: rgba(192, 202, 245, 0.06);
-  --color-border-strong: rgba(192, 202, 245, 0.2);
-  --color-text-primary: #c0caf5;
-  --color-text-secondary: #a9b1d6;
-  --color-text-tertiary: #565f89;
-}
-
-[data-theme-name="tokyo-night"] .libre-editor-run,
-[data-theme-name="tokyo-night"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #7aa2f7 !important;
-  color: #1a1b26 !important;
-  border-color: #7aa2f7 !important;
-}
-
-[data-theme-name="tokyo-night"] .libre__lesson-status--done {
-  background: #9ece6a;
-  border-color: #9ece6a;
-  color: #1a1b26;
-}
-
-[data-theme-name="tokyo-night"] .libre__lesson-status--active {
-  border-color: #7dcfff;
-  box-shadow: 0 0 0 3px rgba(125, 207, 255, 0.18);
-  color: #7dcfff;
-}
-
-[data-theme-name="tokyo-night"] .libre-import-primary,
-[data-theme-name="tokyo-night"] .libre-settings-primary,
-[data-theme-name="tokyo-night"] .libre-library-import,
-[data-theme-name="tokyo-night"] .libre-library-import-seg--primary,
-[data-theme-name="tokyo-night"] .libre-welcome-primary,
-[data-theme-name="tokyo-night"] .libre-library-pill--active {
-  background: #7aa2f7;
-  color: #1a1b26;
-  border-color: #7aa2f7;
-}
-
-/* ---- Rosé Pine ---------------------------------------------------------- */
-/* From mvllow.rose-pine (the "main" variant — not Moon, not Dawn). The
-   palette is named: base (#191724) for primary surface, surface
-   (#1f1d2e) for slight elevations, overlay (#26233a) for popovers,
-   text (#e0def4), subtle (#908caa) for secondary, muted (#6e6a86)
-   for tertiary. Accent picks rose (#ebbcba) since the brand identity
-   is the soft pink. Status colors use love (#eb6f92) and pine
-   (#31748f) so done = pine green-blue, active = love red, in
-   keeping with the upstream theme's signal palette. */
-[data-theme-name="rose-pine"] {
-  --color-bg-primary: #191724;
-  --color-bg-secondary: #1f1d2e;
-  --color-bg-tertiary: #26233a;
-  --color-border-default: rgba(224, 222, 244, 0.06);
-  --color-border-strong: rgba(224, 222, 244, 0.2);
-  --color-text-primary: #e0def4;
-  --color-text-secondary: #908caa;
-  --color-text-tertiary: #6e6a86;
-}
-
-[data-theme-name="rose-pine"] .libre-editor-run,
-[data-theme-name="rose-pine"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ebbcba !important;
-  color: #191724 !important;
-  border-color: #ebbcba !important;
-}
-
-[data-theme-name="rose-pine"] .libre__lesson-status--done {
-  background: #9ccfd8;  /* foam */
-  border-color: #9ccfd8;
-  color: #191724;
-}
-
-[data-theme-name="rose-pine"] .libre__lesson-status--active {
-  border-color: #eb6f92; /* love */
-  box-shadow: 0 0 0 3px rgba(235, 111, 146, 0.18);
-  color: #eb6f92;
-}
-
-[data-theme-name="rose-pine"] .libre-import-primary,
-[data-theme-name="rose-pine"] .libre-settings-primary,
-[data-theme-name="rose-pine"] .libre-library-import,
-[data-theme-name="rose-pine"] .libre-library-import-seg--primary,
-[data-theme-name="rose-pine"] .libre-welcome-primary,
-[data-theme-name="rose-pine"] .libre-library-pill--active {
-  background: #ebbcba;
-  color: #191724;
-  border-color: #ebbcba;
-}
-
-/* ---- Ubuntu Dark -------------------------------------------------------- */
-/* Approximates ThiagoLcioBittencourt.ubuntuvscode "Ubuntu Color VSCode
-   Dark Highlight" — the variant with the punchier highlight. Built on
-   Canonical's Ubuntu palette: aubergine #2c001e for the deepest
-   surface, warmer #3d0a2a for elevated, signature orange #e95420 as
-   the action accent. Text is the warm-tinted Ubuntu Sans-cream
-   #f9f4f0 to match the brand's typography colour. */
-[data-theme-name="ubuntu-dark"] {
-  --color-bg-primary: #2c001e;
-  --color-bg-secondary: #220016;
-  --color-bg-tertiary: #3d0a2a;
-  --color-border-default: rgba(249, 244, 240, 0.06);
-  --color-border-strong: rgba(249, 244, 240, 0.22);
-  --color-text-primary: #f9f4f0;
-  --color-text-secondary: #d4b3c8;
-  --color-text-tertiary: #876673;
-}
-
-[data-theme-name="ubuntu-dark"] .libre-editor-run,
-[data-theme-name="ubuntu-dark"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #e95420 !important;
-  color: #2c001e !important;
-  border-color: #e95420 !important;
-}
-
-[data-theme-name="ubuntu-dark"] .libre__lesson-status--done {
-  background: #87a556;
-  border-color: #87a556;
-  color: #2c001e;
-}
-
-[data-theme-name="ubuntu-dark"] .libre__lesson-status--active {
-  border-color: #e95420;
-  box-shadow: 0 0 0 3px rgba(233, 84, 32, 0.2);
-  color: #e95420;
-}
-
-[data-theme-name="ubuntu-dark"] .libre-import-primary,
-[data-theme-name="ubuntu-dark"] .libre-settings-primary,
-[data-theme-name="ubuntu-dark"] .libre-library-import,
-[data-theme-name="ubuntu-dark"] .libre-library-import-seg--primary,
-[data-theme-name="ubuntu-dark"] .libre-welcome-primary,
-[data-theme-name="ubuntu-dark"] .libre-library-pill--active {
-  background: #e95420;
-  color: #2c001e;
-  border-color: #e95420;
-}
-
-/* ---- Absent Contrast (Daylerees Rainglow) ------------------------------ */
-/* From github.com/rainglow/vscode/blob/master/themes/absent-contrast.json.
-   Cool slate base (#0e1114) with a teal primary (#228a96) and sage
-   secondary (#6ba77f). Body text is the JSON's `foreground` (#aeb9c4);
-   `--color-text-primary` lifts to #e6eaef so titles + active items pop
-   against the muted body. Borders use the theme's own `input.border`
-   (#2d3741) for default and `peekView.border`-adjacent (#384450) for
-   the hover-strong tier. */
-[data-theme-name="absent-contrast"] {
-  --color-bg-primary: #0e1114;
-  --color-bg-secondary: #181e23;
-  --color-bg-tertiary: #232a32;
-  --color-border-default: #2d3741;
-  --color-border-strong: #384450;
-  --color-text-primary: #e6eaef;
-  --color-text-secondary: #aeb9c4;
-  --color-text-tertiary: #62778c;
-}
-
-[data-theme-name="absent-contrast"] .libre-editor-run,
-[data-theme-name="absent-contrast"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #228a96 !important;
-  color: #0e1114 !important;
-  border-color: #228a96 !important;
-}
-
-[data-theme-name="absent-contrast"] .libre__lesson-status--done {
-  background: #6ba77f;
-  border-color: #6ba77f;
-  color: #0e1114;
-}
-
-[data-theme-name="absent-contrast"] .libre__lesson-status--active {
-  border-color: #228a96;
-  box-shadow: 0 0 0 3px rgba(34, 138, 150, 0.2);
-  color: #228a96;
-}
-
-[data-theme-name="absent-contrast"] .libre-import-primary,
-[data-theme-name="absent-contrast"] .libre-settings-primary,
-[data-theme-name="absent-contrast"] .libre-library-import,
-[data-theme-name="absent-contrast"] .libre-library-import-seg--primary,
-[data-theme-name="absent-contrast"] .libre-welcome-primary,
-[data-theme-name="absent-contrast"] .libre-library-pill--active {
-  background: #228a96;
-  color: #0e1114;
-  border-color: #228a96;
-}
-
-/* ---- Vesper (raunofreiberg.vesper) ------------------------------------- */
-/* From github.com/raunofreiberg/vesper. Monochrome dark — pure black-ish
-   base (#101010) with a single warm-peach (#FFC799) accent. Background
-   tiers map to the JSON's editor / tab.activeBackground / input.background
-   so panels feel like their VS Code source. Border-default uses the
-   list.activeSelectionBackground colour (#232323) and border-strong lifts
-   to scrollbarSlider.hoverBackground (#343434) for the hover tier. */
-[data-theme-name="vesper"] {
-  --color-bg-primary: #101010;
-  --color-bg-secondary: #161616;
-  --color-bg-tertiary: #1c1c1c;
-  --color-border-default: #232323;
-  --color-border-strong: #343434;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #a0a0a0;
-  --color-text-tertiary: #7e7e7e;
-}
-
-[data-theme-name="vesper"] .libre-editor-run,
-[data-theme-name="vesper"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ffc799 !important;
-  color: #000000 !important;
-  border-color: #ffc799 !important;
-}
-
-[data-theme-name="vesper"] .libre__lesson-status--done {
-  background: #99ffe4;
-  border-color: #99ffe4;
-  color: #101010;
-}
-
-[data-theme-name="vesper"] .libre__lesson-status--active {
-  border-color: #ffc799;
-  box-shadow: 0 0 0 3px rgba(255, 199, 153, 0.2);
-  color: #ffc799;
-}
-
-[data-theme-name="vesper"] .libre-import-primary,
-[data-theme-name="vesper"] .libre-settings-primary,
-[data-theme-name="vesper"] .libre-library-import,
-[data-theme-name="vesper"] .libre-library-import-seg--primary,
-[data-theme-name="vesper"] .libre-welcome-primary,
-[data-theme-name="vesper"] .libre-library-pill--active {
-  background: #ffc799;
-  color: #000000;
-  border-color: #ffc799;
-}
-
-/* ---- Word (coastermcgee.word-theme) ------------------------------------ */
-/* Microsoft Word 5.5 for DOS — the editor sits on a deep blue document
-   (#0000aa) and the chrome is light gray. We bias the app surfaces blue
-   too (slightly lifted from #0000aa) so the whole window reads as one
-   deliberate "Word document on a screen" aesthetic instead of mixing
-   blue editor with gray panels. Magenta (#ff55ff) keyword accent doubles
-   as the primary action colour; cyan (#55ffff) marks the "done" state. */
-[data-theme-name="word"] {
-  --color-bg-primary: #0000aa;
-  --color-bg-secondary: #1a1ac0;
-  --color-bg-tertiary: #2828d8;
-  --color-border-default: #5555ff;
-  --color-border-strong: #aaaaff;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #d8d8ff;
-  --color-text-tertiary: #9999d4;
-}
-
-[data-theme-name="word"] .libre-editor-run,
-[data-theme-name="word"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #ff55ff !important;
-  color: #0000aa !important;
-  border-color: #ff55ff !important;
-}
-
-[data-theme-name="word"] .libre__lesson-status--done {
-  background: #55ffff;
-  border-color: #55ffff;
-  color: #0000aa;
-}
-
-[data-theme-name="word"] .libre__lesson-status--active {
-  border-color: #ff55ff;
-  box-shadow: 0 0 0 3px rgba(255, 85, 255, 0.2);
-  color: #ff55ff;
-}
-
-[data-theme-name="word"] .libre-import-primary,
-[data-theme-name="word"] .libre-settings-primary,
-[data-theme-name="word"] .libre-library-import,
-[data-theme-name="word"] .libre-library-import-seg--primary,
-[data-theme-name="word"] .libre-welcome-primary,
-[data-theme-name="word"] .libre-library-pill--active {
-  background: #ff55ff;
-  color: #0000aa;
-  border-color: #ff55ff;
-}
-
-
-/* ─── Libre Light (data-theme-name: "cipher-light") ───────────────
-   Reworked from the Cipher slate-on-cream port to a Libre original
-   that rides on Ayu Light's structure (clean monochrome chrome,
-   near-white workspace, soft gray borders) but bumps the primary
-   text to pure black `#000` so headings + body copy read sharper
-   on the lighter chrome than Ayu Light's #5c6166 gray would. A
-   few slight variations keep this from being a copy:
-     - bg-tertiary nudged a hair cooler (#eef0f3 vs #f0f0f0) so
-       hover states feel slightly steel-tinted on close inspection.
-     - text-secondary deepened to #6b7180 (vs Ayu's #8a9199) so
-       supporting copy stays readable on the brighter chrome.
-     - border-strong cooled to #9ca3ad so focus rings + outlines
-       feel cool-gray rather than warm-gray.
-   The theme name stays `cipher-light` for storage stability with
-   users who already picked it; the display label in themes.ts
-   ("Libre Light") names what they see.
-─────────────────────────────────────────────────────────────────── */
-[data-theme-name="cipher-light"] {
-  --color-bg-primary: #fcfcfc;
-  --color-bg-secondary: #fafafa;
-  --color-bg-tertiary: #eef0f3;
-  --color-border-default: #e7ebed;
-  --color-border-strong: #9ca3ad;
-  --color-border-subtle: #f0f2f5;
-  /* Pure-black primary text — the explicit deviation from Ayu
-     Light, which used #5c6166. Black gives crisper headlines on
-     the off-white workspace and pairs cleanly with the black
-     accent CTAs below. */
-  --color-text-primary: #000000;
-  --color-text-secondary: #6b7180;
-  --color-text-tertiary: #abb0b6;
-  /* Monochrome accent (CTAs, primary buttons, focus stamps) —
-     same black-on-white identity as our refreshed Ayu Light, so
-     all three light themes (ayu-light, catppuccin-latte, this)
-     read as one family. */
-  --color-accent: #000000;
-  --color-accent-fg: #ffffff;
-}
-
-[data-theme-name="cipher-light"] .libre-editor-run,
-[data-theme-name="cipher-light"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #000000 !important;
-  color: #ffffff !important;
-  border-color: #000000 !important;
-}
-
-[data-theme-name="cipher-light"] .libre-import-primary,
-[data-theme-name="cipher-light"] .libre-settings-primary,
-[data-theme-name="cipher-light"] .libre-library-import,
-[data-theme-name="cipher-light"] .libre-library-import-seg--primary,
-[data-theme-name="cipher-light"] .libre-welcome-primary,
-[data-theme-name="cipher-light"] .libre-library-pill--active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-}
-
-/* Lesson-lifecycle stoplight stays a literal stoplight (green
-   for done, blue for active) — these are lifecycle indicators,
-   not brand accent, and keeping them distinct from the black
-   primary prevents "every CTA looks the same" mush. Same colours
-   ayu-light uses so the three light themes share their lesson
-   stoplight too. */
-[data-theme-name="cipher-light"] .libre__dot--done,
-[data-theme-name="cipher-light"] .libre__lesson-status--done {
-  border-color: #86b300;
-  background: #86b300;
-  color: #ffffff;
-}
-
-[data-theme-name="cipher-light"] .libre__dot--active,
-[data-theme-name="cipher-light"] .libre__lesson-status--active {
-  border-color: #399ee6;
-  box-shadow: 0 0 0 3px rgba(57, 158, 230, 0.15);
-  color: #399ee6;
-}
-
-/* ─── Cipher Dark ──────────────────────────────────────────────────
-   Cipher's near-black app surface (#0c0f15) with slate-blue text,
-   accent swapped from Cipher's violet to Libre's deep amber for
-   brand cohesion with the rest of the dark themes.
-─────────────────────────────────────────────────────────────────── */
-[data-theme-name="cipher-dark"] {
-  --color-bg-primary: #0c0f15;
-  --color-bg-secondary: #181c24;
-  --color-bg-tertiary: #232834;
-  --color-border-default: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.16);
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
-  --color-text-primary: #f5f6fa;
-  --color-text-secondary: #a8b0c2;
-  --color-text-tertiary: #71788a;
-  --color-accent: #a85e1c;
-  --color-accent-fg: #ffffff;
-}
-
-[data-theme-name="cipher-dark"] .libre-editor-run,
-[data-theme-name="cipher-dark"] .libre-lesson-nav-btn--next:hover:not(:disabled) {
-  background: #a85e1c !important;
-  color: #ffffff !important;
-  border-color: #a85e1c !important;
-}
-
-[data-theme-name="cipher-dark"] .libre-import-primary,
-[data-theme-name="cipher-dark"] .libre-settings-primary,
-[data-theme-name="cipher-dark"] .libre-library-import,
-[data-theme-name="cipher-dark"] .libre-library-import-seg--primary,
-[data-theme-name="cipher-dark"] .libre-welcome-primary,
-[data-theme-name="cipher-dark"] .libre-library-pill--active {
-  background: #a85e1c;
-  color: #ffffff;
-  border-color: #a85e1c;
-}
-
-[data-theme-name="cipher-dark"] .libre__dot--done,
-[data-theme-name="cipher-dark"] .libre__lesson-status--done {
-  border-color: #a85e1c;
-  background: #a85e1c;
-  color: #ffffff;
-}
-
-[data-theme-name="cipher-dark"] .libre__dot--active,
-[data-theme-name="cipher-dark"] .libre__lesson-status--active {
-  border-color: #a85e1c;
-  box-shadow: 0 0 0 3px rgba(168, 94, 28, 0.18);
-  color: #a85e1c;
-}
-
-/* Drop the sidebar's lifted `box-shadow` for both Cipher-derived
-   themes so the panel reads as a flat-on-paper / flat-on-deep-
-   surface chip rather than a floating glass card. The default
-   themes use `0 12px 28px var(--color-glass-shadow)` to lift the
-   sidebar; Cipher's design language wants a more grounded
-   layout where the sidebar sits IN the chrome rather than ON it. */
-[data-theme-name="cipher-light"] .libre__sidebar,
-[data-theme-name="cipher-dark"] .libre__sidebar {
-  box-shadow: inset 0 1px 0 var(--color-glass-rim);
-}
-
-/* ---- Console / test-output surface mirrors ----------------------------
-   Each app theme pairs with a Monaco theme that sets its own
-   `editor.background`. The OutputPane (console body, test results,
-   etc.) consumes `--color-code-surface` so it can sit on the same
-   plane as the editor above it instead of on a generic
-   `--color-bg-primary` that doesn't match.
-   The values below are the exact editor.background hex from each
-   paired Monaco theme in src/theme/monaco-themes/. Keep them in
-   sync: if you change a Monaco theme's editor.background, update
-   the matching row here in the same commit. Otherwise the console
-   surround drifts away from the editor and the split between
-   editor and console becomes visible again.
-   default-dark + cipher-dark inherit the `:root` default
-   (#09090b = libre-dark) so they're not listed explicitly. */
-[data-theme-name="cipher-light"],
-[data-theme-name="ayu-light"],
-[data-theme-name="catppuccin-latte"]      { --color-code-surface: #fbfbf8; }
-[data-theme-name="synthwave"]             { --color-code-surface: #1a1427; }
-[data-theme-name="claude-code-dark"]      { --color-code-surface: #14110d; }
-[data-theme-name="ayu-mirage"]            { --color-code-surface: #1f2430; }
-[data-theme-name="ayu-dark"]              { --color-code-surface: #0b0e14; }
-[data-theme-name="catppuccin-frappe"]     { --color-code-surface: #303446; }
-[data-theme-name="catppuccin-macchiato"]  { --color-code-surface: #24273a; }
-[data-theme-name="catppuccin-mocha"]      { --color-code-surface: #1e1e2e; }
-[data-theme-name="tokyo-night"]           { --color-code-surface: #1a1b26; }
-[data-theme-name="rose-pine"]             { --color-code-surface: #191724; }
-[data-theme-name="ubuntu-dark"]           { --color-code-surface: #2c001e; }
-[data-theme-name="absent-contrast"]       { --color-code-surface: #0e1114; }
-[data-theme-name="vesper"]                { --color-code-surface: #101010; }
-[data-theme-name="word"]                  { --color-code-surface: #0000aa; }
-

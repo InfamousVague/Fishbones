@@ -5,7 +5,8 @@
 /// throwing. Surfaces the actual unminified `undefined is not an
 /// object (t.length)` stack.
 import { render } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+import { installMockTauri } from "../../../test/mockTauri";
 
 vi.mock("../../../i18n/i18n", () => ({
   useT: () => (k: string) => k,
@@ -51,6 +52,18 @@ const course = {
 } as unknown as Course;
 
 describe("koan lesson render (full LessonView)", () => {
+  // Mounting LessonView mounts useLessonAudio, whose passive-mount
+  // effect calls invoke("load_course_audio_manifest"). vitest's
+  // `mockReset: true` wipes the default stub's implementation before
+  // each test, so install a real handler that reports "no bundled
+  // audio" — otherwise `invoke` returns undefined and the effect's
+  // `.then` would crash the render.
+  beforeEach(async () => {
+    await installMockTauri({
+      load_course_audio_manifest: () => null,
+    });
+  });
+
   it("mounts a python-koans exercise opened from Challenges without throwing", () => {
     expect(() =>
       render(

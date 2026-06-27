@@ -6,13 +6,13 @@
    drifting aurora canvas, and a halftone-dot splash. Surfaces stay dark;
    colour shows up only as accents — progress, active states, glows.
 
-   EVERYTHING here is scoped under [data-theme-name="default-dark"] (the attr
+   EVERYTHING here is scoped under [data-ghostwire] (the attr
    lives on <html>), so the other 17 themes are untouched. Loaded LAST in
    main.tsx — after App.css + component CSS — and most rules also carry the
    theme-attribute prefix, so they win on both specificity and source order.
 
    The seafoam/glass/gradient TOKENS (--gg-*, the accent + glass + bg ladder)
-   live in themes.css inside the [data-theme-name="default-dark"] block. This
+   live in themes.css inside the [data-ghostwire] block. This
    file only adds the things tokens can't express: the aurora, the halftone,
    backdrop-filter glass, gradient progress fills, hover glows, and de-warmed
    chrome.
@@ -31,7 +31,7 @@
    WITHOUT creating a stacking context (no z-index/transform/filter on .libre),
    so the z-index:-1 layers paint above .libre's background but below content,
    and fixed-position children (sidebar toggle, bootloader) are unaffected. */
-[data-theme-name="default-dark"] .libre {
+[data-ghostwire] .libre {
   position: relative;
   /* Form a stacking context (GhostWire's .app does this with
      position:relative + z-index:0) so the z-index:-1 aurora + halftone
@@ -44,13 +44,13 @@
      the glow now lives on the left edge, matching the top-left halftone. */
   background:
     radial-gradient(120% 90% at 8% -10%, var(--gg-bloom-1-soft) 0%, transparent 48%),
-    #050507;
+    var(--color-bg-primary);
 }
 
 /* Two slow, blurred blooms drifting in opposite directions for gentle
    parallax. z-index:-1 keeps them behind all content; pointer-transparent. */
-[data-theme-name="default-dark"] .libre::before,
-[data-theme-name="default-dark"] .libre::after {
+[data-ghostwire] .libre::before,
+[data-ghostwire] .libre::after {
   content: "";
   position: absolute;
   z-index: -1;
@@ -58,7 +58,7 @@
   filter: blur(45px);
   will-change: transform, opacity;
 }
-[data-theme-name="default-dark"] .libre::before {
+[data-ghostwire] .libre::before {
   inset: -20% -10% auto -10%;
   height: 70%;
   background:
@@ -66,7 +66,7 @@
   opacity: 0.7;
   animation: libre-aurora-drift 28s ease-in-out infinite alternate;
 }
-[data-theme-name="default-dark"] .libre::after {
+[data-ghostwire] .libre::after {
   inset: auto -10% -25% -10%;
   height: 65%;
   background:
@@ -85,8 +85,8 @@
   100% { transform: translate3d(-3%, -2%, 0) scale(1);   opacity: 0.48; }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-theme-name="default-dark"] .libre::before,
-  [data-theme-name="default-dark"] .libre::after { animation: none; }
+  [data-ghostwire] .libre::before,
+  [data-ghostwire] .libre::after { animation: none; }
 }
 
 /* ---- 2. Halftone dot splash (top-left) ------------------------------------
@@ -102,7 +102,7 @@
 .libre__halftone {
   display: none;
 }
-[data-theme-name="default-dark"] .libre__halftone {
+[data-ghostwire] .libre__halftone {
   position: absolute;
   top: 0;
   left: 0;
@@ -123,15 +123,15 @@
    Sidebar / nav rail / top bar / glossary already apply backdrop-filter and
    read --color-glass-bg (now translucent in themes.css). Bump the blur to
    GhostWire's 36px so the aurora reads richly through the chrome. */
-[data-theme-name="default-dark"] .libre__topbar,
-[data-theme-name="default-dark"] .libre__sidebar,
-[data-theme-name="default-dark"] .libre-nav-rail,
-[data-theme-name="default-dark"] .libre-reader-glossary {
+[data-ghostwire] .libre__topbar,
+[data-ghostwire] .libre__sidebar,
+[data-ghostwire] .libre-nav-rail,
+[data-ghostwire] .libre-reader-glossary {
   -webkit-backdrop-filter: blur(36px) saturate(150%);
   backdrop-filter: blur(36px) saturate(150%);
 }
 /* Mobile floating tab bar hardcodes its own fill — bring it onto chrome glass. */
-[data-theme-name="default-dark"] .libre-mtab {
+[data-ghostwire] .libre-mtab {
   background: rgba(14, 15, 20, 0.82);
   -webkit-backdrop-filter: blur(36px) saturate(150%);
   backdrop-filter: blur(36px) saturate(150%);
@@ -144,7 +144,7 @@
    console/output, workbench inner panes) are deliberately EXCLUDED so text
    never sits over a blurred backdrop. backdrop-filter blurs what's BEHIND the
    card, never the card's own text, so text-dense cards stay crisp. */
-[data-theme-name="default-dark"] :is(
+[data-ghostwire] :is(
   .libre-library-card,
   .libre-collection-path,
   .libre-collection-folder,
@@ -170,7 +170,7 @@
 
 /* Seafoam edge-glow on interactive card hover (the one place colour rims a
    surface — everywhere else borders stay neutral). */
-[data-theme-name="default-dark"] :is(
+[data-ghostwire] :is(
   .libre-library-card,
   .libre-collection-path,
   .libre-collection-folder,
@@ -193,7 +193,7 @@
    verify) follow the ACTIVE language's brand colour — --gg-course-accent is set
    inline on <html> by applyLanguageHue while a course is open, and cleared
    otherwise, so off-course these fall back to the white→accent gradient. */
-[data-theme-name="default-dark"] :is(
+[data-ghostwire] :is(
   .libre-reader-progress-fill,
   .libre__course-progress-fill,
   .libre__carousel-progress-fill,
@@ -206,7 +206,7 @@
 /* Multi-item list fills (library cards, book covers, Challenges cards, Path
    cards) each set their OWN per-item language brand colour inline — those win
    over this rule; the gradient only shows for any item without a brand colour. */
-[data-theme-name="default-dark"] :is(
+[data-ghostwire] :is(
   .libre-library-card-progress-fill,
   .libre-book-progress-fill,
   .libre-challenges__card-progress-fill,
@@ -219,21 +219,21 @@
 }
 /* Pseudo-element fills (mobile bars) — kept out of :is() (pseudo-elements are
    invalid inside :is()). */
-[data-theme-name="default-dark"] .m-prof__level-bar::after,
-[data-theme-name="default-dark"] .m-prof__continue-bar::after,
-[data-theme-name="default-dark"] .m-outline__progress::after,
-[data-theme-name="default-dark"] .m-lib__tile-bar::after {
+[data-ghostwire] .m-prof__level-bar::after,
+[data-ghostwire] .m-prof__continue-bar::after,
+[data-ghostwire] .m-outline__progress::after,
+[data-ghostwire] .m-lib__tile-bar::after {
   background: var(--gg-grad);
 }
 /* SVG ring fills: stroke can't take a CSS gradient without an inline <defs>
    <linearGradient>, so use a flat seafoam stroke (the shared ProgressRing hits
    TopBar + Sidebar + Profile at once). */
-[data-theme-name="default-dark"] .libre__progress-ring-fill,
-[data-theme-name="default-dark"] .libre-practice-ring-fill {
+[data-ghostwire] .libre__progress-ring-fill,
+[data-ghostwire] .libre-practice-ring-fill {
   stroke: var(--gg-course-accent, var(--gg-seafoam));
 }
-[data-theme-name="default-dark"] .libre__progress-ring-track,
-[data-theme-name="default-dark"] .libre-practice-ring-track {
+[data-ghostwire] .libre__progress-ring-track,
+[data-ghostwire] .libre-practice-ring-track {
   stroke: var(--gg-track);
 }
 
@@ -245,31 +245,31 @@
    translateY) is reused as-is; only its paint changes. The active item's icon
    turns teal, and hovering the active item fills the ring faintly so the glow
    rides along with it. */
-[data-theme-name="default-dark"] .libre-nav-rail__pill {
+[data-ghostwire] .libre-nav-rail__pill {
   background: transparent;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gg-teal) 34%, transparent);
 }
 /* Clean ring — drop the holographic foil that fills the pill (GhostWire's chip
    is a plain ring; the foil would render as an iridescent square here). */
-[data-theme-name="default-dark"] .libre-nav-rail__pill > .libre-holo {
+[data-ghostwire] .libre-nav-rail__pill > .libre-holo {
   display: none;
 }
-[data-theme-name="default-dark"] .libre-nav-rail__item--active,
-[data-theme-name="default-dark"] .libre-nav-rail__item--active:hover {
+[data-ghostwire] .libre-nav-rail__item--active,
+[data-ghostwire] .libre-nav-rail__item--active:hover {
   color: var(--gg-teal);
 }
-[data-theme-name="default-dark"] .libre-nav-rail__top:has(.libre-nav-rail__item--active:hover) > .libre-nav-rail__pill {
+[data-ghostwire] .libre-nav-rail__top:has(.libre-nav-rail__item--active:hover) > .libre-nav-rail__pill {
   background: color-mix(in srgb, var(--gg-teal) 18%, transparent);
 }
-[data-theme-name="default-dark"] .libre-editor-tabs-row .libre-editor-tab--active {
+[data-ghostwire] .libre-editor-tabs-row .libre-editor-tab--active {
   border-bottom-color: var(--gg-seafoam);
 }
 
 /* ---- 7. Focus + selection -> ghostly ------------------------------------- */
-[data-theme-name="default-dark"] *:focus-visible {
+[data-ghostwire] *:focus-visible {
   outline-color: var(--gg-seafoam);
 }
-[data-theme-name="default-dark"] ::selection {
+[data-ghostwire] ::selection {
   background: hsl(var(--gg-hue) 70% 62% / 0.30);
   color: #ffffff;
 }
@@ -281,26 +281,26 @@
    Firefox/standard `scrollbar-color` has no hover state, so it sits at a
    middle, half-lit level. Intentional warm beats elsewhere (XP gold, streak
    fire, combo gold, the parchment certificate) are LEFT intact. */
-[data-theme-name="default-dark"] * {
+[data-ghostwire] * {
   scrollbar-color: hsl(var(--gg-hue) 74% 66% / 0.55) transparent;
 }
-[data-theme-name="default-dark"] *::-webkit-scrollbar-thumb {
+[data-ghostwire] *::-webkit-scrollbar-thumb {
   background: hsl(var(--gg-hue) 74% 66% / 0.45);
   background-clip: padding-box;
 }
-[data-theme-name="default-dark"] *:hover::-webkit-scrollbar-thumb {
+[data-ghostwire] *:hover::-webkit-scrollbar-thumb {
   background: hsl(var(--gg-hue) 80% 72%);
   background-clip: padding-box;
 }
-[data-theme-name="default-dark"] *::-webkit-scrollbar-thumb:hover {
+[data-ghostwire] *::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--gg-hue) 84% 78%);
   background-clip: padding-box;
 }
-[data-theme-name="default-dark"] *::-webkit-scrollbar-thumb:active {
+[data-ghostwire] *::-webkit-scrollbar-thumb:active {
   background: var(--gg-accent-deep);
   background-clip: padding-box;
 }
-[data-theme-name="default-dark"] .libre__welcome-glyph {
+[data-ghostwire] .libre__welcome-glyph {
   color: var(--gg-seafoam);
 }
 
@@ -309,19 +309,19 @@
    rendered for this theme. The track is a full-spectrum gradient so the
    user sees where each hue sits; the live swatch + the whole app recolour
    as it drags. */
-[data-theme-name="default-dark"] .libre-settings-hue {
+[data-ghostwire] .libre-settings-hue {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-[data-theme-name="default-dark"] .libre-settings-hue__swatch {
+[data-ghostwire] .libre-settings-hue__swatch {
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
   border-radius: 7px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.20), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
-[data-theme-name="default-dark"] .libre-settings-hue__slider {
+[data-ghostwire] .libre-settings-hue__slider {
   -webkit-appearance: none;
   appearance: none;
   width: 200px;
@@ -336,7 +336,7 @@
     hsl(240 80% 62%), hsl(300 80% 62%), hsl(360 80% 62%)
   );
 }
-[data-theme-name="default-dark"] .libre-settings-hue__slider::-webkit-slider-thumb {
+[data-ghostwire] .libre-settings-hue__slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
@@ -346,7 +346,7 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 1px 4px rgba(0, 0, 0, 0.5);
   cursor: pointer;
 }
-[data-theme-name="default-dark"] .libre-settings-hue__slider::-moz-range-thumb {
+[data-ghostwire] .libre-settings-hue__slider::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border: none;
@@ -355,11 +355,11 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
   cursor: pointer;
 }
-[data-theme-name="default-dark"] .libre-settings-hue__slider:focus-visible {
+[data-ghostwire] .libre-settings-hue__slider:focus-visible {
   outline: 2px solid var(--gg-accent);
   outline-offset: 3px;
 }
-[data-theme-name="default-dark"] .libre-settings-hue__reset {
+[data-ghostwire] .libre-settings-hue__reset {
   background: transparent;
   border: 1px solid var(--color-border-default);
   color: var(--color-text-secondary);
@@ -369,7 +369,7 @@
   cursor: pointer;
   transition: color 120ms ease, border-color 120ms ease;
 }
-[data-theme-name="default-dark"] .libre-settings-hue__reset:hover {
+[data-ghostwire] .libre-settings-hue__reset:hover {
   color: var(--color-text-primary);
   border-color: var(--color-border-strong);
 }
@@ -383,34 +383,34 @@
    is more opaque than the decorative cards so syntax stays legible. The
    web-preview <iframe> keeps its own solid background (it renders user HTML
    that assumes an opaque backdrop). */
-[data-theme-name="default-dark"] .libre-workbench {
+[data-ghostwire] .libre-workbench {
   background: transparent;
 }
-[data-theme-name="default-dark"] .libre-editor,
-[data-theme-name="default-dark"] .libre-output {
+[data-ghostwire] .libre-editor,
+[data-ghostwire] .libre-output {
   background: var(--gg-glass-code);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
   backdrop-filter: blur(22px) saturate(140%);
 }
 /* Toolbars / file tabs / console header ride the pane glass. */
-[data-theme-name="default-dark"] .libre-editor-header,
-[data-theme-name="default-dark"] .libre-editor-tabs-row,
-[data-theme-name="default-dark"] .libre-output-header {
+[data-ghostwire] .libre-editor-header,
+[data-ghostwire] .libre-editor-tabs-row,
+[data-ghostwire] .libre-output-header {
   background: transparent;
 }
 /* Make Monaco see-through so the pane glass (and the aurora behind it) reads
    through. Monaco paints its own opaque background layers — override them.
    Syntax tokens, gutter numbers, selection + current-line sit on their own
    layers and stay fully legible. */
-[data-theme-name="default-dark"] .libre-editor .monaco-editor,
-[data-theme-name="default-dark"] .libre-editor .monaco-editor .monaco-editor-background,
-[data-theme-name="default-dark"] .libre-editor .monaco-editor .margin,
-[data-theme-name="default-dark"] .libre-editor .monaco-editor .minimap,
-[data-theme-name="default-dark"] .libre-editor .monaco-editor .overflow-guard {
+[data-ghostwire] .libre-editor .monaco-editor,
+[data-ghostwire] .libre-editor .monaco-editor .monaco-editor-background,
+[data-ghostwire] .libre-editor .monaco-editor .margin,
+[data-ghostwire] .libre-editor .monaco-editor .minimap,
+[data-ghostwire] .libre-editor .monaco-editor .overflow-guard {
   background: transparent !important;
 }
 /* Active file tab: a faint lift instead of the opaque #050507 plate. */
-[data-theme-name="default-dark"] .libre-editor-tabs-row .libre-editor-tab--active {
+[data-ghostwire] .libre-editor-tabs-row .libre-editor-tab--active {
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -419,28 +419,28 @@
    that covers the app canvas (aurora + halftone), so they read as a flat black
    slab — unlike the transparent library. Go transparent under default-dark so
    the canvas shows through and they match the rest of the app. */
-[data-theme-name="default-dark"] .libre-challenges,
-[data-theme-name="default-dark"] .libre-profile {
+[data-ghostwire] .libre-challenges,
+[data-ghostwire] .libre-profile {
   background: transparent;
 }
 /* Library sticky filter/sort strip painted an opaque bg-primary plate; drop it
    so the controls sit on the canvas (the border-bottom still divides it from
    the grid). */
-[data-theme-name="default-dark"] .libre-library-controls {
+[data-ghostwire] .libre-library-controls {
   background: transparent;
 }
 /* Collection folders with fewer than 4 covers (Web, Solana, …) left empty grid
    cells showing the mosaic's light --color-border-card backing as a grey slab.
    Make the mosaic + blank cells transparent so empties take the folder's dark
    bg — a partial folder reads as its covers on a clean dark field. */
-[data-theme-name="default-dark"] .libre-collection-folder-mosaic,
-[data-theme-name="default-dark"] .libre-collection-folder-cell-blank {
+[data-ghostwire] .libre-collection-folder-mosaic,
+[data-ghostwire] .libre-collection-folder-cell-blank {
   background: transparent;
 }
 /* The Challenges title strip blurred an opaque bg-primary gradient; drop it
    entirely so the title sits cleanly on the canvas with no background plate or
    frosted haze. */
-[data-theme-name="default-dark"] .libre-challenges__header {
+[data-ghostwire] .libre-challenges__header {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -455,7 +455,7 @@
 
 /* Bordered icon buttons (editor toolbar + top bar) — the 1px border recolours
    to the glass edge. */
-[data-theme-name="default-dark"]
+[data-ghostwire]
   :is(
     .libre-editor-button:not(.libre-editor-run):not(:disabled),
     .libre-editor-help-main:not(:disabled),
@@ -473,7 +473,7 @@
 
 /* Borderless nav-rail icons — draw the glass edge with an inset ring so there's
    no 1px layout shift from adding a border. */
-[data-theme-name="default-dark"]
+[data-ghostwire]
   .libre-nav-rail__item:not(.libre-nav-rail__item--active):hover {
   background: var(--gg-glass-card);
   -webkit-backdrop-filter: blur(var(--gg-blur)) saturate(150%);
@@ -487,7 +487,7 @@
    — also borderless, so the same inset-ring glass replaces their flat
    --color-bg-tertiary hover fill. The active lesson keeps its own highlight
    (excluded). Per-row text colour from the base rules still applies. */
-[data-theme-name="default-dark"]
+[data-ghostwire]
   :is(
     .libre__course-row,
     .libre__section-title,
@@ -508,11 +508,11 @@
    A soft dark halo + drop shadow lifts the text off the dots — invisible over
    the plain dark bg, only reads where the light dots are. Reset on code so
    syntax highlighting stays crisp. */
-[data-theme-name="default-dark"] .libre-reader-inner {
+[data-ghostwire] .libre-reader-inner {
   text-shadow:
     0 0 8px rgba(0, 0, 0, 0.55),
     0 1px 2px rgba(0, 0, 0, 0.5);
 }
-[data-theme-name="default-dark"] .libre-reader-inner :is(code, pre, kbd) {
+[data-ghostwire] .libre-reader-inner :is(code, pre, kbd) {
   text-shadow: none;
 }

@@ -27,7 +27,9 @@ import { Card } from "@base/primitives/card";
 import "@base/primitives/card/card.css";
 import { ChatBar } from "@base/primitives/chat-bar";
 import "@base/primitives/chat-bar/chat-bar.css";
-import { renderMarkdown } from "../Lesson/markdown";
+import { AssistantMessage } from "./AssistantMessage";
+import { useBubbleInteractions } from "./useBubbleInteractions";
+import "./AssistantMessage.css";
 import type {
   AgentMessage,
   PendingClarification,
@@ -50,6 +52,8 @@ import { PAIR_MODES, DEFAULT_PAIR_MODE } from "../../lib/aiAgent/pairMode";
 import type { Course } from "../../data/types";
 import { BuildJournalPanel, useBuildJournal } from "./BuildJournalPanel";
 import { EarnTheDiffTray, useRewindChallenge } from "./EarnTheDiffTray";
+import { visibleQuickActions } from "./quickActions";
+import { validateFilePath } from "../../lib/aiTools/sandboxValidation";
 import {
   conceptMasteryOf,
   loadMemory,
@@ -95,6 +99,15 @@ interface Props {
   /// The course the learner is currently studying — biases the
   /// journal's lesson links toward it on near-ties.
   currentCourseId?: string;
+  /// The sandbox project the user has open — drives the composer
+  /// quick-actions (Explain / Fix the error / Add comments) which
+  /// act on the open project via the project-aware agent.
+  currentSandbox?: {
+    projectId: string;
+    name: string;
+    language: string;
+    activeFilePath?: string;
+  } | null;
   onSend: (prompt: string) => void;
   onClose: () => void;
   onReset: () => void;
@@ -130,6 +143,7 @@ export default function AiAgentPanel({
   courses,
   completed,
   currentCourseId,
+  currentSandbox,
   onSend,
   onClose,
   onReset,
@@ -179,6 +193,8 @@ export default function AiAgentPanel({
         }>
       ).detail;
       if (!detail?.projectId || !detail.path) return;
+      // Render-boundary guard — never show a junk-path file-write chip.
+      if (!validateFilePath(detail.path).ok) return;
       const key = `${detail.projectId}:${detail.path}`;
       setFileWrites((prev) => {
         const idx = prev.findIndex((f) => f.key === key);
@@ -299,6 +315,9 @@ export default function AiAgentPanel({
   // the preview header.
   const [previewOpen, setPreviewOpen] = useState(true);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  // Delegate libre:// link clicks, external links, and code-block
+  // copy buttons for every assistant bubble in the scroller.
+  useBubbleInteractions(scrollerRef);
   // The base-ui `TextArea` primitive wraps its `<textarea>` in a
   // `.textarea-wrapper` div and does NOT forward the outer
   // `ref` prop to the inner element. We attach the ref to a
@@ -663,6 +682,7 @@ export default function AiAgentPanel({
             // inline breadcrumb so the chat history retains its
             // visual rhythm. Notion issue #a37bed6308faed33.
             suppressEmptyThinking={i === messages.length - 1}
+            streaming={streaming && i === messages.length - 1}
           />
         ))}
         {/* Per-file streaming progress. Sits between the assistant
@@ -679,7 +699,17 @@ export default function AiAgentPanel({
             aria-label="Files being written to sandbox"
           >
             {fileWrites.map((f) => (
-              <FileWriteChip key={f.key} file={f} />
+              <FileWriteChip
+                key={f.key}
+                file={f}
+                onOpen={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("libre:sandbox-focus", {
+                      detail: { projectId: f.projectId, path: f.path },
+                    }),
+                  )
+                }
+              />
             ))}
           </div>
         )}
@@ -878,6 +908,45 @@ export default function AiAgentPanel({
           message picks up content. */}
       <ThinkingBanner streaming={streaming} messages={messages} />
 
+      {/* Quick-actions — one-click co-creation prompts that act on the
+          OPEN sandbox project via the project-aware agent. Only the
+          relevant ones show (Fix the error appears after a failed run;
+          Explain/Add tests/Add comments appear when a project/file is
+          open). Hidden while streaming so they don't fire mid-turn. */}
+      {!streaming &&
+        (() => {
+          const actions = visibleQuickActions({
+            projectName: currentSandbox?.name,
+            openFile: currentSandbox?.activeFilePath,
+            lastError: latestRun?.error ?? null,
+          });
+          if (actions.length === 0) return null;
+          return (
+            <div className="libre-ai-quick-actions" role="group" aria-label="Quick actions">
+              {actions.map((a) => {
+                const ctx = {
+                  projectName: currentSandbox?.name,
+                  openFile: currentSandbox?.activeFilePath,
+                  lastError: latestRun?.error ?? null,
+                };
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className={
+                      "libre-ai-quick-action" +
+                      (a.id === "fix-error" ? " libre-ai-quick-action--alert" : "")
+                    }
+                    onClick={() => onSend(a.prompt(ctx))}
+                  >
+                    {a.label}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
+
       {/* ChatBar from base-ui: composes auto-resizing textarea +
           send button + sending-state spinner into one primitive
           we can drop in here. Replaces the hand-rolled `<textarea>
@@ -960,6 +1029,7 @@ function AgentRow({
   message,
   timeline,
   suppressEmptyThinking = false,
+  streaming = false,
 }: {
   message: AgentMessage;
   timeline: ToolResult[];
@@ -970,6 +1040,9 @@ function AgentRow({
   /// current thinking state instead — see Notion issue
   /// #a37bed6308faed33.
   suppressEmptyThinking?: boolean;
+  /// This row is the one actively streaming — drives the bubble's
+  /// mid-stream sanitizing (trailing unterminated-tag removal).
+  streaming?: boolean;
 }) {
   if (message.role === "system") return null;
   if (message.role === "user") {
@@ -1082,7 +1155,7 @@ function AgentRow({
         padding="sm"
         className="libre-ai-bubble libre-ai-bubble--assistant"
       >
-        <AssistantMarkdownBubble content={message.content} />
+        <AssistantMessage content={message.content} agentMode streaming={streaming} />
       </Card>
     );
   }
@@ -1094,117 +1167,6 @@ function AgentRow({
       name={message.name}
       ok={entry?.ok ?? true}
       content={message.content}
-    />
-  );
-}
-
-/// Threshold above which an inline `<pre>` code block gets
-/// wrapped in a `<details>` collapser instead of rendering in
-/// full. Short snippets stay inline so a "the bug is on line X"
-/// reply still shows the offending fragment without a click;
-/// long dumps fold up so the chat doesn't become a wall of code.
-const COLLAPSE_CODE_AFTER_LINES = 8;
-
-/// Async markdown renderer for assistant messages. `renderMarkdown`
-/// returns a Promise — earlier this component shoved that Promise
-/// directly into `dangerouslySetInnerHTML.__html`, which React
-/// stringified as the literal "[object Promise]" in the bubble.
-/// Pattern mirrors `AiChatPanel`'s `MarkdownBubble`: useEffect awaits
-/// the render and writes the HTML string into state, with a
-/// cancellation flag so a fast-changing `content` (e.g. an agent
-/// turn that finishes while a prior async render is still in flight)
-/// doesn't clobber the latest result.
-///
-/// Post-render DOM pass: every `<pre>` block with more than
-/// COLLAPSE_CODE_AFTER_LINES lines is wrapped in a `<details>`
-/// element with a "Show code (N lines)" summary. The summary
-/// includes the file path / language when we can recover it from
-/// the first non-empty line of the block. This is the "Claude
-/// dropdown" the user asked for — keeps the chat readable while
-/// still letting the user see the code if they want to.
-/// Debounce window for the markdown render. While content is
-/// rapidly changing (tokens streaming in every few ms) we hold off
-/// on the full markdown parse + the DOM-walker wrapping pass —
-/// running them on every chunk causes visible flicker because
-/// each tick rips out the prior `<pre>` blocks, re-creates them,
-/// re-wraps them in `<details>` elements. Holding the render until
-/// the content has been stable for the debounce window means a
-/// streaming reply paints raw text first (fast, no flicker), then
-/// "settles" into the rendered markdown once the model stops
-/// emitting tokens.
-const MARKDOWN_RENDER_DEBOUNCE_MS = 180;
-
-function AssistantMarkdownBubble({ content }: { content: string }) {
-  const [html, setHtml] = useState("");
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  // Track whether the latest debounce window has elapsed. While
-  // false, the bubble renders raw text in a <pre>; once true the
-  // HTML state takes over.
-  const [settled, setSettled] = useState(false);
-  useEffect(() => {
-    // Each content change resets the settled flag — we'll re-set
-    // it after the debounce window passes without further updates.
-    setSettled(false);
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      if (cancelled) return;
-      void renderMarkdown(content ?? "").then((rendered) => {
-        if (cancelled) return;
-        setHtml(rendered);
-        setSettled(true);
-      });
-    }, MARKDOWN_RENDER_DEBOUNCE_MS);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [content]);
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const pres = container.querySelectorAll("pre");
-    pres.forEach((pre) => {
-      // Idempotent — once we've wrapped a `<pre>`, the marker
-      // dataset attribute keeps us from re-wrapping on the next
-      // re-render of the same content.
-      if (pre.dataset.libreCollapsed === "true") return;
-      const text = (pre.textContent ?? "").replace(/\n+$/, "");
-      const lineCount = text.length === 0 ? 0 : text.split("\n").length;
-      if (lineCount < COLLAPSE_CODE_AFTER_LINES) {
-        pre.dataset.libreCollapsed = "true";
-        return;
-      }
-      // Try to extract the language hint from the rendered <code>
-      // element's class (markdown-it emits `language-jsx` etc).
-      const code = pre.querySelector("code");
-      const langClass = Array.from(code?.classList ?? []).find((c) =>
-        c.startsWith("language-"),
-      );
-      const lang = langClass ? langClass.slice("language-".length) : "code";
-      const details = document.createElement("details");
-      details.className = "libre-ai-code-collapsible";
-      const summary = document.createElement("summary");
-      summary.className = "libre-ai-code-collapsible-summary";
-      summary.innerHTML = `<span class="libre-ai-code-collapsible-lang">${lang}</span><span class="libre-ai-code-collapsible-meta">${lineCount} lines</span><span class="libre-ai-code-collapsible-chevron" aria-hidden>▸</span>`;
-      details.appendChild(summary);
-      pre.parentNode?.insertBefore(details, pre);
-      details.appendChild(pre);
-      pre.dataset.libreCollapsed = "true";
-    });
-  }, [html]);
-  // While streaming hasn't stabilised, render raw text. This
-  // avoids re-running markdown-it + the DOM wrapper on every
-  // chunk update (the source of the per-token flicker). Once
-  // `settled` flips true the rendered HTML takes over with the
-  // collapsible code blocks + syntax highlighting.
-  if (!settled || !html) {
-    return <div className="libre-ai-bubble-stream">{content}</div>;
-  }
-  return (
-    <div
-      ref={containerRef}
-      className="libre-ai-bubble-markdown"
-      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 }
@@ -1453,6 +1415,7 @@ function RunStatusBanner({
 /// the model's closing fence arrives.
 function FileWriteChip({
   file,
+  onOpen,
 }: {
   file: {
     path: string;
@@ -1460,6 +1423,9 @@ function FileWriteChip({
     closed: boolean;
     language: string;
   };
+  /// Jump the sandbox editor to this file (switches to the sandbox
+  /// view if needed). Makes the agent's writes navigable.
+  onOpen?: () => void;
 }) {
   // Three states:
   //   - writing   — fence still open, content arriving
@@ -1476,13 +1442,11 @@ function FileWriteChip({
     : file.bytes === 0
       ? "empty"
       : "done";
-  return (
-    <div
-      className={`libre-ai-file-chip libre-ai-file-chip--${variant}`}
-      title={`${file.path} · ${file.bytes} bytes · ${file.language}${
-        variant === "empty" ? " (no content streamed)" : ""
-      }`}
-    >
+  const title = `${file.path} · ${file.bytes} bytes · ${file.language}${
+    variant === "empty" ? " (no content streamed)" : ""
+  }${onOpen ? " — click to open in the editor" : ""}`;
+  const inner = (
+    <>
       <span className="libre-ai-file-chip-icon" aria-hidden>
         <Icon
           icon={variant === "done" ? check : fileEdit}
@@ -1495,6 +1459,21 @@ function FileWriteChip({
       <span className="libre-ai-file-chip-bytes">
         {formatBytes(file.bytes)}
       </span>
+    </>
+  );
+  const className = `libre-ai-file-chip libre-ai-file-chip--${variant}${
+    onOpen ? " libre-ai-file-chip--clickable" : ""
+  }`;
+  if (onOpen) {
+    return (
+      <button type="button" className={className} title={title} onClick={onOpen}>
+        {inner}
+      </button>
+    );
+  }
+  return (
+    <div className={className} title={title}>
+      {inner}
     </div>
   );
 }

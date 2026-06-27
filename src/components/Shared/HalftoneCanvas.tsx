@@ -1,5 +1,19 @@
 import { useEffect, useRef } from "react";
 
+// Parse a #rgb / #rrggbb hex into an rgba() string with the given alpha. Any
+// non-hex value is returned unchanged (it's already a CSS colour the canvas
+// gradient accepts).
+function withAlpha(hex: string, a: number): string {
+  let h = hex.trim();
+  if (h[0] !== "#") return h;
+  h = h.slice(1);
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (h.length !== 6) return hex;
+  const n = parseInt(h, 16);
+  if (Number.isNaN(n)) return hex;
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
 // Size-graded halftone, drawn on a <canvas> instead of CSS masks. Each dot's
 // radius is computed directly from its distance to the top-left corner — LARGE
 // at the corner, shrinking to small, then nothing past the falloff radius. This
@@ -24,20 +38,27 @@ function draw(
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
 
-  const hue =
-    Number(
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--gg-hue")
-        .trim(),
-    ) || 18;
-
+  const root = getComputedStyle(document.documentElement);
   const maxDist = Math.hypot(w, h) * 0.72; // falloff radius (no dots beyond)
 
-  // White -> accent sweep, matching the old --gg-halftone gradient.
   const grad = ctx.createLinearGradient(0, 0, w * 0.9, h * 0.9);
-  grad.addColorStop(0, `hsla(${hue}, 100%, 96%, 0.95)`);
-  grad.addColorStop(0.45, `hsla(${hue}, 84%, 74%, 0.7)`);
-  grad.addColorStop(1, `hsla(${(hue + 338) % 360}, 62%, 56%, 0.45)`);
+  // Image themes define explicit halftone stops (--gg-ht-c1/c2/c3, sampled from
+  // their cover art) so the splash matches that theme's signature light. Apply
+  // the same bright->mid->deep alpha falloff the hue gradient used. default-dark
+  // leaves these unset and falls back to its hue-driven white->accent sweep.
+  const c1 = root.getPropertyValue("--gg-ht-c1").trim();
+  const c2 = root.getPropertyValue("--gg-ht-c2").trim();
+  const c3 = root.getPropertyValue("--gg-ht-c3").trim();
+  if (c1 && c2 && c3) {
+    grad.addColorStop(0, withAlpha(c1, 0.95));
+    grad.addColorStop(0.45, withAlpha(c2, 0.72));
+    grad.addColorStop(1, withAlpha(c3, 0.5));
+  } else {
+    const hue = Number(root.getPropertyValue("--gg-hue").trim()) || 18;
+    grad.addColorStop(0, `hsla(${hue}, 100%, 96%, 0.95)`);
+    grad.addColorStop(0.45, `hsla(${hue}, 84%, 74%, 0.7)`);
+    grad.addColorStop(1, `hsla(${(hue + 338) % 360}, 62%, 56%, 0.45)`);
+  }
   ctx.fillStyle = grad;
 
   for (let y = spacing / 2; y < h; y += spacing) {

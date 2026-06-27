@@ -31,7 +31,15 @@ interface SandboxProject {
   files: Array<{ name: string; content: string; language: string }>;
 }
 
-export function useSandboxStreamWriter(streamingContent: string): void {
+export function useSandboxStreamWriter(
+  streamingContent: string,
+  /// Only stream-write for TOOL-NATIVE models. An emulated model
+  /// (no native tool calls) streams its tool-call JSON as TEXT, which
+  /// the fence parser would mis-read as `lang:path` file blocks and
+  /// spray junk files. Builds on emulated models are blocked upstream;
+  /// this flag is the hard gate so the planner never sees that text.
+  enabled = true,
+): void {
   // Single mutable state object that the planner threads through
   // each tick. We use a ref (not state) because the writes are
   // side-effects on disk — there's no need to trigger a React
@@ -42,6 +50,14 @@ export function useSandboxStreamWriter(streamingContent: string): void {
     ...EMPTY_PLANNER_STATE,
     lastContent: new Map(),
   });
+
+  // Tracks the previous `enabled` value so we can detect a false→true
+  // edge. The writer is latched to the model that STARTED the run, but
+  // a fresh run (e.g. switch to a native model, then build) flips this
+  // back on — at which point any text the planner accumulated while
+  // disabled must be dropped, or we'd replay a stale diff against the
+  // new run's first chunk and mis-write files.
+  const prevEnabledRef = useRef(enabled);
 
   useEffect(() => {
     const onFocus = (ev: Event) => {
@@ -55,6 +71,16 @@ export function useSandboxStreamWriter(streamingContent: string): void {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      prevEnabledRef.current = false;
+      return;
+    }
+    // Re-enabled (false→true): forget anything buffered while off so a
+    // stale diff isn't replayed against the new run's first chunk.
+    if (!prevEnabledRef.current) {
+      stateRef.current = { ...EMPTY_PLANNER_STATE, lastContent: new Map() };
+    }
+    prevEnabledRef.current = true;
     const prior = stateRef.current;
     const { writes, state } = planStreamWrites(prior, streamingContent);
     stateRef.current = state;
@@ -72,7 +98,7 @@ export function useSandboxStreamWriter(streamingContent: string): void {
     }
     if (writes.length === 0) return;
     void flushWrites(writes);
-  }, [streamingContent]);
+  }, [streamingContent, enabled]);
 }
 
 /// Apply a batch of planned writes. Loads the project once,

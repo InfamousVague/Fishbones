@@ -55,12 +55,29 @@ export default function FirstLaunchPrompt({ cloud }: Props) {
   // request hasn't returned yet.
   useEffect(() => {
     if (cloud.user !== false) return; // null = booting, object = signed in
-    const dismissed = readDismissed();
-    if (dismissed === "permanent") return;
-    // Slight delay so the prompt arrives after the bootloader fades
-    // and the lesson view has had a paint. Feels less ambush-y.
-    const id = window.setTimeout(() => setOpen(true), 800);
-    return () => window.clearTimeout(id);
+    if (readDismissed() === "permanent") return;
+    let timer = 0;
+    // Wait until the first-launch THEME PICKER has been resolved (a theme was
+    // picked / dismissed) so the two first-run modals don't stack. The picker
+    // writes `libre:theme-picked-v1` in the same tab (no cross-tab `storage`
+    // event), so poll for it.
+    const tryOpen = () => {
+      let picked = false;
+      try {
+        picked = !!localStorage.getItem("libre:theme-picked-v1");
+      } catch {
+        picked = true; // localStorage unavailable — don't block the prompt
+      }
+      if (!picked) {
+        timer = window.setTimeout(tryOpen, 500);
+        return;
+      }
+      // Slight delay so the prompt arrives after the picker closes and the
+      // bootloader has faded. Feels less ambush-y.
+      timer = window.setTimeout(() => setOpen(true), 600);
+    };
+    tryOpen();
+    return () => window.clearTimeout(timer);
   }, [cloud.user]);
 
   if (!open) return null;

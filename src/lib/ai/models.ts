@@ -225,7 +225,34 @@ export const OLLAMA_MODELS: readonly OllamaModelMeta[] = [
 /// the registry (a custom model the user pulled by hand) — the UI
 /// renders those as a plain "custom model" row.
 export function findModelMeta(id: string): OllamaModelMeta | null {
-  return OLLAMA_MODELS.find((m) => m.id === id) ?? null;
+  const exact = OLLAMA_MODELS.find((m) => m.id === id);
+  if (exact) return exact;
+  // Fall back to a tier-canonical match so a hand-pulled quant /
+  // instruct variant resolves to its base registry entry — e.g.
+  // `deepseek-coder-v2:16b-q4_K_M` → `deepseek-coder-v2:16b`
+  // (emulated), `qwen2.5-coder:7b-instruct-q5` → `qwen2.5-coder:7b`
+  // (native), `phi4:q8_0` → `phi4`. Without this, every quant tag
+  // looked "unknown" and defaulted to the optimistic native path,
+  // skipping the emulated prompt + relying on the 400 fallback.
+  const canon = canonicalModelId(id);
+  return (
+    OLLAMA_MODELS.find(
+      (m) => m.id === canon || canonicalModelId(m.id) === canon,
+    ) ?? null
+  );
+}
+
+/// Reduce an Ollama tag to its tier-defining form: the base name
+/// plus a leading param-size token (`7b`, `1.5b`, `8x7b`, `16b`),
+/// dropping quant / instruct / format suffixes (`-q4_K_M`,
+/// `-instruct`, `-fp16`, …). A tag with no size token collapses to
+/// the bare base name (so `phi4:q8_0` → `phi4`).
+function canonicalModelId(id: string): string {
+  const colon = id.indexOf(":");
+  const base = colon >= 0 ? id.slice(0, colon) : id;
+  const tag = colon >= 0 ? id.slice(colon + 1) : "";
+  const sizeMatch = /^(\d+(?:\.\d+)?(?:x\d+)?b)/i.exec(tag);
+  return sizeMatch ? `${base}:${sizeMatch[1].toLowerCase()}` : base;
 }
 
 /// True when the id is a known registry model.
@@ -251,9 +278,62 @@ export function compactModelLabel(id: string): string {
 /// Whether a model uses Ollama's native tool-calling channel.
 /// Unknown (custom) ids default to `native` optimistically — the
 /// recovery layers cover the case where they aren't.
+///
+/// NOTE: this is the STATIC registry tier. For the live, daemon-aware
+/// answer (a model the user's Ollama version reports as tool-capable)
+/// use `resolveToolNative` from `toolCapability.ts`, which falls back
+/// to this when no probe result is cached.
 export function isToolNative(id: string): boolean {
   const meta = findModelMeta(id);
   return meta ? meta.tools === "native" : true;
+}
+
+/// Parse a registry `params` label ("7B", "1.5B", "16B", "8x7B")
+/// into an approximate billions-of-params number, or null when
+/// unknown. Used to gauge how reliably a model can follow the
+/// text-tool-call / fenced-build protocol.
+export function modelParamsB(id: string): number | null {
+  const meta = findModelMeta(id);
+  if (!meta) return null;
+  // "8x7b" (MoE) → treat as the 7b expert size for reliability
+  // purposes; a leading "NxMb" matches M.
+  const m = /(?:\d+x)?(\d+(?:\.\d+)?)\s*b/i.exec(meta.params);
+  return m ? parseFloat(m[1]) : null;
+}
+
+/// A "strong builder" can be trusted to emit the structured build
+/// output reliably — either it has a native tool channel, it's a
+/// code specialist, or it's a large general model (>= 7B) that
+/// follows the fenced-file / tool-call format well. Weak models
+/// (small general models like gemma3:4b) get the gentler treatment:
+/// a simpler prompt and post-turn (not live) file landing.
+/// Unknown ids are optimistically strong.
+export function isStrongBuilder(id: string): boolean {
+  if (isToolNative(id)) return true;
+  const meta = findModelMeta(id);
+  if (!meta) return true;
+  if (meta.role === "code") return true;
+  const p = modelParamsB(id);
+  return p !== null && p >= 7;
+}
+
+/// Should files stream into the editor LIVE (char-by-char, mid-turn)
+/// for this model, or land validated post-turn? Strong builders
+/// stream live like native models; weak emulated models land
+/// post-turn through the loop's validated fence synthesis, which is
+/// safer against their noisier token streams. ("Auto by model
+/// strength" — the chosen build behaviour.)
+export function streamsFilesLive(id: string): boolean {
+  return isStrongBuilder(id);
+}
+
+/// The emulated-prompt tier for a model: how to teach an emulated
+/// (non-tool-native) model to act. "strong" → full `<tool_call>`
+/// JSON protocol; "weak" → lean on one create call + plain
+/// ```lang:path fenced files (which the fence synthesizer lands
+/// deterministically). Only meaningful for emulated models.
+export function emulatedBuildTier(id: string): "weak" | "strong" {
+  return isStrongBuilder(id) ? "strong" : "weak";
 }
 
 /// Normalise an Ollama tag for comparison: `ollama pull qwen2.5-coder`

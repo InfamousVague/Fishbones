@@ -33,8 +33,15 @@
          keyboard, so `bottom: 0` naturally lands at the keyboard's
          top edge. The PartnerKeyboard component still keeps the
          visualViewport math as a fallback for older Safari that
-         ignores this directive. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+         ignores this directive.
+
+         The `interactive-widget` key is NOT in the static tag below:
+         the DESKTOP WKWebView (which has no soft keyboard) doesn't
+         implement it and logs `Viewport argument key "interactive-
+         widget" not recognized and ignored` on every boot. main.tsx
+         appends it at runtime only when `isMobile`, so mobile keeps
+         the keyboard behaviour and desktop stays warning-free. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="icon" type="image/png" href="/libre_app_icon.png" />
     <link rel="apple-touch-icon" href="/libre_app_icon.png" />
 

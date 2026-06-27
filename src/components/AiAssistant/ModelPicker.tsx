@@ -20,7 +20,6 @@
 /// surfaced as a "custom" row so it's always selectable + visible.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Icon } from "@base/primitives/icon";
 import { check } from "@base/primitives/icon/icons/check";
 import { download } from "@base/primitives/icon/icons/download";
@@ -32,75 +31,8 @@ import {
   type OllamaModelMeta,
 } from "../../lib/ai/models";
 import { isDesktop } from "../../lib/platform";
-import { aiHostUrl } from "../../lib/aiHost";
+import { probeInstalledModels, pullModel } from "../../lib/ai/ollamaInstall";
 import "./ModelPicker.css";
-
-interface DesktopProbeResult {
-  reachable: boolean;
-  models: string[];
-  has_default_model: boolean;
-  error: string | null;
-}
-
-interface InstallResult {
-  success: boolean;
-  stdout: string;
-  stderr: string;
-  duration_ms: number;
-}
-
-interface ProbeState {
-  reachable: boolean;
-  models: string[];
-  error: string | null;
-}
-
-/// Probe the Ollama daemon for installed models. Desktop goes
-/// through the Tauri command; web/mobile fetches the configured
-/// host's /api/tags directly (the Tauri invoke would throw there).
-async function probeOllama(currentModel: string): Promise<ProbeState> {
-  if (isDesktop) {
-    const r = (await invoke("ai_chat_probe", {
-      modelHint: currentModel || null,
-    })) as DesktopProbeResult;
-    return {
-      reachable: r.reachable,
-      models: r.models ?? [],
-      error: r.error,
-    };
-  }
-  // Remote (web / mobile): fetch the configured host's tag list.
-  const url = aiHostUrl("/api/tags");
-  if (!url) {
-    return {
-      reachable: false,
-      models: [],
-      error: "AI host not set. Configure it in Settings → AI host.",
-    };
-  }
-  const ctrl = new AbortController();
-  const t = window.setTimeout(() => ctrl.abort(), 4000);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    if (!r.ok) {
-      return { reachable: false, models: [], error: `Ollama returned ${r.status}` };
-    }
-    const body = (await r.json()) as { models?: Array<{ name: string }> };
-    return {
-      reachable: true,
-      models: (body.models ?? []).map((m) => m.name),
-      error: null,
-    };
-  } catch (e) {
-    return {
-      reachable: false,
-      models: [],
-      error: e instanceof Error ? e.message : String(e),
-    };
-  } finally {
-    window.clearTimeout(t);
-  }
-}
 
 interface Props {
   currentModel: string;
@@ -128,7 +60,7 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
 
   const probe = useCallback(async () => {
     try {
-      const r = await probeOllama(currentModel);
+      const r = await probeInstalledModels(currentModel);
       setReachable(r.reachable);
       setInstalled(r.models);
       setProbeError(r.error);
@@ -156,19 +88,14 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
       setPulling(id);
       setPullError(null);
       try {
-        const r = (await invoke("ai_chat_pull_model", {
-          model: id,
-        })) as InstallResult;
+        const r = await pullModel(id);
         if (r.success) {
           await probe();
           // Auto-select the freshly-pulled model — UNLESS the user
           // changed their selection while it downloaded.
           if (selectionGen.current === genAtStart) onSelect(id);
         } else {
-          setPullError({
-            id,
-            msg: r.stderr.trim() || "Pull failed — check Ollama is running.",
-          });
+          setPullError({ id, msg: r.error });
         }
       } catch (e) {
         setPullError({ id, msg: e instanceof Error ? e.message : String(e) });

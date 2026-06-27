@@ -98,6 +98,11 @@ import { useLibreCloud } from "./hooks/useLibreCloud";
 import { useRealtimeSync } from "./hooks/useRealtimeSync";
 const FirstLaunchPrompt = lazy(() => import("./components/dialogs/SignInDialog/FirstLaunchPrompt"));
 const SetupWizard = lazy(() => import("./components/dialogs/SetupWizard/SetupWizard"));
+const ThemePickerFirstLaunch = lazy(() =>
+  import("./components/dialogs/ThemePicker/ThemePickerModal").then((m) => ({
+    default: m.ThemePickerFirstLaunch,
+  })),
+);
 const SignInDialog = lazy(() => import("./components/dialogs/SignInDialog/SignInDialog"));
 import { useCourses } from "./hooks/useCourses";
 import { useRecentCourses } from "./hooks/useRecentCourses";
@@ -1006,9 +1011,15 @@ export default function App() {
   // We listen on `pointerdown` and remove ourselves after the first
   // fire — no-op on subsequent gestures.
   useEffect(() => {
-    const onGesture = () => {
-      void unlockAudioContext();
-      window.removeEventListener("pointerdown", onGesture);
+    const onGesture = async () => {
+      // The silent-buffer kick inside `unlockAudioContext` runs
+      // synchronously (before its first await), so the gesture still
+      // counts as user-initiated playback even though this handler is
+      // async. Keep listening until the context actually reaches
+      // "running" — on WKWebView the first gesture occasionally fails
+      // to flip it, so re-arming on the next click is the safety net.
+      const unlocked = await unlockAudioContext();
+      if (unlocked) window.removeEventListener("pointerdown", onGesture);
     };
     window.addEventListener("pointerdown", onGesture, { passive: true });
     return () => window.removeEventListener("pointerdown", onGesture);
@@ -1252,6 +1263,32 @@ export default function App() {
   // the sandbox. (Migrates the user's old per-language playground
   // entries on first load — see `useSandboxProjects.ts`.)
   const sandboxProjects = useSandboxProjects("javascript");
+
+  // Slim, read-only view of the project the user has OPEN in the
+  // sandbox editor — handed to the AI so "edit this / add to this
+  // project" targets what the learner is actually looking at, and so
+  // the agent's focus stays in lock-step with the editor. Recomputes
+  // only when the open project or focused file changes.
+  const activeSandboxFilePath =
+    sandboxProjects.files[sandboxProjects.activeFileIdx]?.name;
+  const currentSandbox = useMemo(() => {
+    const p = sandboxProjects.activeProject;
+    if (!p) return null;
+    return {
+      projectId: p.id,
+      name: p.name,
+      language: p.language as string,
+      activeFilePath: activeSandboxFilePath,
+    };
+    // Primitive deps only — must NOT re-identify on every keystroke
+    // (files array changes each edit), or the agent's tool registry +
+    // system prompt would rebuild on every character typed.
+  }, [
+    sandboxProjects.activeProject?.id,
+    sandboxProjects.activeProject?.name,
+    sandboxProjects.activeProject?.language,
+    activeSandboxFilePath,
+  ]);
 
   // First-run guided tour. The tour itself never auto-starts anymore
   // — instead we surface a confirmation dialog (`tourPromptOpen`,
@@ -3036,6 +3073,7 @@ export default function App() {
           completed={completed}
           history={history}
           celebrateAt={celebrateAt}
+          currentSandbox={currentSandbox}
         />
       )}
 
@@ -3072,6 +3110,13 @@ export default function App() {
           `libre://` deep-link callback). Email + password worked
           unchanged on web all along — the dialog just wasn't being
           rendered. */}
+      {/* First-launch theme picker. Shows once (gated on
+          `libre:theme-picked-v1`) BEFORE the sign-in nudge — picking a
+          theme recolours the whole app live, so it's the welcoming
+          first beat. FirstLaunchPrompt waits for this to resolve so the
+          two first-run modals don't stack. */}
+      <ThemePickerFirstLaunch />
+
       <FirstLaunchPrompt cloud={cloud} />
 
       {/* Local-AI dependency wizard. Probes for Homebrew + Ollama on

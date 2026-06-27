@@ -17,6 +17,7 @@
 /// what makes the test suite work without spinning the app.
 
 import type { ToolCall, ToolDef } from "./types";
+import { validateFilePath } from "../aiTools/sandboxValidation";
 
 /// Walk `content` extracting every balanced top-level `{...}`
 /// span. Top-level meaning: we skip OVER matched objects rather
@@ -255,16 +256,28 @@ export interface ParsedBlock {
 /// `tool_calls` channel. Lets the writer refuse to overwrite a
 /// real file path with tool-call JSON.
 ///
-/// The check is strict: must be top-level JSON, must have a string
-/// `name`, must have an object `arguments`, and the whole thing
-/// must be <500 chars (so an unusual JSON config file with a
-/// `name` field doesn't false-positive).
+/// The check is strict: the body (after unwrapping a CLOSED
+/// `<tool_call>…</tool_call>` envelope, if present) must be top-level
+/// JSON with a string `name` and an object `arguments`. No length
+/// cap — a real code file never parses as `{ name, arguments }`.
+/// CRUCIALLY, a bare XML/SVG/config file that merely STARTS with
+/// `<tools>` / `<tool>` (but whose body isn't tool-call JSON) is NOT
+/// a tool call — judging by the opening tag alone silently dropped
+/// such files from live streaming.
 export function looksLikeToolCallPayload(content: string): boolean {
   const trimmed = content.trim();
-  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return false;
-  if (trimmed.length > 500) return false;
+  if (!trimmed) return false;
+  // Unwrap a CLOSED XML tool-call envelope, then judge the inner body
+  // as JSON below. `<tool_call>{"name":…}</tool_call>` → true;
+  // `<tools>\n  <tool/>\n</tools>` (a real XML config) → inner isn't
+  // JSON → falls through to false.
+  const wrap = /^<(tool[_-]?calls?|tools?|function[_-]?call)\b[^>]*>([\s\S]*)<\/\1>$/i.exec(
+    trimmed,
+  );
+  const body = wrap ? wrap[2].trim() : trimmed;
+  if (!body.startsWith("{") || !body.endsWith("}")) return false;
   try {
-    const parsed = JSON.parse(trimmed);
+    const parsed = JSON.parse(body);
     if (!parsed || typeof parsed !== "object") return false;
     const obj = parsed as { name?: unknown; arguments?: unknown };
     return (
@@ -362,19 +375,41 @@ export function splitInfoString(info: string): {
 } {
   const trimmed = info.trim();
   if (!trimmed) return { lang: "", path: null };
+  // Only accept a candidate as a PATH if it's a plausible file path.
+  // An emulated model's tool-call text (`"name": "create_sandbox_project",`,
+  // `"arguments": {`, a one-line JSON blob) all contain colons/spaces and
+  // would otherwise be mis-read as `lang:path` — spraying junk files.
+  // `validateFilePath` rejects quotes/braces/colons/JSON fragments while
+  // keeping ordinary paths (src/App.jsx, main.py) permissive.
+  const plausible = (p: string): string | null =>
+    p && validateFilePath(p).ok ? p : null;
+  // A "lang" token that's actually an emulated tool-call wrapper
+  // (```tool_code, ```tool_call, ```tools) must NOT promote whatever
+  // follows it into a path — that's tool-call text, not a file fence.
+  const isToolLang = (s: string): boolean =>
+    /^(?:tool[_-]?code|tool[_-]?calls?|tools?|function[_-]?call)$/i.test(s.trim());
+
   const colonIdx = trimmed.indexOf(":");
   if (colonIdx > 0) {
-    return {
-      lang: trimmed.slice(0, colonIdx).trim(),
-      path: trimmed.slice(colonIdx + 1).trim() || null,
-    };
+    const lang = trimmed.slice(0, colonIdx).trim();
+    if (isToolLang(lang)) return { lang, path: null };
+    const path = plausible(trimmed.slice(colonIdx + 1).trim());
+    // When the candidate isn't a real path, fall back to treating the
+    // whole token as a (probably-junk) lang and emit no path.
+    return { lang: path ? lang : trimmed, path };
   }
   const parts = trimmed.split(/\s+/);
   if (parts.length >= 2) {
-    return { lang: parts[0], path: parts.slice(1).join(" ") };
+    if (isToolLang(parts[0])) return { lang: parts[0], path: null };
+    const path = plausible(parts.slice(1).join(" "));
+    return { lang: parts[0], path };
   }
-  if (trimmed.includes("/") || (trimmed.includes(".") && trimmed.length > 4)) {
-    return { lang: "", path: trimmed };
+  // A single token that ENDS IN AN EXTENSION (or contains a slash) is a
+  // path, not a lang — `a.js`, `x.py`, `.env`, `App.svelte`. The old
+  // `length > 4` gate wrongly dropped short real filenames; let
+  // validateFilePath be the arbiter instead.
+  if (trimmed.includes("/") || /\.[A-Za-z0-9]+$/.test(trimmed)) {
+    return { lang: "", path: plausible(trimmed) };
   }
   return { lang: trimmed, path: null };
 }
@@ -401,6 +436,9 @@ export function looseJsonParse(s: string): unknown {
 ///   <name>X</name> <args>{}</args>              (short names)
 ///   <tool_call>{"name":"X","arguments":{}}</tool_call>     (wrapper)
 ///   <tool-call>{"name":"X","arguments":{}}</tool-call>     (hyphen)
+///   <tools>{"name":"X","arguments":{}}</tools>            (plural — DeepSeek)
+///   <tool>{...}</tool> / <function_call>{...}</function_call>
+///   <tools>[{...},{...}]</tools>                 (array of calls)
 ///
 /// This handler covers all of them. Returns `{ toolCalls, cleaned }`
 /// so the loop can both dispatch the calls AND scrub the raw XML
@@ -418,8 +456,18 @@ export function extractXmlToolCalls(
 ): XmlToolCallExtraction | null {
   if (!content) return null;
   const knownNames = new Set(registry.map((t) => t.name));
-  const calls: ToolCall[] = [];
-  const removeSpans: Array<{ start: number; end: number }> = [];
+  // Each regex MATCH contributes one text span + the call(s) found
+  // inside it. We collect across all three patterns FIRST, then
+  // resolve overlaps (outermost span wins) before splicing. Without
+  // that resolution, a wrapper whose JSON body happens to embed a
+  // `<name>tool</name><args>{}</args>` example (Pattern A also
+  // matches it) would have its INNER span spliced out from under the
+  // outer one — dropping surrounding chat text AND dispatching a
+  // phantom call.
+  type XmlMatch = { calls: ToolCall[]; start: number; end: number };
+  const matches: XmlMatch[] = [];
+  let seq = 0;
+  let m: RegExpExecArray | null;
 
   // Pattern A: paired name + args tags.
   // Matches `<function-name>X</function-name> [whitespace, prose,
@@ -429,24 +477,29 @@ export function extractXmlToolCalls(
   // braces). Both tags accept hyphen OR underscore.
   const pairedRe =
     /<(function[-_]name|name)>\s*([^<\s][^<]*?)\s*<\/\1>\s*<(arguments|args)>\s*([\s\S]*?)\s*<\/\3>/gi;
-  let m: RegExpExecArray | null;
   while ((m = pairedRe.exec(content)) !== null) {
     const name = m[2].trim();
     if (!knownNames.has(name)) continue;
     const argsStr = parseArgsLoose(m[4].trim());
     if (argsStr === null) continue;
-    calls.push({
-      id: `xml_${Date.now()}_${calls.length}`,
-      name,
-      arguments: argsStr,
+    matches.push({
+      calls: [{ id: `xml_${Date.now()}_${seq++}`, name, arguments: argsStr }],
+      start: m.index,
+      end: m.index + m[0].length,
     });
-    removeSpans.push({ start: m.index, end: m.index + m[0].length });
   }
 
   // Pattern B: single wrapper tag with embedded JSON.
   // `<tool_call>{"name":"X","arguments":{...}}</tool_call>` —
-  // Hermes 3 / NousResearch checkpoints emit this shape.
-  const wrapperRe = /<(tool[_-]?call)>\s*([\s\S]*?)\s*<\/\1>/gi;
+  // Hermes 3 / NousResearch checkpoints emit this. We also accept
+  // the plural `<tools>` / bare `<tool>` / `<function_call>`
+  // envelopes (DeepSeek-Coder-v2 and other emulated-tier models emit
+  // `<tools>{"name":...,"arguments":...}</tools>`), optional tag
+  // attributes, and a JSON ARRAY body wrapping several calls in one
+  // envelope. The known-tool-name guard keeps this from
+  // false-matching ordinary prose.
+  const wrapperRe =
+    /<(tool[_-]?calls?|tools?|function[_-]?call)(?:\s+[^>]*)?>\s*([\s\S]*?)\s*<\/\1>/gi;
   while ((m = wrapperRe.exec(content)) !== null) {
     const body = m[2].trim();
     let parsed: unknown;
@@ -459,22 +512,31 @@ export function extractXmlToolCalls(
         continue;
       }
     }
-    if (!parsed || typeof parsed !== "object") continue;
-    const obj = parsed as {
-      name?: unknown;
-      arguments?: unknown;
-      args?: unknown;
-    };
-    if (typeof obj.name !== "string") continue;
-    if (!knownNames.has(obj.name)) continue;
-    const args = obj.arguments ?? obj.args ?? {};
-    const argsStr = typeof args === "string" ? args : JSON.stringify(args);
-    calls.push({
-      id: `xmlwrap_${Date.now()}_${calls.length}`,
-      name: obj.name,
-      arguments: argsStr,
-    });
-    removeSpans.push({ start: m.index, end: m.index + m[0].length });
+    // A single call object OR an array of them.
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const calls: ToolCall[] = [];
+    for (const cand of items) {
+      if (!cand || typeof cand !== "object") continue;
+      const obj = cand as {
+        name?: unknown;
+        arguments?: unknown;
+        args?: unknown;
+      };
+      if (typeof obj.name !== "string") continue;
+      if (!knownNames.has(obj.name)) continue;
+      const args = obj.arguments ?? obj.args ?? {};
+      const argsStr = typeof args === "string" ? args : JSON.stringify(args);
+      calls.push({
+        id: `xmlwrap_${Date.now()}_${seq++}`,
+        name: obj.name,
+        arguments: argsStr,
+      });
+    }
+    // Only record the envelope (span + calls) when at least one call
+    // inside it was a real, known tool.
+    if (calls.length > 0) {
+      matches.push({ calls, start: m.index, end: m.index + m[0].length });
+    }
   }
 
   // Pattern C: bare <question>/<ask>/<clarification>/<user_input>
@@ -483,7 +545,8 @@ export function extractXmlToolCalls(
   // `request_user_input` tool through the structured channel.
   // We synthesise the tool call so the clarification sheet fires
   // and the user sees a real input prompt instead of a wall of
-  // XML.
+  // XML. Overlap with a wrapper/paired match is handled by the
+  // outermost-wins resolution below (no manual check needed).
   //
   // Only fires when `request_user_input` is in the registry — host
   // builds without the clarification tool (rare) won't synthesise.
@@ -493,34 +556,49 @@ export function extractXmlToolCalls(
     while ((m = questionRe.exec(content)) !== null) {
       const question = m[2].trim();
       if (!question) continue;
-      // De-dupe: skip if a span we already extracted overlaps
-      // this one (defensive — the regexes are disjoint in
-      // practice, but the safety check is cheap).
-      const start = m.index;
-      const end = m.index + m[0].length;
-      const overlaps = removeSpans.some(
-        (s) => !(end <= s.start || start >= s.end),
-      );
-      if (overlaps) continue;
-      calls.push({
-        id: `xmlq_${Date.now()}_${calls.length}`,
-        name: "request_user_input",
-        arguments: JSON.stringify({ question }),
+      matches.push({
+        calls: [
+          {
+            id: `xmlq_${Date.now()}_${seq++}`,
+            name: "request_user_input",
+            arguments: JSON.stringify({ question }),
+          },
+        ],
+        start: m.index,
+        end: m.index + m[0].length,
       });
-      removeSpans.push({ start, end });
     }
   }
 
-  if (calls.length === 0) return null;
+  if (matches.length === 0) return null;
 
-  // Splice every matched span out of the content (from the back so
-  // earlier offsets stay valid).
-  removeSpans.sort((a, b) => a.start - b.start);
-  let cleaned = content;
-  for (let i = removeSpans.length - 1; i >= 0; i--) {
-    cleaned = cleaned.slice(0, removeSpans[i].start) + cleaned.slice(removeSpans[i].end);
+  // Resolve overlaps, preferring the OUTERMOST (longest, earliest)
+  // span. Sort by start asc, then end desc so a container is visited
+  // before anything nested inside it; greedily accept a match only
+  // when it doesn't overlap an already-accepted span. This drops the
+  // nested A-span (and its phantom call) in favour of the enclosing
+  // wrapper.
+  matches.sort((a, b) => a.start - b.start || b.end - a.end);
+  const accepted: XmlMatch[] = [];
+  for (const cand of matches) {
+    const overlaps = accepted.some(
+      (s) => !(cand.end <= s.start || cand.start >= s.end),
+    );
+    if (!overlaps) accepted.push(cand);
   }
-  return { toolCalls: calls, cleaned: cleaned.trim() };
+  if (accepted.length === 0) return null;
+
+  // Document order for the dispatched calls + the splice. Accepted
+  // spans are now guaranteed disjoint, so back-to-front splicing
+  // over the original offsets is safe.
+  accepted.sort((a, b) => a.start - b.start);
+  const toolCalls = accepted.flatMap((mm) => mm.calls);
+  let cleaned = content;
+  for (let i = accepted.length - 1; i >= 0; i--) {
+    cleaned =
+      cleaned.slice(0, accepted[i].start) + cleaned.slice(accepted[i].end);
+  }
+  return { toolCalls, cleaned: cleaned.trim() };
 }
 
 /// Parse an args string from inside an `<arguments>` tag. Returns
