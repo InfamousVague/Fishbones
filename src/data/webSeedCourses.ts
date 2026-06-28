@@ -513,7 +513,16 @@ function starterUrl(path: string): string {
 /// V35 — TRPL `create-package-exercise` now ships a real two-file
 /// reference solution (src/lib.rs + src/main.rs) instead of collapsing
 /// the package to one inline-module file; bump re-fetches the lesson.
-const SEED_VERSION = 35;
+/// V36 — Force re-seed to flush stale guessing-game lessons. The V24
+/// `rand` 0.8→0.9 migration ("Generate and Print a Secret Number",
+/// "Compare Guess to Secret Number", et al.) is correct on the server
+/// JSON, but returning visitors whose IndexedDB had already settled on
+/// the prior SEED_VERSION never re-fetched it — so their cached copy
+/// still runs `rand::thread_rng().gen_range(…)`, which the Playground's
+/// rand 0.9 now rejects with "cannot find function thread_rng in crate
+/// rand". Bumping forces every returning visitor to re-seed from the
+/// corrected JSON (no content change this bump — purely a cache flush).
+const SEED_VERSION = 36;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +
