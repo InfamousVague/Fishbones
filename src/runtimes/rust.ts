@@ -151,6 +151,61 @@ async function runRustLocal(
   }
 }
 
+/// Path-root identifiers that are NOT external crates: the std family,
+/// the path keywords, and the primitive types (so `u32::MAX`, `i64::from`,
+/// `str::len` don't read as crates).
+const RUST_PATH_BUILTINS = new Set([
+  "std", "core", "alloc", "crate", "self", "super", "Self",
+  "u8", "u16", "u32", "u64", "u128", "usize",
+  "i8", "i16", "i32", "i64", "i128", "isize",
+  "f32", "f64", "bool", "char", "str",
+]);
+
+/// Heuristic: does this Rust source pull in an EXTERNAL crate (rand,
+/// serde, tokio, …)? The local fast path compiles a bare `.rs` with
+/// `rustc` and links no crates, so a lesson that needs one — the
+/// canonical case is The Rust Book's guessing game using
+/// `rand::random_range` — can ONLY build on the Playground, which ships
+/// the top-100 crates. We detect external-crate path roots and route
+/// those straight to the Playground even when a local toolchain exists,
+/// instead of surfacing a misleading "unresolved module or unlinked
+/// crate `rand`" compile error.
+///
+/// A path root is the first segment of a `use X::…` / `extern crate X` /
+/// bare `X::…` path. Crate + module names are snake_case (lowercase-
+/// initial); types/enums/`Self` are PascalCase, so we only consider
+/// lowercase roots, then exclude the std family + primitives (above) and
+/// any module declared locally with `mod`. Whatever's left is an external
+/// crate. False positives are harmless — they just send a std-only lesson
+/// through the (slower) Playground.
+export function usesExternalCrate(code: string): boolean {
+  // Strip comments + string/char literals so crate-looking text inside
+  // them can't trigger a false match.
+  const src = code
+    .replace(/\/\/[^\n]*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/r#*"[\s\S]*?"#*/g, '""')
+    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/'(?:\\.|[^'\\])'/g, "''");
+  const localMods = new Set<string>();
+  for (const m of src.matchAll(/\bmod\s+([a-z_][a-z0-9_]*)/g)) localMods.add(m[1]);
+  const isExternal = (root: string) =>
+    !RUST_PATH_BUILTINS.has(root) && !localMods.has(root);
+  for (const m of src.matchAll(/\bextern\s+crate\s+([a-z_][a-z0-9_]*)/g)) {
+    if (isExternal(m[1])) return true;
+  }
+  for (const m of src.matchAll(/\buse\s+([a-z_][a-z0-9_]*)\s*::/g)) {
+    if (isExternal(m[1])) return true;
+  }
+  // Bare `foo::…` root — preceded by a non-path char so middle segments
+  // (the `bar` in `foo::bar`) and method turbofish (`.collect::<…>`) don't
+  // match.
+  for (const m of src.matchAll(/(?:^|[^A-Za-z0-9_:.])([a-z_][a-z0-9_]*)\s*::/gm)) {
+    if (isExternal(m[1])) return true;
+  }
+  return false;
+}
+
 export async function runRust(code: string, testCode?: string): Promise<RunResult> {
   const start = performance.now();
   const isTest = !!testCode;
@@ -171,7 +226,13 @@ export async function runRust(code: string, testCode?: string): Promise<RunResul
     // run locally, use the Playground" (toolchain vanished / IPC
     // failure); a compile error or failing test comes back as a
     // real `PlaygroundResponse` and skips the network entirely.
-    if (await probeRustc()) {
+    //
+    // EXCEPT lessons that pull in an external crate (rand, serde, …):
+    // bare `rustc` links no crates, so those only build on the
+    // Playground (top-100 crates). Routing them there avoids a
+    // misleading "unresolved module or unlinked crate `rand`" error —
+    // the guessing-game lesson is the canonical case.
+    if (!usesExternalCrate(merged) && (await probeRustc())) {
       const local = await runRustLocal(merged, isTest);
       if (local) return buildResult(local, isTest, start);
     }
