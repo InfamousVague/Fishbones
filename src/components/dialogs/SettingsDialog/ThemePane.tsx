@@ -5,6 +5,13 @@ import {
   loadHue,
   applyHue,
   DEFAULT_GG_HUE,
+  type ScaleKey,
+  SCALE_KEYS,
+  SCALE_BOUNDS,
+  DEFAULT_SCALES,
+  loadScale,
+  applyScale,
+  resetScales,
 } from "../../../theme/themes";
 import { themeThumb } from "../ThemePicker/themeThumbs";
 import { THEME_PREVIEW } from "../../../theme/themePreviews";
@@ -27,6 +34,19 @@ const VARIANT_BLURB_KEYS: Record<VariantId, string> = {
   grid: "settings.sidebarGridBlurb",
 };
 
+/// The Appearance scale knobs, in display order. Each drives one
+/// `--libre-<key>-scale` multiplier over the design-token scales in
+/// scale-tokens.css. Bounds come from SCALE_BOUNDS; all use a 5% step and
+/// render their value as a percentage (100% = default).
+const SCALE_ROWS: { key: ScaleKey; labelKey: string; subKey: string }[] = [
+  { key: "font", labelKey: "settings.scaleFont", subKey: "settings.scaleFontSub" },
+  { key: "space", labelKey: "settings.scaleSpace", subKey: "settings.scaleSpaceSub" },
+  { key: "radius", labelKey: "settings.scaleRadius", subKey: "settings.scaleRadiusSub" },
+  { key: "border", labelKey: "settings.scaleBorder", subKey: "settings.scaleBorderSub" },
+  { key: "motion", labelKey: "settings.scaleMotion", subKey: "settings.scaleMotionSub" },
+  { key: "blur", labelKey: "settings.scaleBlur", subKey: "settings.scaleBlurSub" },
+];
+
 export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
   const [sidebarVariant, setSidebarVariant] = useSidebarVariant();
   const t = useT();
@@ -36,6 +56,26 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
   const updateHue = (next: number) => {
     setHue(next);
     applyHue(next);
+  };
+  // Appearance scale knobs — each writes a `--libre-<k>-scale` multiplier
+  // inline on <html> live (and persists it), reshaping the whole UI.
+  const [scales, setScales] = useState<Record<ScaleKey, number>>(
+    () =>
+      Object.fromEntries(
+        SCALE_KEYS.map((k) => [k, loadScale(k)]),
+      ) as Record<ScaleKey, number>,
+  );
+  const updateScale = (k: ScaleKey, next: number) => {
+    setScales((prev) => ({ ...prev, [k]: next }));
+    applyScale(k, next);
+  };
+  const resetAllScales = () => {
+    resetScales();
+    setScales(
+      Object.fromEntries(
+        SCALE_KEYS.map((k) => [k, DEFAULT_SCALES[k]]),
+      ) as Record<ScaleKey, number>,
+    );
   };
   return (
     <SettingsPage
@@ -70,7 +110,7 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
       <SettingsCard title={t("settings.themeCard")}>
         <div
           className="libre-settings-model-group libre-settings-model-group--scroll"
-          style={{ padding: "14px 20px" }}
+          style={{ padding: "var(--libre-space-14) var(--libre-space-20)" }}
         >
           {THEMES.map((t) => {
             const thumb = themeThumb(t.id);
@@ -207,7 +247,7 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
       <SettingsCard title={t("settings.sidebarLayoutCard")}>
         <div
           className="libre-settings-model-group"
-          style={{ padding: "14px 20px" }}
+          style={{ padding: "var(--libre-space-14) var(--libre-space-20)" }}
         >
           {VARIANTS.map((v) => (
             <label
@@ -229,6 +269,68 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
               </div>
             </label>
           ))}
+        </div>
+      </SettingsCard>
+
+      {/* Scale & motion — global multipliers over the generated design-token
+          scales (spacing / type / radius / border / motion / blur). Each
+          slider writes --libre-<k>-scale inline on <html>; because the tokens
+          are calc(raw * scale), the whole interface reshapes live. */}
+      <SettingsCard title={t("settings.scaleCard")}>
+        {SCALE_ROWS.map((row) => {
+          const [min, max] = SCALE_BOUNDS[row.key];
+          const val = scales[row.key];
+          return (
+            <div
+              key={row.key}
+              className="libre-settings-row libre-settings-row--no-icon"
+            >
+              <div className="libre-settings-row__body">
+                <span className="libre-settings-row__label">
+                  {t(row.labelKey)}
+                </span>
+                <span className="libre-settings-row__sub">{t(row.subKey)}</span>
+              </div>
+              <div className="libre-settings-row__control">
+                <div className="libre-settings-scale">
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={0.05}
+                    value={val}
+                    className="libre-settings-scale__slider"
+                    aria-label={t(row.labelKey)}
+                    onChange={(e) =>
+                      updateScale(row.key, Number(e.target.value))
+                    }
+                  />
+                  <span className="libre-settings-scale__val">
+                    {t("settings.scaleValue", { percent: Math.round(val * 100) })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div className="libre-settings-row libre-settings-row--no-icon">
+          <div className="libre-settings-row__body">
+            <span className="libre-settings-row__label">
+              {t("settings.scaleReset")}
+            </span>
+            <span className="libre-settings-row__sub">
+              {t("settings.scaleResetSub")}
+            </span>
+          </div>
+          <div className="libre-settings-row__control">
+            <button
+              type="button"
+              className="libre-settings-hue__reset"
+              onClick={resetAllScales}
+            >
+              {t("settings.accentHueReset")}
+            </button>
+          </div>
         </div>
       </SettingsCard>
     </SettingsPage>

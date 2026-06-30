@@ -7,7 +7,7 @@
 .libre-chgrid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
   /* No padding — the parent `libre__course-body` already insets
      the chapter content from the sidebar edges. Adding more here
      would double-pad and crowd the cells. */
@@ -18,7 +18,7 @@
 .libre-chgrid__chapters {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 .libre-chgrid__chapter {
@@ -29,7 +29,7 @@
      like a separate panel. */
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 /* The chapter head is a clickable affordance — clicking it toggles
@@ -41,32 +41,32 @@
 .libre-chgrid__chapter-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   min-width: 0;
   width: 100%;
-  padding: 4px 2px;
-  margin: 0;
+  padding: var(--libre-space-4) var(--libre-space-2);
+  margin: var(--libre-space-0);
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--libre-radius-4);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 100ms ease;
+  transition: background var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 .libre-chgrid__chapter-head:hover {
   background: color-mix(
     in srgb,
-    var(--color-text-primary, #fff) 6%,
+    var(--color-text-primary, var(--libre-c-white)) 6%,
     transparent
   );
 }
 
 .libre-chgrid__chapter-head:focus-visible {
-  outline: 2px solid var(--color-accent, #d4c5a1);
-  outline-offset: 1px;
+  outline: var(--libre-bw-2) solid var(--color-accent, var(--libre-c-d4c5a1));
+  outline-offset: var(--libre-size-1);
 }
 
 /* Chevron sits before the title — `chevronRight` when collapsed,
@@ -78,7 +78,7 @@
    transform-origin / will-change properties on every chapter row. */
 .libre-chgrid__chapter-chevron {
   flex-shrink: 0;
-  color: var(--color-text-tertiary, #888);
+  color: var(--color-text-tertiary, var(--libre-c-888888));
 }
 
 .libre-chgrid__chapter-title {
@@ -87,9 +87,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
@@ -101,25 +101,25 @@
   display: inline-block;
   position: relative;
   flex-shrink: 0;
-  width: 36px;
-  height: 3px;
+  width: var(--libre-size-36);
+  height: var(--libre-size-3);
   background: color-mix(in srgb, var(--color-border-default) 90%, transparent);
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
   overflow: hidden;
 }
 
 .libre-chgrid__chapter-bar-fill {
   position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--color-accent, #d4c5a1);
-  border-radius: 2px;
-  transition: width 200ms ease;
+  inset: var(--libre-space-0) auto var(--libre-space-0) var(--libre-space-0);
+  background: var(--color-accent, var(--libre-c-d4c5a1));
+  border-radius: var(--libre-radius-2);
+  transition: width var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-chgrid__chapter-count {
   flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
 }
@@ -134,8 +134,8 @@
      production sidebar's content width. `minmax(28px, 1fr)` lets
      the grid stretch each row to fill so the right edge stays
      clean. */
-  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--libre-size-28), 1fr));
+  gap: var(--libre-space-4);
 }
 
 .libre-chgrid__cell {
@@ -154,31 +154,31 @@
      Icon size="base" (~18px) and the cells are ~28px, so a flat
      2px gutter leaves a clean visible margin without crowding
      the glyph. (Was 4px when the icon was xs ≈ 12px.) */
-  padding: 2px;
+  padding: var(--libre-space-2);
   aspect-ratio: 1 / 1;
   /* Subtle lifted fill so the cell reads against the dark chapter
      card. The earlier `background: transparent` left the cells
      near-invisible against the bg-primary-tinted card background;
      a translucent bg-secondary fill (15-20%) pushes the cell up a
      contrast notch without committing to a hardcoded grey. */
-  background: color-mix(in srgb, var(--color-bg-secondary, #1a1a1a) 60%, transparent);
+  background: color-mix(in srgb, var(--color-bg-secondary, var(--libre-c-1a1a1a)) 60%, transparent);
   /* Stronger border than the rail's default — the chapter card's
      own border already uses border-default, so the cells need
      something a hair brighter to read as distinct elements rather
      than vanishing into the card outline. */
-  border: 1px solid color-mix(in srgb, var(--gg-fill-white) 14%, transparent);
-  border-radius: 5px;
+  border: var(--libre-bw-1) solid color-mix(in srgb, var(--gg-fill-white) 14%, transparent);
+  border-radius: var(--libre-radius-5);
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition:
-    background 100ms ease,
-    border-color 100ms ease,
-    color 100ms ease,
-    transform 100ms ease;
+    background var(--libre-dur-100) var(--libre-ease-ease),
+    border-color var(--libre-dur-100) var(--libre-ease-ease),
+    color var(--libre-dur-100) var(--libre-ease-ease),
+    transform var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 /* Hover state — slight scale-up only. The earlier
@@ -196,7 +196,7 @@
    the icon out. We let each state's resting colour stand on hover
    and let the scale + border-colour do the visual work. */
 .libre-chgrid__cell:hover {
-  border-color: var(--color-accent, #d4c5a1);
+  border-color: var(--color-accent, var(--libre-c-d4c5a1));
   transform: scale(1.12);
 }
 
@@ -210,9 +210,9 @@
 }
 
 .libre-chgrid__cell--done {
-  background: var(--color-accent, #d4c5a1);
-  border-color: var(--color-accent, #d4c5a1);
-  color: var(--color-bg-primary, #0a0a0a);
+  background: var(--color-accent, var(--libre-c-d4c5a1));
+  border-color: var(--color-accent, var(--libre-c-d4c5a1));
+  color: var(--color-bg-primary, var(--libre-c-0a0a0a));
 }
 
 /* Current cell — accent-tinted background + accent border. No
@@ -222,18 +222,18 @@
    tinted fill + solid border are enough on their own to mark the
    current lesson without competing with the surrounding cells. */
 .libre-chgrid__cell--current {
-  background: color-mix(in srgb, var(--color-accent, #d4c5a1) 20%, transparent);
-  border-color: var(--color-accent, #d4c5a1);
-  color: var(--color-accent, #d4c5a1);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4c5a1)) 20%, transparent);
+  border-color: var(--color-accent, var(--libre-c-d4c5a1));
+  color: var(--color-accent, var(--libre-c-d4c5a1));
 }
 
 .libre-chgrid__cell-num {
   display: inline-block;
-  line-height: 1;
+  line-height: var(--libre-lh-1);
   /* Sit above the optional hologram overlay so the lesson
      number remains crisp on completed cells. */
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
 }
 
 /* Lift the icon glyph above the hologram on completed cells so
@@ -242,7 +242,7 @@
 .libre-chgrid__cell .icon,
 .libre-chgrid__cell svg {
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
 }
 
 /* The `.libre-chgrid__cell-holo` hologram-overlay slot was

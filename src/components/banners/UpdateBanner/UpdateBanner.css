@@ -5,43 +5,43 @@
 
 .libre-update-banner {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 200;
+  right: var(--libre-space-16);
+  bottom: var(--libre-space-16);
+  z-index: var(--libre-z-200);
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  width: 360px;
-  max-width: calc(100vw - 32px);
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  width: var(--libre-size-360);
+  max-width: calc(100vw - var(--libre-size-32));
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-  font-size: 12.5px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+  box-shadow: var(--libre-shadow-40);
+  font-size: var(--libre-fs-12-5);
   /* Slide up from the bottom on mount. Single short keyframe so the
    * appearance reads as "something has arrived" rather than a
    * jolt — keeping the transition subtle so it doesn't pull eyes
    * away from active editor work. */
-  animation: fbn-update-banner-in 220ms ease-out both;
+  animation: fbn-update-banner-in var(--libre-dur-220) var(--libre-ease-ease-out) both;
 }
 
 @keyframes fbn-update-banner-in {
   0% {
-    opacity: 0;
-    transform: translateY(8px);
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-8));
   }
   100% {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0);
   }
 }
 
 .libre-update-banner__icon {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -49,8 +49,8 @@
   /* Accent-tinted icon plate. Reads from --color-accent (bone-amber
      on default-dark) so the banner picks up the active theme palette
      instead of the legacy periwinkle that was hard-coded here. */
-  background: color-mix(in srgb, var(--color-accent, #6c8cff) 18%, transparent);
-  color: var(--color-accent, #6c8cff);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-6c8cff)) 18%, transparent);
+  color: var(--color-accent, var(--libre-c-6c8cff));
 }
 
 .libre-update-banner__body {
@@ -59,54 +59,54 @@
 }
 
 .libre-update-banner__title {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-neg-0-005em);
   color: var(--color-text-primary);
 }
 
 .libre-update-banner__sub {
-  margin-top: 2px;
-  font-size: 11.5px;
+  margin-top: var(--libre-space-2);
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-tertiary);
-  line-height: 1.4;
+  line-height: var(--libre-lh-1-4);
 }
 
 /* Progress bar — full-width track with an animated fill. The width
  * is set inline from the React state so the bar advances smoothly
  * as bytes arrive. */
 .libre-update-banner__progress {
-  margin-top: 6px;
+  margin-top: var(--libre-space-6);
   width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  height: var(--libre-size-4);
+  background: var(--libre-c-rgba-255-255-255-0-08);
   border-radius: var(--libre-radius-pill);
   overflow: hidden;
 }
 
 .libre-update-banner__progress-bar {
   height: 100%;
-  background: var(--color-accent, #6c8cff);
+  background: var(--color-accent, var(--libre-c-6c8cff));
   border-radius: var(--libre-radius-pill);
-  transition: width 120ms ease-out;
+  transition: width var(--libre-dur-120) var(--libre-ease-ease-out);
 }
 
 .libre-update-banner__actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--libre-space-4);
   margin-left: auto;
 }
 
 .libre-update-banner__btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
+  gap: var(--libre-space-4);
+  padding: var(--libre-space-5) var(--libre-space-10);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid transparent;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  border: var(--libre-bw-1) solid transparent;
   border-radius: var(--libre-radius-sm);
   cursor: pointer;
   transition:
@@ -116,27 +116,27 @@
 }
 
 .libre-update-banner__btn--primary {
-  background: rgba(108, 140, 255, 0.18);
-  color: #a8c2ff;
-  border-color: rgba(108, 140, 255, 0.4);
+  background: var(--libre-c-rgba-108-140-255-0-18);
+  color: var(--libre-c-a8c2ff);
+  border-color: var(--libre-c-rgba-108-140-255-0-4);
 }
 
 .libre-update-banner__btn--primary:hover {
-  background: rgba(108, 140, 255, 0.28);
-  color: #c5d6ff;
+  background: var(--libre-c-rgba-108-140-255-0-28);
+  color: var(--libre-c-c5d6ff);
 }
 
 .libre-update-banner__btn--ghost {
   background: transparent;
   color: var(--color-text-tertiary);
-  width: 24px;
-  height: 24px;
-  padding: 0;
+  width: var(--libre-size-24);
+  height: var(--libre-size-24);
+  padding: var(--libre-space-0);
   justify-content: center;
 }
 
 .libre-update-banner__btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--libre-c-rgba-255-255-255-0-06);
   color: var(--color-text-primary);
 }
 
@@ -154,20 +154,18 @@
   /* Reposition to the top so the AI orb doesn't compete for the
      bottom-right corner. Centred horizontally so it reads as a
      system-wide announcement rather than a corner toast. */
-  top: 16px;
+  top: var(--libre-space-16);
   bottom: auto;
   right: 50%;
   transform: translateX(50%);
-  width: 420px;
-  padding: 14px 18px;
+  width: var(--libre-size-420);
+  padding: var(--libre-space-14) var(--libre-space-18);
   background: var(--color-bg-primary);
-  border-color: var(--color-accent, #6c8cff);
-  box-shadow:
-    0 18px 48px rgba(0, 0, 0, 0.55),
-    0 0 0 1px var(--color-accent, #6c8cff);
+  border-color: var(--color-accent, var(--libre-c-6c8cff));
+  box-shadow: var(--libre-shadow-48);
   animation:
-    fbn-update-banner-in 220ms ease-out both,
-    fbn-update-banner-pulse 2.4s ease-in-out 220ms infinite;
+    fbn-update-banner-in var(--libre-dur-220) var(--libre-ease-ease-out) both,
+    fbn-update-banner-pulse var(--libre-dur-2400) var(--libre-ease-ease-in-out) var(--libre-dur-220) infinite;
 }
 
 /* Soft accent-coloured ring breath — wakes the eye every couple
@@ -175,38 +173,32 @@
 @keyframes fbn-update-banner-pulse {
   0%,
   100% {
-    box-shadow:
-      0 18px 48px rgba(0, 0, 0, 0.55),
-      0 0 0 1px var(--color-accent, #6c8cff),
-      0 0 0 0 color-mix(in srgb, var(--color-accent, #6c8cff) 40%, transparent);
+    box-shadow: var(--libre-shadow-49);
   }
   50% {
-    box-shadow:
-      0 18px 48px rgba(0, 0, 0, 0.55),
-      0 0 0 1px var(--color-accent, #6c8cff),
-      0 0 0 8px color-mix(in srgb, var(--color-accent, #6c8cff) 0%, transparent);
+    box-shadow: var(--libre-shadow-50);
   }
 }
 
 /* Bigger restart button — the primary affordance now dominates
  * the action row. Includes a refresh icon for instant recognition. */
 .libre-update-banner__btn--restart {
-  padding: 8px 14px;
-  font-size: 13px;
-  background: var(--color-accent, #6c8cff);
-  color: var(--color-accent-fg, #0d0a14);
-  border-color: var(--color-accent, #6c8cff);
+  padding: var(--libre-space-8) var(--libre-space-14);
+  font-size: var(--libre-fs-13);
+  background: var(--color-accent, var(--libre-c-6c8cff));
+  color: var(--color-accent-fg, var(--libre-c-0d0a14));
+  border-color: var(--color-accent, var(--libre-c-6c8cff));
 }
 
 .libre-update-banner__btn--restart:hover {
-  background: color-mix(in srgb, var(--color-accent, #6c8cff) 88%, white);
-  border-color: color-mix(in srgb, var(--color-accent, #6c8cff) 88%, white);
-  color: var(--color-accent-fg, #0d0a14);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-6c8cff)) 88%, white);
+  border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-6c8cff)) 88%, white);
+  color: var(--color-accent-fg, var(--libre-c-0d0a14));
 }
 
 .libre-update-banner__btn--restart:focus-visible {
-  outline: 2px solid var(--color-accent, #6c8cff);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) solid var(--color-accent, var(--libre-c-6c8cff));
+  outline-offset: var(--libre-size-2);
 }
 
 @media (prefers-reduced-motion: reduce) {

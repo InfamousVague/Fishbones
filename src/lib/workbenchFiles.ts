@@ -152,6 +152,61 @@ export function deriveSolutionFiles(lesson: ExerciseLesson | MixedLesson): Workb
   ];
 }
 
+/// `[pub] mod <name>;` on its own line — a Rust module declaration that
+/// loads the body from a sibling file (`<name>.rs`). The `{ … }` inline form
+/// ends in `{`, not `;`, so it never matches.
+const RUST_MOD_DECL =
+  /^([ \t]*)((?:pub(?:\([^)]*\))?[ \t]+)?)mod[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*;[ \t]*$/gm;
+
+/// Resolve sibling-file Rust modules into one source string. The Playground
+/// (and bare `rustc`) compile a SINGLE file, but the "Extract Modules to
+/// Separate Files" lesson — and any split-module exercise — asks the learner
+/// to put `mod foo;` in one file and the body in `foo.rs`. Plain `cat`
+/// concatenation breaks that: the declaration looks for an on-disk file that
+/// isn't there, and `foo.rs`'s items land at top level instead of inside
+/// `mod foo`. So we inline each `[pub] mod <name>;` whose name matches a
+/// sibling `<name>.rs` as `[pub] mod <name> { <body> }` (recursively, for
+/// nested splits) — exactly what rustc's module loader does — and drop the
+/// inlined files from the output. A `mod foo;` with no matching sibling is
+/// left untouched so the learner still gets the honest "file not found for
+/// module `foo`" error. Files nothing declares a `mod` for (e.g. a `main.rs`
+/// beside an inline-module `lib.rs`, the create-package shape) still stack
+/// top-down with filename markers, so multi-file lessons that already worked
+/// are unaffected.
+function assembleRustModules(files: WorkbenchFile[]): string {
+  const byModName = new Map<string, WorkbenchFile>();
+  for (const f of files) {
+    const mod = f.name.replace(/^.*\//, "").replace(/\.rs$/, "");
+    if (!byModName.has(mod)) byModName.set(mod, f);
+  }
+  // Which files are pulled in as a module body (so they're not also emitted
+  // at top level). Computed before rendering so root selection is stable even
+  // when a `mod` declaration points at an earlier-listed file.
+  const inlined = new Set<WorkbenchFile>();
+  const mark = (f: WorkbenchFile, seen: Set<WorkbenchFile>) => {
+    for (const m of f.content.matchAll(RUST_MOD_DECL)) {
+      const target = byModName.get(m[3]);
+      if (target && target !== f && !seen.has(target)) {
+        inlined.add(target);
+        mark(target, new Set(seen).add(target));
+      }
+    }
+  };
+  for (const f of files) mark(f, new Set([f]));
+  const render = (f: WorkbenchFile, seen: Set<WorkbenchFile>): string =>
+    f.content.replace(RUST_MOD_DECL, (whole, indent, vis, name) => {
+      const target = byModName.get(name);
+      if (!target || target === f || seen.has(target)) return whole;
+      return `${indent}${vis}mod ${name} {\n${render(target, new Set(seen).add(target))}\n}`;
+    });
+  const roots = files.filter((f) => !inlined.has(f));
+  // Degenerate cycle (every file inlined): fall back to emitting them all.
+  const emit = roots.length > 0 ? roots : files;
+  const rendered = emit.map((f) => ({ name: f.name, content: render(f, new Set([f])) }));
+  if (rendered.length === 1) return rendered[0].content;
+  return rendered.map((r) => `// ---- ${r.name} ----\n${r.content}`).join("\n\n");
+}
+
 /// Build the single source string passed to `runCode` from a set of files.
 /// Only files matching the lesson's runnable language get concatenated; the
 /// rest (e.g. CSS in a web-flavored JS lesson) are ignored by the runner but
@@ -168,6 +223,9 @@ export function assembleRunnable(files: WorkbenchFile[], language: LanguageId): 
     return "";
   }
   if (runnable.length === 1) return runnable[0].content;
+  // Rust resolves `mod foo;` against a sibling `foo.rs` so split-module
+  // lessons compile as one crate (the Playground is single-file).
+  if (language === "rust") return assembleRustModules(runnable);
   // Separate files with filename comments so runtime errors can hint at which
   // file the trace maps to. Works across every currently-supported runtime
   // because they all use `//` line comments.

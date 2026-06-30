@@ -4,13 +4,13 @@
    (the fixed `.libre__bootloader` overlay). */
 .libre-loadscreen {
   position: absolute;
-  inset: 0;
-  z-index: 1;
+  inset: var(--libre-space-0);
+  z-index: var(--libre-z-1);
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: radial-gradient(120% 90% at 50% 30%, #16161d 0%, #0b0b0f 55%, #060608 100%);
-  color: #f3f4f8;
+  background: radial-gradient(120% 90% at 50% 30%, var(--libre-c-16161d) 0%, var(--libre-c-0b0b0f) 55%, var(--libre-c-060608) 100%);
+  color: var(--libre-c-f3f4f8);
   -webkit-user-select: none;
   user-select: none;
 }
@@ -19,7 +19,7 @@
    viewport and round the panel so the transparent window's corners show. */
 html.libre-splash-mode .libre-loadscreen {
   position: fixed;
-  border-radius: 18px;
+  border-radius: var(--libre-radius-18);
 }
 
 /* The brand halftone (hue → dot grid in the top-left corner), matching the
@@ -28,92 +28,92 @@ html.libre-splash-mode .libre-loadscreen {
    GhostWire's cool blue when --gg-* isn't defined (other themes). */
 .libre-loadscreen-halftone {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 240px;
-  z-index: 0;
+  top: var(--libre-space-0);
+  left: var(--libre-space-0);
+  width: var(--libre-size-240);
+  height: var(--libre-size-240);
+  z-index: var(--libre-z-0);
   pointer-events: none;
   display: block;
   /* Dots are drawn on a <canvas> (HalftoneCanvas) — size-graded from the
      corner, like the app-shell halftone. */
-  opacity: 0.32;
+  opacity: var(--libre-opacity-0-32);
 }
 
 /* Soft accent aura behind the mark. */
 .libre-loadscreen-glow {
   position: absolute;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
+  width: var(--libre-size-420);
+  height: var(--libre-size-420);
+  border-radius: var(--libre-radius-circle);
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--gg-accent, #f3a361) 24%, transparent) 0%,
+    color-mix(in srgb, var(--gg-accent, var(--libre-c-f3a361)) 24%, transparent) 0%,
     transparent 68%
   );
-  filter: blur(14px);
-  opacity: 0.5;
-  animation: libre-loadscreen-breathe 3.4s ease-in-out infinite;
+  filter: blur(var(--libre-blur-14));
+  opacity: var(--libre-opacity-0-5);
+  animation: libre-loadscreen-breathe var(--libre-dur-3400) var(--libre-ease-ease-in-out) infinite;
   pointer-events: none;
 }
 
 .libre-loadscreen-body {
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  padding: 0 32px;
+  gap: var(--libre-space-22);
+  padding: var(--libre-space-0) var(--libre-space-32);
 }
 
 /* Brand loading mark — a 1/3 (120°) arc of the brand accent colour
    spinning continuously. Conic-gradient arc clipped to a thin ring by
    a radial mask (matches the inline preloader + shared LibreLoader). */
 .libre-loadscreen-mark {
-  --lw: 9px;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+  --lw: var(--libre-size-9);
+  width: var(--libre-size-96);
+  height: var(--libre-size-96);
+  border-radius: var(--libre-radius-circle);
   background: conic-gradient(
-    var(--gg-accent, hsl(18 74% 66%)) 0deg 120deg,
+    var(--gg-accent, var(--libre-c-hsl-1874-66)) 0deg 120deg,
     transparent 120deg 360deg
   );
-  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - var(--lw)), #000 calc(100% - var(--lw)));
-          mask: radial-gradient(farthest-side, #0000 calc(100% - var(--lw)), #000 calc(100% - var(--lw)));
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gg-accent, #f3a361) 34%, transparent));
-  animation: libre-loadscreen-spin 0.9s linear infinite;
+  -webkit-mask: radial-gradient(farthest-side, var(--libre-c-00000000) calc(100% - var(--lw)), var(--libre-c-black) calc(100% - var(--lw)));
+          mask: radial-gradient(farthest-side, var(--libre-c-00000000) calc(100% - var(--lw)), var(--libre-c-black) calc(100% - var(--lw)));
+  filter: drop-shadow(0 0 var(--libre-size-10) color-mix(in srgb, var(--gg-accent, var(--libre-c-f3a361)) 34%, transparent));
+  animation: libre-loadscreen-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
 }
 
 /* Slim progress track — determinate fill or an indeterminate sweep. */
 .libre-loadscreen-bar {
   position: relative;
-  width: 240px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.09);
+  width: var(--libre-size-240);
+  height: var(--libre-size-4);
+  border-radius: var(--libre-radius-pill);
+  background: var(--libre-c-rgba-255-255-255-0-09);
   overflow: hidden;
 }
 .libre-loadscreen-bar-fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: var(--libre-space-0) auto var(--libre-space-0) var(--libre-space-0);
   width: 0;
-  border-radius: 999px;
-  background: var(--gg-grad, linear-gradient(90deg, #ffffff, #f3a361));
-  transition: width 220ms ease;
+  border-radius: var(--libre-radius-pill);
+  background: var(--gg-grad, linear-gradient(90deg, var(--libre-c-white), var(--libre-c-f3a361)));
+  transition: width var(--libre-dur-220) var(--libre-ease-ease);
 }
 .libre-loadscreen-bar.is-indeterminate .libre-loadscreen-bar-fill {
   width: 40%;
   transition: none;
-  animation: libre-loadscreen-sweep 1.15s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  animation: libre-loadscreen-sweep var(--libre-dur-1150) var(--libre-ease-cb-10) infinite;
 }
 
 .libre-loadscreen-status {
-  font-size: 13px;
-  color: var(--color-text-secondary, #a4a4ad);
+  font-size: var(--libre-fs-13);
+  color: var(--color-text-secondary, var(--libre-c-a4a4ad));
   min-height: 1.1em;
   text-align: center;
-  letter-spacing: 0.01em;
+  letter-spacing: var(--libre-ls-0-01em);
 }
 
 @keyframes libre-loadscreen-spin {
@@ -132,11 +132,11 @@ html.libre-splash-mode .libre-loadscreen {
 @keyframes libre-loadscreen-breathe {
   0%,
   100% {
-    opacity: 0.36;
+    opacity: var(--libre-opacity-0-36);
     transform: scale(0.95);
   }
   50% {
-    opacity: 0.6;
+    opacity: var(--libre-opacity-0-6);
     transform: scale(1.05);
   }
 }

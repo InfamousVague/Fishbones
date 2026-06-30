@@ -16,9 +16,32 @@ import type { RealtimeSyncHandle } from "../hooks/useRealtimeSync";
 import type { Completion } from "../hooks/useProgress";
 import type { Course } from "../data/types";
 import SyncDebugPanel from "../components/dialogs/SettingsDialog/SyncDebugPanel";
-import { applyTheme, loadTheme, THEMES, type ThemeName } from "../theme/themes";
+import {
+  applyTheme,
+  loadTheme,
+  THEMES,
+  type ThemeName,
+  type ScaleKey,
+  SCALE_KEYS,
+  SCALE_BOUNDS,
+  DEFAULT_SCALES,
+  loadScale,
+  applyScale,
+  resetScales,
+} from "../theme/themes";
 import LanguageDropdown from "../components/LanguageDropdown/LanguageDropdown";
 import "./MobileSettings.css";
+
+/// Appearance scale knobs (same set as the desktop ThemePane). Plain
+/// English labels — MobileSettings doesn't route through i18n.
+const SCALE_META: { key: ScaleKey; label: string; sub: string }[] = [
+  { key: "font", label: "Text size", sub: "Scale all interface text." },
+  { key: "space", label: "Density", sub: "Padding, gaps and margins." },
+  { key: "radius", label: "Corner roundness", sub: "Square to softly rounded." },
+  { key: "border", label: "Border weight", sub: "Outline + divider thickness." },
+  { key: "motion", label: "Motion", sub: "Animation speed; 0% is off." },
+  { key: "blur", label: "Glass blur", sub: "Frosted-glass strength." },
+];
 
 interface Props {
   cloud: UseLibreCloud;
@@ -58,6 +81,27 @@ export default function MobileSettings({
     setTheme(next);
     applyTheme(next);
   }
+
+  // Appearance scale knobs — each writes a `--libre-<k>-scale` multiplier
+  // inline on <html> (and persists), reshaping the whole UI live.
+  const [scales, setScales] = useState<Record<ScaleKey, number>>(
+    () =>
+      Object.fromEntries(
+        SCALE_KEYS.map((k) => [k, loadScale(k)]),
+      ) as Record<ScaleKey, number>,
+  );
+  const updateScale = (k: ScaleKey, next: number) => {
+    setScales((prev) => ({ ...prev, [k]: next }));
+    applyScale(k, next);
+  };
+  const resetAllScales = () => {
+    resetScales();
+    setScales(
+      Object.fromEntries(
+        SCALE_KEYS.map((k) => [k, DEFAULT_SCALES[k]]),
+      ) as Record<ScaleKey, number>,
+    );
+  };
 
   const signedIn = cloud.signedIn === true;
   const user =
@@ -187,6 +231,49 @@ export default function MobileSettings({
             );
           })}
         </ul>
+      </section>
+
+      <section className="m-set__section">
+        <h3 className="m-set__section-title">Scale &amp; motion</h3>
+        <p className="m-set__blurb">
+          Every spacing, type size, corner, border, transition and blur is
+          driven by a global token — each dial moves them all in lockstep.
+          Choices persist across launches.
+        </p>
+        {SCALE_META.map((row) => {
+          const [min, max] = SCALE_BOUNDS[row.key];
+          const val = scales[row.key];
+          return (
+            <div key={row.key} className="m-set__scale-row">
+              <div className="m-set__scale-text">
+                <span className="m-set__row-title">{row.label}</span>
+                <span className="m-set__row-meta">{row.sub}</span>
+              </div>
+              <div className="m-set__scale-control">
+                <input
+                  type="range"
+                  min={min}
+                  max={max}
+                  step={0.05}
+                  value={val}
+                  className="m-set__scale-slider"
+                  aria-label={row.label}
+                  onChange={(e) => updateScale(row.key, Number(e.target.value))}
+                />
+                <span className="m-set__scale-val">
+                  {Math.round(val * 100)}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          className="m-set__row m-set__row--button"
+          onClick={resetAllScales}
+        >
+          <span className="m-set__row-title">Reset to defaults</span>
+        </button>
       </section>
 
       <section className="m-set__section">

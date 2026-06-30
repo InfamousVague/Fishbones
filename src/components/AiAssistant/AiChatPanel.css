@@ -11,44 +11,44 @@
      Re-do the maths here AND in the `.libre-ai-host--floating`
      wrapper rule in `TrayPanel.css` (sibling positioner) if the
      orb size or its `bottom` anchor changes. */
-  bottom: 80px;
-  right: 20px;
+  bottom: var(--libre-space-80);
+  right: var(--libre-space-20);
   /* Use both `top` AND `bottom` to give the panel a *definite*
      height (capped by the viewport on small screens). Without a
      definite height the flex column's `flex: 1` body can't compute
      a real overflow target — the scrollbar appears in DOM but the
      wheel doesn't have a constrained surface to scroll, which is
      exactly the "I can't scroll the history" symptom. */
-  top: max(14px, calc(100vh - 80px - min(720px, 90vh)));
-  height: min(720px, calc(100vh - 80px - 14px));
+  top: max(var(--libre-space-14), calc(100vh - var(--libre-space-80) - min(var(--libre-space-720), 90vh)));
+  height: min(var(--libre-size-720), calc(100vh - var(--libre-size-80) - var(--libre-size-14)));
   /* Default to a comfortable reading width. Agent mode bumps this
      to 560px via the `.libre-ai-panel--agent` modifier below —
      code dumps + per-file write chips need the room and 380 was
      leaving the user with a vertically-stacked ribbon of
      half-broken lines. */
-  width: 420px;
-  max-width: calc(100vw - 28px);
-  z-index: 91;
+  width: var(--libre-size-420);
+  max-width: calc(100vw - var(--libre-size-28));
+  z-index: var(--libre-z-91);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  box-shadow: var(--libre-shadow-47);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   /* Slide up from below the button when opening. */
-  transform: translateY(8px) scale(0.98);
+  transform: translateY(var(--libre-size-8)) scale(0.98);
   transform-origin: bottom right;
-  opacity: 0;
+  opacity: var(--libre-opacity-0);
   pointer-events: none;
   transition:
-    transform 0.22s cubic-bezier(0.2, 0.8, 0.25, 1),
-    opacity 0.18s ease-out;
+    transform var(--libre-dur-220) var(--libre-ease-cb-4),
+    opacity var(--libre-dur-180) var(--libre-ease-ease-out);
 }
 
 .libre-ai-panel.is-open {
   transform: translateY(0) scale(1);
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
   pointer-events: auto;
 }
 
@@ -58,8 +58,8 @@
    panel reads like a sidebar rather than a chat bubble. The
    max-width cap keeps it from overflowing narrow laptop screens. */
 .libre-ai-panel--agent {
-  width: 1160px;
-  max-width: calc(100vw - 28px);
+  width: var(--libre-size-1160);
+  max-width: calc(100vw - var(--libre-size-28));
 }
 
 /* On a narrow viewport we shrink in two steps before dropping to
@@ -70,13 +70,13 @@
      panel padding. */
 @media (max-width: 1280px) {
   .libre-ai-panel--agent {
-    width: calc(100vw - 80px);
-    max-width: 1160px;
+    width: calc(100vw - var(--libre-size-80));
+    max-width: var(--libre-size-1160);
   }
 }
 @media (max-width: 768px) {
   .libre-ai-panel--agent {
-    width: calc(100vw - 28px);
+    width: calc(100vw - var(--libre-size-28));
   }
 }
 
@@ -86,8 +86,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   /* No background bump — the panel-level background reads through.
      Matches the sidebar header / lesson reader feel. */
 }
@@ -95,32 +95,32 @@
 .libre-ai-panel-title {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.2px;
+  gap: var(--libre-space-10);
+  font-weight: var(--libre-fw-600);
+  font-size: var(--libre-fs-13);
+  letter-spacing: var(--libre-ls-0-2);
   color: var(--color-text-primary);
 }
 
 .libre-ai-panel-header-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-ai-panel-reset {
   background: transparent;
   color: var(--color-text-tertiary);
-  border: 1px solid var(--color-border-default);
-  padding: 4px 10px;
-  border-radius: var(--radius-md, 6px);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  padding: var(--libre-space-4) var(--libre-space-10);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   cursor: pointer;
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-4);
   text-transform: uppercase;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: color var(--libre-dur-150), border-color var(--libre-dur-150), background var(--libre-dur-150);
 }
 
 .libre-ai-panel-reset:hover:not(:disabled) {
@@ -130,18 +130,18 @@
 }
 
 .libre-ai-panel-reset:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
 .libre-ai-panel-close {
-  width: 26px;
-  height: 26px;
+  width: var(--libre-size-26);
+  height: var(--libre-size-26);
   border: none;
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -155,11 +155,11 @@
 /* ---- Context chip ---------------------------------------------- */
 
 .libre-ai-panel-context {
-  padding: 6px 14px;
-  font-size: 11px;
+  padding: var(--libre-space-6) var(--libre-space-14);
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
   background: var(--color-bg-primary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,8 +167,8 @@
 
 .libre-ai-panel-context-label {
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  font-weight: 600;
+  letter-spacing: var(--libre-ls-0-6);
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-ai-panel-context-value {
@@ -181,49 +181,49 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 14px;
+  padding: var(--libre-space-14);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 /* ---- Empty-state hint card ------------------------------------- */
 
 .libre-ai-panel-empty {
-  padding: 18px 14px;
-  border: 1px dashed var(--color-border-default);
-  border-radius: var(--radius-md, 8px);
+  padding: var(--libre-space-18) var(--libre-space-14);
+  border: var(--libre-bw-1) dashed var(--color-border-default);
+  border-radius: var(--radius-md, var(--libre-radius-8));
   color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-5);
 }
 
 .libre-ai-panel-empty-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  margin-bottom: 6px;
+  margin-bottom: var(--libre-space-6);
 }
 
 .libre-ai-panel-empty-chips {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
+  gap: var(--libre-space-6);
+  margin-top: var(--libre-space-10);
 }
 
 .libre-ai-panel-empty-chip {
   text-align: left;
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   color: var(--color-text-primary);
-  padding: 8px 10px;
-  border-radius: var(--radius-md, 6px);
-  font-size: 12px;
+  padding: var(--libre-space-8) var(--libre-space-10);
+  border-radius: var(--radius-md, var(--libre-radius-6));
+  font-size: var(--libre-fs-12);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
+  transition: border-color var(--libre-dur-120), background var(--libre-dur-120);
 }
 
 .libre-ai-panel-empty-chip:hover {
@@ -234,57 +234,57 @@
 /* ---- Setup banner (probe failed) ------------------------------- */
 
 .libre-ai-panel-setup {
-  padding: 16px 14px;
-  border-bottom: 1px solid var(--color-border-default);
-  font-size: 13px;
-  line-height: 1.5;
+  padding: var(--libre-space-16) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-secondary);
 }
 
 .libre-ai-panel-setup-title {
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: var(--libre-space-8);
 }
 
 .libre-ai-panel-setup p {
-  margin: 6px 0;
+  margin: var(--libre-space-6) var(--libre-space-0);
 }
 
 .libre-ai-panel-setup-cmd {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md, 6px);
-  padding: 8px 10px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--radius-md, var(--libre-radius-6));
+  padding: var(--libre-space-8) var(--libre-space-10);
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-primary);
-  margin: 4px 0;
+  margin: var(--libre-space-4) var(--libre-space-0);
   white-space: pre-wrap;
   word-break: break-all;
 }
 
 .libre-ai-panel-setup-note {
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-tertiary);
 }
 
 .libre-ai-panel-setup-err {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
 }
 
 .libre-ai-panel-setup-retry {
-  margin-top: 8px;
-  padding: 6px 12px;
-  border: 1px solid var(--color-border-strong);
+  margin-top: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-12);
+  border: var(--libre-bw-1) solid var(--color-border-strong);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-ai-panel-setup-retry:hover {
@@ -294,37 +294,37 @@
 /* Primary action button — used for Install / Start / Download. */
 .libre-ai-panel-setup-primary {
   display: inline-block;
-  margin-top: 4px;
-  padding: 8px 14px;
-  border: 1px solid var(--color-border-strong);
+  margin-top: var(--libre-space-4);
+  padding: var(--libre-space-8) var(--libre-space-14);
+  border: var(--libre-bw-1) solid var(--color-border-strong);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  transition: opacity 0.12s, transform 0.12s;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  transition: opacity var(--libre-dur-120), transform var(--libre-dur-120);
 }
 
 .libre-ai-panel-setup-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(var(--libre-size-neg-1));
 }
 
 .libre-ai-panel-setup-primary:disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: not-allowed;
 }
 
 /* Captured stdout/stderr tail from the last setup action. */
 .libre-ai-panel-setup-log {
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: var(--radius-md, 6px);
+  margin-top: var(--libre-space-10);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 11px;
-  line-height: 1.4;
-  max-height: 180px;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-4);
+  max-height: var(--libre-size-180);
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-all;
@@ -332,13 +332,13 @@
 
 .libre-ai-panel-setup-log.is-ok {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   color: var(--color-text-secondary);
 }
 
 .libre-ai-panel-setup-log.is-fail {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-strong);
+  border: var(--libre-bw-1) solid var(--color-border-strong);
   color: var(--color-text-secondary);
 }
 
@@ -349,7 +349,7 @@
   align-self: flex-end;
   max-width: 86%;
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   /* Override base Card's `overflow: hidden`. With it on, long
      content (especially code blocks with internal overflow-x:auto)
      fights the bubble's natural growth + the parent body's scroll
@@ -375,7 +375,7 @@
   max-width: 100%;
   background: transparent;
   border: none;
-  padding: 4px 0;
+  padding: var(--libre-space-4) var(--libre-space-0);
   overflow: visible;
 }
 
@@ -384,15 +384,15 @@
   align-self: center;
   background: transparent;
   border: none;
-  padding: 4px 8px;
-  font-size: 11px;
+  padding: var(--libre-space-4) var(--libre-space-8);
+  font-size: var(--libre-fs-11);
   font-style: italic;
   color: var(--color-text-tertiary);
 }
 
 .libre-ai-bubble-text {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-primary);
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -407,22 +407,22 @@
 /* ---- Error tray ------------------------------------------------ */
 
 .libre-ai-panel-error {
-  padding: 10px 12px;
+  padding: var(--libre-space-10) var(--libre-space-12);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-strong);
+  border: var(--libre-bw-1) solid var(--color-border-strong);
   color: var(--color-text-secondary);
-  border-radius: var(--radius-md, 8px);
-  font-size: 12px;
-  line-height: 1.4;
+  border-radius: var(--radius-md, var(--libre-radius-8));
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-4);
 }
 
 /* ---- Composer -------------------------------------------------- */
 
 .libre-ai-panel-composer {
   display: flex;
-  gap: 8px;
-  padding: 16px 10px 10px;
-  border-top: 1px solid var(--color-border-default);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-16) var(--libre-space-10) var(--libre-space-10);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-ai-panel-input {
@@ -433,16 +433,16 @@
   /* One line of 13px text + 1.4 line-height + 8px top/bottom
      padding ≈ 34px. Cap at 200px so a long pasted prompt scrolls
      internally instead of pushing the message list off screen. */
-  min-height: 34px;
-  max-height: 200px;
-  padding: 8px 10px;
+  min-height: var(--libre-size-34);
+  max-height: var(--libre-size-200);
+  padding: var(--libre-space-8) var(--libre-space-10);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md, 6px);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   font: inherit;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-4);
   /* Hide the scrollbar until the textarea has actually grown past
      max-height — keeps the single-line resting state clean. */
   overflow-y: auto;
@@ -454,25 +454,25 @@
 }
 
 .libre-ai-panel-input:disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: not-allowed;
 }
 
 .libre-ai-panel-send {
-  padding: 0 14px;
-  border: 1px solid var(--color-border-strong);
+  padding: var(--libre-space-0) var(--libre-space-14);
+  border: var(--libre-bw-1) solid var(--color-border-strong);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--libre-radius-6));
   font: inherit;
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: var(--libre-fw-600);
+  font-size: var(--libre-fs-12);
   cursor: pointer;
-  transition: opacity 0.12s;
+  transition: opacity var(--libre-dur-120);
 }
 
 .libre-ai-panel-send:disabled {
-  opacity: 0.35;
+  opacity: var(--libre-opacity-0-35);
   cursor: not-allowed;
 }
 
@@ -485,38 +485,38 @@
 .libre-ai-tool-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  margin: 4px 0;
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.10));
-  border-radius: 8px;
-  font-size: 11.5px;
-  color: var(--color-text-secondary, #b0b0b8);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-10);
+  margin: var(--libre-space-4) var(--libre-space-0);
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-04));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-10));
+  border-radius: var(--libre-radius-8);
+  font-size: var(--libre-fs-11-5);
+  color: var(--color-text-secondary, var(--libre-c-b0b0b8));
   /* Tool calls aren't conversational — quieter than message bubbles
      so they read as structural side-info. */
 }
 
 .libre-ai-tool-chip--ok {
-  border-color: rgba(86, 201, 138, 0.45);
-  background: rgba(86, 201, 138, 0.08);
+  border-color: var(--libre-c-rgba-86-201-138-0-45);
+  background: var(--libre-c-rgba-86-201-138-0-08);
   color: var(--color-text-primary);
 }
 
 .libre-ai-tool-chip--fail {
-  border-color: rgba(220, 95, 95, 0.45);
-  background: rgba(220, 95, 95, 0.08);
+  border-color: var(--libre-c-rgba-220-95-95-0-45);
+  background: var(--libre-c-rgba-220-95-95-0-08);
   color: var(--color-text-primary);
   /* Failed chips are click-to-expand — give them a pointer cursor
      and a subtle hover ring so users notice they're interactive.
      Truncated preview shows the error message; expanded view
      surfaces the full JSON payload. */
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre-ai-tool-chip--fail:hover {
-  background: rgba(220, 95, 95, 0.14);
-  border-color: rgba(220, 95, 95, 0.65);
+  background: var(--libre-c-rgba-220-95-95-0-14);
+  border-color: var(--libre-c-rgba-220-95-95-0-65);
 }
 .libre-ai-tool-chip--expanded {
   flex-wrap: wrap;
@@ -524,23 +524,23 @@
 .libre-ai-tool-chip-detail {
   display: block;
   width: 100%;
-  margin: 8px 0 0;
-  padding: 8px 10px;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 6px;
-  font-size: 11px;
-  line-height: 1.4;
+  margin: var(--libre-space-8) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  background: var(--libre-c-rgba-0-0-0-0-35);
+  border-radius: var(--libre-radius-6);
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-4);
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  color: var(--color-text-secondary, #b0b0b8);
+  color: var(--color-text-secondary, var(--libre-c-b0b0b8));
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 240px;
+  max-height: var(--libre-size-240);
   overflow-y: auto;
 }
 
 .libre-ai-tool-chip--pending {
-  border-color: var(--color-accent, #d4863a);
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 12%, transparent);
+  border-color: var(--color-accent, var(--libre-c-d4863a));
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 12%, transparent);
   color: var(--color-text-primary);
 }
 
@@ -551,18 +551,18 @@
    `--spin` modifier below) and a `running…` label appears in the
    right cluster. */
 .libre-ai-tool-chip--running {
-  border-color: color-mix(in srgb, var(--color-accent, #d4863a) 60%, transparent);
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 18%, transparent);
-  animation: libre-ai-tool-running-pulse 1.4s ease-in-out infinite;
+  border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 60%, transparent);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 18%, transparent);
+  animation: libre-ai-tool-running-pulse var(--libre-dur-1400) var(--libre-ease-ease-in-out) infinite;
 }
 
 @keyframes libre-ai-tool-running-pulse {
   0%,
   100% {
-    border-color: color-mix(in srgb, var(--color-accent, #d4863a) 60%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 60%, transparent);
   }
   50% {
-    border-color: color-mix(in srgb, var(--color-accent, #d4863a) 100%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 100%, transparent);
   }
 }
 
@@ -571,7 +571,7 @@
    transform-origin defaults to centre which is what we want for
    the icon glyph. */
 .libre-ai-tool-chip-icon--spin {
-  animation: libre-ai-tool-icon-spin 1.6s linear infinite;
+  animation: libre-ai-tool-icon-spin var(--libre-dur-1600) var(--libre-ease-linear) infinite;
 }
 
 @keyframes libre-ai-tool-icon-spin {
@@ -585,9 +585,9 @@
    font so the trailing ellipsis doesn't jitter as the chip's
    width animates. */
 .libre-ai-tool-chip-status {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--color-accent, #d4863a) 80%, var(--color-text-primary));
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  color: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 80%, var(--color-text-primary));
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -602,27 +602,27 @@
 .libre-ai-file-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  margin: 4px 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-12);
+  margin: var(--libre-space-4) var(--libre-space-0);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   width: fit-content;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-ai-file-chip--writing {
-  border-color: color-mix(in srgb, var(--color-accent, #d4863a) 50%, transparent);
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 8%, var(--color-bg-secondary));
+  border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 8%, var(--color-bg-secondary));
 }
 
 .libre-ai-file-chip--done {
-  border-color: color-mix(in srgb, #7cd97c 50%, transparent);
-  background: color-mix(in srgb, #7cd97c 6%, var(--color-bg-secondary));
+  border-color: color-mix(in srgb, var(--libre-c-7cd97c) 50%, transparent);
+  background: color-mix(in srgb, var(--libre-c-7cd97c) 6%, var(--color-bg-secondary));
 }
 
 /* Closed-but-empty: the fence arrived without content. We
@@ -630,39 +630,39 @@
    warning tone so the user can see the model closed the file
    without streaming any data. Notion issue #90f0f8a7043015b8. */
 .libre-ai-file-chip--empty {
-  border-color: color-mix(in srgb, #e8c46b 60%, transparent);
-  background: color-mix(in srgb, #e8c46b 10%, var(--color-bg-secondary));
+  border-color: color-mix(in srgb, var(--libre-c-e8c46b) 60%, transparent);
+  background: color-mix(in srgb, var(--libre-c-e8c46b) 10%, var(--color-bg-secondary));
 }
 
 .libre-ai-file-chip--empty .libre-ai-file-chip-icon {
-  color: #e8c46b;
+  color: var(--libre-c-e8c46b);
 }
 
 .libre-ai-file-chip-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--libre-size-16);
+  height: var(--libre-size-16);
   flex-shrink: 0;
 }
 
 .libre-ai-file-chip--writing .libre-ai-file-chip-icon {
-  color: var(--color-accent, #d4863a);
-  animation: libre-ai-tool-icon-spin 1.6s linear infinite;
+  color: var(--color-accent, var(--libre-c-d4863a));
+  animation: libre-ai-tool-icon-spin var(--libre-dur-1600) var(--libre-ease-linear) infinite;
 }
 
 .libre-ai-file-chip--done .libre-ai-file-chip-icon {
-  color: #7cd97c;
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-ai-file-chip-path {
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
 }
 
 .libre-ai-file-chip-bytes {
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
 }
@@ -674,8 +674,8 @@
 .libre-ai-file-chip-stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin: 6px 0;
+  gap: var(--libre-space-4);
+  margin: var(--libre-space-6) var(--libre-space-0);
 }
 
 /* Long-running run banner. Mounted while `run_sandbox_project`
@@ -687,59 +687,59 @@
 .libre-ai-run-banner {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  margin: 6px 0;
-  border: 1px solid color-mix(in srgb, #7fc8ff 40%, transparent);
-  background: color-mix(in srgb, #7fc8ff 8%, var(--color-bg-secondary));
-  border-radius: 8px;
-  font-size: 12px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-8) var(--libre-space-14);
+  margin: var(--libre-space-6) var(--libre-space-0);
+  border: var(--libre-bw-1) solid color-mix(in srgb, var(--libre-c-7fc8ff) 40%, transparent);
+  background: color-mix(in srgb, var(--libre-c-7fc8ff) 8%, var(--color-bg-secondary));
+  border-radius: var(--libre-radius-8);
+  font-size: var(--libre-fs-12);
   color: var(--color-text-primary);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   width: fit-content;
-  animation: libre-ai-run-banner-pulse 2s ease-in-out infinite;
+  animation: libre-ai-run-banner-pulse var(--libre-dur-2000) var(--libre-ease-ease-in-out) infinite;
 }
 
 @keyframes libre-ai-run-banner-pulse {
   0%,
   100% {
-    border-color: color-mix(in srgb, #7fc8ff 40%, transparent);
+    border-color: color-mix(in srgb, var(--libre-c-7fc8ff) 40%, transparent);
   }
   50% {
-    border-color: color-mix(in srgb, #7fc8ff 80%, transparent);
+    border-color: color-mix(in srgb, var(--libre-c-7fc8ff) 80%, transparent);
   }
 }
 
 .libre-ai-run-banner-spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, #7fc8ff 30%, transparent);
-  border-top-color: #7fc8ff;
-  animation: libre-ai-tool-icon-spin 0.9s linear infinite;
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
+  border-radius: var(--libre-radius-circle);
+  border: var(--libre-bw-2) solid color-mix(in srgb, var(--libre-c-7fc8ff) 30%, transparent);
+  border-top-color: var(--libre-c-7fc8ff);
+  animation: libre-ai-tool-icon-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
   flex-shrink: 0;
 }
 
 .libre-ai-run-banner-text strong {
-  color: color-mix(in srgb, #7fc8ff 80%, var(--color-text-primary));
-  font-weight: 700;
+  color: color-mix(in srgb, var(--libre-c-7fc8ff) 80%, var(--color-text-primary));
+  font-weight: var(--libre-fw-700);
 }
 
 .libre-ai-tool-chip-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
+  border-radius: var(--libre-radius-4);
+  background: var(--libre-c-rgba-255-255-255-0-06);
   flex-shrink: 0;
 }
 
 .libre-ai-tool-chip-name {
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   flex-shrink: 0;
 }
 
@@ -747,8 +747,8 @@
   flex: 1;
   min-width: 0;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10.5px;
-  color: var(--color-text-tertiary, #888);
+  font-size: var(--libre-fs-10-5);
+  color: var(--color-text-tertiary, var(--libre-c-888888));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -760,7 +760,7 @@
    info the user actually needs. */
 .libre-ai-tool-chip--fail .libre-ai-tool-chip-preview {
   white-space: normal;
-  line-height: 1.4;
+  line-height: var(--libre-lh-1-4);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -775,36 +775,36 @@
 
 .libre-ai-tool-chip-actions {
   display: inline-flex;
-  gap: 4px;
+  gap: var(--libre-space-4);
   flex-shrink: 0;
 }
 
 .libre-ai-tool-chip-btn {
-  padding: 3px 10px;
-  border-radius: 5px;
+  padding: var(--libre-space-3) var(--libre-space-10);
+  border-radius: var(--libre-radius-5);
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   background: transparent;
   color: var(--color-text-primary);
-  transition: background 100ms ease, border-color 100ms ease;
+  transition: background var(--libre-dur-100) var(--libre-ease-ease), border-color var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 .libre-ai-tool-chip-btn--ok {
-  background: var(--color-accent, #d4863a);
+  background: var(--color-accent, var(--libre-c-d4863a));
   color: var(--color-bg-primary);
-  border-color: var(--color-accent, #d4863a);
+  border-color: var(--color-accent, var(--libre-c-d4863a));
 }
 
 .libre-ai-tool-chip-btn--ok:hover {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 .libre-ai-tool-chip-btn--deny:hover {
-  background: rgba(220, 95, 95, 0.15);
-  border-color: rgba(220, 95, 95, 0.45);
+  background: var(--libre-c-rgba-220-95-95-0-15);
+  border-color: var(--libre-c-rgba-220-95-95-0-45);
 }
 
 /* "thinking…" breadcrumb shown while the agent is mid-turn —
@@ -815,16 +815,16 @@
 .libre-ai-agent-breadcrumb {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  margin: 4px 0;
-  font-size: 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-12);
+  margin: var(--libre-space-4) var(--libre-space-0);
+  font-size: var(--libre-fs-12);
   color: var(--color-text-secondary);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
   align-self: flex-start;
-  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  transition: color var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease), background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 /* Done state — all of this turn's tool calls have completed.
@@ -834,8 +834,8 @@
    …" indefinitely. */
 .libre-ai-agent-breadcrumb--done {
   color: var(--color-text-primary);
-  background: rgba(86, 201, 138, 0.08);
-  border-color: rgba(86, 201, 138, 0.45);
+  background: var(--libre-c-rgba-86-201-138-0-08);
+  border-color: var(--libre-c-rgba-86-201-138-0-45);
 }
 
 /* Auto-continue nudge — the loop noticed an unfinished build and
@@ -844,23 +844,23 @@
    shows the full nudge text via title=. */
 .libre-ai-agent-breadcrumb--nudge {
   font-style: italic;
-  opacity: 0.75;
+  opacity: var(--libre-opacity-0-75);
   border-style: dashed;
 }
 
 .libre-ai-agent-breadcrumb-dots {
   display: inline-flex;
-  gap: 3px;
+  gap: var(--libre-space-3);
   align-items: center;
 }
 
 .libre-ai-agent-breadcrumb-dots span {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+  width: var(--libre-size-4);
+  height: var(--libre-size-4);
+  border-radius: var(--libre-radius-circle);
   background: currentColor;
-  opacity: 0.4;
-  animation: libre-ai-agent-breadcrumb-pulse 1.1s ease-in-out infinite;
+  opacity: var(--libre-opacity-0-4);
+  animation: libre-ai-agent-breadcrumb-pulse var(--libre-dur-1100) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-ai-agent-breadcrumb-dots span:nth-child(2) {
@@ -874,12 +874,12 @@
   0%,
   60%,
   100% {
-    opacity: 0.4;
+    opacity: var(--libre-opacity-0-4);
     transform: translateY(0);
   }
   30% {
-    opacity: 1;
-    transform: translateY(-2px);
+    opacity: var(--libre-opacity-1);
+    transform: translateY(var(--libre-size-neg-2));
   }
 }
 
@@ -894,12 +894,12 @@
 .libre-ai-thinking-banner {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-8) var(--libre-space-12);
+  font-size: var(--libre-fs-12);
   color: var(--color-text-secondary);
   background: var(--color-bg-secondary);
-  border-top: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-ai-thinking-banner__label {
@@ -908,23 +908,23 @@
      the multi-line case (long tool names that wrap) reading
      bottom-anchored too. */
   align-self: flex-end;
-  line-height: 1;
+  line-height: var(--libre-lh-1);
   flex: 1 1 auto;
 }
 
 .libre-ai-thinking-banner__dots {
   display: inline-flex;
-  gap: 3px;
+  gap: var(--libre-space-3);
   align-items: flex-end;
 }
 
 .libre-ai-thinking-banner__dots span {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
+  width: var(--libre-size-4);
+  height: var(--libre-size-4);
+  border-radius: var(--libre-radius-circle);
   background: currentColor;
-  opacity: 0.4;
-  animation: libre-ai-agent-breadcrumb-pulse 1.1s ease-in-out infinite;
+  opacity: var(--libre-opacity-0-4);
+  animation: libre-ai-agent-breadcrumb-pulse var(--libre-dur-1100) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-ai-thinking-banner__dots span:nth-child(2) {
@@ -937,7 +937,7 @@
 @media (prefers-reduced-motion: reduce) {
   .libre-ai-thinking-banner__dots span {
     animation: none;
-    opacity: 0.7;
+    opacity: var(--libre-opacity-0-7);
   }
 }
 
@@ -952,28 +952,28 @@
      panel-height + a small gap). Panel bottom is 80px (orb-
      height 52 + orb-bottom-anchor 20 + 8 gap), so the toggle
      lands at 80 + panel-height + 6px gap. */
-  bottom: calc(80px + min(620px, 80vh) + 6px);
-  right: 20px;
-  z-index: 92;
+  bottom: calc(var(--libre-space-80) + min(var(--libre-space-620), 80vh) + var(--libre-space-6));
+  right: var(--libre-space-20);
+  z-index: var(--libre-z-92);
   display: inline-flex;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
-  padding: 2px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
+  padding: var(--libre-space-2);
+  box-shadow: var(--libre-shadow-87);
 }
 
 .libre-ai-mode-toggle-btn {
-  padding: 4px 12px;
+  padding: var(--libre-space-4) var(--libre-space-12);
   background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--libre-radius-pill);
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-tertiary);
   cursor: pointer;
-  transition: background 100ms ease, color 100ms ease;
+  transition: background var(--libre-dur-100) var(--libre-ease-ease), color var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 .libre-ai-mode-toggle-btn:hover {
@@ -993,12 +993,12 @@
 .libre-ai-panel-scope {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-bottom: 1px solid var(--color-border-default);
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 8%, transparent);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 8%, transparent);
   color: var(--color-text-secondary);
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
 }
 
 .libre-ai-panel-scope-text {
@@ -1010,12 +1010,12 @@
 }
 
 .libre-ai-panel-scope-clear {
-  padding: 2px 8px;
+  padding: var(--libre-space-2) var(--libre-space-8);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 4px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-4);
   font: inherit;
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   cursor: pointer;
 }
@@ -1040,20 +1040,20 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  border-top: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-primary);
-  max-height: 240px;
+  max-height: var(--libre-size-240);
 }
 
 .libre-ai-panel-preview-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 600;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-12);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-tertiary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-ai-panel-preview-title {
@@ -1069,20 +1069,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--libre-radius-4);
   color: var(--color-text-tertiary);
   cursor: pointer;
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
 }
 
 .libre-ai-panel-preview-open:hover,
 .libre-ai-panel-preview-close:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--libre-c-rgba-255-255-255-0-08);
   color: var(--color-text-primary);
 }
 
@@ -1091,19 +1091,19 @@
   min-height: 0;
   width: 100%;
   border: 0;
-  background: #fff;
+  background: var(--libre-c-white);
 }
 
 .libre-ai-panel-preview-restore {
   display: block;
   width: 100%;
-  padding: 6px 12px;
+  padding: var(--libre-space-6) var(--libre-space-12);
   background: var(--color-bg-tertiary);
   border: 0;
-  border-top: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
   cursor: pointer;
 }
@@ -1122,42 +1122,42 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  border-top: 1px solid var(--color-border-default);
-  background: var(--color-code-surface, #1e1e1e);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  background: var(--color-code-surface, var(--libre-c-1e1e1e));
   color: var(--color-text-primary);
-  max-height: 220px;
+  max-height: var(--libre-size-220);
 }
 
 .libre-ai-panel-console--errored {
-  border-top-color: rgba(220, 95, 95, 0.45);
+  border-top-color: var(--libre-c-rgba-220-95-95-0-45);
 }
 
 .libre-ai-panel-console-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-12);
   background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-default);
-  font-size: 11px;
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+  font-size: var(--libre-fs-11);
 }
 
 .libre-ai-panel-console-title {
   flex: 1;
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
-  letter-spacing: 0.4px;
+  letter-spacing: var(--libre-ls-0-4);
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: var(--libre-fs-10);
 }
 
 .libre-ai-panel-console--errored .libre-ai-panel-console-title {
-  color: rgb(240, 130, 130);
+  color: var(--libre-c-rgb-240-130-130);
 }
 
 .libre-ai-panel-console-meta {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
 }
@@ -1166,10 +1166,10 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 8px 12px;
+  padding: var(--libre-space-8) var(--libre-space-12);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
 }
 
 .libre-ai-panel-console-empty {
@@ -1178,11 +1178,11 @@
 }
 
 .libre-ai-panel-console-line {
-  margin: 0 0 2px;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-2);
 }
 
 .libre-ai-panel-console-text {
-  margin: 0;
+  margin: var(--libre-space-0);
   white-space: pre-wrap;
   word-break: break-word;
   font: inherit;
@@ -1193,39 +1193,39 @@
    is red. Same hues the workbench OutputPane uses so the two
    consoles read as the same vocabulary. */
 .libre-ai-panel-console-line--warn .libre-ai-panel-console-text {
-  color: #e8c46b;
+  color: var(--libre-c-e8c46b);
 }
 
 .libre-ai-panel-console-line--error .libre-ai-panel-console-text {
-  color: #ef6f6f;
+  color: var(--libre-c-ef6f6f);
 }
 
 /* Error block: rendered separately from logs because runtime
    errors (panic, exception, compile failure) carry stack traces
    that benefit from a visible bordered container. */
 .libre-ai-panel-console-error {
-  margin-top: 8px;
-  padding: 8px 10px;
-  border-radius: 4px;
-  border-left: 3px solid rgba(220, 95, 95, 0.7);
-  background: rgba(220, 95, 95, 0.08);
+  margin-top: var(--libre-space-8);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  border-radius: var(--libre-radius-4);
+  border-left: var(--libre-bw-3) solid var(--libre-c-rgba-220-95-95-0-7);
+  background: var(--libre-c-rgba-220-95-95-0-08);
 }
 
 .libre-ai-panel-console-error-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
-  color: rgb(240, 130, 130);
-  margin-bottom: 4px;
+  color: var(--libre-c-rgb-240-130-130);
+  margin-bottom: var(--libre-space-4);
 }
 
 .libre-ai-panel-console-error-text {
-  margin: 0;
+  margin: var(--libre-space-0);
   white-space: pre-wrap;
   word-break: break-word;
   font: inherit;
-  color: rgb(255, 180, 180);
+  color: var(--libre-c-rgb-255-180-180);
 }
 
 /* ── Agent: tool-call timeline drawer ────────────────────────────
@@ -1237,8 +1237,8 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  max-height: 280px;
-  border-top: 1px solid var(--color-border-default);
+  max-height: var(--libre-size-280);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
 }
 
@@ -1246,28 +1246,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  font-size: 11.5px;
-  font-weight: 600;
+  padding: var(--libre-space-8) var(--libre-space-12);
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-ai-panel-drawer-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--libre-radius-4);
   color: var(--color-text-tertiary);
   cursor: pointer;
 }
 
 .libre-ai-panel-drawer-close:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--libre-c-rgba-255-255-255-0-08);
   color: var(--color-text-primary);
 }
 
@@ -1275,22 +1275,22 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 12px 12px;
+  padding: var(--libre-space-8) var(--libre-space-12) var(--libre-space-12);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 .libre-ai-panel-drawer-empty {
-  padding: 12px;
+  padding: var(--libre-space-12);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-tertiary);
 }
 
 .libre-ai-panel-drawer-entry {
-  border: 1px solid var(--color-border-default);
-  border-radius: 6px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-6);
   background: var(--color-bg-primary);
 }
 
@@ -1298,7 +1298,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  padding: var(--libre-space-6) var(--libre-space-10);
   cursor: pointer;
   list-style: none;
 }
@@ -1309,42 +1309,42 @@
 
 .libre-ai-panel-drawer-entry-name {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
 }
 
 .libre-ai-panel-drawer-entry-status {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 3px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  padding: var(--libre-space-1) var(--libre-space-6);
+  border-radius: var(--libre-radius-3);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--libre-ls-0-04em);
 }
 
 .libre-ai-panel-drawer-entry-head.is-ok .libre-ai-panel-drawer-entry-status {
-  background: rgba(86, 201, 138, 0.18);
-  color: rgb(110, 220, 158);
+  background: var(--libre-c-rgba-86-201-138-0-18);
+  color: var(--libre-c-rgb-110-220-158);
 }
 
 .libre-ai-panel-drawer-entry-head.is-fail .libre-ai-panel-drawer-entry-status {
-  background: rgba(220, 95, 95, 0.18);
-  color: rgb(245, 130, 130);
+  background: var(--libre-c-rgba-220-95-95-0-18);
+  color: var(--libre-c-rgb-245-130-130);
 }
 
 .libre-ai-panel-drawer-entry-body {
-  margin: 0;
-  padding: 8px 10px;
-  border-top: 1px solid var(--color-border-default);
-  background: var(--color-bg-inset, #000);
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  background: var(--color-bg-inset, var(--libre-c-black));
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-4);
   color: var(--color-text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 200px;
+  max-height: var(--libre-size-200);
   overflow-y: auto;
 }
 

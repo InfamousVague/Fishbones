@@ -422,7 +422,7 @@ export default function HapticsPane() {
               label={p.id}
               sub={`${p.beats.length} beats · ${p.beats.reduce((s, [ms]) => s + ms, 0)}ms total`}
               control={
-                <div style={{ display: "flex", gap: 4 }}>
+                <div style={{ display: "flex", gap: 'var(--libre-space-4)' }}>
                   <button
                     type="button"
                     onClick={() => void firePattern(p, "celebration")}
@@ -602,17 +602,17 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
   };
 
   return (
-    <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+    <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 'var(--libre-space-8)' }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 'var(--libre-space-6)' }}>
         {beats.map((b, i) => (
           <div
             key={i}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 4,
+              gap: 'var(--libre-space-4)',
               padding: "4px 6px",
-              borderRadius: 6,
+              borderRadius: 'var(--libre-radius-6)',
               border: "1px solid var(--color-border-default)",
               background: "var(--color-bg-secondary)",
             }}
@@ -628,7 +628,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
                 background: "transparent",
                 color: "var(--color-text-primary)",
                 border: 0,
-                fontSize: 11,
+                fontSize: 'var(--libre-fs-11)',
               }}
             >
               <option value="buzz">buzz</option>
@@ -646,15 +646,15 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
               disabled={disabled}
               aria-label="Beat duration in ms"
               style={{
-                width: 56,
+                width: 'var(--libre-size-56)',
                 background: "transparent",
                 color: "var(--color-text-primary)",
                 border: 0,
                 fontVariantNumeric: "tabular-nums",
-                fontSize: 11,
+                fontSize: 'var(--libre-fs-11)',
               }}
             />
-            <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>ms</span>
+            <span style={{ fontSize: 'var(--libre-fs-10)', color: "var(--color-text-tertiary)" }}>ms</span>
             <button
               type="button"
               onClick={() => removeBeat(i)}
@@ -666,7 +666,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
                 border: 0,
                 cursor: "pointer",
                 padding: 0,
-                fontSize: 12,
+                fontSize: 'var(--libre-fs-12)',
               }}
             >
               ×
@@ -683,7 +683,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
           +
         </button>
       </div>
-      <div style={{ display: "flex", gap: 6 }}>
+      <div style={{ display: "flex", gap: 'var(--libre-space-6)' }}>
         <button
           type="button"
           onClick={preview}
@@ -691,7 +691,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
           disabled={disabled}
         >
           <Icon icon={playIcon} size="xs" color="currentColor" />
-          <span style={{ marginLeft: 4 }}>Preview</span>
+          <span style={{ marginLeft: 'var(--libre-space-4)' }}>Preview</span>
         </button>
         <button
           type="button"

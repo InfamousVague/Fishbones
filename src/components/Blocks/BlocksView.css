@@ -14,7 +14,7 @@
 .libre-blocks {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
   font-family: var(--font-body, system-ui);
   /* Slots inside the Workbench's editor slot — fill the height the
      parent gives us, scroll internally when content (long template,
@@ -25,14 +25,14 @@
      content actually is. */
   height: 100%;
   min-height: 0;
-  padding: 12px 14px;
+  padding: var(--libre-space-12) var(--libre-space-14);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .libre-blocks--error {
-  padding: 16px;
-  border: 1px dashed var(--color-border-default);
+  padding: var(--libre-space-16);
+  border: var(--libre-bw-1) dashed var(--color-border-default);
   border-radius: var(--libre-radius-md);
   color: var(--color-text-secondary);
 }
@@ -51,20 +51,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--libre-space-12);
   flex-wrap: wrap;
-  padding: 6px 12px;
-  margin: -12px -14px 0;
+  padding: var(--libre-space-6) var(--libre-space-12);
+  margin: var(--libre-space-neg-12) var(--libre-space-neg-14) var(--libre-space-0);
   background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 /* Prompt narration on its own line below the header bar. No flex
    context anymore — it's a regular block paragraph that fills the
    parent's content width and wraps naturally. */
 .libre-blocks__prompt {
-  margin: 0;
-  font-size: 14px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-14);
   color: var(--color-text-secondary);
 }
 
@@ -79,17 +79,17 @@
    code. `white-space: pre-wrap` lets long lines wrap on phone
    without losing leading indentation. */
 .libre-blocks__template {
-  margin: 0;
-  padding: 14px 16px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-14) var(--libre-space-16);
   font-family: var(--font-mono, "SF Mono", Menlo, monospace);
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-65);
   color: var(--color-text-primary);
   /* Match the github-dark Shiki theme's canonical bg so coloured
      tokens have the contrast they're tuned for. Pure black would
      also work but the slight blue-grey tint is what Shiki ships. */
-  background: #0d1117;
-  border: 1px solid var(--color-border-default);
+  background: var(--libre-c-0d1117);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   white-space: pre-wrap;
   /* Allow long code to scroll horizontally if wrap isn't enough. */
@@ -117,20 +117,20 @@
 .libre-blocks__slot {
   display: inline-block;
   vertical-align: baseline;
-  min-width: 56px;
+  min-width: var(--libre-size-56);
   min-height: 1.6em;
-  padding: 0 6px;
-  margin: 0 2px;
-  border-radius: 6px;
-  border: 1px dashed var(--color-border-strong, var(--color-border-default));
-  background: var(--color-bg-elevated, rgba(255, 255, 255, 0.03));
+  padding: var(--libre-space-0) var(--libre-space-6);
+  margin: var(--libre-space-0) var(--libre-space-2);
+  border-radius: var(--libre-radius-6);
+  border: var(--libre-bw-1) dashed var(--color-border-strong, var(--color-border-default));
+  background: var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-03));
   cursor: pointer;
   user-select: none;
   text-align: center;
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    background-color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease),
+    box-shadow var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 /* Filled slot — drop ALL chrome (border, padding, background) so
@@ -143,22 +143,22 @@
 .libre-blocks__slot--filled {
   border: 0;
   background: transparent;
-  padding: 0;
+  padding: var(--libre-space-0);
   border-radius: 0;
 }
 
 .libre-blocks__slot--filled:hover {
-  background: rgba(214, 185, 105, 0.08);
-  box-shadow: 0 0 0 1px rgba(214, 185, 105, 0.35);
-  border-radius: 4px;
+  background: var(--libre-c-rgba-214-185-105-0-08);
+  box-shadow: var(--libre-shadow-8);
+  border-radius: var(--libre-radius-4);
 }
 
 /* While a draggable hovers over the slot — strong visual confirmation
    the drop will land here. */
 .libre-blocks__slot--over {
-  background: rgba(214, 185, 105, 0.18);
-  border-color: rgba(214, 185, 105, 0.7);
-  box-shadow: 0 0 0 2px rgba(214, 185, 105, 0.25);
+  background: var(--libre-c-rgba-214-185-105-0-18);
+  border-color: var(--libre-c-rgba-214-185-105-0-7);
+  box-shadow: var(--libre-shadow-15);
 }
 
 /* Answer-key feedback. Only applied AFTER Verify has been run at
@@ -166,21 +166,21 @@
    doesn't degenerate into "drag random blocks until everything
    turns green." */
 .libre-blocks__slot--correct {
-  border-color: rgba(120, 200, 140, 0.6);
-  box-shadow: inset 0 0 0 1px rgba(120, 200, 140, 0.35);
+  border-color: var(--libre-c-rgba-120-200-140-0-6);
+  box-shadow: var(--libre-shadow-104);
 }
 
 .libre-blocks__slot--wrong {
-  border-color: rgba(220, 110, 110, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(220, 110, 110, 0.4);
+  border-color: var(--libre-c-rgba-220-110-110-0-7);
+  box-shadow: var(--libre-shadow-105);
 }
 
 .libre-blocks__slot-placeholder {
   display: inline-block;
-  font-size: 0.92em;
+  font-size: var(--libre-fs-em-0-92);
   color: var(--color-text-tertiary, var(--color-text-secondary));
   font-style: italic;
-  opacity: 0.7;
+  opacity: var(--libre-opacity-0-7);
 }
 
 /* ── Block chips ───────────────────────────────────────────────── */
@@ -191,15 +191,15 @@
    the eye doesn't bounce between filled slots. */
 .libre-blocks__chip {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--color-bg-elevated, #19191d);
-  border: 1px solid var(--color-border-default);
+  padding: var(--libre-space-4) var(--libre-space-10);
+  border-radius: var(--libre-radius-6);
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default);
   cursor: grab;
   user-select: none;
   font-family: var(--font-mono, "SF Mono", Menlo, monospace);
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-4);
   white-space: nowrap;
   /* DO NOT add `transform` to the transition list. dnd-kit applies
      a per-frame `transform: translate3d(...)` to the chip while
@@ -208,8 +208,8 @@
      up with the mouse." Box-shadow + border-color are fine to ease;
      they're not touched during drag. */
   transition:
-    box-shadow 120ms ease,
-    border-color 120ms ease;
+    box-shadow var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease);
   -webkit-tap-highlight-color: transparent;
   touch-action: none;
 }
@@ -227,8 +227,8 @@
    colour is the same warm gold the cursor + TTS pill use so the
    app feels coherent across surfaces. */
 .libre-blocks__chip--armed {
-  border-color: rgba(214, 185, 105, 0.7);
-  box-shadow: 0 0 0 2px rgba(214, 185, 105, 0.25);
+  border-color: var(--libre-c-rgba-214-185-105-0-7);
+  box-shadow: var(--libre-shadow-15);
 }
 
 /* Placed chips read as fully continuous code — no chrome at all,
@@ -239,16 +239,14 @@
 .libre-blocks__chip--placed {
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: var(--libre-space-0);
   border-radius: 0;
 }
 
 /* Floating ghost the DragOverlay renders. Slightly elevated so the
    user sees what they're carrying. */
 .libre-blocks__chip--ghost {
-  box-shadow:
-    0 6px 14px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(214, 185, 105, 0.5);
+  box-shadow: var(--libre-shadow-86);
   pointer-events: none;
   /* Subtle scale to read as "lifted off the page." */
   transform: scale(1.02);
@@ -258,7 +256,7 @@
   font-family: inherit;
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: var(--libre-space-0);
   font-size: inherit;
   color: inherit;
 }
@@ -266,30 +264,30 @@
 /* ── Pool tray ─────────────────────────────────────────────────── */
 
 .libre-blocks__pool {
-  padding: 12px;
+  padding: var(--libre-space-12);
   border-radius: var(--libre-radius-md);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  min-height: 56px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  min-height: var(--libre-size-56);
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease;
+    background-color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-blocks__pool--over {
-  background: rgba(214, 185, 105, 0.10);
-  border-color: rgba(214, 185, 105, 0.45);
+  background: var(--libre-c-rgba-214-185-105-0-10);
+  border-color: var(--libre-c-rgba-214-185-105-0-45);
 }
 
 .libre-blocks__pool-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--libre-space-8);
   align-items: center;
 }
 
 .libre-blocks__pool-empty {
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
   font-style: italic;
 }
@@ -299,34 +297,34 @@
 .libre-blocks__controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--libre-space-10);
   align-items: center;
 }
 
 .libre-blocks__verify {
-  padding: 8px 18px;
+  padding: var(--libre-space-8) var(--libre-space-18);
   border: 0;
   border-radius: var(--libre-radius-md);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
-  transition: opacity var(--libre-motion-quick, 100ms ease);
+  transition: opacity var(--libre-motion-quick, var(--libre-dur-100) var(--libre-ease-ease));
 }
 
 .libre-blocks__verify:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
 .libre-blocks__reset {
-  padding: 8px 14px;
-  border: 1px solid var(--color-border-default);
+  padding: var(--libre-space-8) var(--libre-space-14);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   cursor: pointer;
 }
 
@@ -336,12 +334,12 @@
 }
 
 .libre-blocks__answerkey {
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
 }
 
 .libre-blocks__answerkey--ok {
-  color: rgba(120, 200, 140, 0.85);
+  color: var(--libre-c-rgba-120-200-140-0-85);
 }
 
 .libre-blocks__answerkey--maybe {
@@ -362,10 +360,10 @@
    without `display: none` so AT actually announces updates. */
 .libre-blocks__sr-live {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
+  width: var(--libre-size-1);
+  height: var(--libre-size-1);
+  margin: var(--libre-space-neg-1);
+  padding: var(--libre-space-0);
   border: 0;
   clip: rect(0 0 0 0);
   overflow: hidden;
@@ -380,8 +378,8 @@
 .libre-blocks__chip:focus-visible,
 .libre-blocks__slot:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(214, 185, 105, 0.65);
-  border-radius: 6px;
+  box-shadow: var(--libre-shadow-16);
+  border-radius: var(--libre-radius-6);
 }
 
 /* ── Success fanfare ────────────────────────────────────────────── */
@@ -393,25 +391,25 @@
    is purely cosmetic — completion is credited even if the user has
    `prefers-reduced-motion: reduce` set, just without the visuals. */
 .libre-blocks--passed .libre-blocks__template {
-  animation: libre-blocks-fanfare 1.5s ease-out 1;
+  animation: libre-blocks-fanfare var(--libre-dur-1500) var(--libre-ease-ease-out) 1;
 }
 
 .libre-blocks--passed .libre-blocks__verify {
-  animation: libre-blocks-verify-pop 0.6s ease-out 1;
+  animation: libre-blocks-verify-pop var(--libre-dur-600) var(--libre-ease-ease-out) 1;
 }
 
 @keyframes libre-blocks-fanfare {
   0% {
-    box-shadow: 0 0 0 0 rgba(120, 200, 140, 0);
-    background: #0d1117;
+    box-shadow: var(--libre-shadow-1);
+    background: var(--libre-c-0d1117);
   }
   20% {
-    box-shadow: 0 0 0 4px rgba(120, 200, 140, 0.45);
-    background: #11201a;
+    box-shadow: var(--libre-shadow-31);
+    background: var(--libre-c-11201a);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(120, 200, 140, 0);
-    background: #0d1117;
+    box-shadow: var(--libre-shadow-1);
+    background: var(--libre-c-0d1117);
   }
 }
 
@@ -450,7 +448,7 @@
      viewport edge, and drop the rounded borders on the template + pool
      so they read as edge-to-edge zones rather than nested cards. */
   .libre-blocks {
-    padding: 12px 8px;
+    padding: var(--libre-space-12) var(--libre-space-8);
   }
 
   /* Template + pool — drop the rounded card chrome. Keeping the
@@ -470,11 +468,11 @@
      so line-height + breathing room around the chips stay
      comfortable. */
   .libre-blocks__template {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: var(--libre-space-12);
+    padding-right: var(--libre-space-12);
   }
 
   .libre-blocks__pool {
-    padding: 10px 12px;
+    padding: var(--libre-space-10) var(--libre-space-12);
   }
 }

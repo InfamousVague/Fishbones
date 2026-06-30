@@ -1,7 +1,7 @@
 .m-reader {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--libre-space-18);
 }
 
 /* TTS chip lives in its own row at the very top of the prose. We
@@ -13,67 +13,67 @@
 .m-reader__tts {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: -6px;
+  margin-bottom: var(--libre-space-neg-6);
 }
 
 .m-reader__prose {
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: var(--libre-fs-16);
+  line-height: var(--libre-lh-1-6);
   color: var(--color-text-primary);
 }
 
 .m-reader__prose p {
-  margin: 0 0 14px;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-14);
 }
 
 .m-reader__prose h1,
 .m-reader__prose h2,
 .m-reader__prose h3 {
-  letter-spacing: -0.01em;
-  margin: 22px 0 8px;
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  margin: var(--libre-space-22) var(--libre-space-0) var(--libre-space-8);
   color: var(--color-text-primary);
 }
 
 .m-reader__prose h2 {
-  font-size: 19px;
-  font-weight: 700;
+  font-size: var(--libre-fs-19);
+  font-weight: var(--libre-fw-700);
 }
 
 .m-reader__prose h3 {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--libre-fs-17);
+  font-weight: var(--libre-fw-600);
 }
 
 .m-reader__prose ul,
 .m-reader__prose ol {
-  padding-left: 22px;
-  margin: 0 0 14px;
+  padding-left: var(--libre-space-22);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-14);
 }
 
 .m-reader__prose li {
-  margin-bottom: 6px;
+  margin-bottom: var(--libre-space-6);
 }
 
 .m-reader__prose code {
   font-family: var(--font-mono);
-  font-size: 0.92em;
+  font-size: var(--libre-fs-em-0-92);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 5px;
-  padding: 1px 5px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-5);
+  padding: var(--libre-space-1) var(--libre-space-5);
 }
 
 .m-reader__prose pre {
   font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-55);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
-  padding: 12px;
+  padding: var(--libre-space-12);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  margin: 14px 0;
+  margin: var(--libre-space-14) var(--libre-space-0);
 }
 
 /* Code blocks rendered through `markdown.ts` are wrapped in a
@@ -87,20 +87,20 @@
 .m-reader__prose .libre-code-block pre {
   border: 0;
   border-radius: 0;
-  margin: 0;
+  margin: var(--libre-space-0);
 }
 
 .m-reader__prose pre code {
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: var(--libre-space-0);
   font-size: inherit;
 }
 
 .m-reader__prose blockquote {
-  margin: 14px 0;
-  padding: 8px 12px;
-  border-left: 3px solid var(--color-border-strong);
+  margin: var(--libre-space-14) var(--libre-space-0);
+  padding: var(--libre-space-8) var(--libre-space-12);
+  border-left: var(--libre-bw-3) solid var(--color-border-strong);
   color: var(--color-text-secondary);
   font-style: italic;
 }
@@ -111,21 +111,21 @@
 }
 
 .m-reader__continue {
-  margin-top: 6px;
-  padding: 14px 18px;
+  margin-top: var(--libre-space-6);
+  padding: var(--libre-space-14) var(--libre-space-18);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-lg);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-700);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity var(--libre-motion-quick), transform 0.08s ease;
+  transition: opacity var(--libre-motion-quick), transform var(--libre-dur-80) var(--libre-ease-ease);
 }
 
 .m-reader__continue:active {
-  opacity: 0.85;
+  opacity: var(--libre-opacity-0-85);
   transform: scale(0.98);
 }
 
@@ -139,27 +139,27 @@
 .m-reader__skeleton {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 8px 0;
+  gap: var(--libre-space-14);
+  padding: var(--libre-space-8) var(--libre-space-0);
 }
 
 .m-reader__skel-line {
   display: block;
-  height: 14px;
+  height: var(--libre-size-14);
   width: 100%;
   border-radius: var(--libre-radius-sm);
   background: linear-gradient(
     90deg,
     var(--color-bg-secondary) 0%,
-    var(--color-bg-elevated, #19191d) 50%,
+    var(--color-bg-elevated, var(--libre-c-19191d)) 50%,
     var(--color-bg-secondary) 100%
   );
   background-size: 200% 100%;
-  animation: m-reader-shimmer 1.4s ease-in-out infinite;
+  animation: m-reader-shimmer var(--libre-dur-1400) var(--libre-ease-ease-in-out) infinite;
 }
 
 .m-reader__skel-line--head {
-  height: 22px;
+  height: var(--libre-size-22);
   width: 70%;
 }
 
@@ -181,9 +181,9 @@
    responsive but slow enough that the cascade reads as
    intentional rather than glitchy. */
 .m-reader__prose--enter > * {
-  opacity: 0;
-  transform: translateY(6px);
-  animation: m-reader-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: var(--libre-opacity-0);
+  transform: translateY(var(--libre-size-6));
+  animation: m-reader-rise var(--libre-dur-420) var(--libre-ease-cb-6) forwards;
 }
 
 .m-reader__prose--enter > *:nth-child(1)  { animation-delay: 0ms;   }
@@ -201,7 +201,7 @@
 
 @keyframes m-reader-rise {
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0);
   }
 }
@@ -214,7 +214,7 @@
     animation: none;
   }
   .m-reader__prose--enter > * {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: none;
     animation: none;
   }
@@ -238,24 +238,24 @@
   position: relative;
   background: linear-gradient(
     90deg,
-    rgba(214, 185, 105, 0.14) 0%,
-    rgba(214, 185, 105, 0.06) 70%,
+    var(--libre-c-rgba-214-185-105-0-14) 0%,
+    var(--libre-c-rgba-214-185-105-0-06) 70%,
     transparent 100%
   );
-  border-radius: 0 4px 4px 0;
-  transition: background 320ms ease;
+  border-radius: 0 var(--libre-radius-4) var(--libre-radius-4) 0;
+  transition: background var(--libre-dur-320) var(--libre-ease-ease);
 }
 
 .m-reader__prose [data-tts-block].libre-tts-current::before {
   content: "";
   position: absolute;
-  left: -15px;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: rgba(214, 185, 105, 0.65);
-  border-radius: 1.5px;
-  transition: background 320ms ease;
+  left: var(--libre-space-neg-15);
+  top: var(--libre-space-0);
+  bottom: var(--libre-space-0);
+  width: var(--libre-size-3);
+  background: var(--libre-c-rgba-214-185-105-0-65);
+  border-radius: var(--libre-radius-1-5);
+  transition: background var(--libre-dur-320) var(--libre-ease-ease);
   pointer-events: none;
 }
 

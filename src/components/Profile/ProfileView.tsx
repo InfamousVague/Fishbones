@@ -31,10 +31,11 @@ const XP_PER_KIND = {
   puzzle: 15,
 } as const;
 
-/// 20 weeks of activity. Wider than mobile's 12-week strip because the
-/// desktop column is wider — enough cells to show seasonal patterns
-/// rather than just "the current sprint".
-const HEATMAP_WEEKS = 20;
+/// A full year (52 weeks) of activity, GitHub-contribution-graph style.
+/// The Activity card spans the full dashboard width (see
+/// `.libre-profile-card--activity`) so the year-long strip has room and
+/// lines up with the full-width Recent-activity list below it.
+const HEATMAP_WEEKS = 52;
 
 /// How many rows of the Recent activity feed render by default. The
 /// rest live behind a "Show all (N)" toggle so a long-lived account

@@ -1,9 +1,9 @@
 /* Backdrop chrome lives in `Shared/ModalBackdrop.css`. */
 
 .libre-import-panel {
-  width: min(560px, 90vw);
+  width: min(var(--libre-size-560), 90vw);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
   overflow: hidden;
 }
@@ -12,13 +12,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--libre-space-14) var(--libre-space-18);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-import-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
 }
 
@@ -26,10 +26,10 @@
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  font-size: 18px;
-  line-height: 1;
+  font-size: var(--libre-fs-18);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: var(--libre-space-4) var(--libre-space-8);
 }
 
 .libre-import-close:hover {
@@ -37,43 +37,43 @@
 }
 
 .libre-import-body {
-  padding: 18px;
+  padding: var(--libre-space-18);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 .libre-import-blurb {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
 .libre-import-primary,
 .libre-import-secondary {
   align-self: flex-start;
-  padding: 8px 14px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: var(--libre-space-8) var(--libre-space-14);
+  border-radius: var(--libre-radius-7);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
-  border: 1px solid transparent;
+  border: var(--libre-bw-1) solid transparent;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
 .libre-import-primary {
-  background: var(--gg-fill-white, #ffffff);
-  color: var(--color-bg-primary, #000000);
-  border-color: var(--gg-fill-white, #ffffff);
+  background: var(--gg-fill-white, var(--libre-c-white));
+  color: var(--color-bg-primary, var(--libre-c-black));
+  border-color: var(--gg-fill-white, var(--libre-c-white));
 }
 
 .libre-import-primary:hover:not(:disabled) {
-  opacity: 0.92;
+  opacity: var(--libre-opacity-0-92);
 }
 
 .libre-import-primary:disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: not-allowed;
 }
 
@@ -90,46 +90,46 @@
 
 .libre-import-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--libre-space-8);
   justify-content: flex-end;
-  margin-top: 4px;
+  margin-top: var(--libre-space-4);
 }
 
 .libre-import-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 .libre-import-label {
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: var(--libre-ls-0-6);
   color: var(--color-text-tertiary);
 }
 
 .libre-import-input {
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   font-family: inherit;
 }
 
 .libre-import-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: var(--libre-c-rgba-255-255-255-0-4);
 }
 
 .libre-import-path {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-tertiary);
   background: var(--color-bg-primary);
-  padding: 6px 8px;
+  padding: var(--libre-space-6) var(--libre-space-8);
   border-radius: var(--libre-radius-xs);
   overflow-wrap: anywhere;
   display: block;
@@ -138,34 +138,34 @@
 .libre-import-checkbox {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-10) var(--libre-space-12);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   color: var(--color-text-primary);
   cursor: pointer;
 }
 
 .libre-import-checkbox input[type="checkbox"] {
-  margin-top: 2px;
+  margin-top: var(--libre-space-2);
 }
 
 .libre-import-hint {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
-  margin-top: 2px;
-  line-height: 1.45;
+  margin-top: var(--libre-space-2);
+  line-height: var(--libre-lh-1-45);
 }
 
 .libre-import-error {
-  padding: 10px 12px;
-  background: rgba(239, 111, 111, 0.08);
-  border: 1px solid rgba(239, 111, 111, 0.35);
+  padding: var(--libre-space-10) var(--libre-space-12);
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-35);
   border-radius: var(--libre-radius-sm);
-  color: #f1b5b5;
-  font-size: 12px;
+  color: var(--libre-c-f1b5b5);
+  font-size: var(--libre-fs-12);
   white-space: pre-wrap;
 }
 
@@ -175,28 +175,28 @@
 .libre-import-detecting {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-7) var(--libre-space-10);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-secondary);
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
 }
 
 .libre-import-detecting--error {
-  background: rgba(217, 168, 0, 0.08);
-  border-color: rgba(217, 168, 0, 0.35);
-  color: #d9a800;
+  background: var(--libre-c-rgba-217-168-0-0-08);
+  border-color: var(--libre-c-rgba-217-168-0-0-35);
+  color: var(--libre-c-d9a800);
 }
 
 .libre-import-detecting-spinner {
-  width: 12px;
-  height: 12px;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  width: var(--libre-size-12);
+  height: var(--libre-size-12);
+  border: var(--libre-bw-1-5) solid var(--libre-c-rgba-255-255-255-0-18);
   border-top-color: var(--gg-fill-white);
-  border-radius: 50%;
-  animation: libre-import-spin 0.9s linear infinite;
+  border-radius: var(--libre-radius-circle);
+  animation: libre-import-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
   flex-shrink: 0;
 }
 

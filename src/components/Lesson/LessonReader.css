@@ -20,7 +20,7 @@
 
 .libre-reader-progress {
   flex-shrink: 0;
-  height: 2px;
+  height: var(--libre-size-2);
   width: 100%;
   background: transparent;
 }
@@ -28,31 +28,31 @@
 .libre-reader-progress-fill {
   height: 100%;
   background: var(--gg-fill-white);
-  opacity: 0.85;
-  transition: width 0.12s linear;
+  opacity: var(--libre-opacity-0-85);
+  transition: width var(--libre-dur-120) var(--libre-ease-linear);
 }
 
 .libre-reader-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 32px 16px 24px;
+  padding: var(--libre-space-32) var(--libre-space-16) var(--libre-space-24);
 }
 
 .libre-reader-inner {
-  max-width: 860px;
-  margin: 0 auto;
+  max-width: var(--libre-size-860);
+  margin: var(--libre-space-0) auto;
 }
 
 /* Lesson title pinned above the meta row. Matches the scale of the body h1
    it replaces so removing the duplicated markdown heading doesn't shrink
    the visual anchor at the top of the page. */
 .libre-reader-title {
-  margin: 0 0 10px;
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-10);
+  font-size: var(--libre-fs-26);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1-25);
+  letter-spacing: var(--libre-ls-neg-0-01em);
   color: var(--color-text-primary);
 }
 
@@ -61,14 +61,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--libre-space-10);
+  margin-bottom: var(--libre-space-20);
 }
 
 .libre-reader-meta-time {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
@@ -82,7 +82,7 @@
      so both chips in the meta row read as one consistent chip
      family with leading-edge content rather than centered content. */
   justify-content: flex-start;
-  gap: 9px;
+  gap: var(--libre-space-9);
   /* Locked to the same height + padding + line-height as `.libre-tts-pill`
      (see TTSButton.css). Both chips share `height: 30px`,
      `padding: 0 14px`, and `line-height: 1` so neither's inner
@@ -90,24 +90,24 @@
      different intrinsic box. Bumped from 26 → 30 to give the
      primary play affordance and the Glossary chip a friendlier
      target size. */
-  height: 36px;
+  height: var(--libre-size-36);
   box-sizing: border-box;
-  padding: 0 14px;
-  line-height: 1;
+  padding: var(--libre-space-0) var(--libre-space-14);
+  line-height: var(--libre-lh-1);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
 }
 
 .libre-reader-meta-glossary:hover {
   color: var(--color-text-primary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-reader-meta-glossary--open,
@@ -124,8 +124,8 @@
   /* Tracks the parent pill's height bump (now 36px). The book glyph
      inside (`<Icon size="xs" />`) sits with a little breathing room
      on every side instead of nearly touching the wrapper edges. */
-  width: 16px;
-  height: 16px;
+  width: var(--libre-size-16);
+  height: var(--libre-size-16);
 }
 
 .libre-reader-meta-glossary-count {
@@ -137,22 +137,22 @@
   /* Slight min-width bump tracks the parent's height + font bump so
      a single-digit count still has a clear pill shape rather than
      looking cramped beside the now-larger label. */
-  min-width: 20px;
-  padding: 0 7px;
+  min-width: var(--libre-size-20);
+  padding: var(--libre-space-0) var(--libre-space-7);
   border-radius: var(--libre-radius-pill);
   background: var(--color-bg-tertiary);
   color: var(--color-text-tertiary);
   /* Bumped to 11px so the count tracks the parent pill's 12px label
      proportionally (count is meant to read a half-step quieter, not
      dramatically smaller). */
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: var(--libre-lh-1);
 }
 
 .libre-reader-meta-glossary--open .libre-reader-meta-glossary-count {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--libre-c-rgba-0-0-0-0-2);
   color: var(--color-bg-primary);
 }
 
@@ -160,11 +160,11 @@
    after 3 validation failures. Amber accent (warn semantics) + a
    primary CTA, distinct from the cyan "You'll learn" objectives box. */
 .libre-reader-retry {
-  margin: 0 0 20px;
-  padding: 14px 16px 12px;
-  background: rgba(232, 196, 107, 0.06);
-  border: 1px solid rgba(232, 196, 107, 0.3);
-  border-left: 3px solid #e8c46b;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-20);
+  padding: var(--libre-space-14) var(--libre-space-16) var(--libre-space-12);
+  background: var(--libre-c-rgba-232-196-107-0-06);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-232-196-107-0-3);
+  border-left: var(--libre-bw-3) solid var(--libre-c-e8c46b);
   border-radius: var(--libre-radius-sm);
 }
 
@@ -172,45 +172,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: var(--libre-space-6);
 }
 
 .libre-reader-retry-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
-  color: #e8c46b;
+  color: var(--libre-c-e8c46b);
 }
 
 .libre-reader-retry-body {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
-  margin-bottom: 10px;
+  margin-bottom: var(--libre-space-10);
 }
 
 .libre-reader-retry-reason {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 5px;
-  font-size: 11.5px;
-  line-height: 1.45;
+  gap: var(--libre-space-10);
+  margin-bottom: var(--libre-space-12);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  background: var(--libre-c-rgba-0-0-0-0-15);
+  border-radius: var(--libre-radius-5);
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-45);
   color: var(--color-text-tertiary);
 }
 
 .libre-reader-retry-reason-label {
   flex-shrink: 0;
-  font-weight: 700;
-  letter-spacing: 0.4px;
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-4);
   text-transform: uppercase;
-  color: #e8c46b;
-  font-size: 9.5px;
-  padding-top: 1px;
+  color: var(--libre-c-e8c46b);
+  font-size: var(--libre-fs-9-5);
+  padding-top: var(--libre-space-1);
 }
 
 .libre-reader-retry-reason-text {
@@ -222,53 +222,53 @@
 .libre-reader-retry-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  background: #e8c46b;
-  color: #1a1408;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-7) var(--libre-space-14);
+  background: var(--libre-c-e8c46b);
+  color: var(--libre-c-1a1408);
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--libre-radius-7);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-2);
   cursor: pointer;
   transition: opacity var(--libre-motion-snappy);
 }
 
 .libre-reader-retry-btn:hover {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 /* Objectives card — small "You'll learn" box above the body. */
 .libre-reader-objectives {
-  margin: 0 0 24px;
-  padding: 12px 16px;
-  background: rgba(124, 193, 217, 0.06);
-  border: 1px solid rgba(124, 193, 217, 0.3);
-  border-left: 3px solid #7cc1d9;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-24);
+  padding: var(--libre-space-12) var(--libre-space-16);
+  background: var(--libre-c-rgba-124-193-217-0-06);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-124-193-217-0-3);
+  border-left: var(--libre-bw-3) solid var(--libre-c-7cc1d9);
   border-radius: var(--libre-radius-sm);
 }
 
 .libre-reader-objectives-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
-  color: #7cc1d9;
-  margin-bottom: 6px;
+  color: var(--libre-c-7cc1d9);
+  margin-bottom: var(--libre-space-6);
 }
 
 .libre-reader-objectives-list {
-  margin: 0;
-  padding-left: 18px;
+  margin: var(--libre-space-0);
+  padding-left: var(--libre-space-18);
   color: var(--color-text-primary);
 }
 
 .libre-reader-objectives-list li {
-  font-size: 13px;
-  line-height: 1.55;
-  margin: 3px 0;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-55);
+  margin: var(--libre-space-3) var(--libre-space-0);
 }
 
 /* Glossary side panel — slides in from the right edge of the reader,
@@ -285,41 +285,39 @@
    `position: fixed` and needs an explicit topbar offset. */
 .libre-reader-glossary {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  bottom: 10px;
-  width: min(340px, 85%);
+  top: var(--libre-space-10);
+  right: var(--libre-space-10);
+  bottom: var(--libre-space-10);
+  width: min(var(--libre-size-340), 85%);
   /* Glass tokens — see theme/themes.css. Light themes flip these
      so the panel is a light frosted card on white surfaces. */
   background: var(--color-glass-bg);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid var(--color-glass-border);
+  -webkit-backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  border: var(--libre-bw-1) solid var(--color-glass-border);
   border-radius: var(--libre-radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 60;
-  box-shadow:
-    inset 0 1px 0 var(--color-glass-rim),
-    0 12px 28px var(--color-glass-shadow);
-  animation: libre-glossary-enter 0.2s ease-out;
+  z-index: var(--libre-z-60);
+  box-shadow: var(--libre-shadow-119);
+  animation: libre-glossary-enter var(--libre-dur-200) var(--libre-ease-ease-out);
 }
 
 @keyframes libre-glossary-enter {
-  from { transform: translateX(20px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from { transform: translateX(var(--libre-size-20)); opacity: var(--libre-opacity-0); }
+  to   { transform: translateX(0);    opacity: var(--libre-opacity-1); }
 }
 
 .libre-reader-glossary-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border-default);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  padding: var(--libre-space-12) var(--libre-space-16);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -328,7 +326,7 @@
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  padding: 2px 6px;
+  padding: var(--libre-space-2) var(--libre-space-6);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -342,37 +340,37 @@
 .libre-reader-glossary-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: var(--libre-space-12) var(--libre-space-16);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 .libre-reader-glossary-entry {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 .libre-reader-glossary-term {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
 }
 
 .libre-reader-glossary-def {
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
 /* ---- Callouts ---- */
 
 .libre-callout {
-  margin: 16px 0;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border-default);
-  border-left-width: 3px;
+  margin: var(--libre-space-16) var(--libre-space-0);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-left-width: var(--libre-bw-3);
   border-radius: var(--libre-radius-sm);
   background: var(--color-bg-secondary);
 }
@@ -380,11 +378,11 @@
 .libre-callout-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  gap: var(--libre-space-8);
+  margin-bottom: var(--libre-space-4);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
 }
 
@@ -392,89 +390,89 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  border-radius: var(--libre-radius-circle);
 }
 
 /* Four semantic colorings — concept-coded so each callout kind reads
    at a glance. */
 .libre-callout--note {
-  border-left-color: #7cc1d9;
-  background: rgba(124, 193, 217, 0.06);
+  border-left-color: var(--libre-c-7cc1d9);
+  background: var(--libre-c-rgba-124-193-217-0-06);
 }
-.libre-callout--note .libre-callout-head { color: #7cc1d9; }
+.libre-callout--note .libre-callout-head { color: var(--libre-c-7cc1d9); }
 .libre-callout--note .libre-callout-glyph {
-  background: rgba(124, 193, 217, 0.18);
-  color: #7cc1d9;
+  background: var(--libre-c-rgba-124-193-217-0-18);
+  color: var(--libre-c-7cc1d9);
 }
 
 .libre-callout--warning {
-  border-left-color: #e8c46b;
-  background: rgba(232, 196, 107, 0.06);
+  border-left-color: var(--libre-c-e8c46b);
+  background: var(--libre-c-rgba-232-196-107-0-06);
 }
-.libre-callout--warning .libre-callout-head { color: #e8c46b; }
+.libre-callout--warning .libre-callout-head { color: var(--libre-c-e8c46b); }
 .libre-callout--warning .libre-callout-glyph {
-  background: rgba(232, 196, 107, 0.18);
-  color: #e8c46b;
+  background: var(--libre-c-rgba-232-196-107-0-18);
+  color: var(--libre-c-e8c46b);
 }
 
 .libre-callout--tip {
-  border-left-color: #7cd97c;
-  background: rgba(124, 217, 124, 0.06);
+  border-left-color: var(--libre-c-7cd97c);
+  background: var(--libre-c-rgba-124-217-124-0-06);
 }
-.libre-callout--tip .libre-callout-head { color: #7cd97c; }
+.libre-callout--tip .libre-callout-head { color: var(--libre-c-7cd97c); }
 .libre-callout--tip .libre-callout-glyph {
-  background: rgba(124, 217, 124, 0.18);
-  color: #7cd97c;
+  background: var(--libre-c-rgba-124-217-124-0-18);
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-callout--example {
-  border-left-color: #c79bff;
-  background: rgba(199, 155, 255, 0.06);
+  border-left-color: var(--libre-c-c79bff);
+  background: var(--libre-c-rgba-199-155-255-0-06);
 }
-.libre-callout--example .libre-callout-head { color: #c79bff; }
+.libre-callout--example .libre-callout-head { color: var(--libre-c-c79bff); }
 .libre-callout--example .libre-callout-glyph {
-  background: rgba(199, 155, 255, 0.18);
-  color: #c79bff;
+  background: var(--libre-c-rgba-199-155-255-0-18);
+  color: var(--libre-c-c79bff);
 }
 
 .libre-callout-body {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
-.libre-callout-body > :first-child { margin-top: 0; }
-.libre-callout-body > :last-child { margin-bottom: 0; }
+.libre-callout-body > :first-child { margin-top: var(--libre-space-0); }
+.libre-callout-body > :last-child { margin-bottom: var(--libre-space-0); }
 .libre-callout-body p {
-  margin: 4px 0;
+  margin: var(--libre-space-4) var(--libre-space-0);
 }
 .libre-callout-body code {
   /* Slightly tighter than the default reader-body code treatment so
      callouts don't feel stuffed with chips. */
-  padding: 1px 4px;
+  padding: var(--libre-space-1) var(--libre-space-4);
 }
 
 .libre-reader-body h1 {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 16px;
-  letter-spacing: -0.01em;
+  font-size: var(--libre-fs-26);
+  font-weight: var(--libre-fw-700);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-16);
+  letter-spacing: var(--libre-ls-neg-0-01em);
   color: var(--color-text-primary);
 }
 
 .libre-reader-body h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 28px 0 12px;
+  font-size: var(--libre-fs-20);
+  font-weight: var(--libre-fw-600);
+  margin: var(--libre-space-28) var(--libre-space-0) var(--libre-space-12);
   color: var(--color-text-primary);
 }
 
 .libre-reader-body h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 22px 0 8px;
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-600);
+  margin: var(--libre-space-22) var(--libre-space-0) var(--libre-space-8);
   color: var(--color-text-primary);
 }
 
@@ -501,7 +499,7 @@
 .libre-section-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   /* Push the check (DOM-trailing) to the RIGHT-hand edge of the
      heading row by letting the text-span flex-grow into the
      leftover space. Previously the check sat to the LEFT of the
@@ -525,22 +523,22 @@
   /* Reserve space proportional to the heading size — h2 is 20px,
      h3 is 16px — so the title baselines stay aligned with non-
      section prose. The flex parent's `gap` adds breathing room. */
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
+  border-radius: var(--libre-radius-pill);
   /* Filled-disc treatment matches the visual weight of GitHub
      task-list checks: bright accent fill + contrasting glyph. The
      green here is the "success" green used by the tip callout
      elsewhere in the prose, so a learner who has internalised
      tip-callout green = "this is good / done" reads the badge
      correctly without a legend. */
-  background: var(--color-success, #7cd97c);
-  color: var(--color-bg-primary, #0a0a0a);
-  opacity: 0;
-  transform: translateX(-4px) scale(0.85);
+  background: var(--color-success, var(--libre-c-7cd97c));
+  color: var(--color-bg-primary, var(--libre-c-0a0a0a));
+  opacity: var(--libre-opacity-0);
+  transform: translateX(var(--libre-size-neg-4)) scale(0.85);
   transition:
-    opacity 220ms ease-out,
-    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity var(--libre-dur-220) var(--libre-ease-ease-out),
+    transform var(--libre-dur-220) var(--libre-ease-cb-8);
   /* Inherit the icon sizing from the inline svg's `icon icon--xs`
      class but trim a bit so the glyph sits centered inside the
      disc without crowding the edge. */
@@ -548,12 +546,12 @@
 }
 
 .libre-section-check .icon {
-  width: 12px;
-  height: 12px;
+  width: var(--libre-size-12);
+  height: var(--libre-size-12);
 }
 
 .libre-section-heading.is-completed .libre-section-check {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
   transform: translateX(0) scale(1);
 }
 
@@ -562,7 +560,7 @@
    in jarringly. */
 @media (prefers-reduced-motion: reduce) {
   .libre-section-check {
-    transition: opacity 0ms;
+    transition: opacity var(--libre-dur-0);
     transform: none;
   }
   .libre-section-heading.is-completed .libre-section-check {
@@ -571,31 +569,31 @@
 }
 
 .libre-reader-body p {
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-65);
   color: var(--color-text-secondary);
-  margin: 0 0 14px;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-14);
 }
 
 .libre-reader-body code {
-  padding: 1px 5px;
+  padding: var(--libre-space-1) var(--libre-space-5);
   background: var(--color-bg-tertiary);
-  border-radius: 3px;
+  border-radius: var(--libre-radius-3);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   color: var(--color-text-primary);
 }
 
 .libre-code-block {
   position: relative;
-  margin: 16px 0;
+  margin: var(--libre-space-16) var(--libre-space-0);
   /* 10px to match the lesson-table corners — keeps the prose
      column's two "block elements with their own chrome" (tables
      + code blocks) on the same radius so they read as siblings
      rather than two slightly-different cards. */
-  border-radius: 10px;
+  border-radius: var(--libre-radius-10);
   overflow: hidden;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 /* Filename strip — matches the Svelte tutorial's chrome where each
@@ -608,15 +606,15 @@
 .libre-code-filename {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-6) var(--libre-space-12);
   background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-500);
   color: var(--color-text-tertiary);
-  letter-spacing: 0.1px;
+  letter-spacing: var(--libre-ls-0-1);
 }
 
 .libre-code-filename span {
@@ -630,14 +628,14 @@
 /* Make room on the right for the `?` Ask Libre badge so it
    doesn't overlap the filename text when the snippet is short. */
 .libre-code-block--with-filename .libre-code-filename {
-  padding-right: 40px;
+  padding-right: var(--libre-space-40);
 }
 
 /* When a filename strip is present, the Ask badge sits over the
    strip rather than over the code body — looks tidier and keeps it
    out of the way of the first line. */
 .libre-code-block--with-filename .libre-code-block-ask {
-  top: 4px;
+  top: var(--libre-space-4);
 }
 
 /* `?` badge that opens the AI panel pre-loaded with a "walk me
@@ -647,37 +645,37 @@
    "ask the local assistant" affordance reads consistently. */
 .libre-code-block-ask {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid var(--color-border-default);
+  top: var(--libre-space-8);
+  right: var(--libre-space-8);
+  z-index: var(--libre-z-1);
+  width: var(--libre-size-24);
+  height: var(--libre-size-24);
+  padding: var(--libre-space-0);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
   color: var(--color-text-tertiary);
-  border-radius: 50%;
+  border-radius: var(--libre-radius-circle);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
+  opacity: var(--libre-opacity-0);
   transform: scale(0.94);
   transition:
-    opacity 0.15s,
-    transform 0.15s,
-    color 0.12s,
-    border-color 0.12s,
-    background 0.12s;
+    opacity var(--libre-dur-150),
+    transform var(--libre-dur-150),
+    color var(--libre-dur-120),
+    border-color var(--libre-dur-120),
+    background var(--libre-dur-120);
 }
 
 .libre-code-block:hover .libre-code-block-ask,
 .libre-code-block-ask:focus-visible {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
   transform: scale(1);
 }
 
@@ -702,22 +700,22 @@
    still touch. */
 @media (pointer: coarse) {
   .libre-code-block-ask {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: scale(1);
   }
 }
 
 .libre-code-block pre,
 .libre-code-plain {
-  margin: 0;
+  margin: var(--libre-space-0);
   /* Tighter vertical padding so the block hugs its code — prior 14px
      left a visible empty strip above the first line + below the last
      when the snippet was only 2-4 lines. 10px reads as a comfortable
      gutter without wasting vertical space. */
-  padding: 10px 16px;
+  padding: var(--libre-space-10) var(--libre-space-16);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-55);
   overflow-x: auto;
   /* Match the chrome — the sidebar and navigation rail both
      paint with `--color-glass-bg`, which in opaque themes
@@ -752,7 +750,7 @@
    padding + clearing the font override restores alignment across every
    line. */
 .libre-code-block code {
-  padding: 0 !important;
+  padding: var(--libre-space-0) !important;
   background: transparent !important;
   border-radius: 0 !important;
   color: inherit;
@@ -762,8 +760,8 @@
   color: var(--color-text-primary);
   /* Same 10px as `.libre-code-block` so unhighlighted fences
      keep the visual rhythm with shiki-rendered ones. */
-  border-radius: 10px;
-  border: 1px solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+  border: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 /* Shiki dual-theme palette switcher.
@@ -782,10 +780,11 @@
    needed when the user flips themes mid-session. */
 [data-theme="light"] .libre-code-block .shiki span {
   color: var(--shiki-light);
-  /* Per-token bg comes from the Shiki theme — leave it on so
-     range highlights / diff markers Shiki renders inline still
-     paint correctly. */
-  background-color: var(--shiki-light-bg, transparent);
+  /* Strip the Shiki theme's per-token background. GitHub Light tints
+     comments/strings with subtle rectangles that read as ugly boxes
+     behind the code. Line-level range highlights / diff markers paint on
+     the `.line` element, not these token spans, so they're unaffected. */
+  background-color: transparent !important;
   font-style: var(--shiki-light-font-style, normal);
   font-weight: var(--shiki-light-font-weight, normal);
   text-decoration: var(--shiki-light-text-decoration, none);
@@ -806,7 +805,9 @@
 [data-theme="dark"] .libre-code-block .shiki span,
 .libre-code-block .shiki span {
   color: var(--shiki-dark);
-  background-color: var(--shiki-dark-bg, transparent);
+  /* Strip the Shiki theme's per-token background (see the light rule
+     above) — the GitHub Dark token tints read as ugly boxes behind code. */
+  background-color: transparent !important;
   font-style: var(--shiki-dark-font-style, normal);
   font-weight: var(--shiki-dark-font-weight, normal);
   text-decoration: var(--shiki-dark-text-decoration, none);
@@ -848,10 +849,10 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: 16px 0;
-  font-size: 13px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
+  margin: var(--libre-space-16) var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
   overflow: hidden;
 }
 
@@ -867,11 +868,11 @@
      softly inside. `rgba` for the subtle case keeps the lines
      readable on every theme without depending on a token that
      may resolve transparent. */
-  border-right: 1px solid
+  border-right: var(--libre-bw-1) solid
     color-mix(in srgb, var(--color-border-default) 70%, transparent);
-  border-bottom: 1px solid
+  border-bottom: var(--libre-bw-1) solid
     color-mix(in srgb, var(--color-border-default) 70%, transparent);
-  padding: 7px 10px;
+  padding: var(--libre-space-7) var(--libre-space-10);
   text-align: left;
   vertical-align: top;
   color: var(--color-text-primary);
@@ -890,7 +891,7 @@
 }
 
 .libre-reader-body th {
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
 }
 
@@ -899,26 +900,26 @@
 }
 
 .libre-reader-body tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--libre-c-rgba-255-255-255-0-02);
 }
 
 /* Lists: tighten the default margins, keep markers aligned with the prose
    column rather than hanging off to the left. */
 .libre-reader-body ul,
 .libre-reader-body ol {
-  margin: 12px 0;
-  padding-left: 24px;
+  margin: var(--libre-space-12) var(--libre-space-0);
+  padding-left: var(--libre-space-24);
   color: var(--color-text-secondary);
 }
 
 .libre-reader-body li {
-  margin: 4px 0;
-  font-size: 14px;
-  line-height: 1.6;
+  margin: var(--libre-space-4) var(--libre-space-0);
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-6);
 }
 
 .libre-reader-body li > p {
-  margin: 0;
+  margin: var(--libre-space-0);
 }
 
 .libre-reader-body li::marker {
@@ -927,15 +928,15 @@
 
 /* Blockquotes — small left accent stripe + dimmed text to read as "aside". */
 .libre-reader-body blockquote {
-  margin: 16px 0;
-  padding: 4px 14px;
-  border-left: 3px solid var(--color-border-default);
+  margin: var(--libre-space-16) var(--libre-space-0);
+  padding: var(--libre-space-4) var(--libre-space-14);
+  border-left: var(--libre-bw-3) solid var(--color-border-default);
   color: var(--color-text-tertiary);
   font-style: italic;
 }
 
 .libre-reader-body blockquote > :last-child {
-  margin-bottom: 0;
+  margin-bottom: var(--libre-space-0);
 }
 
 /* Inline links. Underline-only so they don't compete with the accent colors
@@ -944,7 +945,7 @@
   color: var(--color-text-primary);
   text-decoration: underline;
   text-decoration-color: var(--color-text-tertiary);
-  text-underline-offset: 2px;
+  text-underline-offset: var(--libre-size-2);
 }
 
 .libre-reader-body a:hover {
@@ -953,9 +954,9 @@
 
 /* Horizontal rule — a subtle divider between major sections. */
 .libre-reader-body hr {
-  margin: 24px 0;
+  margin: var(--libre-space-24) var(--libre-space-0);
   border: 0;
-  height: 1px;
+  height: var(--libre-size-1);
   background: var(--color-border-default);
 }
 
@@ -963,7 +964,7 @@
    weight as the default `inline(...)` helper used before. */
 .libre-reader-body strong {
   color: var(--color-text-primary);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 /* Lesson art — standalone images promoted to figure cards by
@@ -977,15 +978,21 @@
      opener up to ~two-thirds. (Floats/talls/seals set their own smaller
      widths below.) Phones go full-width in the media query. */
   float: right;
-  width: min(50%, 360px);
-  margin: 4px 0 16px 24px;
-  border-radius: 14px;
+  width: min(50%, var(--libre-size-360));
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-16) var(--libre-space-24);
+  border-radius: var(--libre-radius-14);
   overflow: hidden;
-  border: 1px solid var(--color-border-card);
+  border: var(--libre-bw-1) solid var(--color-border-card);
   background: var(--color-bg-secondary);
+  /* Sit above the read-along highlight. The current paragraph's ::before
+     gradient spans the full column width (under a right-floated figure)
+     and, painting later in DOM order, was washing amber over the artwork.
+     Its own stacking context lifts the figure clear of the highlight. */
+  position: relative;
+  z-index: var(--libre-z-1);
 }
 .libre-reader-body .libre-figure--wide {
-  width: min(66%, 460px);
+  width: min(66%, var(--libre-size-460));
 }
 
 .libre-reader-body .libre-figure img {
@@ -995,12 +1002,12 @@
 }
 
 .libre-reader-body .libre-figure figcaption {
-  padding: 9px 14px;
-  border-top: 1px solid var(--color-border-card);
+  padding: var(--libre-space-9) var(--libre-space-14);
+  border-top: var(--libre-bw-1) solid var(--color-border-card);
   text-align: center;
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   font-style: italic;
-  line-height: 1.5;
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-tertiary);
 }
 
@@ -1012,31 +1019,31 @@
 .libre-reader-body .libre-figure--float,
 .libre-reader-body .libre-figure--tall {
   float: right;
-  width: min(44%, 320px);
-  margin: 4px 0 16px 22px;
+  width: min(44%, var(--libre-size-320));
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-16) var(--libre-space-22);
 }
 .libre-reader-body .libre-figure--tall {
-  width: min(40%, 280px);
+  width: min(40%, var(--libre-size-280));
 }
 /* Small float — for short lessons (brief intro + an exercise editor)
    where a full float would tower over the few lines of prose and leave
    a blank gutter beside its lower half. The baker assigns this by
    measuring how much text follows the figure. */
 .libre-reader-body .libre-figure--small {
-  width: min(30%, 220px);
+  width: min(30%, var(--libre-size-220));
 }
 .libre-reader-body .libre-figure--small figcaption {
-  padding: 7px 10px;
-  font-size: 11.5px;
+  padding: var(--libre-space-7) var(--libre-space-10);
+  font-size: var(--libre-fs-11-5);
 }
 .libre-reader-body .libre-figure--seal {
   float: left;
-  width: min(30%, 180px);
-  margin: 4px 20px 12px 0;
+  width: min(30%, var(--libre-size-180));
+  margin: var(--libre-space-4) var(--libre-space-20) var(--libre-space-12) var(--libre-space-0);
 }
 .libre-reader-body .libre-figure--seal figcaption {
-  padding: 6px 8px;
-  font-size: 11px;
+  padding: var(--libre-space-6) var(--libre-space-8);
+  font-size: var(--libre-fs-11);
 }
 /* Prose, headings, and code all wrap around floated figures (magazine
    style) so the column beside an image is never left as an empty
@@ -1066,7 +1073,7 @@
   .libre-reader-body .libre-figure--seal {
     float: none;
     width: 100%;
-    margin: 16px 0;
+    margin: var(--libre-space-16) var(--libre-space-0);
   }
 }
 
@@ -1118,16 +1125,16 @@
      was rendering, because that path doesn't rely on z-index
      stacking. */
   isolation: isolate;
-  transition: background 350ms ease;
+  transition: background var(--libre-dur-350) var(--libre-ease-ease);
 }
 
 .libre-reader-body [data-tts-block].libre-tts-current::before {
   content: "";
   position: absolute;
-  left: -14px;
-  top: 0;
-  bottom: 0;
-  right: 0;
+  left: var(--libre-space-neg-14);
+  top: var(--libre-space-0);
+  bottom: var(--libre-space-0);
+  right: var(--libre-space-0);
   /* Solid 2px amber bar on the LEFT edge only, followed by a
      soft amber tint that holds across the entire block.
      `rgba(...0.6)` and `rgba(...0.14)` share the 2px stop so
@@ -1138,14 +1145,14 @@
      region. */
   background: linear-gradient(
     90deg,
-    rgba(214, 185, 105, 0.6) 0px,
-    rgba(214, 185, 105, 0.6) 2px,
-    rgba(214, 185, 105, 0.14) 2px,
-    rgba(214, 185, 105, 0.10) 50%,
-    rgba(214, 185, 105, 0.08) 100%
+    var(--libre-c-rgba-214-185-105-0-6) var(--libre-size-0),
+    var(--libre-c-rgba-214-185-105-0-6) var(--libre-size-2),
+    var(--libre-c-rgba-214-185-105-0-14) var(--libre-size-2),
+    var(--libre-c-rgba-214-185-105-0-10) 50%,
+    var(--libre-c-rgba-214-185-105-0-08) 100%
   );
-  border-radius: 1px 4px 4px 1px;
-  transition: opacity 350ms ease;
+  border-radius: var(--libre-radius-1) var(--libre-radius-4) var(--libre-radius-4) var(--libre-radius-1);
+  transition: opacity var(--libre-dur-350) var(--libre-ease-ease);
   pointer-events: none;
   /* z-index: -1 within the parent's local stacking context
      (established by the `isolation: isolate` above) sits behind
@@ -1153,7 +1160,7 @@
      ancestor background. Net effect: the gradient paints under
      the prose and reads through any transparent siblings, but
      never sinks past the article body's own bg. */
-  z-index: -1;
+  z-index: var(--libre-z-neg-1);
 }
 
 /* Callouts and tables carry their OWN backgrounds (callout
@@ -1176,13 +1183,10 @@
      gap to the gradient — the bar IS the ring's left edge).
      `inset 3px 0 0 0` places the bar inside the block so it
      never spills past the rounded corner radius. */
-  box-shadow:
-    0 0 0 1px rgba(214, 185, 105, 0.85),
-    0 0 0 4px rgba(214, 185, 105, 0.18),
-    inset 3px 0 0 0 rgba(214, 185, 105, 0.85);
-  left: 0;
-  right: 0;
-  z-index: 0;
+  box-shadow: var(--libre-shadow-9);
+  left: var(--libre-space-0);
+  right: var(--libre-space-0);
+  z-index: var(--libre-z-0);
 }
 
 @media (prefers-reduced-motion: reduce) {

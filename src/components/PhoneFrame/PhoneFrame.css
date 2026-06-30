@@ -13,11 +13,11 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  margin: 0 auto;
-  padding: 12px;
+  margin: var(--libre-space-0) auto;
+  padding: var(--libre-space-12);
   box-sizing: border-box;
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45))
-    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 var(--libre-size-14) var(--libre-size-28) var(--libre-c-rgba-0-0-0-0-45))
+    drop-shadow(0 var(--libre-size-4) var(--libre-size-8) var(--libre-c-rgba-0-0-0-0-25));
 }
 
 /* The phone shell — gradient bezel + rounded corners. Sized to fill
@@ -30,21 +30,18 @@
 .libre-phone-frame {
   position: relative;
   height: 100%;
-  max-height: 620px;
+  max-height: var(--libre-size-620);
   width: auto;
-  max-width: 320px;
+  max-width: var(--libre-size-320);
   aspect-ratio: 9 / 19.5;
-  background: linear-gradient(160deg, #1a1a1c 0%, #2a2a2c 100%);
-  border-radius: 40px;
+  background: linear-gradient(160deg, var(--libre-c-1a1a1c) 0%, var(--libre-c-2a2a2c) 100%);
+  border-radius: var(--libre-radius-40);
   /* Equal padding on all four sides — the iPhone-14-Pro-style chin
      was a little distracting in the floating layout where the user
      drags the device around. Symmetric bezels read cleaner. */
-  padding: 12px;
+  padding: var(--libre-space-12);
   box-sizing: border-box;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+  box-shadow: var(--libre-shadow-106);
 }
 
 /* The screen — dark fill the children render against. Clipped to a
@@ -54,8 +51,8 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: #0b0b10;
-  border-radius: 28px;
+  background: var(--libre-c-0b0b10);
+  border-radius: var(--libre-radius-28);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -65,15 +62,15 @@
    so the status-bar text on either side has room to breathe. */
 .libre-phone-frame-island {
   position: absolute;
-  top: 8px;
+  top: var(--libre-space-8);
   left: 50%;
   transform: translateX(-50%);
-  width: 78px;
-  height: 22px;
-  border-radius: 14px;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  z-index: 2;
+  width: var(--libre-size-78);
+  height: var(--libre-size-22);
+  border-radius: var(--libre-radius-14);
+  background: var(--libre-c-black);
+  box-shadow: var(--libre-shadow-10);
+  z-index: var(--libre-z-2);
   pointer-events: none;
 }
 
@@ -82,26 +79,26 @@
    centre (island is 22px tall starting at top: 8px → centre at 19px;
    status bar is 38px tall, so its centre is also at 19px). */
 .libre-phone-frame-status {
-  flex: 0 0 38px;
+  flex: 0 0 var(--libre-size-38);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  z-index: 1;
+  padding: var(--libre-space-0) var(--libre-space-16);
+  color: var(--libre-c-rgba-255-255-255-0-85);
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-2);
+  z-index: var(--libre-z-1);
 }
 
 .libre-phone-frame-status-left,
 .libre-phone-frame-status-right {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--libre-space-5);
   /* Push the left/right blocks away from the dynamic island
      (78/2 = 39 + 4px breathing). */
-  width: calc(50% - 43px);
+  width: calc(50% - var(--libre-size-43));
 }
 
 .libre-phone-frame-status-left {
@@ -110,18 +107,18 @@
 
 .libre-phone-frame-status-right {
   justify-content: flex-end;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--libre-c-rgba-255-255-255-0-9);
 }
 
 .libre-phone-frame-status-carrier {
-  font-size: 9.5px;
+  font-size: var(--libre-fs-9-5);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: var(--libre-ls-0-6);
+  color: var(--libre-c-rgba-255-255-255-0-55);
 }
 
 .libre-phone-frame-glyph {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--libre-c-rgba-255-255-255-0-9);
 }
 
 /* Content slot — children render here. Auto-scroll keeps tall
@@ -132,20 +129,20 @@
   width: 100%;
   overflow: auto;
   position: relative;
-  z-index: 0;
+  z-index: var(--libre-z-0);
 }
 
 /* Home indicator bar — bottom-centre, semi-transparent, capsule shape. */
 .libre-phone-frame-home {
   position: absolute;
   left: 50%;
-  bottom: 8px;
+  bottom: var(--libre-space-8);
   transform: translateX(-50%);
-  width: 134px;
-  height: 5px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.5);
-  z-index: 3;
+  width: var(--libre-size-134);
+  height: var(--libre-size-5);
+  border-radius: var(--libre-radius-3);
+  background: var(--libre-c-rgba-255-255-255-0-5);
+  z-index: var(--libre-z-3);
   pointer-events: none;
 }
 
@@ -155,14 +152,14 @@
    on the screen. */
 .libre-phone-frame-side-btn {
   position: absolute;
-  width: 3px;
+  width: var(--libre-size-3);
   background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(0, 0, 0, 0.55) 100%
+    var(--libre-c-rgba-0-0-0-0-55) 0%,
+    var(--libre-c-rgba-255-255-255-0-05) 50%,
+    var(--libre-c-rgba-0-0-0-0-55) 100%
   );
-  border-radius: 1.5px;
+  border-radius: var(--libre-radius-1-5);
   pointer-events: none;
 }
 
@@ -170,28 +167,28 @@
    offsets are eyeballed to land roughly where the iPhone 14 Pro
    physical buttons sit. */
 .libre-phone-frame-side-btn--mute {
-  left: -1.5px;
-  top: 90px;
-  height: 28px;
+  left: var(--libre-space-neg-1-5);
+  top: var(--libre-space-90);
+  height: var(--libre-size-28);
 }
 
 .libre-phone-frame-side-btn--volup {
-  left: -1.5px;
-  top: 130px;
-  height: 50px;
+  left: var(--libre-space-neg-1-5);
+  top: var(--libre-space-130);
+  height: var(--libre-size-50);
 }
 
 .libre-phone-frame-side-btn--voldown {
-  left: -1.5px;
-  top: 188px;
-  height: 50px;
+  left: var(--libre-space-neg-1-5);
+  top: var(--libre-space-188);
+  height: var(--libre-size-50);
 }
 
 /* Right edge — sleep/wake. Slightly taller than the volume buttons. */
 .libre-phone-frame-side-btn--sleep {
-  right: -1.5px;
-  top: 150px;
-  height: 70px;
+  right: var(--libre-space-neg-1-5);
+  top: var(--libre-space-150);
+  height: var(--libre-size-70);
 }
 
 /* Console-style content used by the Swift renderer. Dark background,
@@ -201,35 +198,35 @@
 .libre-phone-frame-console {
   width: 100%;
   min-height: 100%;
-  padding: 18px 16px 60px 16px;
-  background: #050507;
-  color: #d8d8e0;
+  padding: var(--libre-space-18) var(--libre-space-16) var(--libre-space-60) var(--libre-space-16);
+  background: var(--libre-c-050507);
+  color: var(--libre-c-d8d8e0);
   font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-55);
   white-space: pre-wrap;
   word-break: break-word;
   box-sizing: border-box;
 }
 
 .libre-phone-frame-console-line {
-  margin: 0;
+  margin: var(--libre-space-0);
 }
 
 .libre-phone-frame-console-line--warn {
-  color: #f5d17a;
+  color: var(--libre-c-f5d17a);
 }
 
 .libre-phone-frame-console-line--error {
-  color: #f3a0a0;
+  color: var(--libre-c-f3a0a0);
 }
 
 .libre-phone-frame-console-error-block {
-  margin-top: 14px;
-  padding: 10px 12px;
-  border-left: 2px solid #f3a0a0;
-  color: #f3a0a0;
-  background: rgba(243, 160, 160, 0.06);
+  margin-top: var(--libre-space-14);
+  padding: var(--libre-space-10) var(--libre-space-12);
+  border-left: var(--libre-bw-2) solid var(--libre-c-f3a0a0);
+  color: var(--libre-c-f3a0a0);
+  background: var(--libre-c-rgba-243-160-160-0-06);
 }
 
 /* Sandboxed iframe used by the React Native renderer — fills the
@@ -239,7 +236,7 @@
   width: 100%;
   height: 100%;
   border: 0;
-  background: #0b0b10;
+  background: var(--libre-c-0b0b10);
   display: block;
 }
 
@@ -251,9 +248,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 12.5px;
+  padding: var(--libre-space-24);
+  color: var(--libre-c-rgba-255-255-255-0-45);
+  font-size: var(--libre-fs-12-5);
   text-align: center;
   box-sizing: border-box;
 }

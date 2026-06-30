@@ -6,16 +6,16 @@
 
 .libre-popover {
   position: fixed;
-  z-index: 140;
-  min-width: 220px;
-  max-width: 360px;
+  z-index: var(--libre-z-140);
+  min-width: var(--libre-size-220);
+  max-width: var(--libre-size-360);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
-  padding: 10px 12px 8px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+  padding: var(--libre-space-10) var(--libre-space-12) var(--libre-space-8);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
   pointer-events: auto;
   /* Entrance is driven by the inline opacity transition set via React
      state (null → computed). A CSS keyframe would stomp the inline
@@ -25,35 +25,35 @@
 }
 
 .libre-popover--symbol {
-  border-top: 2px solid #7cc1d9; /* cyan: info / reference */
+  border-top: var(--libre-bw-2) solid var(--libre-c-7cc1d9); /* cyan: info / reference */
 }
 
 .libre-popover--term {
-  border-top: 2px solid #c79bff; /* purple: glossary */
+  border-top: var(--libre-bw-2) solid var(--libre-c-c79bff); /* purple: glossary */
 }
 
 .libre-popover-heading {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  letter-spacing: -0.005em;
+  letter-spacing: var(--libre-ls-neg-0-005em);
 }
 
 .libre-popover-signature {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-secondary);
   background: var(--color-bg-primary);
-  padding: 4px 7px;
+  padding: var(--libre-space-4) var(--libre-space-7);
   border-radius: var(--libre-radius-xs);
   overflow-x: auto;
   white-space: nowrap;
-  margin: 2px 0;
+  margin: var(--libre-space-2) var(--libre-space-0);
 }
 
 .libre-popover-body {
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-secondary);
 }
 
@@ -61,15 +61,15 @@
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  margin-top: 4px;
+  gap: var(--libre-space-5);
+  margin-top: var(--libre-space-4);
   background: transparent;
   border: 0;
-  padding: 0;
-  color: #7cc1d9;
+  padding: var(--libre-space-0);
+  color: var(--libre-c-7cc1d9);
   font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   text-align: left;
 }
@@ -78,13 +78,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 0;
+  line-height: var(--libre-lh-0);
 }
 
 .libre-popover-doclink:hover {
   color: var(--color-text-primary);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: var(--libre-size-2);
 }
 
 /* Inline triggers — the bits the popover anchors to. Keep them close
@@ -95,23 +95,23 @@
      `.libre-reader-body code` rule. We only add a hover affordance
      and a subtle bottom border so it reads as a popover trigger. */
   cursor: help;
-  border-bottom: 1px dotted rgba(124, 193, 217, 0.5);
+  border-bottom: var(--libre-bw-1) dotted var(--libre-c-rgba-124-193-217-0-5);
 }
 
 .libre-inline-symbol:hover {
-  background: rgba(124, 193, 217, 0.12) !important;
-  border-bottom-color: #7cc1d9;
+  background: var(--libre-c-rgba-124-193-217-0-12) !important;
+  border-bottom-color: var(--libre-c-7cc1d9);
   color: var(--color-text-primary);
 }
 
 .libre-inline-term {
   cursor: help;
-  border-bottom: 1px dotted rgba(199, 155, 255, 0.5);
+  border-bottom: var(--libre-bw-1) dotted var(--libre-c-rgba-199-155-255-0-5);
   transition: border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
 .libre-inline-term:hover {
-  border-bottom-color: #c79bff;
+  border-bottom-color: var(--libre-c-c79bff);
   color: var(--color-text-primary);
 }
 
@@ -119,10 +119,10 @@
 [data-theme-name="ayu-light"] .libre-inline-symbol,
 [data-theme-name="ayu-light"] .libre-inline-symbol,
 [data-theme-name="catppuccin-latte"] .libre-inline-symbol {
-  border-bottom-color: rgba(2, 122, 159, 0.5);
+  border-bottom-color: var(--libre-c-rgba-2-122-159-0-5);
 }
 [data-theme-name="ayu-light"] .libre-inline-term,
 [data-theme-name="ayu-light"] .libre-inline-term,
 [data-theme-name="catppuccin-latte"] .libre-inline-term {
-  border-bottom-color: rgba(136, 83, 194, 0.5);
+  border-bottom-color: var(--libre-c-rgba-136-83-194-0-5);
 }

@@ -14,13 +14,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   /* Held for backwards compatibility — components that read this
      colour for the optional inline label still work, even though
      the spinner itself no longer uses currentColor. Was routed
      through the retired --fb-bone-color; --color-accent carries
      the same warm-cream value post-rebrand. */
-  color: var(--color-accent, #d4c5a1);
+  color: var(--color-accent, var(--libre-c-d4c5a1));
 }
 
 .libre-loader-stack {
@@ -31,13 +31,13 @@
 }
 
 .libre-loader--md .libre-loader-stack {
-  width: 88px;
-  height: 88px;
+  width: var(--libre-size-88);
+  height: var(--libre-size-88);
 }
 
 .libre-loader--sm .libre-loader-stack {
-  width: 40px;
-  height: 40px;
+  width: var(--libre-size-40);
+  height: var(--libre-size-40);
 }
 
 /* Ring stays in the DOM (the React component still renders the
@@ -53,40 +53,40 @@
    default but spelled out so a future asset swap with off-centre
    composition doesn't surprise anyone. */
 .libre-loader-logo {
-  --lw: 8px; /* ring thickness; overridden per size below */
-  border-radius: 50%;
+  --lw: var(--libre-size-8); /* ring thickness; overridden per size below */
+  border-radius: var(--libre-radius-circle);
   /* 1/3-circle arc in the brand accent, masked into a thin ring. */
   background: conic-gradient(
-    var(--gg-accent, hsl(18 74% 66%)) 0deg 120deg,
+    var(--gg-accent, var(--libre-c-hsl-1874-66)) 0deg 120deg,
     transparent 120deg 360deg
   );
-  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - var(--lw)), #000 calc(100% - var(--lw)));
-          mask: radial-gradient(farthest-side, #0000 calc(100% - var(--lw)), #000 calc(100% - var(--lw)));
+  -webkit-mask: radial-gradient(farthest-side, var(--libre-c-00000000) calc(100% - var(--lw)), var(--libre-c-black) calc(100% - var(--lw)));
+          mask: radial-gradient(farthest-side, var(--libre-c-00000000) calc(100% - var(--lw)), var(--libre-c-black) calc(100% - var(--lw)));
   transform-origin: center;
-  animation: libre-loader-spin 0.9s linear infinite;
+  animation: libre-loader-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
   /* Warm halo so the arc reads as an active "loading" element. */
-  filter: drop-shadow(0 0 8px rgba(243, 114, 57, 0.28));
+  filter: drop-shadow(0 0 var(--libre-size-8) var(--libre-c-rgba-243-114-57-0-28));
 }
 
 .libre-loader--md .libre-loader-logo {
-  width: 88px;
-  height: 88px;
-  --lw: 8px;
+  width: var(--libre-size-88);
+  height: var(--libre-size-88);
+  --lw: var(--libre-size-8);
 }
 
 .libre-loader--sm .libre-loader-logo {
-  width: 40px;
-  height: 40px;
-  --lw: 4px;
+  width: var(--libre-size-40);
+  height: var(--libre-size-40);
+  --lw: var(--libre-size-4);
   /* Tighter halo at the small size so it doesn't bloom into
      adjacent UI (book-cover overlays etc.). */
-  filter: drop-shadow(0 0 4px rgba(243, 114, 57, 0.32));
+  filter: drop-shadow(0 0 var(--libre-size-4) var(--libre-c-rgba-243-114-57-0-32));
 }
 
 .libre-loader-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-8);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -99,5 +99,5 @@
    backgrounds; deepen the colour so the spinner still has presence. */
 [data-theme-name="ayu-light"] .libre-loader-logo,
 [data-theme-name="catppuccin-latte"] .libre-loader-logo {
-  filter: drop-shadow(0 0 6px rgba(232, 149, 74, 0.55));
+  filter: drop-shadow(0 0 var(--libre-size-6) var(--libre-c-rgba-232-149-74-0-55));
 }

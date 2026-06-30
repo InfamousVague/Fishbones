@@ -8,12 +8,12 @@
 
 .libre-ai-character {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: var(--libre-space-20);
+  bottom: var(--libre-space-20);
   /* Above the top-bar (100) and sidebar (50), below full-screen
      modals (1000+). 90 keeps the button reachable while the user
      is in a lesson or the library. */
-  z-index: 90;
+  z-index: var(--libre-z-90);
   /* 52×52 click target — sized to feel like a primary
      affordance without dominating the corner. Bigger than the
      original 40px corner button so the snake silhouette inside
@@ -23,9 +23,9 @@
      this height (still using the 72px constant there as a
      conservative ceiling); the panel ends up with a slightly
      larger gap above the orb at 52px, which is fine. */
-  width: 52px;
-  height: 52px;
-  padding: 0;
+  width: var(--libre-size-52);
+  height: var(--libre-size-52);
+  padding: var(--libre-space-0);
   border: none;
   /* No border-radius on the button itself — the inner `__disc`
      owns the circular clip so the foil paints inside the circle
@@ -44,14 +44,14 @@
   /* Glyph colour. Black sparkle on the white disc + holo so the
      icon is clearly legible against the iridescent foil. The
      `.libre-ai-character-icon` wrapper inherits this. */
-  color: #000;
+  color: var(--libre-c-black);
   /* Soft dark drop shadow below the disc so the orb still reads
      as floating against the page. The static white ring that
      used to sit above this is gone — the foil is the visual
      signature now. */
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 var(--libre-size-4) var(--libre-size-10) var(--libre-c-rgba-0-0-0-0-45));
   transition:
-    transform 0.18s ease-out;
+    transform var(--libre-dur-180) var(--libre-ease-ease-out);
   will-change: transform;
 }
 
@@ -70,8 +70,8 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: #ffffff;
-  border-radius: 50%;
+  background: var(--libre-c-white);
+  border-radius: var(--libre-radius-circle);
   overflow: hidden;
   isolation: isolate;
   display: inline-flex;
@@ -83,7 +83,7 @@
    primitive's `border-radius: inherit`. Sits BELOW the icon span
    via the icon's explicit z-index. */
 .libre-ai-character__holo {
-  border-radius: 50%;
+  border-radius: var(--libre-radius-circle);
 }
 
 /* The shared Hologram primitive masks its foil with a sparkle
@@ -124,23 +124,23 @@
 
 .libre-ai-character__ring {
   position: absolute;
-  inset: -3px;
-  border-radius: 50%;
+  inset: var(--libre-space-neg-3);
+  border-radius: var(--libre-radius-circle);
   pointer-events: none;
   /* Behind the disc — the disc gets implicit z-index 0 via the
      inline-flex layout context. */
-  z-index: -1;
+  z-index: var(--libre-z-neg-1);
 }
 
 .libre-ai-character__ring::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   border-radius: inherit;
   /* The padding here becomes the ring's THICKNESS — the
      mask-composite trick below punches a hole the size of the
      content-box, leaving only the padding ring visible. */
-  padding: 2px;
+  padding: var(--libre-space-2);
   /* Conic chromatic gradient — same colour stop pattern as the
      paper-design demo (blue → purple → red → purple → blue),
      so the ring reads as a metallic spectrum sweep. The
@@ -149,37 +149,37 @@
      the user enters the corner. */
   background: conic-gradient(
     from 180deg,
-    #4f46e5,
-    #a855f7,
-    #ec4899,
-    #ef4444,
-    #ec4899,
-    #a855f7,
-    #4f46e5
+    var(--libre-c-4f46e5),
+    var(--libre-c-a855f7),
+    var(--libre-c-ec4899),
+    var(--libre-c-ef4444),
+    var(--libre-c-ec4899),
+    var(--libre-c-a855f7),
+    var(--libre-c-4f46e5)
   );
   /* Two-pass mask cuts a hole the size of the content-box,
      leaving only the padding ring painted. `mask-composite:
      exclude` (standard) + `-webkit-mask-composite: xor` (Safari
      name for the same op) keep this working across engines. */
   -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
+    linear-gradient(var(--libre-c-black) 0 0) content-box,
+    linear-gradient(var(--libre-c-black) 0 0);
   -webkit-mask-composite: xor;
   mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
+    linear-gradient(var(--libre-c-black) 0 0) content-box,
+    linear-gradient(var(--libre-c-black) 0 0);
   mask-composite: exclude;
   /* Slow rotation drives the "flowing metal" illusion — without
      it the ring would be a static rainbow stripe. 8s at rest
      is unhurried enough to read as ambient rather than busy. */
-  animation: libre-ai-character-ring-spin 8s linear infinite;
+  animation: libre-ai-character-ring-spin var(--libre-dur-8000) var(--libre-ease-linear) infinite;
 }
 
 /* Streaming = faster spin, brighter chroma. Same "ramps up
    while the AI is thinking" pattern the hologram's excited
    prop uses — keeps the visual cues coordinated. */
 .libre-ai-character--streaming .libre-ai-character__ring::before {
-  animation-duration: 2.5s;
+  animation-duration: var(--libre-dur-2500);
   filter: saturate(1.4) brightness(1.1);
 }
 
@@ -201,7 +201,7 @@
    composed this with a pulsing `libre-ai-halo` keyframe; that
    was retired alongside the static-ring refactor.) */
 .libre-ai-character--streaming {
-  animation: libre-ai-thinking 1.4s ease-in-out infinite;
+  animation: libre-ai-thinking var(--libre-dur-1400) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-ai-character:hover {
@@ -222,8 +222,8 @@
 }
 
 .libre-ai-character:focus-visible {
-  outline: 2px solid hsl(220, 60%, 60%);
-  outline-offset: 4px;
+  outline: var(--libre-bw-2) solid var(--libre-c-hsl-220-60-60);
+  outline-offset: var(--libre-size-4);
 }
 
 /* Sparkles glyph wrapper. The base `Icon` component sizes itself
@@ -237,12 +237,12 @@
    than getting blended into it. */
 .libre-ai-character-icon {
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  line-height: 1;
+  font-size: var(--libre-fs-10);
+  line-height: var(--libre-lh-1);
   color: currentColor;
   pointer-events: none;
 }
@@ -332,35 +332,35 @@
   position: absolute;
   right: 100%;
   top: 50%;
-  margin-right: 10px;
+  margin-right: var(--libre-space-10);
   /* Hover-only visibility: hidden by default, the parent's `:hover`
      rule below fades it in. Translate3d composes with the opacity
      transition so the tip subtly slides toward the orb on reveal. */
-  transform: translate3d(8px, -50%, 0);
-  opacity: 0;
+  transform: translate3d(var(--libre-size-8), -50%, 0);
+  opacity: var(--libre-opacity-0);
   transition:
-    opacity 200ms ease,
-    transform 200ms ease;
-  padding: 7px 12px;
-  background: rgba(19, 19, 26, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--libre-radius-pill, 999px);
-  backdrop-filter: blur(14px) saturate(135%);
-  -webkit-backdrop-filter: blur(14px) saturate(135%);
-  color: var(--color-text-primary, #f5f5f7);
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+    opacity var(--libre-dur-200) var(--libre-ease-ease),
+    transform var(--libre-dur-200) var(--libre-ease-ease);
+  padding: var(--libre-space-7) var(--libre-space-12);
+  background: var(--libre-c-rgba-19-19-26-0-7);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-08);
+  border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
+  backdrop-filter: blur(var(--libre-blur-14)) saturate(135%);
+  -webkit-backdrop-filter: blur(var(--libre-blur-14)) saturate(135%);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-01em);
   white-space: nowrap;
   pointer-events: none;
   /* Soft drop shadow so the tip reads as floating in front of
      whatever's behind the orb. Same shadow treatment as the mobile
      tab pill for consistency. */
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--libre-shadow-88);
 }
 
 .libre-ai-character:hover .libre-ai-character-tip {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
   transform: translate3d(0, -50%, 0);
 }
 
@@ -368,7 +368,7 @@
    change so the tip still appears (just instantly) on hover. */
 @media (prefers-reduced-motion: reduce) {
   .libre-ai-character-tip {
-    transition: opacity 0s;
+    transition: opacity var(--libre-dur-0);
     transform: translate3d(0, -50%, 0);
   }
 }
@@ -384,7 +384,7 @@
    edge visually. */
 @media (max-width: 767px) {
   .libre-ai-character {
-    right: 12px;
-    bottom: calc(env(safe-area-inset-bottom, 0) + 84px);
+    right: var(--libre-space-12);
+    bottom: calc(env(safe-area-inset-bottom, var(--libre-space-0)) + var(--libre-space-84));
   }
 }

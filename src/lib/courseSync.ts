@@ -328,6 +328,38 @@ export interface ApplyFixesResult {
   course: Course;
 }
 
+/// Background auto-update: scan every installed course for a bundled
+/// update and silently apply the ones that have one. Built for the
+/// launch-time + hourly sweep in App so books stay current without the
+/// learner clicking each "update available" badge. Sequential (the
+/// per-course hash is CPU-bound) with a yield between courses so the pass
+/// never freezes the UI; per-course failures are swallowed so one
+/// bad/missing pack can't stall the batch. Returns how many were applied
+/// so the caller can decide whether to refresh in-memory state.
+export async function autoSyncUpdatedCourses(courses: Course[]): Promise<number> {
+  let applied = 0;
+  for (const course of courses) {
+    // Only auto-apply courses that carry a `bundleSha` (every seeded pack
+    // does). Legacy installs without one might hold local edits — leave
+    // those for the manual badge — and skipping them also dodges a
+    // false-positive when the in-memory copy is still a body-stripped
+    // summary (whose re-hash wouldn't match the bundle).
+    if (!course.bundleSha) continue;
+    try {
+      const status = await checkUpdateAvailable(course);
+      if (status.available && status.bundled) {
+        await syncBundledToInstalled(course.id);
+        applied += 1;
+      }
+    } catch {
+      // Network blip / missing bundled pack — skip, keep going.
+    }
+    // Yield so the CPU-bound hashing never freezes the UI between courses.
+    await new Promise<void>((r) => setTimeout(r, 0));
+  }
+  return applied;
+}
+
 /// Tolerant JSON parser — strips markdown fences, isolates the
 /// outermost `{ … }` if the model wrapped the JSON in prose, and
 /// retries with raw input. Mirrors the logic in

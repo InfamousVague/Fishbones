@@ -6,17 +6,17 @@
 /* The "Local Bitcoin" chip — pumpkin orange to distinguish from
    the EVM dock's chip without clashing with our amber accent. */
 .btc-dock .btc-dock__chip {
-  background: rgba(247, 147, 26, 0.18);
-  color: #f7931a;
-  border-color: rgba(247, 147, 26, 0.42);
+  background: var(--libre-c-rgba-247-147-26-0-18);
+  color: var(--libre-c-f7931a);
+  border-color: var(--libre-c-rgba-247-147-26-0-42);
 }
 
 /* Tip-block hash next to the height. Monospace + dim so it reads
    as identifier, not content. */
 .btc-dock__hash {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 11px;
-  color: var(--color-text-tertiary, #6b7180);
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary, var(--libre-c-6b7180));
 }
 
 /* The Bitcoin dock has 5 panels (Accounts spans both rows on the
@@ -33,10 +33,10 @@
    lets the learner expand up to 600px when scrolling block lists
    gets cramped. */
 .btc-dock {
-  height: var(--btc-dock-height, 180px);
-  min-height: var(--btc-dock-height, 180px);
-  max-height: var(--btc-dock-height, 180px);
-  flex: 0 0 var(--btc-dock-height, 180px);
+  height: var(--btc-dock-height, var(--libre-size-180));
+  min-height: var(--btc-dock-height, var(--libre-size-180));
+  max-height: var(--btc-dock-height, var(--libre-size-180));
+  flex: 0 0 var(--btc-dock-height, var(--libre-size-180));
   /* Make room at the bottom for the resize-handle strip without
      letting it overlap the panel scroll areas. The handle itself
      is positioned absolutely against the dock root, so we just need
@@ -61,17 +61,17 @@
    chrome. */
 .btc-dock__resize-handle {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: var(--libre-space-0);
+  right: var(--libre-space-0);
   /* Straddle the bottom border (3px above, 3px below) so the
      existing 1px line sits at the visual center of the drag area. */
-  bottom: -3px;
-  height: 6px;
+  bottom: var(--libre-space-neg-3);
+  height: var(--libre-size-6);
   cursor: ns-resize;
   background: transparent;
   /* Sits above the panel grid so the drag target stays reachable
      even when a panel scroll bumps up against it. */
-  z-index: 4;
+  z-index: var(--libre-z-4);
 }
 
 .btc-dock__grid {
@@ -129,81 +129,81 @@
 /* ── Tx rows (mempool + recent) ───────────────────────────── */
 .btc-dock__tx-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .btc-dock__tx-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: var(--color-bg-primary, #0d1117);
-  font-size: 11.5px;
-  color: var(--color-text-secondary, #c9d1d9);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-8);
+  border-radius: var(--libre-radius-6);
+  background: var(--color-bg-primary, var(--libre-c-0d1117));
+  font-size: var(--libre-fs-11-5);
+  color: var(--color-text-secondary, var(--libre-c-c9d1d9));
 }
 
 .btc-dock__tx-row--pending {
-  background: rgba(247, 147, 26, 0.06);
-  border: 1px dashed rgba(247, 147, 26, 0.32);
+  background: var(--libre-c-rgba-247-147-26-0-06);
+  border: var(--libre-bw-1) dashed var(--libre-c-rgba-247-147-26-0-32);
 }
 
 .btc-dock__tx-kind {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-05em);
   text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--color-bg-tertiary, #21262d);
-  color: var(--color-text-tertiary, #8b949e);
+  padding: var(--libre-space-2) var(--libre-space-6);
+  border-radius: var(--libre-radius-4);
+  background: var(--color-bg-tertiary, var(--libre-c-21262d));
+  color: var(--color-text-tertiary, var(--libre-c-8b949e));
   white-space: nowrap;
 }
 
 .btc-dock__tx-kind--p2wpkh,
 .btc-dock__tx-kind--p2wsh {
-  background: rgba(247, 147, 26, 0.18);
-  color: #f7931a;
+  background: var(--libre-c-rgba-247-147-26-0-18);
+  color: var(--libre-c-f7931a);
 }
 
 .btc-dock__tx-kind--p2pkh {
-  background: rgba(143, 143, 200, 0.18);
-  color: #9090c8;
+  background: var(--libre-c-rgba-143-143-200-0-18);
+  color: var(--libre-c-9090c8);
 }
 
 .btc-dock__tx-kind--p2sh {
-  background: rgba(99, 191, 158, 0.18);
-  color: #63bf9e;
+  background: var(--libre-c-rgba-99-191-158-0-18);
+  color: var(--libre-c-63bf9e);
 }
 
 .btc-dock__tx-kind--coinbase {
-  background: rgba(255, 215, 0, 0.16);
-  color: #d4af37;
+  background: var(--libre-c-rgba-255-215-0-0-16);
+  color: var(--libre-c-d4af37);
 }
 
 .btc-dock__tx-id,
 .btc-dock__block-hash,
 .btc-dock__utxo-out {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 11px;
-  color: var(--color-text-tertiary, #8b949e);
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary, var(--libre-c-8b949e));
 }
 
 .btc-dock__tx-flow {
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary, #8b949e);
-  font-size: 11px;
+  color: var(--color-text-tertiary, var(--libre-c-8b949e));
+  font-size: var(--libre-fs-11);
 }
 
 .btc-dock__tx-amount,
 .btc-dock__utxo-amount {
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--color-text-primary, #f0f6fc);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary, var(--libre-c-f0f6fc));
   margin-left: auto;
 }
 
@@ -212,57 +212,57 @@
 .btc-dock__block-txs,
 .btc-dock__block-height,
 .btc-dock__utxo-height {
-  font-size: 10.5px;
-  color: var(--color-text-tertiary, #8b949e);
+  font-size: var(--libre-fs-10-5);
+  color: var(--color-text-tertiary, var(--libre-c-8b949e));
   font-variant-numeric: tabular-nums;
 }
 
 /* ── Block rows ────────────────────────────────────────────── */
 .btc-dock__block-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .btc-dock__block-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: var(--color-bg-primary, #0d1117);
-  font-size: 11.5px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-6) var(--libre-space-8);
+  border-radius: var(--libre-radius-6);
+  background: var(--color-bg-primary, var(--libre-c-0d1117));
+  font-size: var(--libre-fs-11-5);
 }
 
 .btc-dock__block-height {
-  font-weight: 600;
-  color: #f7931a;
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-f7931a);
 }
 
 /* ── UTXO rows ─────────────────────────────────────────────── */
 .btc-dock__utxo-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .btc-dock__utxo-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: var(--color-bg-primary, #0d1117);
-  font-size: 11.5px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-8);
+  border-radius: var(--libre-radius-6);
+  background: var(--color-bg-primary, var(--libre-c-0d1117));
+  font-size: var(--libre-fs-11-5);
 }
 
 .btc-dock__utxo-addr {
-  font-size: 11px;
-  color: var(--color-text-secondary, #c9d1d9);
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-secondary, var(--libre-c-c9d1d9));
 }

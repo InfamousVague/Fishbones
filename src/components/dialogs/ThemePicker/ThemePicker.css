@@ -3,41 +3,41 @@
    The mini mock-up reads inline --swatch-bg/fg/accent set from THEME_PREVIEW. */
 
 .libre-theme-picker {
-  width: min(880px, 95vw);
-  max-height: min(88vh, 860px);
+  width: min(var(--libre-size-880), 95vw);
+  max-height: min(88vh, var(--libre-size-860));
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-elevated, #1b1d25);
-  color: var(--color-text-primary, #fff);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  border-radius: 16px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  background: var(--color-bg-elevated, var(--libre-c-1b1d25));
+  color: var(--color-text-primary, var(--libre-c-white));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  border-radius: var(--libre-radius-16);
+  box-shadow: var(--libre-shadow-78);
   overflow: hidden;
 }
 
 .libre-theme-picker__head {
-  padding: 22px 24px 14px;
-  border-bottom: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  padding: var(--libre-space-22) var(--libre-space-24) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
 }
 .libre-theme-picker__title {
-  margin: 0 0 6px;
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-6);
+  font-size: var(--libre-fs-21);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
 }
 .libre-theme-picker__blurb {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--color-text-secondary, #a4a4ad);
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-45);
+  color: var(--color-text-secondary, var(--libre-c-a4a4ad));
   max-width: 60ch;
 }
 
 .libre-theme-picker__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 16px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-16);
   overflow-y: auto;
 }
 @media (max-width: 620px) {
@@ -48,41 +48,40 @@
 
 /* ---- a theme card ---- */
 .libre-theme-card {
-  --card-accent: var(--color-accent, #fff);
+  --card-accent: var(--color-accent, var(--libre-c-white));
   display: grid;
-  grid-template-columns: 73px 125px 1fr auto;
+  grid-template-columns: var(--libre-size-73) var(--libre-size-125) 1fr auto;
   align-items: center;
-  gap: 15px;
+  gap: var(--libre-space-15);
   width: 100%;
   text-align: left;
-  padding: 13px;
-  border-radius: 14px;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  background: var(--color-bg-secondary, #101117);
+  padding: var(--libre-space-13);
+  border-radius: var(--libre-radius-14);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  background: var(--color-bg-secondary, var(--libre-c-101117));
   cursor: pointer;
-  transition: border-color 120ms ease, background 120ms ease, transform 80ms ease;
+  transition: border-color var(--libre-dur-120) var(--libre-ease-ease), background var(--libre-dur-120) var(--libre-ease-ease), transform var(--libre-dur-80) var(--libre-ease-ease);
 }
 .libre-theme-card:hover {
-  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.22));
+  border-color: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-22));
 }
 .libre-theme-card:active {
-  transform: translateY(1px);
+  transform: translateY(var(--libre-size-1));
 }
 .libre-theme-card.is-active {
-  border-color: var(--color-accent, #fff);
-  box-shadow: 0 0 0 1px var(--color-accent, #fff),
-    0 0 0 4px color-mix(in srgb, var(--color-accent, #fff) 16%, transparent);
+  border-color: var(--color-accent, var(--libre-c-white));
+  box-shadow: var(--libre-shadow-11);
 }
 
 /* squircle cover art (or colour tile for the no-art default) */
 .libre-theme-card__squircle {
-  width: 73px;
-  height: 73px;
-  border-radius: 23px; /* squircle-ish; mask-image below rounds the photo too */
+  width: var(--libre-size-73);
+  height: var(--libre-size-73);
+  border-radius: var(--libre-radius-23); /* squircle-ish; mask-image below rounds the photo too */
   overflow: hidden;
   flex: 0 0 auto;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.12));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-12));
+  box-shadow: var(--libre-shadow-113);
 }
 .libre-theme-card__squircle img {
   width: 100%;
@@ -93,115 +92,115 @@
 
 /* mini app mock-up — structural; colours from inline --swatch-* */
 .libre-theme-card__preview {
-  width: 125px;
-  height: 78px;
+  width: var(--libre-size-125);
+  height: var(--libre-size-78);
   display: grid;
-  grid-template-columns: 9px 26px 1fr;
-  border-radius: 7px;
+  grid-template-columns: var(--libre-size-9) var(--libre-size-26) 1fr;
+  border-radius: var(--libre-radius-7);
   overflow: hidden;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  background: var(--swatch-bg, #15151a);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  background: var(--swatch-bg, var(--libre-c-15151a));
   flex: 0 0 auto;
 }
 .libre-theme-card__rail {
-  background: color-mix(in srgb, var(--swatch-fg, #fff) 8%, transparent);
+  background: color-mix(in srgb, var(--swatch-fg, var(--libre-c-white)) 8%, transparent);
 }
 .libre-theme-card__sidebar {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 5px 3px;
-  background: color-mix(in srgb, var(--swatch-fg, #fff) 5%, transparent);
+  gap: var(--libre-space-3);
+  padding: var(--libre-space-5) var(--libre-space-3);
+  background: color-mix(in srgb, var(--swatch-fg, var(--libre-c-white)) 5%, transparent);
 }
 .libre-theme-card__srow {
-  height: 3px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--swatch-fg, #fff) 22%, transparent);
+  height: var(--libre-size-3);
+  border-radius: var(--libre-radius-2);
+  background: color-mix(in srgb, var(--swatch-fg, var(--libre-c-white)) 22%, transparent);
 }
 .libre-theme-card__srow--active {
-  background: var(--swatch-accent, #fff);
+  background: var(--swatch-accent, var(--libre-c-white));
 }
 .libre-theme-card__main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 7px;
+  gap: var(--libre-space-4);
+  padding: var(--libre-space-6) var(--libre-space-7);
 }
 .libre-theme-card__topbar {
-  height: 4px;
+  height: var(--libre-size-4);
   width: 60%;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--swatch-fg, #fff) 28%, transparent);
-  margin-bottom: 2px;
+  border-radius: var(--libre-radius-2);
+  background: color-mix(in srgb, var(--swatch-fg, var(--libre-c-white)) 28%, transparent);
+  margin-bottom: var(--libre-space-2);
 }
 .libre-theme-card__line {
-  height: 3px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--swatch-fg, #fff) 16%, transparent);
+  height: var(--libre-size-3);
+  border-radius: var(--libre-radius-2);
+  background: color-mix(in srgb, var(--swatch-fg, var(--libre-c-white)) 16%, transparent);
 }
 .libre-theme-card__line--accent {
-  background: var(--swatch-accent, #fff);
-  opacity: 0.85;
+  background: var(--swatch-accent, var(--libre-c-white));
+  opacity: var(--libre-opacity-0-85);
 }
 
 .libre-theme-card__text {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 .libre-theme-card__label {
-  font-size: 13.5px;
-  font-weight: 650;
-  color: var(--color-text-primary, #fff);
+  font-size: var(--libre-fs-13-5);
+  font-weight: var(--libre-fw-650);
+  color: var(--color-text-primary, var(--libre-c-white));
 }
 .libre-theme-card__desc {
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--color-text-tertiary, #71717a);
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-4);
+  color: var(--color-text-tertiary, var(--libre-c-71717a));
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .libre-theme-card__check {
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-accent-fg, #150410);
-  background: var(--color-accent, #fff);
-  opacity: 0;
+  border-radius: var(--libre-radius-circle);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-accent-fg, var(--libre-c-150410));
+  background: var(--color-accent, var(--libre-c-white));
+  opacity: var(--libre-opacity-0);
   transform: scale(0.7);
-  transition: opacity 120ms ease, transform 120ms ease;
+  transition: opacity var(--libre-dur-120) var(--libre-ease-ease), transform var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre-theme-card.is-active .libre-theme-card__check {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
   transform: scale(1);
 }
 
 .libre-theme-picker__foot {
-  padding: 14px 24px 18px;
-  border-top: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  padding: var(--libre-space-14) var(--libre-space-24) var(--libre-space-18);
+  border-top: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
   display: flex;
   justify-content: flex-end;
 }
 .libre-theme-picker__confirm {
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: 1px solid var(--color-accent, #fff);
-  background: var(--color-accent, #fff);
-  color: var(--color-accent-fg, #150410);
-  font-size: 14px;
-  font-weight: 650;
+  padding: var(--libre-space-10) var(--libre-space-20);
+  border-radius: var(--libre-radius-10);
+  border: var(--libre-bw-1) solid var(--color-accent, var(--libre-c-white));
+  background: var(--color-accent, var(--libre-c-white));
+  color: var(--color-accent-fg, var(--libre-c-150410));
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-650);
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre-theme-picker__confirm:hover {
-  background: var(--color-accent-hover, #ececef);
-  border-color: var(--color-accent-hover, #ececef);
+  background: var(--color-accent-hover, var(--libre-c-ececef));
+  border-color: var(--color-accent-hover, var(--libre-c-ececef));
 }

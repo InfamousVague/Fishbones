@@ -5,30 +5,30 @@
 .libre-ask-selection-chip {
   position: fixed;
   transform: translate(-50%, -100%);
-  z-index: 80;
+  z-index: var(--libre-z-80);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary, #f5f5f7);
-  background: var(--color-bg-secondary, #1c1c22);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.14));
-  border-radius: 999px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-6) var(--libre-space-12);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  background: var(--color-bg-secondary, var(--libre-c-1c1c22));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-14));
+  border-radius: var(--libre-radius-pill);
+  box-shadow: var(--libre-shadow-92);
   cursor: pointer;
   user-select: none;
-  animation: libre-ask-chip-in 120ms ease-out;
-  transition: border-color 120ms ease, background 120ms ease;
+  animation: libre-ask-chip-in var(--libre-dur-120) var(--libre-ease-ease-out);
+  transition: border-color var(--libre-dur-120) var(--libre-ease-ease), background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-ask-selection-chip:hover {
-  border-color: var(--color-accent, #d4863a);
+  border-color: var(--color-accent, var(--libre-c-d4863a));
   background: color-mix(
     in srgb,
-    var(--color-accent, #d4863a) 14%,
-    var(--color-bg-secondary, #1c1c22)
+    var(--color-accent, var(--libre-c-d4863a)) 14%,
+    var(--color-bg-secondary, var(--libre-c-1c1c22))
   );
 }
 
@@ -38,17 +38,17 @@
      color flows into the icon via currentColor. */
   display: inline-flex;
   align-items: center;
-  color: var(--color-accent, #d4863a);
-  line-height: 1;
+  color: var(--color-accent, var(--libre-c-d4863a));
+  line-height: var(--libre-lh-1);
 }
 
 @keyframes libre-ask-chip-in {
   from {
-    opacity: 0;
-    transform: translate(-50%, calc(-100% + 4px));
+    opacity: var(--libre-opacity-0);
+    transform: translate(-50%, calc(-100% + var(--libre-size-4)));
   }
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translate(-50%, -100%);
   }
 }

@@ -4,33 +4,33 @@
 
 .libre-rustlocal {
   position: relative;
-  width: min(460px, 92vw);
+  width: min(var(--libre-size-460), 92vw);
   max-height: 92vh;
   overflow-y: auto;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 14px;
-  padding: 28px 28px 22px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-14);
+  padding: var(--libre-space-28) var(--libre-space-28) var(--libre-space-22);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 .libre-rustlocal__close {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: var(--libre-space-10);
+  right: var(--libre-space-12);
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
   display: grid;
   place-items: center;
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  font-size: 22px;
-  line-height: 1;
+  font-size: var(--libre-fs-22);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
-  border-radius: var(--libre-radius-sm, 6px);
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
 }
 
 .libre-rustlocal__close:hover {
@@ -39,109 +39,109 @@
 }
 
 .libre-rustlocal__title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-20);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
   color: var(--color-text-primary);
 }
 
 .libre-rustlocal__blurb {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.55;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
 .libre-rustlocal__cmd {
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: var(--libre-space-10) var(--libre-space-12);
+  border-radius: var(--libre-radius-8);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   overflow-x: auto;
 }
 
 .libre-rustlocal__cmd code {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .libre-rustlocal__error,
 .libre-rustlocal__output {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-10) var(--libre-space-12);
+  border-radius: var(--libre-radius-8);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-45);
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 150px;
+  max-height: var(--libre-size-150);
   overflow-y: auto;
 }
 
 .libre-rustlocal__error {
-  background: rgba(239, 111, 111, 0.08);
-  border: 1px solid rgba(239, 111, 111, 0.3);
-  color: #ffb4b4;
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-3);
+  color: var(--libre-c-ffb4b4);
 }
 
 .libre-rustlocal__output {
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   color: var(--color-text-secondary);
 }
 
 .libre-rustlocal__actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 4px;
-  padding-top: 14px;
-  border-top: 1px solid var(--color-border-default);
+  gap: var(--libre-space-12);
+  margin-top: var(--libre-space-4);
+  padding-top: var(--libre-space-14);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-rustlocal__dontask {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
+  gap: var(--libre-space-8);
+  font-size: var(--libre-fs-12-5);
   color: var(--color-text-secondary);
   cursor: pointer;
   user-select: none;
 }
 
 .libre-rustlocal__dontask input {
-  margin: 0;
-  width: 14px;
-  height: 14px;
+  margin: var(--libre-space-0);
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
   cursor: pointer;
 }
 
 .libre-rustlocal__btnrow {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-rustlocal__primary,
 .libre-rustlocal__secondary {
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: var(--libre-space-8) var(--libre-space-18);
+  border-radius: var(--libre-radius-8);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition:
-    filter 0.15s ease,
-    background 0.15s ease,
-    transform 0.1s ease;
+    filter var(--libre-dur-150) var(--libre-ease-ease),
+    background var(--libre-dur-150) var(--libre-ease-ease),
+    transform var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 .libre-rustlocal__primary {
   background: var(--color-accent);
-  color: var(--color-accent-fg, #111111);
+  color: var(--color-accent-fg, var(--libre-c-111111));
   border: none;
 }
 
@@ -150,13 +150,13 @@
 }
 
 .libre-rustlocal__primary:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(var(--libre-size-1));
 }
 
 .libre-rustlocal__secondary {
   background: transparent;
   color: var(--color-text-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-rustlocal__secondary:hover:not(:disabled) {
@@ -166,7 +166,7 @@
 
 .libre-rustlocal__primary:disabled,
 .libre-rustlocal__secondary:disabled {
-  opacity: 0.55;
+  opacity: var(--libre-opacity-0-55);
   cursor: not-allowed;
 }
 
@@ -176,8 +176,8 @@
     width: 100vw;
     max-width: 100%;
     max-height: 90vh;
-    border-radius: 18px 18px 0 0;
-    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0));
+    border-radius: var(--libre-radius-18) var(--libre-radius-18) 0 0;
+    padding: var(--libre-space-24) var(--libre-space-20) calc(var(--libre-space-24) + env(safe-area-inset-bottom, var(--libre-space-0)));
     border-left: 0;
     border-right: 0;
     border-bottom: 0;

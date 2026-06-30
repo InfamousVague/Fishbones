@@ -8,8 +8,8 @@
   display: flex;
   flex-direction: column;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-lg, 14px);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-lg, var(--libre-radius-14));
   /* Margins match the chain docks exactly (.chain-dock uses
    * `margin: 8px 8px 6px 0`). The 8px right is the important
    * one: the lesson pane below has `.libre__lesson` with
@@ -19,7 +19,7 @@
    * the right edge of the main pane while the prose below
    * has visible right padding — the "no space on the right"
    * the user reported. */
-  margin: 8px 8px 6px 0;
+  margin: var(--libre-space-8) var(--libre-space-8) var(--libre-space-6) var(--libre-space-0);
   overflow: hidden;
   /* Learner-controlled height. The CSS variable is written by the
    * component on mount + on every drag-end (see TradeDock.tsx).
@@ -27,10 +27,10 @@
    * pivots between courses sees the dock anchor at the same
    * vertical band on every page. They can drag the bottom edge
    * to resize between 140 and 720 px. */
-  height: var(--trade-dock-height, 200px);
-  min-height: var(--trade-dock-height, 200px);
-  max-height: var(--trade-dock-height, 200px);
-  flex: 0 0 var(--trade-dock-height, 200px);
+  height: var(--trade-dock-height, var(--libre-size-200));
+  min-height: var(--trade-dock-height, var(--libre-size-200));
+  max-height: var(--trade-dock-height, var(--libre-size-200));
+  flex: 0 0 var(--trade-dock-height, var(--libre-size-200));
   font-family: var(--font-body, system-ui);
   color: var(--color-text-primary);
 }
@@ -40,7 +40,7 @@
   min-height: 0;
   max-height: none;
   flex: 1 1 auto;
-  margin: 0;
+  margin: var(--libre-space-0);
   border-radius: 0;
 }
 
@@ -51,13 +51,13 @@
  * BitcoinChainDock uses — visual continuity across docks. */
 .libre-trade-dock__resize-handle {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  height: 6px;
+  left: var(--libre-space-0);
+  right: var(--libre-space-0);
+  bottom: var(--libre-space-neg-3);
+  height: var(--libre-size-6);
   cursor: ns-resize;
   background: transparent;
-  z-index: 4;
+  z-index: var(--libre-z-4);
 }
 
 /* ── Header ────────────────────────────────────────────────── */
@@ -65,9 +65,9 @@
 .libre-trade-dock__header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border-default);
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-primary);
   flex-wrap: wrap;
 }
@@ -75,10 +75,10 @@
 .libre-trade-dock__title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.02em;
+  gap: var(--libre-space-8);
+  font-weight: var(--libre-fw-700);
+  font-size: var(--libre-fs-13);
+  letter-spacing: var(--libre-ls-0-02em);
   color: var(--color-text-primary);
 }
 
@@ -90,28 +90,28 @@
 .libre-trade-dock__mode-pill {
   display: inline-flex;
   align-items: center;
-  padding: 1px 7px;
-  border-radius: var(--libre-radius-pill, 999px);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  padding: var(--libre-space-1) var(--libre-space-7);
+  border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-0-08em);
   background: var(--color-bg-tertiary, var(--color-bg-secondary));
   color: var(--color-text-tertiary);
-  margin-left: 4px;
+  margin-left: var(--libre-space-4);
 }
 
 .libre-trade-dock__mode-pill--live {
-  background: rgba(124, 217, 124, 0.18);
-  color: #7cd97c;
+  background: var(--libre-c-rgba-124-217-124-0-18);
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-trade-dock__tabs {
   display: inline-flex;
-  gap: 4px;
+  gap: var(--libre-space-4);
   background: var(--color-bg-secondary);
-  padding: 3px;
-  border-radius: var(--libre-radius-md, 8px);
-  border: 1px solid var(--color-border-default);
+  padding: var(--libre-space-3);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  border: var(--libre-bw-1) solid var(--color-border-default);
   margin-left: auto;
 }
 
@@ -120,12 +120,12 @@
   border: 0;
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: var(--libre-radius-md, 6px);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  padding: var(--libre-space-4) var(--libre-space-12);
+  border-radius: var(--libre-radius-md, var(--libre-radius-6));
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease;
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease);
 }
 
 .libre-trade-dock__tab:hover {
@@ -133,14 +133,14 @@
 }
 
 .libre-trade-dock__tab.is-active {
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-primary);
 }
 
 .libre-trade-dock__header-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 /* Live-mode switch — custom toggle with the icon ON the thumb.
@@ -161,14 +161,14 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  width: 40px;
-  height: 22px;
-  padding: 0;
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.08));
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  width: var(--libre-size-40);
+  height: var(--libre-size-22);
+  padding: var(--libre-space-0);
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-08));
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease;
+  transition: background var(--libre-dur-160) var(--libre-ease-ease), border-color var(--libre-dur-160) var(--libre-ease-ease);
   flex: 0 0 auto;
 }
 
@@ -177,8 +177,8 @@
 }
 
 .libre-trade-dock__live-switch.is-live {
-  background: rgba(124, 217, 124, 0.22);
-  border-color: rgba(124, 217, 124, 0.55);
+  background: var(--libre-c-rgba-124-217-124-0-22);
+  border-color: var(--libre-c-rgba-124-217-124-0-55);
 }
 
 /* Thumb. Translates left↔right based on the switch state. The
@@ -186,48 +186,48 @@
 .libre-trade-dock__live-thumb {
   position: absolute;
   top: 50%;
-  left: 1px;
+  left: var(--libre-space-1);
   transform: translate(0, -50%);
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
+  border-radius: var(--libre-radius-circle);
   background: var(--color-text-secondary);
   color: var(--color-bg-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
-              background 160ms ease,
-              color 160ms ease;
+  transition: transform var(--libre-dur-160) var(--libre-ease-cb-6),
+              background var(--libre-dur-160) var(--libre-ease-ease),
+              color var(--libre-dur-160) var(--libre-ease-ease);
   pointer-events: none;
 }
 
 .libre-trade-dock__live-switch.is-live .libre-trade-dock__live-thumb {
   /* Slide right by (track width − thumb width − 2 × 1px gap). */
-  transform: translate(18px, -50%);
-  background: #7cd97c;
-  color: #0d1117;
+  transform: translate(var(--libre-size-18), -50%);
+  background: var(--libre-c-7cd97c);
+  color: var(--libre-c-0d1117);
 }
 
 /* Hard-clamp the inline icon so it sits inside the 18px thumb
  * without being clipped by the global xs-icon size token. */
 .libre-trade-dock__live-thumb svg {
-  width: 11px !important;
-  height: 11px !important;
+  width: var(--libre-size-11) !important;
+  height: var(--libre-size-11) !important;
 }
 
 .libre-trade-dock__icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 22px;
+  width: var(--libre-size-26);
+  height: var(--libre-size-22);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--libre-radius-md, 6px);
+  border: var(--libre-bw-1) solid transparent;
+  border-radius: var(--libre-radius-md, var(--libre-radius-6));
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), border-color var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease);
   flex: 0 0 auto;
 }
 
@@ -248,61 +248,61 @@
  * otherwise an `xs` (~18px after the bump) icon overflows the
  * 22px button. 13px keeps the glyph well inside the chrome. */
 .libre-trade-dock__icon-btn svg {
-  width: 13px !important;
-  height: 13px !important;
+  width: var(--libre-size-13) !important;
+  height: var(--libre-size-13) !important;
 }
 
 /* ── Env panel ─────────────────────────────────────────────── */
 
 .libre-trade-dock__env {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-trade-dock__env-hint {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__env-hint code {
-  background: var(--color-bg-inset, rgba(255, 255, 255, 0.06));
-  padding: 1px 4px;
-  border-radius: 3px;
+  background: var(--color-bg-inset, var(--libre-c-rgba-255-255-255-0-06));
+  padding: var(--libre-space-1) var(--libre-space-4);
+  border-radius: var(--libre-radius-3);
   font-family: var(--font-mono, monospace);
 }
 
 .libre-trade-dock__env-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(var(--libre-size-280), 1fr));
+  gap: var(--libre-space-6);
 }
 
 .libre-trade-dock__env-row {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 .libre-trade-dock__env-label {
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--libre-ls-0-06em);
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__env-input {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 6px);
-  padding: 6px 8px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-6));
+  padding: var(--libre-space-6) var(--libre-space-8);
   font: inherit;
   font-family: var(--font-mono, monospace);
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-primary);
 }
 
@@ -315,7 +315,7 @@
 
 .libre-trade-dock__body {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: var(--libre-size-220) 1fr;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -330,55 +330,55 @@
 /* ── Sidebar ───────────────────────────────────────────────── */
 
 .libre-trade-dock__sidebar {
-  border-right: 1px solid var(--color-border-default);
+  border-right: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-primary);
   overflow-y: auto;
-  padding: 8px 0;
+  padding: var(--libre-space-8) var(--libre-space-0);
 }
 
 @media (max-width: 720px) {
   .libre-trade-dock__sidebar {
     border-right: 0;
-    border-bottom: 1px solid var(--color-border-default);
-    max-height: 180px;
+    border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+    max-height: var(--libre-size-180);
   }
 }
 
 .libre-trade-dock__group {
-  padding: 6px 0;
+  padding: var(--libre-space-6) var(--libre-space-0);
 }
 
 .libre-trade-dock__group-title {
-  margin: 0 0 4px;
-  padding: 0 12px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-4);
+  padding: var(--libre-space-0) var(--libre-space-12);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-08em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__preset-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
 }
 
 .libre-trade-dock__preset {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   width: 100%;
-  padding: 6px 12px;
+  padding: var(--libre-space-6) var(--libre-space-12);
   background: transparent;
   border: 0;
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   text-align: left;
   cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: background 140ms ease, color 140ms ease;
+  border-left: var(--libre-bw-2) solid transparent;
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease);
 }
 
 .libre-trade-dock__preset:hover {
@@ -393,38 +393,38 @@
 }
 
 .libre-trade-dock__preset-method {
-  flex: 0 0 32px;
+  flex: 0 0 var(--libre-size-32);
   text-align: center;
   font-family: var(--font-mono, monospace);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  padding: 2px 0;
-  border-radius: 4px;
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-0-04em);
+  padding: var(--libre-space-2) var(--libre-space-0);
+  border-radius: var(--libre-radius-4);
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__preset-method--get {
-  background: rgba(124, 217, 124, 0.15);
-  color: #7cd97c;
+  background: var(--libre-c-rgba-124-217-124-0-15);
+  color: var(--libre-c-7cd97c);
 }
 .libre-trade-dock__preset-method--post {
-  background: rgba(252, 211, 77, 0.18);
-  color: #fcd34d;
+  background: var(--libre-c-rgba-252-211-77-0-18);
+  color: var(--libre-c-fcd34d);
 }
 .libre-trade-dock__preset-method--put,
 .libre-trade-dock__preset-method--patch {
-  background: rgba(124, 193, 217, 0.18);
-  color: #7cc1d9;
+  background: var(--libre-c-rgba-124-193-217-0-18);
+  color: var(--libre-c-7cc1d9);
 }
 .libre-trade-dock__preset-method--delete {
-  background: rgba(232, 124, 110, 0.18);
-  color: #e87c6e;
+  background: var(--libre-c-rgba-232-124-110-0-18);
+  color: var(--libre-c-e87c6e);
 }
 .libre-trade-dock__preset-method--ws {
-  background: rgba(199, 155, 255, 0.2);
-  color: #c79bff;
+  background: var(--libre-c-rgba-199-155-255-0-2);
+  color: var(--libre-c-c79bff);
 }
 
 .libre-trade-dock__preset-label {
@@ -438,27 +438,27 @@
 
 .libre-trade-dock__main {
   overflow-y: auto;
-  padding: 12px 14px 16px;
+  padding: var(--libre-space-12) var(--libre-space-14) var(--libre-space-16);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-trade-dock__url-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-trade-dock__method {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 6px);
-  padding: 7px 8px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-6));
+  padding: var(--libre-space-7) var(--libre-space-8);
   font: inherit;
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
   cursor: pointer;
   flex: 0 0 auto;
@@ -467,12 +467,12 @@
 .libre-trade-dock__url {
   flex: 1;
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 6px);
-  padding: 7px 10px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-6));
+  padding: var(--libre-space-7) var(--libre-space-10);
   font: inherit;
   font-family: var(--font-mono, monospace);
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   color: var(--color-text-primary);
   min-width: 0;
 }
@@ -486,36 +486,36 @@
 .libre-trade-dock__send {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
-  border-radius: var(--libre-radius-md, 6px);
-  padding: 8px 14px;
+  border-radius: var(--libre-radius-md, var(--libre-radius-6));
+  padding: var(--libre-space-8) var(--libre-space-14);
   font: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-700);
   cursor: pointer;
   flex: 0 0 auto;
 }
 
 .libre-trade-dock__send:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 .libre-trade-dock__send:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
 .libre-trade-dock__send--danger {
-  background: rgba(232, 124, 110, 0.18);
-  color: #e87c6e;
+  background: var(--libre-c-rgba-232-124-110-0-18);
+  color: var(--libre-c-e87c6e);
 }
 
 .libre-trade-dock__resolved {
   font-family: var(--font-mono, monospace);
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   word-break: break-all;
 }
@@ -525,16 +525,16 @@
 }
 
 .libre-trade-dock__section {
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 8px);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
   background: var(--color-bg-primary);
 }
 
 .libre-trade-dock__section > summary {
   cursor: pointer;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: var(--libre-space-7) var(--libre-space-12);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
   list-style: none;
 }
@@ -545,9 +545,9 @@
 
 .libre-trade-dock__section > summary::before {
   content: "▸ ";
-  font-size: 9px;
+  font-size: var(--libre-fs-9);
   color: var(--color-text-tertiary);
-  margin-right: 4px;
+  margin-right: var(--libre-space-4);
 }
 
 .libre-trade-dock__section[open] > summary::before {
@@ -556,13 +556,13 @@
 
 .libre-trade-dock__textarea {
   width: 100%;
-  min-height: 60px;
+  min-height: var(--libre-size-60);
   background: var(--color-bg-primary);
   border: 0;
-  border-top: 1px solid var(--color-border-default);
-  padding: 8px 12px;
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  padding: var(--libre-space-8) var(--libre-space-12);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-primary);
   resize: vertical;
   box-sizing: border-box;
@@ -570,8 +570,8 @@
 
 .libre-trade-dock__textarea--mono {
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
 }
 
 .libre-trade-dock__textarea:focus {
@@ -583,99 +583,99 @@
 .libre-trade-dock__response {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 8px);
-  background: #0d1117;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  background: var(--libre-c-0d1117);
   overflow: hidden;
 }
 
 .libre-trade-dock__response-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-6) var(--libre-space-10);
   background: var(--color-bg-primary);
-  border-bottom: 1px solid var(--color-border-default);
-  font-size: 11.5px;
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-secondary);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-trade-dock__status {
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  padding: var(--libre-space-1) var(--libre-space-6);
+  border-radius: var(--libre-radius-4);
 }
 
 .libre-trade-dock__status--ok {
-  background: rgba(124, 217, 124, 0.18);
-  color: #7cd97c;
+  background: var(--libre-c-rgba-124-217-124-0-18);
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-trade-dock__status--warn {
-  background: rgba(252, 211, 77, 0.18);
-  color: #fcd34d;
+  background: var(--libre-c-rgba-252-211-77-0-18);
+  color: var(--libre-c-fcd34d);
 }
 
 .libre-trade-dock__status--err {
-  background: rgba(232, 124, 110, 0.18);
-  color: #e87c6e;
+  background: var(--libre-c-rgba-232-124-110-0-18);
+  color: var(--libre-c-e87c6e);
 }
 
 .libre-trade-dock__status--neutral {
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__duration {
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__source {
   margin-left: auto;
   font-family: var(--font-mono, monospace);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-0-08em);
   text-transform: uppercase;
-  padding: 1px 6px;
-  border-radius: var(--libre-radius-pill, 999px);
+  padding: var(--libre-space-1) var(--libre-space-6);
+  border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
 }
 
 .libre-trade-dock__source--mock {
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__source--live {
-  background: rgba(124, 217, 124, 0.18);
-  color: #7cd97c;
+  background: var(--libre-c-rgba-124-217-124-0-18);
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-trade-dock__response-body {
-  margin: 0;
-  padding: 10px 12px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-10) var(--libre-space-12);
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
-  line-height: 1.5;
-  color: #e6edf3;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
+  color: var(--libre-c-e6edf3);
   white-space: pre-wrap;
   word-break: break-word;
   overflow-x: auto;
 }
 
 .libre-trade-dock__response-body--error {
-  color: #ef6f6f;
+  color: var(--libre-c-ef6f6f);
 }
 
 .libre-trade-dock__response-empty {
-  padding: 18px;
+  padding: var(--libre-space-18);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-tertiary);
   font-style: italic;
 }
@@ -685,111 +685,111 @@
 .libre-trade-dock__ws-status-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre-trade-dock__ws-status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--libre-space-5);
   font-family: var(--font-mono, monospace);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: var(--libre-radius-pill, 999px);
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  padding: var(--libre-space-2) var(--libre-space-8);
+  border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__ws-status::before {
   content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: var(--libre-size-7);
+  height: var(--libre-size-7);
+  border-radius: var(--libre-radius-circle);
   background: currentColor;
 }
 
 .libre-trade-dock__ws-status--idle,
 .libre-trade-dock__ws-status--closed {
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-tertiary);
 }
 
 .libre-trade-dock__ws-status--connecting {
-  background: rgba(252, 211, 77, 0.18);
-  color: #fcd34d;
+  background: var(--libre-c-rgba-252-211-77-0-18);
+  color: var(--libre-c-fcd34d);
 }
 
 .libre-trade-dock__ws-status--open {
-  background: rgba(124, 217, 124, 0.18);
-  color: #7cd97c;
+  background: var(--libre-c-rgba-124-217-124-0-18);
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-trade-dock__ws-status--closing,
 .libre-trade-dock__ws-status--error {
-  background: rgba(232, 124, 110, 0.18);
-  color: #e87c6e;
+  background: var(--libre-c-rgba-232-124-110-0-18);
+  color: var(--libre-c-e87c6e);
 }
 
 .libre-trade-dock__ws-stream {
   flex: 1;
-  min-height: 160px;
-  max-height: 280px;
+  min-height: var(--libre-size-160);
+  max-height: var(--libre-size-280);
   overflow-y: auto;
-  background: #0d1117;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 8px);
-  padding: 4px;
+  background: var(--libre-c-0d1117);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  padding: var(--libre-space-4);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 .libre-trade-dock__ws-msg {
-  border-left: 2px solid transparent;
-  padding: 4px 8px;
+  border-left: var(--libre-bw-2) solid transparent;
+  padding: var(--libre-space-4) var(--libre-space-8);
   background: var(--color-bg-primary);
-  border-radius: 4px;
+  border-radius: var(--libre-radius-4);
 }
 
 .libre-trade-dock__ws-msg--in {
-  border-left-color: #7cd97c;
+  border-left-color: var(--libre-c-7cd97c);
 }
 
 .libre-trade-dock__ws-msg--out {
-  border-left-color: #c79bff;
+  border-left-color: var(--libre-c-c79bff);
 }
 
 .libre-trade-dock__ws-msg-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10px;
+  gap: var(--libre-space-6);
+  font-size: var(--libre-fs-10);
   color: var(--color-text-tertiary);
   font-family: var(--font-mono, monospace);
 }
 
 .libre-trade-dock__ws-msg-arrow {
-  font-weight: 800;
+  font-weight: var(--libre-fw-800);
 }
 
 .libre-trade-dock__ws-msg--in .libre-trade-dock__ws-msg-arrow {
-  color: #7cd97c;
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-trade-dock__ws-msg--out .libre-trade-dock__ws-msg-arrow {
-  color: #c79bff;
+  color: var(--libre-c-c79bff);
 }
 
 .libre-trade-dock__ws-msg-body {
-  margin: 2px 0 0;
-  padding: 0;
+  margin: var(--libre-space-2) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-0);
   font-family: var(--font-mono, monospace);
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: #e6edf3;
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-45);
+  color: var(--libre-c-e6edf3);
   white-space: pre-wrap;
   word-break: break-word;
   background: transparent;
@@ -798,7 +798,7 @@
 .libre-trade-dock__ws-send {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-trade-dock__ws-send .libre-trade-dock__send {

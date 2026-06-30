@@ -4,15 +4,15 @@
    reachable from the same corner without overlapping. */
 .libre-phone-toggle-button {
   position: fixed;
-  right: 20px;
+  right: var(--libre-space-20);
   /* Sits 60px above the AI orb (bottom: 20 + ~52px orb + 8px gap) so
      the two read as a small stack rather than colliding. */
-  bottom: 80px;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border-radius: 50%;
-  border: 1px solid var(--color-border-default);
+  bottom: var(--libre-space-80);
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
+  padding: var(--libre-space-0);
+  border-radius: var(--libre-radius-circle);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
   display: inline-flex;
@@ -21,10 +21,8 @@
   cursor: pointer;
   /* Match the floating phone's z-index so the button sits in the
      same depth band — above editor chrome, below modals. */
-  z-index: 80;
-  box-shadow:
-    0 6px 14px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: var(--libre-z-80);
+  box-shadow: var(--libre-shadow-85);
   transition:
     transform var(--libre-motion-quick),
     background var(--libre-motion-quick),
@@ -33,15 +31,15 @@
 }
 
 .libre-phone-toggle-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(var(--libre-size-neg-1));
   color: var(--color-text-primary);
   border-color: var(--color-border-strong);
   background: var(--color-bg-tertiary);
 }
 
 .libre-phone-toggle-button:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) solid var(--color-text-secondary);
+  outline-offset: var(--libre-size-2);
 }
 
 .libre-phone-toggle-button:active {

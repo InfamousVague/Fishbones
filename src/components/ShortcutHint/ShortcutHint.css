@@ -6,16 +6,16 @@
 .libre-shortcut-hint {
   display: inline-flex;
   align-items: center;
-  padding: 1px 6px;
+  padding: var(--libre-space-1) var(--libre-space-6);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
-  font-size: 10.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
-  color: var(--color-text-secondary, rgba(255, 255, 255, 0.55));
-  background: color-mix(in srgb, var(--color-bg-elevated, rgba(255, 255, 255, 0.06)) 100%, transparent);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  border-radius: 4px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  line-height: var(--libre-lh-1-4);
+  letter-spacing: var(--libre-ls-0-02em);
+  color: var(--color-text-secondary, var(--libre-c-rgba-255-255-255-0-55));
+  background: color-mix(in srgb, var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-06)) 100%, transparent);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  border-radius: var(--libre-radius-4);
   /* Reset the browser's default <kbd> mono-italic + bottom-shadow
      so the chip matches our design tokens rather than the UA's
      idea of what a key cap looks like. */
@@ -25,13 +25,13 @@
   /* Sit a hair below the surrounding text's baseline so the chip
      reads as a small annotation rather than competing with the
      label for visual weight. */
-  transform: translateY(-0.5px);
+  transform: translateY(var(--libre-size-neg-0-5));
 }
 
 .libre-shortcut-hint--muted {
-  color: var(--color-text-tertiary, rgba(255, 255, 255, 0.4));
+  color: var(--color-text-tertiary, var(--libre-c-rgba-255-255-255-0-4));
   background: transparent;
-  border-color: color-mix(in srgb, var(--color-border-default, rgba(255, 255, 255, 0.08)) 70%, transparent);
+  border-color: color-mix(in srgb, var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08)) 70%, transparent);
 }
 
 /* Buttons with hints want a small gap between the label and the
@@ -39,5 +39,5 @@
    prefer flush layout, e.g. inside a tight icon-button row), but
    provide a utility class for the common case. */
 .libre-shortcut-hint--gap {
-  margin-left: 8px;
+  margin-left: var(--libre-space-8);
 }

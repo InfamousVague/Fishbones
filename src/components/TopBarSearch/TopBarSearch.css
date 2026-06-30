@@ -17,17 +17,17 @@
 .libre__tbsearch-input-row {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 6px 0 12px;
+  gap: var(--libre-space-7);
+  height: var(--libre-size-36);
+  padding: var(--libre-space-0) var(--libre-space-6) var(--libre-space-0) var(--libre-space-12);
   /* Sized to sit alongside the other 36px topbar pills. A touch wider
      than before so the placeholder + ⌘K hint read comfortably, while
      still leaving the CommandPalette as the real search surface; the
      placeholder ellipsizes when there isn't room. */
-  min-width: 132px;
-  max-width: 200px;
+  min-width: var(--libre-size-132);
+  max-width: var(--libre-size-200);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font: inherit;
@@ -38,19 +38,19 @@
 
 .libre__tbsearch-input-row:hover,
 .libre__tbsearch-input-row:focus-visible {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border-color: var(--libre-c-rgba-255-255-255-0-18);
 }
 
 .libre__tbsearch-input-row:focus-visible {
-  outline: 2px solid var(--gg-fill-white);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) solid var(--gg-fill-white);
+  outline-offset: var(--libre-size-2);
 }
 
 .libre__tbsearch-icon {
   flex-shrink: 0;
   color: var(--color-text-tertiary);
-  opacity: 0.85;
+  opacity: var(--libre-opacity-0-85);
 }
 
 /* The placeholder text — looks like an input's placeholder but is
@@ -60,7 +60,7 @@
 .libre__tbsearch-placeholder {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -72,25 +72,25 @@
    don't get nested interactive elements. */
 .libre__tbsearch-kbd {
   flex-shrink: 0;
-  padding: 0 6px;
-  height: 20px;
+  padding: var(--libre-space-0) var(--libre-space-6);
+  height: var(--libre-size-20);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--libre-radius-xs);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--color-border-default);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   color: var(--color-text-tertiary);
   font: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-500);
+  letter-spacing: var(--libre-ls-0-02em);
   pointer-events: none;
   transition: color var(--libre-motion-quick), background var(--libre-motion-quick), border-color var(--libre-motion-quick);
 }
 
 .libre__tbsearch-input-row:hover .libre__tbsearch-kbd {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255, 255, 255, 0.20);
+  background: var(--libre-c-rgba-255-255-255-0-10);
+  border-color: var(--libre-c-rgba-255-255-255-0-20);
 }

@@ -14,7 +14,7 @@
      safe-area). When the soft keyboard is up the layout viewport
      shrinks (interactive-widget=resizes-content), the tab bar
      stays on screen, and this padding still works correctly. */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+  padding-bottom: calc(env(safe-area-inset-bottom, var(--libre-space-0)) + var(--libre-space-64));
 }
 
 /* ── Header ─────────────────────────────────────────────────── */
@@ -22,9 +22,9 @@
 .m-pg__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 14px 10px;
-  border-bottom: 1px solid var(--color-border-default);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-12) var(--libre-space-14) var(--libre-space-10);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
   flex-shrink: 0;
 }
@@ -32,44 +32,44 @@
 .m-pg__lang {
   flex: 1;
   min-width: 0;
-  height: 36px;
-  padding: 0 28px 0 12px;
+  height: var(--libre-size-36);
+  padding: var(--libre-space-0) var(--libre-space-28) var(--libre-space-0) var(--libre-space-12);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-8);
   color: var(--color-text-primary);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-500);
   font-family: inherit;
   appearance: none;
   -webkit-appearance: none;
   /* Custom caret since `appearance: none` strips the native one. */
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%239ea1ac' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right var(--libre-size-10) center;
 }
 
 .m-pg__head-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   flex-shrink: 0;
 }
 
 .m-pg__btn {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border-default);
+  height: var(--libre-size-36);
+  padding: var(--libre-space-0) var(--libre-space-14);
+  border-radius: var(--libre-radius-8);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   font-family: inherit;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -79,21 +79,21 @@
 }
 
 .m-pg__btn:disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   pointer-events: none;
 }
 
 .m-pg__btn--ghost {
   background: transparent;
-  width: 36px;
-  padding: 0;
+  width: var(--libre-size-36);
+  padding: var(--libre-space-0);
   color: var(--color-text-secondary);
 }
 
 .m-pg__btn--primary {
-  background: var(--color-accent-warm, #f37239);
-  color: #1a1029;
-  border-color: var(--color-accent-warm, #f37239);
+  background: var(--color-accent-warm, var(--libre-c-f37239));
+  color: var(--libre-c-1a1029);
+  border-color: var(--color-accent-warm, var(--libre-c-f37239));
 }
 
 /* ── Editor ─────────────────────────────────────────────────── */
@@ -102,7 +102,7 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  padding: 12px;
+  padding: var(--libre-space-12);
 }
 
 .m-pg__editor {
@@ -111,14 +111,14 @@
   resize: none;
   outline: none;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
-  padding: 12px 14px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+  padding: var(--libre-space-12) var(--libre-space-14);
   color: var(--color-text-primary);
   /* Monospace stack matching the rest of the editor surfaces. */
   font-family: "SF Mono", "Monaco", "Cascadia Code", "Courier New", monospace;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-55);
   /* Two-space tabs to match the rest of the app's default — keeps
      copy-pasted snippets from looking misaligned next to lesson
      code. */
@@ -130,12 +130,12 @@
 }
 
 .m-pg__editor:focus {
-  border-color: var(--color-accent-warm, #f37239);
+  border-color: var(--color-accent-warm, var(--libre-c-f37239));
 }
 
 .m-pg__editor::placeholder {
   color: var(--color-text-tertiary);
-  opacity: 0.6;
+  opacity: var(--libre-opacity-0-6);
 }
 
 /* ── Output ─────────────────────────────────────────────────── */
@@ -147,7 +147,7 @@
   max-height: 40vh;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
 }
 
@@ -155,17 +155,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  padding: var(--libre-space-8) var(--libre-space-14);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .m-pg__output-meta {
-  font-weight: 500;
+  font-weight: var(--libre-fw-500);
   font-variant-numeric: tabular-nums;
 }
 
@@ -173,10 +173,10 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 10px 14px;
+  padding: var(--libre-space-10) var(--libre-space-14);
   font-family: "SF Mono", "Monaco", "Cascadia Code", monospace;
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-5);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -189,10 +189,10 @@
   color: var(--color-text-secondary);
 }
 .m-pg__output-line--warn {
-  color: var(--color-accent-warm, #f37239);
+  color: var(--color-accent-warm, var(--libre-c-f37239));
 }
 .m-pg__output-line--error {
-  color: #ef6f6f;
+  color: var(--libre-c-ef6f6f);
 }
 
 .m-pg__output-running {
@@ -200,10 +200,10 @@
   font-style: italic;
 }
 .m-pg__output-error {
-  color: #ef6f6f;
-  padding: 4px 0;
-  margin-bottom: 6px;
-  font-weight: 600;
+  color: var(--libre-c-ef6f6f);
+  padding: var(--libre-space-4) var(--libre-space-0);
+  margin-bottom: var(--libre-space-6);
+  font-weight: var(--libre-fw-600);
 }
 .m-pg__output-empty {
   color: var(--color-text-tertiary);

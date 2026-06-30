@@ -1,27 +1,27 @@
 .libre-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 8px;
-  padding: 10px 12px;
+  grid-template-columns: repeat(auto-fit, minmax(var(--libre-size-90), 1fr));
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-12);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
-  margin: 10px 0;
+  margin: var(--libre-space-10) var(--libre-space-0);
 }
 
 .libre-stats-cell {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--libre-space-1);
   min-width: 0;
-  padding: 2px 4px;
+  padding: var(--libre-space-2) var(--libre-space-4);
 }
 
 .libre-stats-label {
-  font-size: 9.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--libre-ls-0-5);
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -29,8 +29,8 @@
 }
 
 .libre-stats-value {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -39,7 +39,7 @@
 }
 
 .libre-stats-hint {
-  font-size: 10px;
+  font-size: var(--libre-fs-10);
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -47,5 +47,5 @@
 }
 
 .libre-stats-cell--warn .libre-stats-value {
-  color: #d9a800;
+  color: var(--libre-c-d9a800);
 }

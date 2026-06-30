@@ -79,6 +79,7 @@ import { harvestPracticeItems } from "./components/Practice/practiceHarvest";
 import { loadAllRecords, summariseStats } from "./components/Practice/practiceStore";
 import { InstallBanner } from "./components/banners/InstallBanner/InstallBanner";
 import { UpdateBanner } from "./components/banners/UpdateBanner/UpdateBanner";
+import { EarlyReleaseBanner } from "./components/banners/EarlyReleaseBanner/EarlyReleaseBanner";
 const CommandPalette = lazy(() => import("./components/CommandPalette/CommandPalette"));
 import type { VerifySessionView } from "./components/VerifyCourse";
 const VerifyCourseOverlay = lazy(() => import("./components/VerifyCourse/VerifyCourseOverlay"));
@@ -88,7 +89,7 @@ import {
   verifyAllCourses,
   collectVerifyTargets,
 } from "./lib/verify/course";
-import { syncBundledToInstalled } from "./lib/courseSync";
+import { autoSyncUpdatedCourses, syncBundledToInstalled } from "./lib/courseSync";
 import {
   emitEvent as emitVerifierEvent,
 } from "./lib/verify/bus";
@@ -183,6 +184,40 @@ export default function App() {
       })),
     );
   }, [coursesLoaded, coursesAll]);
+
+  // Auto-update books in the background. Once the library has loaded, sweep
+  // for courses whose bundled copy changed (e.g. an app update shipped
+  // fresh packs) and silently re-apply them, then refresh so the new
+  // content goes live without the learner touching the per-course "update
+  // available" badge. Fires ~4s after load (never competing with first
+  // paint), then hourly for long-lived sessions. No-ops when nothing
+  // differs; on web the SEED_VERSION re-seed already keeps content current.
+  useEffect(() => {
+    if (!coursesLoaded || coursesAll.length === 0) return;
+    let cancelled = false;
+    const sweep = async () => {
+      try {
+        const applied = await autoSyncUpdatedCourses(coursesAll);
+        if (!cancelled && applied > 0) {
+          // eslint-disable-next-line no-console
+          console.log(`[auto-update] applied ${applied} course update(s) in the background`);
+          void refreshCourses();
+        }
+      } catch {
+        /* best-effort background task — swallow */
+      }
+    };
+    const first = setTimeout(sweep, 4000);
+    const interval = setInterval(sweep, 60 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      clearTimeout(first);
+      clearInterval(interval);
+    };
+    // Keyed on the course COUNT (not array identity) so background
+    // hydration re-renders don't re-arm the timers on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coursesLoaded, coursesAll.length]);
 
   // `filterCourseForDesktop` used to strip mobile-only drill lesson
   // kinds (puzzle / cloze / micropuzzle) from every desktop nav
@@ -1701,9 +1736,20 @@ export default function App() {
   const splashProceedRef = useRef(false);
   const coursesLoadedRef = useRef(coursesLoaded);
   coursesLoadedRef.current = coursesLoaded;
+  // The sidebar's "learner's bench" sections key off `completed`, so
+  // revealing the window before the completion history lands makes those
+  // sections flicker / appear missing on launch. Gate the reveal on progress
+  // too — it loads from SQLite/IndexedDB and is empty+fast on a fresh launch.
+  const progressLoadedRef = useRef(progressLoaded);
+  progressLoadedRef.current = progressLoaded;
   const revealMainIfReady = useCallback(() => {
     if (mainRevealedRef.current || isWeb) return;
-    if (!coursesLoadedRef.current || !splashProceedRef.current) return;
+    if (
+      !coursesLoadedRef.current ||
+      !progressLoadedRef.current ||
+      !splashProceedRef.current
+    )
+      return;
     mainRevealedRef.current = true;
     void (async () => {
       try {
@@ -1737,7 +1783,7 @@ export default function App() {
   }, [revealMainIfReady]);
   useEffect(() => {
     revealMainIfReady();
-  }, [coursesLoaded, revealMainIfReady]);
+  }, [coursesLoaded, progressLoaded, revealMainIfReady]);
 
   function selectLesson(courseId: string, lessonId: string) {
     // Cancel any pending auto-advance — if a manual navigation
@@ -2330,15 +2376,17 @@ export default function App() {
       {/* Static bootloader — black surface + the spinning ribbon-
           snake + "loading…" label. Pinned over the app while the
           course list is still loading; fades out via the
-          `--hidden` modifier once `coursesLoaded` flips true.
+          `--hidden` modifier once `coursesLoaded` AND `progressLoaded`
+          both flip true (so the sidebar's progress-derived sections are
+          ready on first paint instead of flickering in).
           index.html's inline `#preloader` block paints the same
           asset before React mounts, so the handoff between the
           two layers is seamless on cold start. */}
       <div
         className={`libre__bootloader ${
-          coursesLoaded && !updateBusy ? "libre__bootloader--hidden" : ""
+          coursesLoaded && progressLoaded && !updateBusy ? "libre__bootloader--hidden" : ""
         }`}
-        aria-hidden={coursesLoaded && !updateBusy}
+        aria-hidden={coursesLoaded && progressLoaded && !updateBusy}
       >
         <LoadingScreen
           status={updateStatus ?? "loading Libre…"}
@@ -2464,6 +2512,8 @@ export default function App() {
         courses={courses}
         onOpenLesson={selectLesson}
       />
+
+      <EarlyReleaseBanner />
 
       <div className="libre__body">
         <NavigationRail

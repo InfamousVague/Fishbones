@@ -1,13 +1,13 @@
 .m-app {
   position: fixed;
-  inset: 0;
+  inset: var(--libre-space-0);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
   /* iOS safe areas — top for status bar / dynamic island, bottom is
      handled by MobileTabBar's own safe-area-inset. */
-  padding-top: env(safe-area-inset-top, 0);
+  padding-top: env(safe-area-inset-top, var(--libre-space-0));
   font-family: var(--font-sans);
   /* Disable double-tap zoom and text-size auto-adjust at the root
      of the mobile tree. The viewport meta in index.html already
@@ -49,19 +49,19 @@
      phone window. The pill's translucent glass treatment means
      content scrolling beneath it stays faintly visible, which
      is the "edge-to-edge" feel we want here. */
-  scroll-padding-bottom: calc(env(safe-area-inset-bottom, 0) + 84px);
-  padding-bottom: 8px;
+  scroll-padding-bottom: calc(env(safe-area-inset-bottom, 0) + var(--libre-size-84));
+  padding-bottom: var(--libre-space-8);
   -webkit-overflow-scrolling: touch;
 }
 
 .m-app__boot {
   position: fixed;
-  inset: 0;
+  inset: var(--libre-space-0);
   display: grid;
   place-items: center;
   background: var(--color-bg-primary);
   /* Must beat the floating tab bar (z-index: 100) so the loader fully
      blanks the screen on a cold start — otherwise the pill nav peeks
      through and the loading state looks half-mounted. */
-  z-index: 200;
+  z-index: var(--libre-z-200);
 }

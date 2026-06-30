@@ -10,8 +10,8 @@
   display: inline-flex;
   border-radius: var(--libre-radius-pill);
   overflow: hidden;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  background: var(--color-bg-tertiary, #1f1f28);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
+  background: var(--color-bg-tertiary, var(--libre-c-1f1f28));
 }
 
 .libre-addcourse-main,
@@ -22,16 +22,16 @@
      emphasis on a dark surface," so they read as the same family.
      Default-dark's --color-text-primary is pure white (#ffffff)
      post-rebrand — different themes will get their own primary text. */
-  background: var(--gg-fill-white, #f5f5f7);
-  color: var(--color-bg-primary, #0b0b10);
+  background: var(--gg-fill-white, var(--libre-c-f5f5f7));
+  color: var(--color-bg-primary, var(--libre-c-0b0b10));
   border: 0;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 9px 16px;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  padding: var(--libre-space-9) var(--libre-space-16);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-addcourse-main:hover,
@@ -40,25 +40,23 @@
 }
 
 .libre-addcourse-caret {
-  padding: 9px 11px;
-  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  padding: var(--libre-space-9) var(--libre-space-11);
+  border-left: var(--libre-bw-1) solid var(--libre-c-rgba-0-0-0-0-2);
 }
 
 .libre-addcourse-menu {
   position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 280px;
-  z-index: 50;
-  background: var(--color-bg-secondary, #15151c);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  top: calc(100% + var(--libre-space-4));
+  right: var(--libre-space-0);
+  min-width: var(--libre-size-280);
+  z-index: var(--libre-z-50);
+  background: var(--color-bg-secondary, var(--libre-c-15151c));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
   border-radius: var(--libre-radius-md);
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.45),
-    0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--libre-shadow-93);
   display: flex;
   flex-direction: column;
-  padding: 4px;
+  padding: var(--libre-space-4);
   /* Dialog-ish layering — above the library grid but below open
      modals + the verify overlay. */
 }
@@ -66,48 +64,48 @@
 .libre-addcourse-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: var(--libre-space-10);
   background: transparent;
-  color: var(--color-text-primary, #f5f5f7);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
   border: 0;
   text-align: left;
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   border-radius: var(--libre-radius-sm);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
 }
 
 .libre-addcourse-item .icon {
-  width: 14px;
-  height: 14px;
-  color: var(--color-text-secondary, #a4a4ad);
-  margin-top: 2px;
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
+  color: var(--color-text-secondary, var(--libre-c-a4a4ad));
+  margin-top: var(--libre-space-2);
   flex-shrink: 0;
 }
 
 .libre-addcourse-item:hover {
-  background: var(--color-bg-tertiary, #1f1f28);
+  background: var(--color-bg-tertiary, var(--libre-c-1f1f28));
 }
 
 .libre-addcourse-item:hover .icon {
-  color: var(--color-accent, #6c8cff);
+  color: var(--color-accent, var(--libre-c-6c8cff));
 }
 
 .libre-addcourse-item-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
 }
 
 .libre-addcourse-item-title {
-  font-weight: 500;
-  color: var(--color-text-primary, #f5f5f7);
-  line-height: 1.3;
+  font-weight: var(--libre-fw-500);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  line-height: var(--libre-lh-1-3);
 }
 
 .libre-addcourse-item-hint {
-  color: var(--color-text-secondary, #a4a4ad);
-  font-size: 11px;
-  line-height: 1.4;
+  color: var(--color-text-secondary, var(--libre-c-a4a4ad));
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-4);
 }

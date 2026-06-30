@@ -284,7 +284,7 @@ export default function StatsChip({
         </span>
         <ProgressRing
           progress={levelProgress}
-          size={22}
+          size={24}
           stroke={2.5}
           label={String(stats.level)}
         />

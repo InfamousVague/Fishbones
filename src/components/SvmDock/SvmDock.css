@@ -13,10 +13,10 @@
   background:
     linear-gradient(
       90deg,
-      rgba(20, 241, 149, 0.18),
-      rgba(153, 69, 255, 0.22)
+      var(--libre-c-rgba-20-241-149-0-18),
+      var(--libre-c-rgba-153-69-255-0-22)
     ),
-    rgba(153, 69, 255, 0.16);
-  color: rgb(210, 180, 255);
-  border: 1px solid rgba(153, 69, 255, 0.4);
+    var(--libre-c-rgba-153-69-255-0-16);
+  color: var(--libre-c-rgb-210-180-255);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-153-69-255-0-4);
 }

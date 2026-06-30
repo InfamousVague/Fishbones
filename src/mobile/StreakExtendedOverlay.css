@@ -6,20 +6,20 @@
 
 .m-streak-overlay {
   position: fixed;
-  inset: 0;
-  z-index: 200;
+  inset: var(--libre-space-0);
+  z-index: var(--libre-z-200);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--libre-space-24);
   /* Dim backdrop fades in over 180ms — matches the tap-feedback
      timing the rest of the mobile UI uses so the celebration
      doesn't feel jarringly slower than the action that triggered
      it. */
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  animation: m-streak-fade-in 0.18s ease-out;
+  background: var(--libre-c-rgba-0-0-0-0-62);
+  backdrop-filter: blur(var(--libre-blur-6));
+  -webkit-backdrop-filter: blur(var(--libre-blur-6));
+  animation: m-streak-fade-in var(--libre-dur-180) var(--libre-ease-ease-out);
 }
 
 .m-streak-overlay__card {
@@ -27,22 +27,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  max-width: 340px;
+  gap: var(--libre-space-12);
+  max-width: var(--libre-size-340);
   width: 100%;
-  padding: 28px 22px 22px;
-  background: var(--color-bg-secondary, #0f0f0f);
-  border: 1px solid var(--color-border-card-strong, rgba(255, 255, 255, 0.18));
-  border-radius: 22px;
-  box-shadow:
-    0 22px 60px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  color: var(--color-text-primary, #fff);
+  padding: var(--libre-space-28) var(--libre-space-22) var(--libre-space-22);
+  background: var(--color-bg-secondary, var(--libre-c-0f0f0f));
+  border: var(--libre-bw-1) solid var(--color-border-card-strong, var(--libre-c-rgba-255-255-255-0-18));
+  border-radius: var(--libre-radius-22);
+  box-shadow: var(--libre-shadow-71);
+  color: var(--color-text-primary, var(--libre-c-white));
   text-align: center;
   /* Spring-in animation. Slight upward translate + scale-up so
      the card reads as "popping up to celebrate" rather than
      materialising in place. */
-  animation: m-streak-card-pop 0.42s cubic-bezier(0.22, 1.4, 0.36, 1);
+  animation: m-streak-card-pop var(--libre-dur-420) var(--libre-ease-cb-7);
   transform-origin: center bottom;
 }
 
@@ -51,26 +49,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 84px;
-  height: 84px;
-  border-radius: 50%;
+  width: var(--libre-size-84);
+  height: var(--libre-size-84);
+  border-radius: var(--libre-radius-circle);
   /* Streak gradient — amber → ember orange, matches the flame
      iconography used on streak pills + the longest-streak stat
      tile elsewhere in the app. */
   background: radial-gradient(
     circle at 50% 35%,
-    #ffb961 0%,
-    #ff7438 55%,
-    #b53a16 100%
+    var(--libre-c-ffb961) 0%,
+    var(--libre-c-ff7438) 55%,
+    var(--libre-c-b53a16) 100%
   );
-  color: #fff7d8;
+  color: var(--libre-c-fff7d8);
   /* Subtle glow ring + flame-coloured drop-shadow so the icon
      reads as actually radiating warmth rather than being a flat
      stamp. */
-  box-shadow:
-    0 0 0 4px rgba(255, 116, 56, 0.15),
-    0 12px 28px rgba(255, 116, 56, 0.35);
-  animation: m-streak-flame-bounce 0.6s cubic-bezier(0.22, 1.4, 0.36, 1);
+  box-shadow: var(--libre-shadow-32);
+  animation: m-streak-flame-bounce var(--libre-dur-600) var(--libre-ease-cb-7);
 }
 
 /* The big streak number — 72px serif italic to mirror the
@@ -78,48 +74,48 @@
 .m-streak-overlay__count {
   font-family: Georgia, "Times New Roman", Times, serif;
   font-style: italic;
-  font-weight: 700;
-  font-size: 64px;
-  line-height: 1;
-  margin: 4px 0 -2px;
+  font-weight: var(--libre-fw-700);
+  font-size: var(--libre-fs-64);
+  line-height: var(--libre-lh-1);
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-neg-2);
   /* Match the flame's gradient on the number itself — paints the
      digits in the warm streak palette. */
-  background: linear-gradient(180deg, #ffd58a 0%, #ff7438 100%);
+  background: linear-gradient(180deg, var(--libre-c-ffd58a) 0%, var(--libre-c-ff7438) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: m-streak-count-pop 0.55s 0.1s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+  animation: m-streak-count-pop var(--libre-dur-550) var(--libre-dur-100) var(--libre-ease-cb-7) both;
 }
 
 .m-streak-overlay__caption {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--color-text-secondary, #b0b0b8);
-  margin-bottom: 4px;
-  animation: m-streak-rise 0.4s 0.2s ease-out both;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-02em);
+  color: var(--color-text-secondary, var(--libre-c-b0b0b8));
+  margin-bottom: var(--libre-space-4);
+  animation: m-streak-rise var(--libre-dur-400) var(--libre-dur-200) var(--libre-ease-ease-out) both;
 }
 
 /* ── 7-day week row ──────────────────────────────────────────── */
 .m-streak-overlay__week {
   list-style: none;
-  margin: 8px 0 4px;
-  padding: 14px 10px;
+  margin: var(--libre-space-8) var(--libre-space-0) var(--libre-space-4);
+  padding: var(--libre-space-14) var(--libre-space-10);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   width: 100%;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--libre-radius-14);
+  background: var(--libre-c-rgba-255-255-255-0-04);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-06);
 }
 
 .m-streak-overlay__day {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   flex: 1;
   min-width: 0;
   /* Per-pill staggered slide-up. `--i` is set inline from the
@@ -127,34 +123,34 @@
      covers ~500ms total so the row reads as filling in one day
      at a time. `backwards` keeps the pre-animation state hidden
      until each pill's turn rolls around. */
-  opacity: 0;
-  animation: m-streak-day-in 0.42s cubic-bezier(0.22, 1.4, 0.36, 1) backwards;
+  opacity: var(--libre-opacity-0);
+  animation: m-streak-day-in var(--libre-dur-420) var(--libre-ease-cb-7) backwards;
   animation-delay: calc(var(--i, 0) * 70ms + 0.25s);
 }
 
 .m-streak-overlay__day-label {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
-  color: var(--color-text-tertiary, #888);
+  color: var(--color-text-tertiary, var(--libre-c-888888));
 }
 
 .m-streak-overlay__day-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: var(--color-text-tertiary, #888);
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
+  border-radius: var(--libre-radius-circle);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-10);
+  color: var(--color-text-tertiary, var(--libre-c-888888));
   transition:
-    background 200ms ease,
-    border-color 200ms ease,
-    color 200ms ease,
-    transform 200ms ease;
+    background var(--libre-dur-200) var(--libre-ease-ease),
+    border-color var(--libre-dur-200) var(--libre-ease-ease),
+    color var(--libre-dur-200) var(--libre-ease-ease),
+    transform var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 /* Empty-day placeholder — a small low-contrast dot inside the
@@ -162,11 +158,11 @@
    X or strike. */
 .m-streak-overlay__day-dot {
   display: block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  width: var(--libre-size-5);
+  height: var(--libre-size-5);
+  border-radius: var(--libre-radius-circle);
   background: currentColor;
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
 }
 
 /* Active day — pill lights up with the streak gradient and the
@@ -175,18 +171,18 @@
 .m-streak-overlay__day--active .m-streak-overlay__day-mark {
   background: radial-gradient(
     circle at 50% 35%,
-    #ffb961 0%,
-    #ff7438 55%,
-    #b53a16 100%
+    var(--libre-c-ffb961) 0%,
+    var(--libre-c-ff7438) 55%,
+    var(--libre-c-b53a16) 100%
   );
-  border-color: rgba(255, 116, 56, 0.5);
-  color: #fff;
+  border-color: var(--libre-c-rgba-255-116-56-0-5);
+  color: var(--libre-c-white);
   transform: scale(1.08);
-  box-shadow: 0 4px 10px rgba(255, 116, 56, 0.35);
+  box-shadow: var(--libre-shadow-82);
 }
 
 .m-streak-overlay__day--active .m-streak-overlay__day-label {
-  color: var(--color-text-primary, #fff);
+  color: var(--color-text-primary, var(--libre-c-white));
 }
 
 /* Today — accent outline so the learner can see where on the
@@ -194,104 +190,104 @@
    default ring. The dotted outline reads as "you are here"
    distinct from the active-day fill. */
 .m-streak-overlay__day--today .m-streak-overlay__day-mark {
-  outline: 2px dashed rgba(255, 255, 255, 0.4);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) dashed var(--libre-c-rgba-255-255-255-0-4);
+  outline-offset: var(--libre-size-2);
 }
 
 .m-streak-overlay__day--today .m-streak-overlay__day-label {
-  color: var(--color-text-primary, #fff);
+  color: var(--color-text-primary, var(--libre-c-white));
 }
 
 /* ── Dismissal button ────────────────────────────────────────── */
 .m-streak-overlay__btn {
-  margin-top: 4px;
+  margin-top: var(--libre-space-4);
   width: 100%;
-  padding: 12px 16px;
-  background: var(--gg-fill-white, #fff);
-  color: var(--color-bg-primary, #000);
+  padding: var(--libre-space-12) var(--libre-space-16);
+  background: var(--gg-fill-white, var(--libre-c-white));
+  color: var(--color-bg-primary, var(--libre-c-black));
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--libre-radius-12);
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-01em);
   cursor: pointer;
-  transition: transform 100ms ease, opacity 100ms ease;
-  animation: m-streak-rise 0.4s 0.3s ease-out both;
+  transition: transform var(--libre-dur-100) var(--libre-ease-ease), opacity var(--libre-dur-100) var(--libre-ease-ease);
+  animation: m-streak-rise var(--libre-dur-400) var(--libre-dur-300) var(--libre-ease-ease-out) both;
 }
 
 .m-streak-overlay__btn:active {
   transform: scale(0.98);
-  opacity: 0.92;
+  opacity: var(--libre-opacity-0-92);
 }
 
 /* ── Keyframes ───────────────────────────────────────────────── */
 
 @keyframes m-streak-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: var(--libre-opacity-0); }
+  to { opacity: var(--libre-opacity-1); }
 }
 
 @keyframes m-streak-card-pop {
   from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.92);
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-20)) scale(0.92);
   }
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0) scale(1);
   }
 }
 
 @keyframes m-streak-flame-bounce {
   0% {
-    opacity: 0;
+    opacity: var(--libre-opacity-0);
     transform: scale(0.3) rotate(-12deg);
   }
   60% {
     transform: scale(1.12) rotate(4deg);
   }
   100% {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: scale(1) rotate(0);
   }
 }
 
 @keyframes m-streak-count-pop {
   0% {
-    opacity: 0;
+    opacity: var(--libre-opacity-0);
     transform: scale(0.4);
   }
   60% {
     transform: scale(1.08);
   }
   100% {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: scale(1);
   }
 }
 
 @keyframes m-streak-rise {
   from {
-    opacity: 0;
-    transform: translateY(8px);
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-8));
   }
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0);
   }
 }
 
 @keyframes m-streak-day-in {
   0% {
-    opacity: 0;
-    transform: translateY(12px) scale(0.85);
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-12)) scale(0.85);
   }
   60% {
-    transform: translateY(-2px) scale(1.06);
+    transform: translateY(var(--libre-size-neg-2)) scale(1.06);
   }
   100% {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0) scale(1);
   }
 }
@@ -305,7 +301,7 @@
   .m-streak-overlay__day,
   .m-streak-overlay__btn {
     animation: none;
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: none;
   }
 }

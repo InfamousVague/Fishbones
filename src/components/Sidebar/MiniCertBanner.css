@@ -73,14 +73,14 @@
      a bit of extra parchment under the badge grid; that's a
      better failure mode than the stub silently dropping its
      secondary stats behind `overflow: hidden`. */
-  min-height: 132px;
+  min-height: var(--libre-size-132);
   /* Perspective context for the 3D hover wobble. Smaller value
      than the full cert page's 1800px because the mini cert is
      ~270px wide vs the full page's ~720px — a tighter
      perspective at small physical size still feels like
      "looking at a postcard from arm's length" rather than
      "looking at a flat sticker." */
-  perspective: 800px;
+  perspective: var(--libre-size-800);
   /* Resting rotation. The hover keyframe overrides this with
      wider swings; when hover ends, this value is the target the
      `transition` below interpolates back to. */
@@ -92,8 +92,8 @@
   color: inherit;
   text-align: left;
   border: 0;
-  padding: 0;
-  border-radius: 10px;
+  padding: var(--libre-space-0);
+  border-radius: var(--libre-radius-10);
   overflow: hidden;
   isolation: isolate;
   cursor: default;
@@ -107,11 +107,11 @@
      the 71.2% edge, so the visual line centre sits just right of
      the flex boundary — nudge the bites to match. */
   -webkit-mask-image:
-    radial-gradient(circle 5px at calc(71.2% + 1px) 0, transparent 4.5px, #000 5px),
-    radial-gradient(circle 5px at calc(71.2% + 1px) 100%, transparent 4.5px, #000 5px);
+    radial-gradient(circle 5px at calc(71.2% + 1px) 0, transparent 4.5px, var(--libre-c-black) 5px),
+    radial-gradient(circle 5px at calc(71.2% + 1px) 100%, transparent 4.5px, var(--libre-c-black) 5px);
   mask-image:
-    radial-gradient(circle 5px at calc(71.2% + 1px) 0, transparent 4.5px, #000 5px),
-    radial-gradient(circle 5px at calc(71.2% + 1px) 100%, transparent 4.5px, #000 5px);
+    radial-gradient(circle 5px at calc(71.2% + 1px) 0, transparent 4.5px, var(--libre-c-black) 5px),
+    radial-gradient(circle 5px at calc(71.2% + 1px) 100%, transparent 4.5px, var(--libre-c-black) 5px);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 
@@ -121,10 +121,10 @@
      match the modernized certificates-page treatment, which left
      a visible style break between the sidebar mini-cert and the
      full cert when the user clicked through. */
-  background-color: #ffffff;
+  background-color: var(--libre-c-white);
   background-image: radial-gradient(
     circle at var(--mini-cert-p) 35%,
-    rgba(0, 0, 0, 0.04) 0%,
+    var(--libre-c-rgba-0-0-0-0-04) 0%,
     transparent 65%
   );
 
@@ -144,8 +144,8 @@
      retained as a fallback for any direct transform changes
      (focus rings etc.) that still rely on it. */
   transition:
-    --mini-cert-r 2.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.18s ease;
+    --mini-cert-r var(--libre-dur-2800) var(--libre-ease-cb-6),
+    transform var(--libre-dur-180) var(--libre-ease-ease);
   transform-origin: center;
   transform: rotateY(var(--mini-cert-r));
 }
@@ -169,7 +169,7 @@
      (card pose + foil position), which is how real foil moves
      in real light. The tiny amplitudes mean the user reads
      "the foil is alive" not "the card is wobbling." */
-  animation: libre-mini-cert-breathe 16s ease-in-out infinite;
+  animation: libre-mini-cert-breathe var(--libre-dur-16000) var(--libre-ease-ease-in-out) infinite;
   transform-origin: center;
 }
 
@@ -186,8 +186,8 @@
    block — nothing else references it. */
 
 .libre-mini-cert--interactive:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.45);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) solid var(--libre-c-rgba-0-0-0-0-45);
+  outline-offset: var(--libre-size-2);
 }
 
 .libre-mini-cert--interactive:active {
@@ -202,20 +202,20 @@
 
 .libre-mini-cert__holo {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   pointer-events: none;
   --space: 5%;
   background-image: repeating-linear-gradient(
     -45deg,
-    hsl(0, 95%, 60%) 0%,
-    hsl(30, 95%, 60%) calc(var(--space) * 1),
-    hsl(60, 95%, 60%) calc(var(--space) * 2),
-    hsl(120, 90%, 55%) calc(var(--space) * 3),
-    hsl(180, 90%, 55%) calc(var(--space) * 4),
-    hsl(222, 95%, 60%) calc(var(--space) * 5),
-    hsl(258, 95%, 60%) calc(var(--space) * 6),
-    hsl(300, 95%, 60%) calc(var(--space) * 7),
-    hsl(0, 95%, 60%) calc(var(--space) * 8)
+    var(--libre-c-hsl-0-95-60) 0%,
+    var(--libre-c-hsl-30-95-60) calc(var(--space) * 1),
+    var(--libre-c-hsl-60-95-60) calc(var(--space) * 2),
+    var(--libre-c-hsl-120-90-55) calc(var(--space) * 3),
+    var(--libre-c-hsl-180-90-55) calc(var(--space) * 4),
+    var(--libre-c-hsl-222-95-60) calc(var(--space) * 5),
+    var(--libre-c-hsl-258-95-60) calc(var(--space) * 6),
+    var(--libre-c-hsl-300-95-60) calc(var(--space) * 7),
+    var(--libre-c-hsl-0-95-60) calc(var(--space) * 8)
   );
   background-size: 200% 200%;
   background-position: var(--mini-cert-h) var(--mini-cert-h);
@@ -257,16 +257,16 @@
      white paper read through the middle. With this dropped to
      0.15 the mini-cert reads as the same artefact family as the
      full cert: white paper first, iridescent foil second. */
-  opacity: 0.15;
+  opacity: var(--libre-opacity-0-15);
   /* Ambient drift — slow 14s loop; the rainbow position glides
      gently so the hologram visibly "breathes" without ever
      swinging hard enough to feel like an animation. */
-  animation: libre-mini-cert-ambient 14s ease-in-out infinite;
+  animation: libre-mini-cert-ambient var(--libre-dur-14000) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-mini-cert__shine {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   pointer-events: none;
   /* Modernized diagonal shine — neutral graphite band (was warm
      amber gold `rgba(212, 176, 107, 0.4)`) so the highlight
@@ -274,14 +274,14 @@
   background-image: linear-gradient(
     -70deg,
     transparent 42%,
-    rgba(0, 0, 0, 0.18) 50%,
+    var(--libre-c-rgba-0-0-0-0-18) 50%,
     transparent 58%
   );
   background-size: 220% 220%;
   background-position: var(--mini-cert-p) var(--mini-cert-p);
   background-repeat: no-repeat;
   mix-blend-mode: multiply;
-  opacity: 0.22;
+  opacity: var(--libre-opacity-0-22);
 }
 
 @keyframes libre-mini-cert-ambient {
@@ -307,20 +307,20 @@
 
 .libre-mini-cert__body {
   position: relative;
-  z-index: 2;
+  z-index: var(--libre-z-2);
   flex: 0 0 71.2%;
-  padding: 9px 11px 9px 12px;
+  padding: var(--libre-space-9) var(--libre-space-11) var(--libre-space-9) var(--libre-space-12);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  color: #111111;
+  color: var(--libre-c-111111);
   min-width: 0;
 }
 
 .libre-mini-cert__head {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--libre-space-5);
 }
 
 /* Icon companion to the eyebrow. Wraps the Lucide `award` glyph
@@ -332,26 +332,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 13px;
-  height: 13px;
-  color: rgba(0, 0, 0, 0.5);
+  width: var(--libre-size-13);
+  height: var(--libre-size-13);
+  color: var(--libre-c-rgba-0-0-0-0-5);
   flex-shrink: 0;
 }
 
 .libre-mini-cert__icon svg {
-  width: 13px !important;
-  height: 13px !important;
+  width: var(--libre-size-13) !important;
+  height: var(--libre-size-13) !important;
 }
 
 .libre-mini-cert__eyebrow {
   /* Modernized to match the full cert eyebrow: app-default sans
      + tracked-uppercase + neutral grey. Was Georgia + amber. */
   font-family: inherit;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
+  font-size: var(--libre-fs-9);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-32em);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--libre-c-rgba-0-0-0-0-5);
 }
 
 .libre-mini-cert__course {
@@ -360,12 +360,12 @@
      cert ticket's recipient line uses. */
   font-family: inherit;
   font-style: normal;
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-  color: #111111;
-  margin: 3px 0;
+  font-weight: var(--libre-fw-700);
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-15);
+  letter-spacing: var(--libre-ls-neg-0-015em);
+  color: var(--libre-c-111111);
+  margin: var(--libre-space-3) var(--libre-space-0);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -374,11 +374,11 @@
 
 .libre-mini-cert__bar {
   width: 100%;
-  height: 4px;
-  border-radius: 999px;
+  height: var(--libre-size-4);
+  border-radius: var(--libre-radius-pill);
   /* Neutralized from `rgba(26, 20, 24, 0.12)` warm parchment to
      a plain black-alpha track. */
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--libre-c-rgba-0-0-0-0-08);
   overflow: hidden;
 }
 
@@ -391,26 +391,26 @@
      a filling bar while staying in the new monochrome system. */
   background: linear-gradient(
     90deg,
-    #1a1a1a 0%,
-    #3a3a3a 60%,
-    #555555 100%
+    var(--libre-c-1a1a1a) 0%,
+    var(--libre-c-3a3a3a) 60%,
+    var(--libre-c-555555) 100%
   );
-  transition: width 0.4s ease;
+  transition: width var(--libre-dur-400) var(--libre-ease-ease);
 }
 
 /* ─── Tear-off stub (right ~29%) ─────────────────────────────── */
 
 .libre-mini-cert__stub {
   position: relative;
-  z-index: 2;
+  z-index: var(--libre-z-2);
   flex: 0 0 28.8%;
-  padding: 9px 8px;
+  padding: var(--libre-space-9) var(--libre-space-8);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  color: #111111;
+  color: var(--libre-c-111111);
   /* Dashed perforation rule on the left edge — visually mirrors
      the full ticket's separator, scaled down for the chrome
      size. Neutralized from the warm `rgba(26, 20, 24, 0.5)` ink
@@ -420,10 +420,10 @@
     180deg,
     transparent 0px,
     transparent 4px,
-    #111111 4px,
-    #111111 8px
+    var(--libre-c-111111) 4px,
+    var(--libre-c-111111) 8px
   );
-  background-size: 1.5px 100%;
+  background-size: var(--libre-size-1-5) 100%;
   background-repeat: no-repeat;
   background-position: 0 0;
 }
@@ -440,7 +440,7 @@
   width: 100%;
   justify-content: space-evenly;
   align-items: center;
-  gap: 4px;
+  gap: var(--libre-space-4);
   min-height: 0;
 }
 
@@ -448,7 +448,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: var(--libre-space-1);
   min-width: 0;
   /* Don't let the flex parent's `justify-content: space-evenly`
      squeeze each block below its natural size. Without this the
@@ -464,22 +464,22 @@
 .libre-mini-cert__stub-stat-label {
   /* Modernized: sans + neutral grey (was Georgia + amber). */
   font-family: inherit;
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+  font-size: var(--libre-fs-8);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-22em);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
-  line-height: 1;
+  color: var(--libre-c-rgba-0-0-0-0-5);
+  line-height: var(--libre-lh-1);
 }
 
 .libre-mini-cert__stub-stat-value {
   /* Modernized: sans + pure-black ink (was Georgia + warm `#1a1418`). */
   font-family: inherit;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: #111111;
+  font-weight: var(--libre-fw-700);
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1);
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  color: var(--libre-c-111111);
   font-variant-numeric: tabular-nums;
 }
 
@@ -487,25 +487,25 @@
    primary completion read still anchors the stub. The other
    stats follow as secondary numbers. */
 .libre-mini-cert__stub-stat--hero .libre-mini-cert__stub-stat-value {
-  font-size: 19px;
+  font-size: var(--libre-fs-19);
 }
 
 /* Suffix slot — "/15" after "12". Muted + slightly smaller so the
    denominator reads as a reference number rather than competing
    with the numerator for the eye's attention. */
 .libre-mini-cert__stub-stat-suffix {
-  font-size: 0.7em;
-  color: rgba(0, 0, 0, 0.5);
-  font-weight: 600;
-  margin-left: 1px;
+  font-size: var(--libre-fs-em-0-7);
+  color: var(--libre-c-rgba-0-0-0-0-5);
+  font-weight: var(--libre-fw-600);
+  margin-left: var(--libre-space-1);
 }
 
 .libre-mini-cert__stub-id {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 8px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-8);
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-rgba-0-0-0-0-55);
+  letter-spacing: var(--libre-ls-0-06em);
   flex-shrink: 0;
 }
 
@@ -517,7 +517,7 @@
      the previous 0.5 so it sits proportionally above the new
      in-progress 0.15 baseline rather than spiking back into the
      "rainbow washes the body" failure mode. */
-  opacity: 0.28;
+  opacity: var(--libre-opacity-0-28);
 }
 
 /* ─── Reduced motion ─────────────────────────────────────────── */
@@ -554,15 +554,15 @@
 
 .libre-mini-cert__badges {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18px, 1fr));
-  gap: 4px;
-  margin-top: 8px;
-  padding-top: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--libre-size-18), 1fr));
+  gap: var(--libre-space-4);
+  margin-top: var(--libre-space-8);
+  padding-top: var(--libre-space-8);
   /* Dashed perforation line separating the badge grid from the
      progress bar above — echoes the tear-off stub's perforation
      so the cert's visual vocabulary stays consistent.
      Neutralized from warm `rgba(26, 20, 24, 0.18)`. */
-  border-top: 1px dashed #111111;
+  border-top: var(--libre-bw-1) dashed var(--libre-c-111111);
 }
 
 .libre-mini-cert__badge {
@@ -573,14 +573,14 @@
   /* `transform-origin: center` (default) keeps the rotation
      anchored to the cell so a hash-driven `rotate(-9deg)` doesn't
      visually drift the icon out of its slot. */
-  transition: filter 200ms ease;
+  transition: filter var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 /* Pending — faint outline of the chapter's icon in the parchment
    foreground colour, low opacity so empty slots whisper rather
    than shout. */
 .libre-mini-cert__badge--pending {
-  color: rgba(0, 0, 0, 0.14);
+  color: var(--libre-c-rgba-0-0-0-0-14);
 }
 
 /* Earned — a flat die-cut sticker: solid black squircle chip with
@@ -588,18 +588,15 @@
    no foil sheen, no peeled corner — those earlier flourishes were
    removed by request; the lift shadow alone says "applied on top". */
 .libre-mini-cert__badge--earned {
-  color: #ffffff;
+  color: var(--libre-c-white);
   position: relative;
   /* Squircle approximated with a 30% radius (true superellipses
      aren't expressible in CSS). */
-  border-radius: 30%;
-  background: #141414;
+  border-radius: var(--libre-radius-pct-30);
+  background: var(--libre-c-141414);
   /* Hairline ring for edge definition on the white parchment +
      two-step lift shadow so the chip floats above the surface. */
-  box-shadow:
-    0 0 0 0.5px rgba(20, 16, 28, 0.35),
-    0 1px 1px rgba(20, 16, 28, 0.18),
-    0 2.5px 4px rgba(20, 16, 28, 0.22);
+  box-shadow: var(--libre-shadow-3);
 }
 
 /* Make the SVG inside each badge fill the cell — Icon size="xs"
@@ -607,8 +604,8 @@
    The override sizes the glyph to the cell's full width minus a
    small inset so adjacent badges don't visually touch. */
 .libre-mini-cert__badge svg {
-  width: calc(100% - 2px) !important;
-  height: calc(100% - 2px) !important;
+  width: calc(100% - var(--libre-size-2)) !important;
+  height: calc(100% - var(--libre-size-2)) !important;
 }
 
 /* Earned glyphs sit smaller + centred so the black chip shows a

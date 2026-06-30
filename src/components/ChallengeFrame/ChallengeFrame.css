@@ -8,9 +8,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin: 10px 10px 0 0;
-  padding: 10px 16px;
+  gap: var(--libre-space-12);
+  margin: var(--libre-space-10) var(--libre-space-10) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-10) var(--libre-space-16);
   /* Lightly violet-tinted surface so the strip clearly distinguishes
    * itself from the lesson chrome below — same hue family the
    * BookCover uses for its `Challenges` chip + the ChallengeFrame
@@ -18,23 +18,22 @@
   background:
     linear-gradient(
       90deg,
-      rgba(160, 130, 220, 0.12),
-      rgba(160, 130, 220, 0.04)
+      var(--libre-c-rgba-160-130-220-0-12),
+      var(--libre-c-rgba-160-130-220-0-04)
     ),
     var(--color-bg-secondary);
-  border: 1px solid rgba(160, 130, 220, 0.32);
-  border-left: 3px solid rgba(190, 165, 240, 0.85);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-160-130-220-0-32);
+  border-left: var(--libre-bw-3) solid var(--libre-c-rgba-190-165-240-0-85);
   border-radius: var(--libre-radius-md);
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-secondary);
-  box-shadow:
-    0 2px 8px rgba(160, 130, 220, 0.08);
+  box-shadow: var(--libre-shadow-81);
 }
 
 .libre-challenge-frame__lead {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   min-width: 0;
 }
 
@@ -46,18 +45,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  border-radius: var(--libre-radius-circle);
   /* Soft violet tint matching the BookCover challenge chip palette. */
-  background: rgba(160, 130, 220, 0.14);
-  color: rgba(190, 165, 240, 0.9);
+  background: var(--libre-c-rgba-160-130-220-0-14);
+  color: var(--libre-c-rgba-190-165-240-0-9);
 }
 
 .libre-challenge-frame__title {
   color: var(--color-text-primary);
-  font-weight: 600;
-  letter-spacing: -0.005em;
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-neg-0-005em);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -66,26 +65,26 @@
 .libre-challenge-frame__meta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   flex-shrink: 0;
 }
 
 .libre-challenge-frame__topic {
-  padding: 2px 8px;
+  padding: var(--libre-space-2) var(--libre-space-8);
   border-radius: var(--libre-radius-pill);
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.04));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-04));
   color: var(--color-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-500);
+  letter-spacing: var(--libre-ls-neg-0-005em);
 }
 
 .libre-challenge-frame__pill {
-  padding: 2px 10px;
+  padding: var(--libre-space-2) var(--libre-space-10);
   border-radius: var(--libre-radius-pill);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-04em);
   text-transform: uppercase;
 }
 
@@ -93,21 +92,21 @@
  * difficulty dots, so the Library badge and the in-lesson pill
  * read as the same vocabulary. */
 .libre-challenge-frame__pill--easy {
-  background: rgba(120, 200, 130, 0.16);
-  color: rgb(150, 220, 160);
+  background: var(--libre-c-rgba-120-200-130-0-16);
+  color: var(--libre-c-rgb-150-220-160);
 }
 .libre-challenge-frame__pill--medium {
-  background: rgba(230, 190, 110, 0.16);
-  color: rgb(240, 200, 130);
+  background: var(--libre-c-rgba-230-190-110-0-16);
+  color: var(--libre-c-rgb-240-200-130);
 }
 .libre-challenge-frame__pill--hard {
-  background: rgba(230, 110, 110, 0.16);
-  color: rgb(240, 130, 130);
+  background: var(--libre-c-rgba-230-110-110-0-16);
+  color: var(--libre-c-rgb-240-130-130);
 }
 
 .libre-challenge-frame__position {
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--libre-fw-500);
 }

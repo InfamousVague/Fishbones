@@ -522,7 +522,16 @@ function starterUrl(path: string): string {
 /// rand 0.9 now rejects with "cannot find function thread_rng in crate
 /// rand". Bumping forces every returning visitor to re-seed from the
 /// corrected JSON (no content change this bump — purely a cache flush).
-const SEED_VERSION = 36;
+/// V37 — "Extract Modules to Separate Files" (split-modules-exercise) fixes:
+/// (1) the two-file solution now actually compiles. `assembleRunnable` resolves
+/// a `mod back_of_house;` declaration against the sibling `src/back_of_house.rs`
+/// (inlining it as `mod back_of_house { … }`) so the single-file Playground
+/// compile works; added a proper two-file `solutionFiles` reference. (2) Dropped
+/// the premature `HashMap` usage (the `create_menu` fn, its test, and the
+/// HashMap-centric blocks puzzle — off-topic for a modules lesson, and HashMap
+/// isn't taught until the next chapter; blocks puzzle reworked around `mod`/`use`).
+/// Bump re-seeds the corrected lesson for visitors already at v36.
+const SEED_VERSION = 37;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +

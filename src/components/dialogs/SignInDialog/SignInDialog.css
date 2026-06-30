@@ -6,16 +6,16 @@
 
 .libre-signin-panel {
   position: relative;
-  width: min(440px, 92vw);
+  width: min(var(--libre-size-440), 92vw);
   max-height: 92vh;
   overflow-y: auto;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 14px;
-  padding: 28px 28px 24px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-14);
+  padding: var(--libre-space-28) var(--libre-space-28) var(--libre-space-24);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 /* Mobile: bottom-sheet treatment. Anchor the panel to the bottom of
@@ -31,12 +31,12 @@
     width: 100vw;
     max-width: 100%;
     max-height: 90vh;
-    border-radius: 18px 18px 0 0;
-    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0));
+    border-radius: var(--libre-radius-18) var(--libre-radius-18) 0 0;
+    padding: var(--libre-space-24) var(--libre-space-20) calc(var(--libre-space-24) + env(safe-area-inset-bottom, var(--libre-space-0)));
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
-    animation: libre-signin-slideup 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: libre-signin-slideup var(--libre-dur-220) var(--libre-ease-cb-6);
   }
 }
 
@@ -47,17 +47,17 @@
 
 .libre-signin-close {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: var(--libre-space-10);
+  right: var(--libre-space-12);
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
   display: grid;
   place-items: center;
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  font-size: 22px;
-  line-height: 1;
+  font-size: var(--libre-fs-22);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
   border-radius: var(--libre-radius-sm);
 }
@@ -67,16 +67,16 @@
 }
 
 .libre-signin-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-20);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-3);
   color: var(--color-text-primary);
 }
 .libre-signin-blurb {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
@@ -84,22 +84,22 @@
 .libre-signin-mode-toggle {
   display: inline-flex;
   align-self: center;
-  gap: 0;
-  padding: 2px;
+  gap: var(--libre-space-0);
+  padding: var(--libre-space-2);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
-  margin-bottom: 6px;
+  margin-bottom: var(--libre-space-6);
 }
 .libre-signin-mode-btn {
-  padding: 6px 14px;
+  padding: var(--libre-space-6) var(--libre-space-14);
   background: transparent;
   border: 0;
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-tertiary);
   font: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
@@ -112,7 +112,7 @@
 }
 .libre-signin-mode-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-accent, #9ba6ed);
+  box-shadow: var(--libre-shadow-20);
 }
 
 /* Cross-link below the email form — "Don't have an account? Create
@@ -120,24 +120,24 @@
  * a centered paragraph; the link itself is a button styled as
  * inline text so a click doesn't navigate but switches `emailMode`. */
 .libre-signin-switch {
-  margin: 4px 0 0;
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-0);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-tertiary);
 }
 .libre-signin-switch__link {
   display: inline;
-  padding: 0;
+  padding: var(--libre-space-0);
   background: transparent;
   border: 0;
-  color: var(--color-accent, #9ba6ed);
+  color: var(--color-accent, var(--libre-c-9ba6ed));
   font: inherit;
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(155, 166, 237, 0.45);
+  text-underline-offset: var(--libre-size-3);
+  text-decoration-thickness: var(--libre-size-1);
+  text-decoration-color: var(--libre-c-rgba-155-166-237-0-45);
   transition: color var(--libre-motion-quick), text-decoration-color var(--libre-motion-quick);
 }
 .libre-signin-switch__link:hover {
@@ -153,13 +153,13 @@
  * shown after a successful Create account submit while the
  * `signedIn` watcher waits for /me to resolve. */
 .libre-signin-helper--success {
-  color: #6cdba6;
+  color: var(--libre-c-6cdba6);
 }
 
 .libre-signin-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-signin-helper {
@@ -167,18 +167,18 @@
      dark "code-block" backdrop that visually fought the form below
      it; users read it as something inert + technical instead of
      friendly guidance. */
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-tertiary);
-  padding: 0;
+  padding: var(--libre-space-0);
 }
 .libre-signin-helper code {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   background: var(--color-bg-tertiary);
-  padding: 1px 5px;
-  border-radius: 3px;
+  padding: var(--libre-space-1) var(--libre-space-5);
+  border-radius: var(--libre-radius-3);
 }
 
 /* "or" divider between the email form and the OAuth buttons — a
@@ -186,25 +186,25 @@
 .libre-signin-or {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 14px 0 4px;
+  gap: var(--libre-space-12);
+  margin: var(--libre-space-14) var(--libre-space-0) var(--libre-space-4);
   color: var(--color-text-tertiary);
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--libre-ls-0-12em);
 }
 
 .libre-signin-or::before,
 .libre-signin-or::after {
   content: "";
   flex: 1;
-  height: 1px;
-  background: var(--color-border-default, rgba(255, 255, 255, 0.08));
+  height: var(--libre-size-1);
+  background: var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
 }
 
 .libre-signin-or span {
   flex-shrink: 0;
-  line-height: 1;
+  line-height: var(--libre-lh-1);
 }
 
 /* OAuth button stack — two equally-weighted Apple/Google buttons
@@ -213,35 +213,35 @@
 .libre-signin-oauth {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
+  gap: var(--libre-space-8);
+  margin-top: var(--libre-space-4);
 }
 
 .libre-signin-field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--libre-space-5);
 }
 .libre-signin-field > span {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-4);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 .libre-signin-field input,
 .libre-signin-field textarea {
-  padding: 9px 11px;
+  padding: var(--libre-space-9) var(--libre-space-11);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   color: var(--color-text-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
 }
 .libre-signin-field textarea {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   resize: vertical;
 }
 .libre-signin-field input:focus,
@@ -250,37 +250,37 @@
   border-color: var(--color-border-strong);
 }
 .libre-signin-field small {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
 }
 
 .libre-signin-primary {
-  margin-top: 4px;
-  padding: 10px 18px;
+  margin-top: var(--libre-space-4);
+  padding: var(--libre-space-10) var(--libre-space-18);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
   border-radius: var(--libre-radius-md);
   font: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
   cursor: pointer;
 }
 .libre-signin-primary:hover:not(:disabled) {
-  opacity: 0.92;
+  opacity: var(--libre-opacity-0-92);
 }
 .libre-signin-primary:disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: not-allowed;
 }
 
 .libre-signin-error {
-  margin: 4px 0 0;
-  padding: 8px 10px;
-  font-size: 12px;
-  color: #ef6f6f;
-  background: rgba(239, 111, 111, 0.08);
-  border: 1px solid rgba(239, 111, 111, 0.3);
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  font-size: var(--libre-fs-12);
+  color: var(--libre-c-ef6f6f);
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-3);
   border-radius: var(--libre-radius-sm);
 }
 
@@ -291,11 +291,11 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: 4px;
-  padding: 12px;
-  background: rgba(108, 219, 166, 0.07);
-  border: 1px solid rgba(108, 219, 166, 0.25);
+  gap: var(--libre-space-10);
+  margin-top: var(--libre-space-4);
+  padding: var(--libre-space-12);
+  background: var(--libre-c-rgba-108-219-166-0-07);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-108-219-166-0-25);
   border-radius: var(--libre-radius-md);
 }
 
@@ -303,21 +303,21 @@
    panel. Quieter than `.libre-signin-primary` so it reads as a
    fallback action, not the main CTA. */
 .libre-signin-secondary {
-  padding: 7px 14px;
+  padding: var(--libre-space-7) var(--libre-space-14);
   background: transparent;
   color: var(--color-text-secondary);
-  border: 1px solid var(--color-border-secondary, rgba(255, 255, 255, 0.18));
+  border: var(--libre-bw-1) solid var(--color-border-secondary, var(--libre-c-rgba-255-255-255-0-18));
   border-radius: var(--libre-radius-md);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
 }
 .libre-signin-secondary:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
 }
 .libre-signin-secondary:disabled {
-  opacity: 0.55;
+  opacity: var(--libre-opacity-0-55);
   cursor: default;
 }
 
@@ -327,7 +327,7 @@
 .libre-signin-oauth {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--libre-space-12);
 }
 
 /* Apple's HIG specifies black + white text + their wordmark for SIWA
@@ -343,78 +343,78 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 11px 18px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-11) var(--libre-space-18);
   border-radius: var(--libre-radius-pill);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.1px;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-neg-0-1);
   cursor: pointer;
-  transition: opacity var(--libre-motion-snappy), transform 0.05s ease;
+  transition: opacity var(--libre-motion-snappy), transform var(--libre-dur-50) var(--libre-ease-ease);
 }
 .libre-signin-oauth-btn:hover:not(:disabled) {
-  opacity: 0.92;
+  opacity: var(--libre-opacity-0-92);
 }
 .libre-signin-oauth-btn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(var(--libre-size-1));
 }
 .libre-signin-oauth-btn:disabled {
-  opacity: 0.55;
+  opacity: var(--libre-opacity-0-55);
   cursor: progress;
 }
 
 .libre-signin-oauth-btn--apple {
-  background: #000;
-  color: #fff;
-  border: 1px solid #000;
+  background: var(--libre-c-black);
+  color: var(--libre-c-white);
+  border: var(--libre-bw-1) solid var(--libre-c-black);
 }
 
 .libre-signin-oauth-btn--google {
   /* Google's button stays light even in dark themes — that's the
      branded treatment they specify in the GIS guidelines. */
-  background: #fff;
-  color: #1f1f1f;
-  border: 1px solid #dadce0;
+  background: var(--libre-c-white);
+  color: var(--libre-c-1f1f1f);
+  border: var(--libre-bw-1) solid var(--libre-c-dadce0);
 }
 
 .libre-signin-oauth-glyph {
   display: inline-grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
   flex-shrink: 0;
 }
 .libre-signin-oauth-btn--apple .libre-signin-oauth-glyph {
   /* Slight optical-balance bump for the Apple symbol — the glyph reads
      a hair small at 18px next to the text. */
-  font-size: 18px;
-  line-height: 1;
-  margin-top: -2px;
+  font-size: var(--libre-fs-18);
+  line-height: var(--libre-lh-1);
+  margin-top: var(--libre-space-neg-2);
 }
 
 .libre-signin-oauth-waiting {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.5;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-secondary);
   background: var(--color-bg-primary);
-  border: 1px dashed var(--color-border-default);
+  border: var(--libre-bw-1) dashed var(--color-border-default);
   border-radius: var(--libre-radius-md);
-  padding: 9px 12px;
+  padding: var(--libre-space-9) var(--libre-space-12);
   text-align: center;
 }
 
 .libre-signin-skip {
   align-self: center;
-  margin-top: 6px;
+  margin-top: var(--libre-space-6);
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   cursor: pointer;
-  padding: 6px 10px;
+  padding: var(--libre-space-6) var(--libre-space-10);
   border-radius: var(--libre-radius-sm);
 }
 .libre-signin-skip:hover {
@@ -427,26 +427,26 @@
    Skip button without crowding the panel's body. */
 .libre-firstlaunch-dontshow {
   position: fixed;
-  bottom: max(20px, env(safe-area-inset-bottom));
+  bottom: max(var(--libre-space-20), env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 201;
-  padding: 8px 14px;
+  z-index: var(--libre-z-201);
+  padding: var(--libre-space-8) var(--libre-space-14);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-secondary);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--libre-shadow-89);
 }
 .libre-firstlaunch-dontshow label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   cursor: pointer;
 }
 .libre-firstlaunch-dontshow input {
-  width: 14px;
-  height: 14px;
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
   accent-color: var(--gg-fill-white);
 }

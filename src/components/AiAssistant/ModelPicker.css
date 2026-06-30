@@ -4,47 +4,47 @@
    button when not. */
 
 .libre-model-picker {
-  padding: 4px 16px 14px;
-  border-bottom: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.08));
+  padding: var(--libre-space-4) var(--libre-space-16) var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-08));
 }
 
 .libre-model-picker-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0 2px;
+  padding: var(--libre-space-8) var(--libre-space-0) var(--libre-space-2);
 }
 
 .libre-model-picker-title {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: var(--libre-ls-0-01em);
 }
 
 .libre-model-picker-offline {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #ff8a8a;
-  background: rgba(220, 95, 95, 0.14);
-  border: 1px solid rgba(220, 95, 95, 0.4);
-  border-radius: 5px;
-  padding: 1px 6px;
+  letter-spacing: var(--libre-ls-0-05em);
+  color: var(--libre-c-ff8a8a);
+  background: var(--libre-c-rgba-220-95-95-0-14);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-220-95-95-0-4);
+  border-radius: var(--libre-radius-5);
+  padding: var(--libre-space-1) var(--libre-space-6);
 }
 
 .libre-model-picker-sub {
-  margin: 0 0 10px;
-  font-size: 11px;
-  line-height: 1.45;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-10);
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-45);
   color: var(--color-text-secondary);
 }
 
 .libre-model-picker-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 /* One model row — flex with the metadata stack on the left and the
@@ -52,17 +52,17 @@
 .libre-model-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   width: 100%;
   text-align: left;
-  padding: 9px 11px;
+  padding: var(--libre-space-9) var(--libre-space-11);
   background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
-  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.08));
-  border-radius: 9px;
+  border: var(--libre-bw-1) solid var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-9);
   color: var(--color-text-primary);
   font: inherit;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-model-row:hover {
@@ -79,22 +79,22 @@
 }
 
 .libre-model-row--selected {
-  border-color: var(--color-accent, #d4863a);
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 12%, transparent);
+  border-color: var(--color-accent, var(--libre-c-d4863a));
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 12%, transparent);
 }
 
 /* The selected model isn't actually installed (deleted in Ollama,
    or the daemon is offline so we can't confirm). Warn rather than
    showing a triumphant check — the user needs to re-pull it. */
 .libre-model-row--warn {
-  border-color: color-mix(in srgb, #e0a020 60%, var(--color-glass-border, rgba(255, 255, 255, 0.08)));
-  background: color-mix(in srgb, #e0a020 9%, transparent);
+  border-color: color-mix(in srgb, var(--libre-c-e0a020) 60%, var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-08)));
+  background: color-mix(in srgb, var(--libre-c-e0a020) 9%, transparent);
 }
 
 .libre-model-row-main {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--libre-space-3);
   min-width: 0;
   flex: 1;
 }
@@ -102,64 +102,64 @@
 .libre-model-row-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   flex-wrap: wrap;
-  font-size: 12.5px;
-  font-weight: 650;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-650);
 }
 
 .libre-model-badge {
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--libre-fs-9);
+  font-weight: var(--libre-fw-700);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 1px 5px;
-  border-radius: 4px;
-  border: 1px solid transparent;
+  letter-spacing: var(--libre-ls-0-04em);
+  padding: var(--libre-space-1) var(--libre-space-5);
+  border-radius: var(--libre-radius-4);
+  border: var(--libre-bw-1) solid transparent;
 }
 .libre-model-badge--code {
-  color: #8fd1ff;
-  background: rgba(90, 160, 220, 0.14);
-  border-color: rgba(90, 160, 220, 0.35);
+  color: var(--libre-c-8fd1ff);
+  background: var(--libre-c-rgba-90-160-220-0-14);
+  border-color: var(--libre-c-rgba-90-160-220-0-35);
 }
 .libre-model-badge--general {
-  color: #c3b6e8;
-  background: rgba(150, 130, 220, 0.14);
-  border-color: rgba(150, 130, 220, 0.32);
+  color: var(--libre-c-c3b6e8);
+  background: var(--libre-c-rgba-150-130-220-0-14);
+  border-color: var(--libre-c-rgba-150-130-220-0-32);
 }
 .libre-model-badge--native {
-  color: #7cd9a0;
-  background: rgba(86, 201, 138, 0.14);
-  border-color: rgba(86, 201, 138, 0.35);
+  color: var(--libre-c-7cd9a0);
+  background: var(--libre-c-rgba-86-201-138-0-14);
+  border-color: var(--libre-c-rgba-86-201-138-0-35);
 }
 .libre-model-badge--emulated {
-  color: #e8c46b;
-  background: rgba(220, 180, 90, 0.12);
-  border-color: rgba(220, 180, 90, 0.32);
+  color: var(--libre-c-e8c46b);
+  background: var(--libre-c-rgba-220-180-90-0-12);
+  border-color: var(--libre-c-rgba-220-180-90-0-32);
 }
 .libre-model-badge--warn {
-  color: #ffba6b;
-  background: rgba(224, 160, 32, 0.16);
-  border-color: rgba(224, 160, 32, 0.45);
+  color: var(--libre-c-ffba6b);
+  background: var(--libre-c-rgba-224-160-32-0-16);
+  border-color: var(--libre-c-rgba-224-160-32-0-45);
 }
 
 .libre-model-row-blurb {
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-4);
   color: var(--color-text-secondary);
 }
 
 .libre-model-row-meta {
-  font-size: 10px;
-  color: var(--color-text-tertiary, #8a8a92);
+  font-size: var(--libre-fs-10);
+  color: var(--color-text-tertiary, var(--libre-c-8a8a92));
   font-variant-numeric: tabular-nums;
 }
 
 .libre-model-row-error {
-  font-size: 10.5px;
-  line-height: 1.4;
-  color: #ff9a9a;
-  margin-top: 2px;
+  font-size: var(--libre-fs-10-5);
+  line-height: var(--libre-lh-1-4);
+  color: var(--libre-c-ff9a9a);
+  margin-top: var(--libre-space-2);
 }
 
 .libre-model-row-action {
@@ -169,84 +169,84 @@
 }
 
 .libre-model-row-selected-mark {
-  color: var(--color-accent, #d4863a);
+  color: var(--color-accent, var(--libre-c-d4863a));
   display: inline-flex;
 }
 
 .libre-model-row-use {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
-  padding: 4px 10px;
-  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.12));
-  border-radius: 6px;
+  padding: var(--libre-space-4) var(--libre-space-10);
+  border: var(--libre-bw-1) solid var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-12));
+  border-radius: var(--libre-radius-6);
 }
 .libre-model-row:hover .libre-model-row-use {
   color: var(--color-text-primary);
-  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.22));
+  border-color: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-22));
 }
 
 .libre-model-row-pull {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--libre-space-5);
   font: inherit;
-  font-size: 11px;
-  font-weight: 650;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-650);
   color: var(--color-text-primary);
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-accent, #d4863a) 55%, transparent);
-  border-radius: 6px;
-  padding: 5px 10px;
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 16%, transparent);
+  border: var(--libre-bw-1) solid color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 55%, transparent);
+  border-radius: var(--libre-radius-6);
+  padding: var(--libre-space-5) var(--libre-space-10);
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre-model-row-pull:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent, #d4863a) 26%, transparent);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4863a)) 26%, transparent);
 }
 .libre-model-row-pull:disabled {
-  opacity: 0.45;
+  opacity: var(--libre-opacity-0-45);
   cursor: not-allowed;
 }
 /* Re-pull variant on the warn row — amber instead of accent. */
 .libre-model-row-pull--warn {
-  color: #ffd9a8;
-  background: color-mix(in srgb, #e0a020 18%, transparent);
-  border-color: color-mix(in srgb, #e0a020 55%, transparent);
+  color: var(--libre-c-ffd9a8);
+  background: color-mix(in srgb, var(--libre-c-e0a020) 18%, transparent);
+  border-color: color-mix(in srgb, var(--libre-c-e0a020) 55%, transparent);
 }
 .libre-model-row-pull--warn:hover:not(:disabled) {
-  background: color-mix(in srgb, #e0a020 28%, transparent);
+  background: color-mix(in srgb, var(--libre-c-e0a020) 28%, transparent);
 }
 
 /* Web/mobile: pulls happen on the host machine, so not-installed
    models show a muted label instead of a Get button. */
 .libre-model-row-remote-hint {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-tertiary, #8a8a92);
-  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.1));
-  border-radius: 5px;
-  padding: 3px 7px;
+  letter-spacing: var(--libre-ls-0-04em);
+  color: var(--color-text-tertiary, var(--libre-c-8a8a92));
+  border: var(--libre-bw-1) solid var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-1));
+  border-radius: var(--libre-radius-5);
+  padding: var(--libre-space-3) var(--libre-space-7);
   white-space: nowrap;
 }
 
 .libre-model-row-pulling {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: var(--libre-space-6);
+  font-size: var(--libre-fs-11);
   color: var(--color-text-secondary);
 }
 
 .libre-model-row-spinner {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  border: 2px solid var(--color-glass-border, rgba(255, 255, 255, 0.2));
-  border-top-color: var(--color-accent, #d4863a);
-  animation: libre-model-spin 0.7s linear infinite;
+  width: var(--libre-size-11);
+  height: var(--libre-size-11);
+  border-radius: var(--libre-radius-circle);
+  border: var(--libre-bw-2) solid var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-2));
+  border-top-color: var(--color-accent, var(--libre-c-d4863a));
+  animation: libre-model-spin var(--libre-dur-700) var(--libre-ease-linear) infinite;
 }
 
 @keyframes libre-model-spin {
@@ -256,14 +256,14 @@
 }
 
 .libre-model-picker-toggle {
-  margin-top: 8px;
+  margin-top: var(--libre-space-8);
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-accent, #d4863a);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-accent, var(--libre-c-d4863a));
   background: none;
   border: 0;
-  padding: 4px 2px;
+  padding: var(--libre-space-4) var(--libre-space-2);
   cursor: pointer;
 }
 .libre-model-picker-toggle:hover {

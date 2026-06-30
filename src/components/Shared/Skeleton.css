@@ -6,8 +6,8 @@
   display: block;
   position: relative;
   overflow: hidden;
-  border-radius: var(--libre-radius-sm, 6px);
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.05));
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-05));
   /* Never let a shimmer block grab pointer events or text selection. */
   pointer-events: none;
   user-select: none;
@@ -18,15 +18,15 @@
 .libre-skeleton::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   transform: translateX(-100%);
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--color-bg-elevated, rgba(255, 255, 255, 0.09)) 50%,
+    var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-09)) 50%,
     transparent 100%
   );
-  animation: libre-skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: libre-skeleton-shimmer var(--libre-dur-1400) var(--libre-ease-ease-in-out) infinite;
 }
 
 @keyframes libre-skeleton-shimmer {
@@ -39,8 +39,8 @@
 
 .libre-skeleton--line {
   height: 0.9em;
-  margin: 0.5em 0;
-  border-radius: 4px;
+  margin: 0.5em var(--libre-space-0);
+  border-radius: var(--libre-radius-4);
 }
 
 .libre-skeleton--short {
@@ -48,7 +48,7 @@
 }
 
 .libre-skeleton--circle {
-  border-radius: 50%;
+  border-radius: var(--libre-radius-circle);
 }
 
 /* Book-cover aspect for the library / discover grid. Matches
@@ -57,14 +57,14 @@
 .libre-skeleton--card {
   width: 100%;
   aspect-ratio: 2 / 3;
-  border-radius: 10px;
+  border-radius: var(--libre-radius-10);
 }
 
 /* Certificate ticket aspect for the certificates page grid. */
 .libre-skeleton--ticket {
   width: 100%;
   aspect-ratio: 5 / 2;
-  border-radius: 14px;
+  border-radius: var(--libre-radius-14);
 }
 
 .libre-skeleton-text {

@@ -3,30 +3,30 @@
 .libre-spotbug {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
   width: 100%;
 }
 .libre-spotbug__hint {
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
 }
 .libre-spotbug__list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 .libre-spotbug__line {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   width: 100%;
   text-align: left;
-  padding: 7px 10px;
+  padding: var(--libre-space-7) var(--libre-space-10);
   border-radius: var(--libre-radius-md);
-  border: 1px solid transparent;
+  border: var(--libre-bw-1) solid transparent;
   background: var(--color-bg-secondary);
   cursor: pointer;
   font: inherit;
@@ -39,37 +39,37 @@
 }
 .libre-spotbug__num {
   flex-shrink: 0;
-  width: 20px;
+  width: var(--libre-size-20);
   text-align: right;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
 }
 .libre-spotbug__code {
   flex: 1;
   font-family: var(--libre-font-mono, ui-monospace, monospace);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-5);
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--color-text-primary);
 }
 .libre-spotbug__line.is-tapped {
-  border-color: #f2a93b;
-  background: color-mix(in srgb, #f2a93b 10%, var(--color-bg-secondary));
+  border-color: var(--libre-c-f2a93b);
+  background: color-mix(in srgb, var(--libre-c-f2a93b) 10%, var(--color-bg-secondary));
 }
 /* After commit: the real bug line (always shown), and the learner's
    wrong pick if they missed. */
 .libre-spotbug__line.is-bug {
-  border-color: color-mix(in srgb, var(--color-danger, #d9534f) 60%, transparent);
-  background: color-mix(in srgb, var(--color-danger, #d9534f) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger, var(--libre-c-d9534f)) 60%, transparent);
+  background: color-mix(in srgb, var(--color-danger, var(--libre-c-d9534f)) 14%, transparent);
 }
 .libre-spotbug__line.is-bug .libre-spotbug__code {
-  color: var(--color-danger, #d9534f);
+  color: var(--color-danger, var(--libre-c-d9534f));
 }
 .libre-spotbug__line.is-miss {
   border-color: color-mix(in srgb, var(--color-text-tertiary) 50%, transparent);
-  opacity: 0.7;
+  opacity: var(--libre-opacity-0-7);
 }
 .libre-spotbug__mark {
   flex-shrink: 0;
@@ -77,7 +77,7 @@
   place-items: center;
 }
 .libre-spotbug__mark--bug {
-  color: var(--color-danger, #d9534f);
+  color: var(--color-danger, var(--libre-c-d9534f));
 }
 .libre-spotbug__mark--miss {
   color: var(--color-text-tertiary);
@@ -85,42 +85,42 @@
 .libre-spotbug__reveal {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid var(--color-border-default);
-  padding-top: 12px;
+  gap: var(--libre-space-8);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  padding-top: var(--libre-space-12);
 }
 .libre-spotbug__cat {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--libre-space-5);
   align-self: flex-start;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
-  color: #43b581;
+  color: var(--libre-c-43b581);
 }
 .libre-spotbug__fix {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-9) var(--libre-space-12);
   border-radius: var(--libre-radius-md);
-  background: color-mix(in srgb, #43b581 10%, transparent);
-  border: 1px solid color-mix(in srgb, #43b581 35%, transparent);
+  background: color-mix(in srgb, var(--libre-c-43b581) 10%, transparent);
+  border: var(--libre-bw-1) solid color-mix(in srgb, var(--libre-c-43b581) 35%, transparent);
 }
 .libre-spotbug__fix-label {
   flex-shrink: 0;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-1em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 .libre-spotbug__fix code {
   font-family: var(--libre-font-mono, ui-monospace, monospace);
-  font-size: 13px;
-  color: #43b581;
+  font-size: var(--libre-fs-13);
+  color: var(--libre-c-43b581);
   white-space: pre-wrap;
   word-break: break-word;
 }

@@ -11,36 +11,39 @@
 }
 
 .libre__progress-ring-track {
-  stroke: rgba(255, 255, 255, 0.12);
+  stroke: var(--libre-c-rgba-255-255-255-0-12);
 }
 
 .libre__progress-ring-fill {
   stroke: var(--gg-fill-white);
-  transition: stroke-dashoffset 0.4s ease;
+  transition: stroke-dashoffset var(--libre-dur-400) var(--libre-ease-ease);
 }
 
 .libre__progress-ring-label {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  /* Keep the level number off the ring stroke — without this the digits
+     sit flush against the inner edge of the ring at the compact size. */
+  padding: var(--libre-space-2);
+  line-height: var(--libre-lh-1);
   font-family: inherit;
-  font-weight: 700;
+  font-weight: var(--libre-fw-700);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-primary);
-  font-size: 11px;
-  letter-spacing: -0.02em;
+  font-size: var(--libre-fs-11);
+  letter-spacing: var(--libre-ls-neg-0-02em);
 }
 
 .libre__progress-ring-sublabel {
-  margin-top: 2px;
-  font-size: 9px;
-  font-weight: 600;
+  margin-top: var(--libre-space-2);
+  font-size: var(--libre-fs-9);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: var(--libre-ls-0-8);
   color: var(--color-text-tertiary);
 }
 
@@ -49,7 +52,7 @@
 [data-theme-name="ayu-light"] .libre__progress-ring-track,
 [data-theme-name="ayu-light"] .libre__progress-ring-track,
 [data-theme-name="catppuccin-latte"] .libre__progress-ring-track {
-  stroke: rgba(0, 0, 0, 0.1);
+  stroke: var(--libre-c-rgba-0-0-0-0-1);
 }
 
 /* 100% state: the centered checkmark inherits currentColor on its
@@ -58,11 +61,11 @@
    theme color from the base rule above — only the inner glyph is
    forced white. */
 .libre__progress-ring--complete {
-  color: #ffffff;
+  color: var(--libre-c-white);
 }
 
 .libre__progress-ring-check {
   /* Match the fill stroke's eased reveal so the tick draws in as
      the ring finishes filling, not after a jarring frame jump. */
-  transition: opacity 0.4s ease 0.1s;
+  transition: opacity var(--libre-dur-400) var(--libre-ease-ease) var(--libre-dur-100);
 }

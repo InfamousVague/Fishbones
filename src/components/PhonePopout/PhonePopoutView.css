@@ -4,7 +4,7 @@
 
 .libre-phone-popout-root {
   position: fixed;
-  inset: 0;
+  inset: var(--libre-space-0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +20,7 @@
    the popout window IS the simulator, so we want zero gutter. The OS
    window chrome already gives the user a comfortable 8-12px frame. */
 .libre-phone-popout-root .libre-phone-frame-outer {
-  padding: 0;
+  padding: var(--libre-space-0);
 }
 
 /* The default ceilings (max-width: 320px, max-height: 620px) were

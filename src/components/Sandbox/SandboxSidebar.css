@@ -20,20 +20,20 @@
 .libre-sb-sidebar__eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  gap: var(--libre-space-6);
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-12em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-sb-sidebar__count {
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
-  letter-spacing: 0.02em;
+  letter-spacing: var(--libre-ls-0-02em);
 }
 
 /* ── Projects section ──────────────────────────────────────── */
@@ -46,8 +46,8 @@
      EDGE-TO-EDGE of the sidebar — VSCode-style — so the active
      row's hologram + highlight reach the sidebar's outer border
      without an inset gutter breaking the visual flow. */
-  padding: 10px 0 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border-default) 60%, transparent);
+  padding: var(--libre-space-10) var(--libre-space-0) var(--libre-space-12);
+  border-bottom: var(--libre-bw-1) solid color-mix(in srgb, var(--color-border-default) 60%, transparent);
   /* Cap the project switcher's height — at 30+ projects, the
      switcher would otherwise push the file tree completely off-
      screen. A scrollable max-height keeps both sections
@@ -61,8 +61,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 0 14px 8px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-0) var(--libre-space-14) var(--libre-space-8);
 }
 
 .libre-sb-sidebar__new-btn {
@@ -71,34 +71,34 @@
   justify-content: center;
   /* Bumped 22→26 to host the larger sm-tier icon (13px) without
      crowding. Matches the file tree's `__head-btn` chrome. */
-  width: 26px;
-  height: 26px;
-  padding: 0;
+  width: var(--libre-size-26);
+  height: var(--libre-size-26);
+  padding: var(--libre-space-0);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm, 6px);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  transition: color var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease), background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-sb-sidebar__new-btn:hover {
   color: var(--color-text-primary);
-  border-color: var(--color-accent, #d4c5a1);
-  background: color-mix(in srgb, var(--color-accent, #d4c5a1) 10%, transparent);
+  border-color: var(--color-accent, var(--libre-c-d4c5a1));
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-d4c5a1)) 10%, transparent);
 }
 
 .libre-sb-sidebar__project-list {
   list-style: none;
-  margin: 0;
+  margin: var(--libre-space-0);
   /* Side padding inset so the active row's squircle pill sits as
      a discrete shape rather than slamming into the sidebar's
      outer border. Matches the file tree's `__list` padding so
      project + file selection treatments line up visually. */
-  padding: 0 6px;
+  padding: var(--libre-space-0) var(--libre-space-6);
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--libre-space-1);
 }
 
 /* ── Project row ──────────────────────────────────────────────
@@ -120,29 +120,29 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-7) var(--libre-space-12);
   background: transparent;
   border: 0;
   /* Tighter corner radius — the active state is now a small
      holographic strip on the left edge plus a subtle background
      wash, not a chunky pill, so the row can read squarer without
      looking unfinished. Matches the file tree's active row. */
-  border-radius: 4px;
+  border-radius: var(--libre-radius-4);
   color: var(--color-text-secondary);
   font: inherit;
   /* Matched to the file tree's row font (14px) so project names
      and file leaves read at the same weight tier — the sidebar
      reads as one continuous information hierarchy rather than
      two differently-sized columns of text. */
-  font-size: 14px;
+  font-size: var(--libre-fs-14);
   text-align: left;
   cursor: pointer;
-  transition: color 100ms ease, background 100ms ease;
+  transition: color var(--libre-dur-100) var(--libre-ease-ease), background var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 .libre-sb-sidebar__project:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--libre-c-rgba-255-255-255-0-04);
   color: var(--color-text-primary);
 }
 
@@ -154,13 +154,13 @@
    signal instead. */
 .libre-sb-sidebar__project--active,
 .libre-sb-sidebar__project--active:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--libre-c-rgba-255-255-255-0-06);
   color: var(--color-text-primary);
 }
 
 [data-theme="light"] .libre-sb-sidebar__project--active,
 [data-theme="light"] .libre-sb-sidebar__project--active:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--libre-c-rgba-0-0-0-0-05);
 }
 
 /* Holographic accent strip on the active project row. Absolutely
@@ -176,18 +176,18 @@
      See the matching change in `.libre-sbft__row-accent` —
      both selection markers stay visually identical, just
      thinner now. */
-  top: 9px;
-  bottom: 9px;
-  left: 4px;
-  width: 2px;
-  border-radius: 1px;
+  top: var(--libre-space-9);
+  bottom: var(--libre-space-9);
+  left: var(--libre-space-4);
+  width: var(--libre-size-2);
+  border-radius: var(--libre-radius-1);
   /* White base so the indicator reads as a white strip; the
      Hologram primitive inside lays `multiply`-blended rainbow
      pigment INTO the white surface, producing the iridescent
      identity used everywhere else (active file row + Run button
      + nav-rail pill) rather than a rainbow line against the
      sidebar's frosted-glass backdrop. */
-  background: var(--gg-fill-white, #ffffff);
+  background: var(--gg-fill-white, var(--libre-c-white));
   /* mix-blend-mode on the Hologram needs its own stacking context
      to keep the blend confined to the strip; `isolation: isolate`
      gives us that without committing to an explicit z-index. */
@@ -197,7 +197,7 @@
      border-radius corners. */
   overflow: hidden;
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--libre-z-1);
 }
 
 .libre-sb-sidebar__project-accent > .libre-holo {
@@ -215,8 +215,8 @@
      override carries it — see `SandboxFileTree.css`. The
      snake-variant default mask-size would otherwise stretch
      the silhouette into a streak inside the 2px hairline. */
-  mask-size: 4px 4px !important;
-  -webkit-mask-size: 4px 4px !important;
+  mask-size: var(--libre-size-4) var(--libre-size-4) !important;
+  -webkit-mask-size: var(--libre-size-4) var(--libre-size-4) !important;
 }
 
 /* Lift the icon + label above the accent strip's stacking context
@@ -224,7 +224,7 @@
    would put it above the row's text content. */
 .libre-sb-sidebar__project > :not(.libre-sb-sidebar__project-accent) {
   position: relative;
-  z-index: 2;
+  z-index: var(--libre-z-2);
 }
 
 .libre-sb-sidebar__project-icon {
@@ -234,8 +234,8 @@
   /* 20×20 to match the file tree's `__icon` slot exactly —
      both selection rows now host identical icon containers so
      the project + file row visuals line up. */
-  width: 20px;
-  height: 20px;
+  width: var(--libre-size-20);
+  height: var(--libre-size-20);
   flex-shrink: 0;
 }
 
@@ -245,7 +245,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: var(--libre-fw-500);
 }
 
 /* Delete × — overlays the right edge of the row (absolute) so
@@ -255,34 +255,34 @@
    the delete. */
 .libre-sb-sidebar__project-delete {
   position: absolute;
-  right: 6px;
+  right: var(--libre-space-6);
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   /* 22→26 to host the larger sm-tier × icon (13px). */
-  width: 26px;
-  height: 26px;
-  padding: 0;
+  width: var(--libre-size-26);
+  height: var(--libre-size-26);
+  padding: var(--libre-space-0);
   background: transparent;
   border: 0;
-  border-radius: var(--libre-radius-sm, 6px);
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
   color: var(--color-text-tertiary);
   cursor: pointer;
-  opacity: 0;
-  z-index: 2;
-  transition: opacity 100ms ease, color 100ms ease, background 100ms ease;
+  opacity: var(--libre-opacity-0);
+  z-index: var(--libre-z-2);
+  transition: opacity var(--libre-dur-100) var(--libre-ease-ease), color var(--libre-dur-100) var(--libre-ease-ease), background var(--libre-dur-100) var(--libre-ease-ease);
 }
 
 .libre-sb-sidebar__project-row:hover .libre-sb-sidebar__project-delete,
 .libre-sb-sidebar__project-delete--confirm {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
 }
 
 .libre-sb-sidebar__project-delete:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--libre-c-rgba-255-255-255-0-12);
 }
 
 /* Active pill is white — flip the delete button's idle + hover
@@ -290,20 +290,20 @@
    surface. Confirm state stays red so the destructive cue still
    reads against either backdrop. */
 .libre-sb-sidebar__project-row--active .libre-sb-sidebar__project-delete {
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--libre-c-rgba-0-0-0-0-55);
 }
 
 .libre-sb-sidebar__project-row--active .libre-sb-sidebar__project-delete:hover {
-  color: var(--color-bg-primary, #000000);
-  background: rgba(0, 0, 0, 0.10);
+  color: var(--color-bg-primary, var(--libre-c-black));
+  background: var(--libre-c-rgba-0-0-0-0-10);
 }
 
 .libre-sb-sidebar__project-delete--confirm,
 .libre-sb-sidebar__project-delete--confirm:hover,
 .libre-sb-sidebar__project-row--active .libre-sb-sidebar__project-delete--confirm,
 .libre-sb-sidebar__project-row--active .libre-sb-sidebar__project-delete--confirm:hover {
-  color: #fff;
-  background: var(--color-danger, #b04b4b);
+  color: var(--libre-c-white);
+  background: var(--color-danger, var(--libre-c-b04b4b));
 }
 
 /* ── Files section (tree wrapper) ─────────────────────────── */
@@ -319,6 +319,6 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  padding: 10px 14px 6px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-14) var(--libre-space-6);
 }

@@ -6,22 +6,22 @@
 
 .libre-cert-stamps {
   list-style: none;
-  margin: 6px 0 0;
-  padding: 0;
+  margin: var(--libre-space-6) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--libre-space-5);
   /* Inset slightly so the stamps row reads as belonging to the
      cert banner above without sitting flush at the sidebar
      edge. */
-  padding-left: 2px;
+  padding-left: var(--libre-space-2);
 }
 
 .libre-cert-stamp {
   position: relative;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  border-radius: var(--libre-radius-circle);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -34,9 +34,9 @@
 /* Pending: muted grey ring, dimmed icon. No foil — the stamp
    only lights up when it's earned. */
 .libre-cert-stamp--pending {
-  background: var(--color-bg-secondary, #0f0f0f);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.06));
-  color: var(--color-text-tertiary, rgba(255, 255, 255, 0.35));
+  background: var(--color-bg-secondary, var(--libre-c-0f0f0f));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
+  color: var(--color-text-tertiary, var(--libre-c-rgba-255-255-255-0-35));
 }
 
 /* Earned: parchment-tinted base so the hologram has a warm
@@ -44,29 +44,29 @@
    parchment family). The foil sits on top via the absolute
    overlay; the icon paints above the foil via z-index. */
 .libre-cert-stamp--earned {
-  background: #fbfaf6;
-  border: 1px solid color-mix(in srgb, #a85e1c 35%, transparent);
-  color: #1a1418;
+  background: var(--libre-c-fbfaf6);
+  border: var(--libre-bw-1) solid color-mix(in srgb, var(--libre-c-a85e1c) 35%, transparent);
+  color: var(--libre-c-1a1418);
 }
 
 .libre-cert-stamp__holo {
-  border-radius: 50%;
+  border-radius: var(--libre-radius-circle);
 }
 
 .libre-cert-stamp__icon {
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 12px;
-  height: 12px;
+  width: var(--libre-size-12);
+  height: var(--libre-size-12);
 }
 
 /* Hard-clamp the inner SVG so the icon fits inside the 22px
    disc with breathing room. The global icon "xs" preset paints
    slightly larger than we want for this chrome size. */
 .libre-cert-stamp__icon svg {
-  width: 12px !important;
-  height: 12px !important;
+  width: var(--libre-size-12) !important;
+  height: var(--libre-size-12) !important;
 }

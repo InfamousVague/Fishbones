@@ -5,37 +5,37 @@
    centre with a close button + download CTA below it. */
 
 .libre-cert-modal {
-  width: min(960px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
+  width: min(var(--libre-size-960), calc(100vw - var(--libre-size-48)));
+  max-height: calc(100vh - var(--libre-size-48));
   overflow-y: auto;
   position: relative;
-  padding: 32px 28px 28px;
-  background: var(--color-bg-primary, #1a1427);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 14px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  padding: var(--libre-space-32) var(--libre-space-28) var(--libre-space-28);
+  background: var(--color-bg-primary, var(--libre-c-1a1427));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-14);
+  box-shadow: var(--libre-shadow-76);
 }
 
 .libre-cert-modal__close {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  top: var(--libre-space-14);
+  right: var(--libre-space-14);
+  width: var(--libre-size-32);
+  height: var(--libre-size-32);
+  border-radius: var(--libre-radius-circle);
   border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.72));
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  color: var(--color-text-secondary, var(--libre-c-rgba-245-245-247-0-72));
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease;
+  transition: background var(--libre-dur-150) var(--libre-ease-ease);
 }
 
 .libre-cert-modal__close:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-text-primary, #f5f5f7);
+  background: var(--libre-c-rgba-255-255-255-0-12);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
 }
 
 /* ─── Card (on-screen preview of the PNG) ───────────────────── */
@@ -51,26 +51,24 @@
      ornament. */
   aspect-ratio: 4 / 3;
   width: 100%;
-  background: #ffffff;
-  color: #111111;
-  border-radius: 8px;
+  background: var(--libre-c-white);
+  color: var(--libre-c-111111);
+  border-radius: var(--libre-radius-8);
   /* Nested-border ornament — the inner ::before fakes a quiet
      inner rule; the outer border is a hairline graphite frame
      instead of the old amber slab. */
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-0-0-0-0-14);
   position: relative;
   overflow: hidden;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, 0.4),
-    inset 0 0 0 8px transparent;
+  box-shadow: var(--libre-shadow-43);
 }
 
 .libre-cert-card::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+  inset: var(--libre-space-8);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-0-0-0-0-08);
+  border-radius: var(--libre-radius-4);
   pointer-events: none;
 }
 
@@ -97,54 +95,54 @@
 
 .libre-cert-card__wordmark {
   font-family: inherit;
-  font-weight: 700;
-  font-size: clamp(18px, 2.4vw, 32px);
-  letter-spacing: -0.01em;
+  font-weight: var(--libre-fw-700);
+  font-size: clamp(var(--libre-fs-18), 2.4vw, var(--libre-fs-32));
+  letter-spacing: var(--libre-ls-neg-0-01em);
 }
 
 .libre-cert-card__tagline {
-  font-size: clamp(10px, 1.1vw, 14px);
-  color: rgba(0, 0, 0, 0.55);
-  margin-top: 4px;
+  font-size: clamp(var(--libre-fs-10), 1.1vw, var(--libre-fs-14));
+  color: var(--libre-c-rgba-0-0-0-0-55);
+  margin-top: var(--libre-space-4);
 }
 
 .libre-cert-card__divider {
-  width: clamp(180px, 30%, 320px);
-  height: 1px;
-  background: rgba(0, 0, 0, 0.14);
-  margin: 14px auto 0;
+  width: clamp(var(--libre-size-180), 30%, var(--libre-size-320));
+  height: var(--libre-size-1);
+  background: var(--libre-c-rgba-0-0-0-0-14);
+  margin: var(--libre-space-14) auto var(--libre-space-0);
 }
 
 .libre-cert-card__title {
   font-family: inherit;
-  font-weight: 600;
-  font-size: clamp(22px, 4.2vw, 56px);
-  letter-spacing: 0.32em;
+  font-weight: var(--libre-fw-600);
+  font-size: clamp(var(--libre-fs-22), 4.2vw, var(--libre-fs-56));
+  letter-spacing: var(--libre-ls-0-32em);
   text-transform: uppercase;
-  margin: clamp(18px, 4%, 38px) 0 0;
+  margin: clamp(var(--libre-space-18), 4%, var(--libre-space-38)) var(--libre-space-0) var(--libre-space-0);
   text-align: center;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--libre-c-rgba-0-0-0-0-55);
 }
 
 .libre-cert-card__presented {
   font-family: inherit;
-  font-size: clamp(11px, 1.3vw, 15px);
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: clamp(var(--libre-fs-11), 1.3vw, var(--libre-fs-15));
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-2em);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
-  margin-top: clamp(16px, 3.5%, 32px);
+  color: var(--libre-c-rgba-0-0-0-0-5);
+  margin-top: clamp(var(--libre-space-16), 3.5%, var(--libre-space-32));
 }
 
 .libre-cert-card__recipient {
   font-family: inherit;
   font-style: normal;
-  font-weight: 700;
-  font-size: clamp(30px, 6vw, 72px);
-  letter-spacing: -0.02em;
-  color: #111111;
+  font-weight: var(--libre-fw-700);
+  font-size: clamp(var(--libre-fs-30), 6vw, var(--libre-fs-72));
+  letter-spacing: var(--libre-ls-neg-0-02em);
+  color: var(--libre-c-111111);
   text-align: center;
-  margin-top: clamp(6px, 1.2%, 14px);
+  margin-top: clamp(var(--libre-space-6), 1.2%, var(--libre-space-14));
   max-width: 92%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -152,29 +150,29 @@
 }
 
 .libre-cert-card__recipient-underline {
-  width: clamp(220px, 36%, 400px);
-  height: 1px;
-  background: rgba(0, 0, 0, 0.18);
-  margin-top: clamp(8px, 1.4%, 16px);
+  width: clamp(var(--libre-size-220), 36%, var(--libre-size-400));
+  height: var(--libre-size-1);
+  background: var(--libre-c-rgba-0-0-0-0-18);
+  margin-top: clamp(var(--libre-space-8), 1.4%, var(--libre-space-16));
 }
 
 .libre-cert-card__for {
   font-family: inherit;
-  font-size: clamp(11px, 1.3vw, 15px);
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: clamp(var(--libre-fs-11), 1.3vw, var(--libre-fs-15));
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-2em);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
-  margin-top: clamp(14px, 3%, 28px);
+  color: var(--libre-c-rgba-0-0-0-0-5);
+  margin-top: clamp(var(--libre-space-14), 3%, var(--libre-space-28));
 }
 
 .libre-cert-card__course {
   font-family: inherit;
-  font-weight: 600;
-  font-size: clamp(18px, 3vw, 36px);
-  letter-spacing: -0.01em;
-  color: #111111;
-  margin-top: clamp(6px, 1.2%, 14px);
+  font-weight: var(--libre-fw-600);
+  font-size: clamp(var(--libre-fs-18), 3vw, var(--libre-fs-36));
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  color: var(--libre-c-111111);
+  margin-top: clamp(var(--libre-space-6), 1.2%, var(--libre-space-14));
   text-align: center;
   max-width: 92%;
   overflow: hidden;
@@ -183,19 +181,19 @@
 }
 
 .libre-cert-card__stats {
-  font-size: clamp(11px, 1.4vw, 17px);
-  color: rgba(0, 0, 0, 0.55);
-  margin-top: clamp(14px, 3%, 28px);
-  font-weight: 500;
+  font-size: clamp(var(--libre-fs-11), 1.4vw, var(--libre-fs-17));
+  color: var(--libre-c-rgba-0-0-0-0-55);
+  margin-top: clamp(var(--libre-space-14), 3%, var(--libre-space-28));
+  font-weight: var(--libre-fw-500);
 }
 
 .libre-cert-card__lang {
-  font-size: clamp(9px, 1vw, 12px);
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-size: clamp(var(--libre-fs-9), 1vw, var(--libre-fs-12));
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-22em);
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.85);
-  margin-top: 8px;
+  color: var(--libre-c-rgba-0-0-0-0-85);
+  margin-top: var(--libre-space-8);
 }
 
 .libre-cert-card__footer {
@@ -214,29 +212,29 @@
 
 .libre-cert-card__date {
   font-family: inherit;
-  font-weight: 600;
-  font-size: clamp(12px, 1.5vw, 18px);
-  color: #111111;
+  font-weight: var(--libre-fw-600);
+  font-size: clamp(var(--libre-fs-12), 1.5vw, var(--libre-fs-18));
+  color: var(--libre-c-111111);
 }
 
 .libre-cert-card__date-label {
-  font-size: clamp(9px, 1vw, 12px);
-  color: rgba(0, 0, 0, 0.5);
-  margin-top: 2px;
+  font-size: clamp(var(--libre-fs-9), 1vw, var(--libre-fs-12));
+  color: var(--libre-c-rgba-0-0-0-0-5);
+  margin-top: var(--libre-space-2);
 }
 
 .libre-cert-card__issuer {
   font-family: inherit;
-  font-size: clamp(11px, 1.2vw, 14px);
-  font-weight: 600;
-  color: #111111;
-  margin-top: clamp(8px, 1.6%, 18px);
+  font-size: clamp(var(--libre-fs-11), 1.2vw, var(--libre-fs-14));
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-111111);
+  margin-top: clamp(var(--libre-space-8), 1.6%, var(--libre-space-18));
 }
 
 .libre-cert-card__certid {
-  font-size: clamp(8px, 0.9vw, 11px);
-  color: rgba(0, 0, 0, 0.5);
-  margin-top: 3px;
+  font-size: clamp(var(--libre-fs-8), 0.9vw, var(--libre-fs-11));
+  color: var(--libre-c-rgba-0-0-0-0-5);
+  margin-top: var(--libre-space-3);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
@@ -247,21 +245,21 @@
 }
 
 .libre-cert-card__qr-placeholder {
-  width: clamp(60px, 12%, 140px);
-  height: clamp(60px, 12%, 140px);
-  background: repeating-conic-gradient(#111111 0% 25%, transparent 0% 50%) 50% / 8px 8px;
-  border: 1px solid #111111;
+  width: clamp(var(--libre-size-60), 12%, var(--libre-size-140));
+  height: clamp(var(--libre-size-60), 12%, var(--libre-size-140));
+  background: repeating-conic-gradient(var(--libre-c-111111) 0% 25%, transparent 0% 50%) 50% / var(--libre-size-8) var(--libre-size-8);
+  border: var(--libre-bw-1) solid var(--libre-c-111111);
   display: flex;
   align-items: center;
   justify-content: center;
   color: transparent;
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
 }
 
 .libre-cert-card__qr-caption {
-  font-size: clamp(9px, 1vw, 12px);
-  color: rgba(0, 0, 0, 0.55);
-  margin-top: 6px;
+  font-size: clamp(var(--libre-fs-9), 1vw, var(--libre-fs-12));
+  color: var(--libre-c-rgba-0-0-0-0-55);
+  margin-top: var(--libre-space-6);
 }
 
 /* ─── Actions ──────────────────────────────────────────────── */
@@ -270,29 +268,29 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 22px;
+  gap: var(--libre-space-8);
+  margin-top: var(--libre-space-22);
 }
 
 .libre-cert-modal__download {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--color-accent, #ffffff);
-  color: var(--color-accent-fg, #111111);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-18);
+  background: var(--color-accent, var(--libre-c-white));
+  color: var(--color-accent-fg, var(--libre-c-111111));
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: var(--libre-radius-8);
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
+    transform var(--libre-dur-150) var(--libre-ease-ease),
+    opacity var(--libre-dur-150) var(--libre-ease-ease);
 }
 
 .libre-cert-modal__download:hover {
-  transform: translateY(-1px);
+  transform: translateY(var(--libre-size-neg-1));
 }
 
 .libre-cert-modal__download:active {
@@ -300,13 +298,13 @@
 }
 
 .libre-cert-modal__download:disabled {
-  opacity: 0.6;
+  opacity: var(--libre-opacity-0-6);
   cursor: progress;
 }
 
 .libre-cert-modal__verify-hint {
-  font-size: 11px;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.5));
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary, var(--libre-c-rgba-245-245-247-0-5));
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   word-break: break-all;
   max-width: 100%;
@@ -314,12 +312,12 @@
 }
 
 .libre-cert-modal__error {
-  margin-top: 14px;
-  padding: 10px 14px;
-  background: rgba(239, 111, 111, 0.12);
-  border: 1px solid rgba(239, 111, 111, 0.4);
-  border-radius: 8px;
-  font-size: 13px;
-  color: #ff9a9a;
+  margin-top: var(--libre-space-14);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  background: var(--libre-c-rgba-239-111-111-0-12);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-4);
+  border-radius: var(--libre-radius-8);
+  font-size: var(--libre-fs-13);
+  color: var(--libre-c-ff9a9a);
   text-align: center;
 }

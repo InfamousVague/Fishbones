@@ -145,7 +145,7 @@ export default function DataPane({
           <div
             style={{
               padding: "14px 20px",
-              fontSize: 13,
+              fontSize: 'var(--libre-fs-13)',
               color: "var(--color-text-secondary)",
             }}
           >

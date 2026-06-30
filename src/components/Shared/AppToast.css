@@ -4,35 +4,33 @@
 
 .libre-app-toast {
   position: fixed;
-  bottom: 24px;
+  bottom: var(--libre-space-24);
   left: 50%;
   transform: translateX(-50%);
   /* Above the command palette (~1100) — an error toast must stay
      visible regardless of what surface triggered the action. */
-  z-index: 1200;
+  z-index: var(--libre-z-1200);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  max-width: min(560px, calc(100vw - 48px));
-  background: rgba(20, 20, 28, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-10) var(--libre-space-16);
+  max-width: min(var(--libre-size-560), calc(100vw - var(--libre-size-48)));
+  background: var(--libre-c-rgba-20-20-28-0-92);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-10);
   border-radius: var(--libre-radius-pill);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 14px 36px rgba(0, 0, 0, 0.45);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary, rgba(255, 255, 255, 0.96));
-  backdrop-filter: blur(8px) saturate(140%);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  animation: libre-app-toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: var(--libre-shadow-110);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary, var(--libre-c-rgba-255-255-255-0-96));
+  backdrop-filter: blur(var(--libre-blur-8)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--libre-blur-8)) saturate(140%);
+  animation: libre-app-toast-in var(--libre-dur-220) var(--libre-ease-cb-6);
 }
 
 @keyframes libre-app-toast-in {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: var(--libre-opacity-0); transform: translate(-50%, var(--libre-size-12)); }
+  to { opacity: var(--libre-opacity-1); transform: translate(-50%, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -49,19 +47,19 @@
 }
 
 .libre-app-toast--success .libre-app-toast__icon {
-  color: #8fd6a8;
+  color: var(--libre-c-8fd6a8);
 }
 
 .libre-app-toast--error .libre-app-toast__icon {
-  color: #ff9d8f;
+  color: var(--libre-c-ff9d8f);
 }
 
 .libre-app-toast--error {
-  border-color: rgba(255, 110, 90, 0.35);
+  border-color: var(--libre-c-rgba-255-110-90-0-35);
 }
 
 .libre-app-toast__label {
-  letter-spacing: -0.005em;
+  letter-spacing: var(--libre-ls-neg-0-005em);
   /* Long error messages (fetch URLs) wrap instead of stretching the
      pill across the window. */
   white-space: normal;

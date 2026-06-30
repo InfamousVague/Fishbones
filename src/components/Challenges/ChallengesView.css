@@ -47,19 +47,19 @@
      the carousel. Bumped from 5 → 10 after the overlay landed —
      equal-z siblings let the later-rendered element win, which
      was hiding the header behind the overlay's last 25% of fade. */
-  z-index: 10;
+  z-index: var(--libre-z-10);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  padding: 28px 40px 18px;
+  gap: var(--libre-space-24);
+  padding: var(--libre-space-28) var(--libre-space-40) var(--libre-space-18);
   flex-shrink: 0;
   /* Subtle backdrop-blur fade so the cards bleed slightly under
      the header instead of being clipped by a hard horizontal
      line. The mask gradient runs the alpha to 0 over the last
      12px so the bottom edge feathers into the scroll surface. */
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(var(--libre-blur-14));
+  backdrop-filter: blur(var(--libre-blur-14));
   background: linear-gradient(
     to bottom,
     var(--color-bg-primary) 0%,
@@ -71,22 +71,22 @@
 .libre-challenges__header-text {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-width: 520px;
+  gap: var(--libre-space-6);
+  max-width: var(--libre-size-520);
 }
 
 .libre-challenges__title {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0;
+  font-size: var(--libre-fs-28);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-02em);
+  margin: var(--libre-space-0);
   color: var(--color-text-primary);
 }
 
 .libre-challenges__blurb {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.55;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
@@ -95,19 +95,19 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  width: 260px;
+  width: var(--libre-size-260);
   max-width: 40vw;
 }
 
 .libre-challenges__search-input {
   width: 100%;
-  padding: 9px 32px 9px 12px;
+  padding: var(--libre-space-9) var(--libre-space-32) var(--libre-space-9) var(--libre-space-12);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
   border-radius: var(--libre-radius-md);
   color: var(--color-text-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   outline: none;
   transition: border-color var(--libre-motion-snappy);
 }
@@ -122,17 +122,17 @@
 
 .libre-challenges__search-clear {
   position: absolute;
-  right: 6px;
+  right: var(--libre-space-6);
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   border: 0;
   background: transparent;
-  border-radius: 4px;
+  border-radius: var(--libre-radius-4);
   color: var(--color-text-tertiary);
   cursor: pointer;
   transition: background var(--libre-motion-snappy);
@@ -152,7 +152,7 @@
      velocity — the value here is just a sensible mounting
      baseline so the surface looks reasonable before the first
      frame fires. */
-  perspective: 1400px;
+  perspective: var(--libre-size-1400);
   perspective-origin: 50% 50%;
   overflow: hidden;
   cursor: ns-resize;
@@ -178,8 +178,8 @@
 
 .libre-challenges__card-slot {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: var(--libre-space-0);
+  left: var(--libre-space-0);
   /* Width is fixed so the per-frame transform doesn't have to
      account for content-driven sizing. Translating by -50% on
      both axes inside the inner `.libre-challenges__card` rule
@@ -188,7 +188,7 @@
      aspect that reads as a "book cover" rather than a landscape
      placard, and the smaller absolute size lets more cards live
      comfortably in the viewport at once. */
-  width: 266px;
+  width: var(--libre-size-266);
   /* `backface-visibility: hidden` would help on Safari but
      also causes the cards to disappear at near-zero alpha on
      some configs — leaving the default so the fade-in / fade-
@@ -197,7 +197,7 @@
   /* The rAF loop sets transform + opacity. We start at 0
      opacity so the FIRST paint (before rAF runs) doesn't flash
      every card stacked on top of itself at world origin. */
-  opacity: 0;
+  opacity: var(--libre-opacity-0);
   /* `transform-style: preserve-3d` propagates the parent's 3D
      context into the inner card so rotateZ on the slot stacks
      with rotateY on the world. */
@@ -207,7 +207,7 @@
      than pops. Doesn't interfere with the rAF transform writes
      because the rAF writes inline styles every frame, which
      overrides any transition baseline. */
-  transition: opacity 0.4s ease-out;
+  transition: opacity var(--libre-dur-400) var(--libre-ease-ease-out);
 }
 
 /* ─── Card body ────────────────────────────────────────────── */
@@ -216,21 +216,19 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  width: 266px;
-  min-height: 360px;
-  padding: 16px 18px 14px;
+  gap: var(--libre-space-12);
+  width: var(--libre-size-266);
+  min-height: var(--libre-size-360);
+  padding: var(--libre-space-16) var(--libre-space-18) var(--libre-space-14);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
   border-radius: var(--libre-radius-lg);
   /* Soft shadow gives the card weight against the black
      backdrop. The shadow is independent of the 3D z so close
      cards don't get a comically large drop — perceived depth
      comes from the perspective transform, not from shadow
      size. */
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 28px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--libre-shadow-51);
   color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
@@ -241,16 +239,13 @@
      the per-frame transform writes (which only set
      `transform`, not `box-shadow` or `border-color`). */
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color var(--libre-dur-200) var(--libre-ease-ease),
+    box-shadow var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-challenges__card:hover {
   border-color: var(--track-accent, var(--gg-fill-white));
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 32px 70px rgba(0, 0, 0, 0.65),
-    0 0 0 1px var(--track-accent, transparent);
+  box-shadow: var(--libre-shadow-52);
 }
 
 /* Hyper-mode card variant. The translate(-50%, -50%) centers
@@ -282,16 +277,16 @@
      the title + tag + progress overlay the bottom. Portrait 2:3 so it
      reads as a small book cover (smaller than the library shelf). */
   aspect-ratio: 2 / 3;
-  padding: 0;
+  padding: var(--libre-space-0);
   flex-direction: column;
   justify-content: flex-end;
   align-items: stretch;
-  gap: 0;
+  gap: var(--libre-space-0);
   overflow: hidden;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+    border-color var(--libre-dur-200) var(--libre-ease-ease),
+    box-shadow var(--libre-dur-200) var(--libre-ease-ease),
+    transform var(--libre-dur-200) var(--libre-ease-ease);
 }
 .libre-challenges__card--grid .libre-challenges__card-body {
   /* Let the body collapse to its content rather than push the
@@ -302,36 +297,36 @@
 /* ── Cover-forward gallery card: the pack's cover art fills the tile ── */
 .libre-challenges__card-cover {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   /* Crop in ~10% to match the library book covers' tighter framing. */
   transform: scale(1.1);
-  z-index: 0;
+  z-index: var(--libre-z-0);
 }
 .libre-challenges__card-shade {
   position: absolute;
-  inset: 0;
-  z-index: 1;
+  inset: var(--libre-space-0);
+  z-index: var(--libre-z-1);
   pointer-events: none;
   /* Dark wash rising from the bottom so the overlaid title + progress
      stay legible against any cover art. */
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.55) 26%,
-    rgba(0, 0, 0, 0) 58%
+    var(--libre-c-rgba-0-0-0-0-9) 0%,
+    var(--libre-c-rgba-0-0-0-0-55) 26%,
+    var(--libre-c-rgba-0-0-0-0) 58%
   );
 }
 /* The text stack sits above the cover, anchored to the bottom edge. */
 .libre-challenges__card--grid .libre-challenges__card-main {
   position: relative;
-  z-index: 2;
+  z-index: var(--libre-z-2);
   flex: 0 0 auto;
-  padding: 10px 12px 11px;
-  gap: 5px;
+  padding: var(--libre-space-10) var(--libre-space-12) var(--libre-space-11);
+  gap: var(--libre-space-5);
 }
 /* Cover-forward = minimal copy: keep title + tag + progress, drop the
    verbose outcome / description / meta line and the old left badge. */
@@ -343,16 +338,16 @@
   display: none;
 }
 .libre-challenges__card--grid .libre-challenges__card-title {
-  color: #fff;
-  font-size: 14px;
-  line-height: 1.2;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+  color: var(--libre-c-white);
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-2);
+  text-shadow: var(--libre-shadow-68);
 }
 .libre-challenges__card--grid .libre-challenges__card-pct {
-  color: #fff;
+  color: var(--libre-c-white);
 }
 .libre-challenges__card--grid:hover {
-  transform: translateY(-3px);
+  transform: translateY(var(--libre-size-neg-3));
 }
 
 /* Content column to the right of the leading badge — holds the
@@ -360,7 +355,7 @@
 .libre-challenges__card-main {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--libre-space-12);
   flex: 1;
   min-width: 0;
 }
@@ -371,20 +366,18 @@
    no matching image simply omit the badge (see TrackCardBody). */
 .libre-challenges__card-badge {
   flex-shrink: 0;
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
+  width: var(--libre-size-112);
+  height: var(--libre-size-112);
+  border-radius: var(--libre-radius-circle);
   overflow: hidden;
   background: color-mix(
     in srgb,
-    var(--track-accent, #8a8f98) 18%,
+    var(--track-accent, var(--libre-c-8a8f98)) 18%,
     var(--color-bg-secondary)
   );
   /* Thin accent ring so the disc reads as a deliberate badge, echoing
      the per-pack accent on the card border + tag. */
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--track-accent, #8a8f98) 55%, transparent),
-    0 3px 10px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--libre-shadow-13);
 }
 
 .libre-challenges__card-badge img {
@@ -401,14 +394,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--libre-space-12);
 }
 
 .libre-challenges__card-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-4) var(--libre-space-10);
   background: color-mix(
     in srgb,
     var(--track-accent, var(--color-text-primary)) 18%,
@@ -416,9 +409,9 @@
   );
   color: var(--track-accent, var(--color-text-primary));
   border-radius: var(--libre-radius-pill);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-03em);
   text-transform: uppercase;
 }
 
@@ -428,38 +421,38 @@
 
 .libre-challenges__card-index {
   font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--libre-ls-0-08em);
 }
 
 .libre-challenges__card-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
   flex: 1;
 }
 
 .libre-challenges__card-title {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.18;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-18);
+  line-height: var(--libre-lh-1-18);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
   color: var(--color-text-primary);
 }
 
 .libre-challenges__card-outcome {
-  margin: 0;
-  font-size: 13px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: var(--libre-lh-1-4);
 }
 
 .libre-challenges__card-desc {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.55;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-tertiary);
   /* Clamp to keep cards visually consistent — long descriptions
      would otherwise stretch a card past the next one's position
@@ -475,20 +468,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 4px;
+  gap: var(--libre-space-12);
+  margin-top: var(--libre-space-4);
 }
 
 .libre-challenges__card-meta {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
   text-transform: capitalize;
 }
 
 .libre-challenges__card-pct {
   font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -496,9 +489,9 @@
 .libre-challenges__card-progress {
   position: relative;
   width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 2px;
+  height: var(--libre-size-3);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border-radius: var(--libre-radius-2);
   overflow: hidden;
 }
 
@@ -506,34 +499,34 @@
   display: block;
   height: 100%;
   background: var(--track-accent, var(--gg-fill-white));
-  transition: width 0.4s ease;
+  transition: width var(--libre-dur-400) var(--libre-ease-ease);
 }
 
 /* ─── HUD ──────────────────────────────────────────────────── */
 
 .libre-challenges__hud {
   position: absolute;
-  left: 24px;
-  bottom: 24px;
-  z-index: 6;
+  left: var(--libre-space-24);
+  bottom: var(--libre-space-24);
+  z-index: var(--libre-z-6);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: var(--libre-fs-10);
+  letter-spacing: var(--libre-ls-0-08em);
+  color: var(--libre-c-rgba-255-255-255-0-55);
   pointer-events: none;
 }
 
 .libre-challenges__hud-row {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre-challenges__hud-key {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--libre-c-rgba-255-255-255-0-35);
 }
 
 .libre-challenges__hud-val {
@@ -550,7 +543,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: var(--libre-fs-14);
 }
 
 /* ─── Grid mode ────────────────────────────────────────────── */
@@ -567,7 +560,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 40px 40px;
+  padding: var(--libre-space-8) var(--libre-space-40) var(--libre-space-40);
   /* Re-enable selection inside the grid (the parent
      `.libre-challenges` disables it for the hyper viewport, where
      wheel-scroll across text was selecting random card body
@@ -584,23 +577,23 @@
    vertically; the inner `.libre-challenges__grid` keeps the
    3 / 2 / 1-column responsive layout per section. */
 .libre-challenges__grid-section {
-  margin-bottom: 36px;
+  margin-bottom: var(--libre-space-36);
 }
 
 .libre-challenges__grid-section:last-child {
-  margin-bottom: 0;
+  margin-bottom: var(--libre-space-0);
 }
 
 .libre-challenges__grid-section-title {
   /* Tracked-uppercase eyebrow header — same visual vocabulary
      as the library's per-section titles, scaled down for the
      denser tracks page chrome. */
-  margin: 0 0 14px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-14);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-18em);
   text-transform: uppercase;
-  color: var(--color-text-tertiary, rgba(244, 238, 221, 0.55));
+  color: var(--color-text-tertiary, var(--libre-c-rgba-244-238-221-0-55));
 }
 
 .libre-challenges__grid {
@@ -611,19 +604,19 @@
      size. */
   /* Auto-fill of small "book" tiles so the gallery shows many compact
      covers per row instead of three large cards. */
-  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--libre-size-178), 1fr));
+  gap: var(--libre-space-16);
 }
 
 @media (max-width: 1300px) {
   .libre-challenges__grid {
-    grid-template-columns: repeat(auto-fill, minmax(162px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--libre-size-162), 1fr));
   }
 }
 
 @media (max-width: 900px) {
   .libre-challenges__grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--libre-size-140), 1fr));
   }
 }
 
@@ -634,17 +627,17 @@
      (`Math.min(idx, 16) * 35ms`) so the grid materialises in a
      wave instead of all-at-once. Cap at index 16 to keep the
      last delay sane on large catalogues. */
-  animation: libre-challenges-grid-fade-in 360ms ease-out backwards;
+  animation: libre-challenges-grid-fade-in var(--libre-dur-360) var(--libre-ease-ease-out) backwards;
   will-change: opacity, transform;
 }
 
 @keyframes libre-challenges-grid-fade-in {
   from {
-    opacity: 0;
-    transform: translateY(12px);
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-12));
   }
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0);
   }
 }
@@ -722,26 +715,26 @@
 .libre-challenges__scroll-hint {
   position: absolute;
   left: 50%;
-  bottom: 36px;
+  bottom: var(--libre-space-36);
   transform: translateX(-50%);
-  padding: 14px 26px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+  padding: var(--libre-space-14) var(--libre-space-26);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-2em);
   text-transform: uppercase;
-  color: var(--color-text-primary, #f5f5f7);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
   /* Stronger background so the capsule reads against any card
      silhouette sliding past behind it. The previous translucent
      background let card colours bleed through; bumping the
      opacity makes the label legible end-to-end. */
-  background: rgba(15, 12, 22, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--libre-c-rgba-15-12-22-0-88);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-18);
+  border-radius: var(--libre-radius-pill);
+  box-shadow: var(--libre-shadow-94);
+  backdrop-filter: blur(var(--libre-blur-10));
+  -webkit-backdrop-filter: blur(var(--libre-blur-10));
   pointer-events: none;
-  z-index: 8;
+  z-index: var(--libre-z-8);
   white-space: nowrap;
   /* Linear ramp: 0% until progress hits 0.4, then climbs to 1
      by progress = 0.8 (with a small flat tail so it stays fully
@@ -750,24 +743,24 @@
      earlier — the learner sees it before they're committed to
      scrolling further. */
   opacity: max(
-    0,
-    min(1, calc((var(--tracks-end-progress, 0) - 0.4) / 0.4))
+    var(--libre-opacity-0),
+    min(var(--libre-opacity-1), calc((var(--tracks-end-progress, var(--libre-opacity-0)) - var(--libre-opacity-0-4)) / var(--libre-opacity-0-4)))
   );
 }
 
 .libre-challenges__grid-overlay {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   /* Linear ramp: 0% until progress hits 0.7, then climbs to 1
      by progress = 1.0. The `max(0, …)` clamps the ramp so
      progress below 0.7 stays invisible. */
-  opacity: max(0, calc((var(--tracks-end-progress, 0) - 0.7) / 0.3));
+  opacity: max(var(--libre-opacity-0), calc((var(--tracks-end-progress, var(--libre-opacity-0)) - var(--libre-opacity-0-7)) / var(--libre-opacity-0-3)));
   pointer-events: none;
   /* Above the hyper surface but below the header strip (which
      was bumped to z 10 to outrank this overlay). The hyper
      viewport itself doesn't set a z-index, so the overlay
      wins via stacking-context order. */
-  z-index: 5;
+  z-index: var(--libre-z-5);
   /* Flex column so the inner `.libre-challenges__grid-wrap`'s
      `flex: 1` resolves against the overlay (rather than
      falling back to its intrinsic content height, which made
@@ -799,7 +792,7 @@
      CAN disable the per-frame visual flourishes by neutering
      the parent transforms with a high-specificity override. */
   .libre-challenges__viewport {
-    perspective: 4000px !important;
+    perspective: var(--libre-size-4000) !important;
   }
   .libre-challenges__world {
     transform: none !important;

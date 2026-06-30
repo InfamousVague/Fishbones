@@ -3,76 +3,76 @@
    button. */
 .libre-floating-panel {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 90;
-  width: 380px;
-  max-height: calc(100vh - 40px);
+  bottom: var(--libre-space-16);
+  right: var(--libre-space-16);
+  z-index: var(--libre-z-90);
+  width: var(--libre-size-380);
+  max-height: calc(100vh - var(--libre-size-40));
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: libre-floating-enter 0.22s ease-out;
+  animation: libre-floating-enter var(--libre-dur-220) var(--libre-ease-ease-out);
 }
 
 @keyframes libre-floating-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: var(--libre-opacity-0); transform: translateY(var(--libre-size-8)); }
+  to   { opacity: var(--libre-opacity-1); transform: translateY(0); }
 }
 
 .libre-floating-panel--success {
-  border-color: rgba(124, 217, 124, 0.35);
+  border-color: var(--libre-c-rgba-124-217-124-0-35);
 }
 .libre-floating-panel--error {
-  border-color: rgba(239, 111, 111, 0.4);
+  border-color: var(--libre-c-rgba-239-111-111-0-4);
 }
 .libre-floating-panel--aborted {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--libre-c-rgba-255-255-255-0-15);
 }
 
 .libre-floating-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--color-border-default);
-  gap: 8px;
+  padding: var(--libre-space-10) var(--libre-space-12);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
+  gap: var(--libre-space-8);
 }
 
 .libre-floating-titleblock {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   min-width: 0;
   flex: 1;
 }
 
 .libre-floating-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: var(--libre-size-8);
+  height: var(--libre-size-8);
+  border-radius: var(--libre-radius-circle);
   background: var(--color-text-tertiary);
   flex-shrink: 0;
 }
 .libre-floating-status-dot--running {
-  background: var(--gg-fill-white, #fff);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-  animation: libre-floating-pulse 1.4s ease-in-out infinite;
+  background: var(--gg-fill-white, var(--libre-c-white));
+  box-shadow: var(--libre-shadow-30);
+  animation: libre-floating-pulse var(--libre-dur-1400) var(--libre-ease-ease-in-out) infinite;
 }
-.libre-floating-status-dot--success { background: #7cd97c; }
-.libre-floating-status-dot--error   { background: #ef6f6f; }
-.libre-floating-status-dot--aborted { background: #b4b4be; }
+.libre-floating-status-dot--success { background: var(--libre-c-7cd97c); }
+.libre-floating-status-dot--error   { background: var(--libre-c-ef6f6f); }
+.libre-floating-status-dot--aborted { background: var(--libre-c-b4b4be); }
 
 @keyframes libre-floating-pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.4; }
+  0%, 100% { opacity: var(--libre-opacity-1); }
+  50%      { opacity: var(--libre-opacity-0-4); }
 }
 
 .libre-floating-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -84,10 +84,10 @@
 .libre-floating-substatus {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
+  gap: var(--libre-space-4);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-4);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   flex-shrink: 0;
@@ -95,7 +95,7 @@
 
 .libre-floating-header-actions {
   display: flex;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 /* Bulk-queue summary chip in the header. Only renders when the current
@@ -105,22 +105,22 @@
 .libre-floating-queue {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  margin-right: 4px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-2) var(--libre-space-8);
+  margin-right: var(--libre-space-4);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-3);
   color: var(--color-text-secondary);
 }
 
 .libre-floating-queue-label {
   text-transform: uppercase;
-  font-size: 9px;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-9);
+  letter-spacing: var(--libre-ls-0-5);
   color: var(--color-text-tertiary);
 }
 
@@ -132,38 +132,38 @@
 .libre-floating-queue-stats {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding-left: 4px;
-  border-left: 1px solid var(--color-border-default);
+  gap: var(--libre-space-4);
+  padding-left: var(--libre-space-4);
+  border-left: var(--libre-bw-1) solid var(--color-border-default);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-floating-queue-ok {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  color: #7cd97c;
+  gap: var(--libre-space-2);
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-floating-queue-fail {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  color: #ef6f6f;
+  gap: var(--libre-space-2);
+  color: var(--libre-c-ef6f6f);
 }
 
 .libre-floating-iconbtn {
-  width: 24px;
-  height: 24px;
+  width: var(--libre-size-24);
+  height: var(--libre-size-24);
   display: grid;
   place-items: center;
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  font-size: 16px;
-  line-height: 1;
+  font-size: var(--libre-fs-16);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: var(--libre-radius-5);
 }
 
 .libre-floating-iconbtn:hover {
@@ -176,25 +176,25 @@
    panel we need breathing room on the sides so it doesn't butt against
    the panel edge. Matches the `padding-x` of the stage/controls rows. */
 .libre-floating-panel .libre-stats {
-  margin: 8px 14px 4px;
+  margin: var(--libre-space-8) var(--libre-space-14) var(--libre-space-4);
 }
 
 .libre-floating-stage {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 14px 6px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-10) var(--libre-space-14) var(--libre-space-6);
 }
 
 .libre-floating-spinner {
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: libre-floating-spin 0.9s linear infinite;
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
+  border: var(--libre-bw-1-5) solid var(--libre-c-rgba-255-255-255-0-15);
+  border-top-color: var(--libre-c-white);
+  border-radius: var(--libre-radius-circle);
+  animation: libre-floating-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: var(--libre-space-2);
 }
 
 @keyframes libre-floating-spin {
@@ -204,19 +204,19 @@
 .libre-floating-stagebody {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
   flex: 1;
 }
 
 .libre-floating-stagetext {
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
   color: var(--color-text-primary);
 }
 
 .libre-floating-stagedetail {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
   white-space: nowrap;
@@ -225,41 +225,41 @@
 }
 
 .libre-floating-waiting {
-  margin-top: 2px;
-  font-size: 10.5px;
+  margin-top: var(--libre-space-2);
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   font-style: italic;
 }
 
 .libre-floating-error {
-  padding: 10px 14px;
-  background: rgba(239, 111, 111, 0.06);
-  border-top: 1px solid rgba(239, 111, 111, 0.2);
-  border-bottom: 1px solid rgba(239, 111, 111, 0.2);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  background: var(--libre-c-rgba-239-111-111-0-06);
+  border-top: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-2);
+  border-bottom: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-2);
 }
 
 .libre-floating-error-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #f1b5b5;
-  margin-bottom: 4px;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-f1b5b5);
+  margin-bottom: var(--libre-space-4);
 }
 
 .libre-floating-error-body {
-  font-size: 10.5px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-10-5);
+  line-height: var(--libre-lh-1-4);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  color: #f1b5b5;
-  margin: 0 0 8px;
-  max-height: 120px;
+  color: var(--libre-c-f1b5b5);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-8);
+  max-height: var(--libre-size-120);
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .libre-floating-error-hint {
-  margin: 0;
-  font-size: 11px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-11);
   color: var(--color-text-secondary);
 }
 
@@ -267,32 +267,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px 10px;
-  gap: 10px;
+  padding: var(--libre-space-8) var(--libre-space-14) var(--libre-space-10);
+  gap: var(--libre-space-10);
 }
 
 .libre-floating-verbose {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: var(--libre-space-6);
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
   cursor: pointer;
 }
 
 .libre-floating-actions {
   display: flex;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-floating-btn {
-  padding: 5px 10px;
+  padding: var(--libre-space-5) var(--libre-space-10);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   cursor: pointer;
 }
 .libre-floating-btn:hover {
@@ -303,23 +303,23 @@
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 .libre-floating-btn--primary:hover {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
 }
 
 .libre-floating-log {
-  max-height: 180px;
+  max-height: var(--libre-size-180);
   overflow-y: auto;
-  padding: 6px 14px 10px;
+  padding: var(--libre-space-6) var(--libre-space-14) var(--libre-space-10);
   background: var(--color-bg-primary);
-  border-top: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 10.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-10-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
 }
 
@@ -330,26 +330,26 @@
 
 .libre-floating-log-line {
   display: grid;
-  grid-template-columns: 60px auto auto 1fr;
-  gap: 6px;
-  padding: 1px 0;
+  grid-template-columns: var(--libre-size-60) auto auto 1fr;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-1) var(--libre-space-0);
 }
 
-.libre-floating-log-line--warn  { color: #d9a800; }
-.libre-floating-log-line--error { color: #ef6f6f; }
-.libre-floating-log-line--cache { color: #7cc1d9; }
+.libre-floating-log-line--warn  { color: var(--libre-c-d9a800); }
+.libre-floating-log-line--error { color: var(--libre-c-ef6f6f); }
+.libre-floating-log-line--cache { color: var(--libre-c-7cc1d9); }
 
 .libre-floating-log-stage {
   color: var(--color-text-tertiary);
   text-transform: uppercase;
-  font-size: 9px;
-  letter-spacing: 0.4px;
-  padding-top: 1px;
+  font-size: var(--libre-fs-9);
+  letter-spacing: var(--libre-ls-0-4);
+  padding-top: var(--libre-space-1);
 }
 
 .libre-floating-log-loc {
   color: var(--color-text-tertiary);
-  font-size: 10px;
+  font-size: var(--libre-fs-10);
 }
 
 .libre-floating-log-msg {
@@ -361,22 +361,22 @@
 /* Collapsed pill — tiny chip at the bottom-right. */
 .libre-floating-pill {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
-  z-index: 90;
+  bottom: var(--libre-space-16);
+  right: var(--libre-space-16);
+  z-index: var(--libre-z-90);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-8) var(--libre-space-14);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
-  animation: libre-floating-enter 0.2s ease-out;
+  animation: libre-floating-enter var(--libre-dur-200) var(--libre-ease-ease-out);
 }
 
 .libre-floating-pill:hover {
@@ -384,23 +384,23 @@
 }
 
 .libre-floating-pill-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: var(--libre-size-8);
+  height: var(--libre-size-8);
+  border-radius: var(--libre-radius-circle);
   background: var(--gg-fill-white);
-  animation: libre-floating-pulse 1.4s ease-in-out infinite;
+  animation: libre-floating-pulse var(--libre-dur-1400) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-floating-pill--success .libre-floating-pill-dot {
-  background: #7cd97c;
+  background: var(--libre-c-7cd97c);
   animation: none;
 }
 .libre-floating-pill--error .libre-floating-pill-dot {
-  background: #ef6f6f;
+  background: var(--libre-c-ef6f6f);
   animation: none;
 }
 .libre-floating-pill--aborted .libre-floating-pill-dot {
-  background: #b4b4be;
+  background: var(--libre-c-b4b4be);
   animation: none;
 }
 

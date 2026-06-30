@@ -32,15 +32,15 @@
 .libre-profile-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 28px 40px;
+  padding: var(--libre-space-20) var(--libre-space-28) var(--libre-space-40);
 }
 
 .libre-profile-inner {
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: var(--libre-size-1280);
+  margin: var(--libre-space-0) auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--libre-space-18);
 }
 
 /* ─── Header strip ─────────────────────────────────────────────
@@ -53,33 +53,33 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 4px 0 2px;
+  gap: var(--libre-space-24);
+  padding: var(--libre-space-4) var(--libre-space-0) var(--libre-space-2);
   flex-wrap: wrap;
 }
 
 .libre-profile-header-text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 240px;
-  flex: 1 1 280px;
+  gap: var(--libre-space-4);
+  min-width: var(--libre-size-240);
+  flex: 1 1 var(--libre-size-280);
 }
 
 .libre-profile-title {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-26);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-02em);
   color: var(--color-text-primary);
-  line-height: 1.1;
+  line-height: var(--libre-lh-1-1);
 }
 
 .libre-profile-subtitle {
-  margin: 0;
-  font-size: 13px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
-  line-height: 1.4;
+  line-height: var(--libre-lh-1-4);
 }
 
 /* Level progress bar. Replaces the giant 140px ring with a
@@ -89,18 +89,18 @@
 .libre-profile-level-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1 1 340px;
-  min-width: 280px;
-  max-width: 560px;
+  gap: var(--libre-space-12);
+  flex: 1 1 var(--libre-size-340);
+  min-width: var(--libre-size-280);
+  max-width: var(--libre-size-560);
 }
 
 .libre-profile-level-bar-track {
   flex: 1;
-  height: 10px;
+  height: var(--libre-size-10);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.06));
-  border-radius: 999px;
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
+  border-radius: var(--libre-radius-pill);
   overflow: hidden;
   position: relative;
 }
@@ -109,18 +109,18 @@
   height: 100%;
   background: linear-gradient(
     90deg,
-    #7cd97c 0%,
-    #b9e87c 60%,
-    #fcd34d 100%
+    var(--libre-c-7cd97c) 0%,
+    var(--libre-c-b9e87c) 60%,
+    var(--libre-c-fcd34d) 100%
   );
-  border-radius: 999px;
-  transition: width 0.35s cubic-bezier(0.2, 0.65, 0.3, 1);
+  border-radius: var(--libre-radius-pill);
+  transition: width var(--libre-dur-350) var(--libre-ease-cb-1);
 }
 
 .libre-profile-level-bar-meta {
   font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -128,7 +128,7 @@
 
 .libre-profile-level-bar-meta-sub {
   color: var(--color-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--libre-fw-500);
 }
 
 /* ─── Stat strip ───────────────────────────────────────────────
@@ -140,7 +140,7 @@
 .libre-profile-stats {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-profile-stat {
@@ -148,11 +148,11 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 13px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-11) var(--libre-space-13);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.06));
-  border-radius: var(--libre-radius-md, 8px);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
   /* Subtle accent stripe inheriting the tone token — same
      vocabulary as the old chunky tiles, just narrower. */
   overflow: hidden;
@@ -161,30 +161,30 @@
 .libre-profile-stat::before {
   content: "";
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 2px;
+  inset: var(--libre-space-0) auto var(--libre-space-0) var(--libre-space-0);
+  width: var(--libre-size-2);
   background: var(--stat-tone);
-  opacity: 0.7;
+  opacity: var(--libre-opacity-0-7);
 }
 
 /* Tone palette — kept identical to the pre-redesign tiles so any
    muscle-memory the user has for "streak is orange" survives. */
-.libre-profile-stat--streak  { --stat-tone: #f59e3b; }
-.libre-profile-stat--lessons { --stat-tone: #7cd9d3; }
-.libre-profile-stat--xp      { --stat-tone: #fcd34d; }
-.libre-profile-stat--level   { --stat-tone: #7cd97c; }
-.libre-profile-stat--longest { --stat-tone: #c79bff; }
+.libre-profile-stat--streak  { --stat-tone: var(--libre-c-f59e3b); }
+.libre-profile-stat--lessons { --stat-tone: var(--libre-c-7cd9d3); }
+.libre-profile-stat--xp      { --stat-tone: var(--libre-c-fcd34d); }
+.libre-profile-stat--level   { --stat-tone: var(--libre-c-7cd97c); }
+.libre-profile-stat--longest { --stat-tone: var(--libre-c-c79bff); }
 
 .libre-profile-stat-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: var(--libre-size-26);
+  height: var(--libre-size-26);
   flex-shrink: 0;
   background: color-mix(in srgb, var(--stat-tone) 22%, transparent);
   color: var(--stat-tone);
-  border-radius: 6px;
+  border-radius: var(--libre-radius-6);
 }
 
 .libre-profile-stat-text {
@@ -194,17 +194,17 @@
 }
 
 .libre-profile-stat-value {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--libre-fs-18);
+  font-weight: var(--libre-fw-700);
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: var(--libre-lh-1-1);
   color: var(--color-text-primary);
 }
 
 .libre-profile-stat-label {
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--libre-ls-0-06em);
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -228,13 +228,21 @@
 .libre-profile-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 @media (max-width: 960px) {
   .libre-profile-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Activity heatmap spans the full dashboard width — a full year reads like
+   a GitHub contribution graph and lines up with the full-width Recent-
+   activity strip below, instead of cramping a 52-week strip into a half
+   column. */
+.libre-profile-card--activity {
+  grid-column: 1 / -1;
 }
 
 /* ─── Card chrome (shared) ────────────────────────────────────
@@ -245,46 +253,46 @@
 .libre-profile-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px 18px;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-16) var(--libre-space-18);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.06));
-  border-radius: var(--libre-radius-lg, 10px);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
+  border-radius: var(--libre-radius-lg, var(--libre-radius-10));
 }
 
 .libre-profile-card-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--libre-space-10);
   flex-wrap: wrap;
 }
 
 .libre-profile-card-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-005em);
   color: var(--color-text-primary);
-  line-height: 1.2;
+  line-height: var(--libre-lh-1-2);
 }
 
 .libre-profile-card-meta {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
-  letter-spacing: 0.02em;
+  letter-spacing: var(--libre-ls-0-02em);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-profile-empty {
-  margin: 0;
-  font-size: 13px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: var(--libre-lh-1-5);
 }
 
 .libre-profile-empty--inline {
-  padding: 6px 2px;
+  padding: var(--libre-space-6) var(--libre-space-2);
 }
 
 /* ─── Activity card / heatmap ─────────────────────────────────
@@ -296,42 +304,52 @@
 .libre-profile-heatmap-wrap {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-profile-heatmap-rowlabels {
   display: grid;
-  grid-template-rows: repeat(7, 12px);
-  gap: 2px;
-  padding-top: 1px;
-  font-size: 9.5px;
+  grid-template-rows: repeat(7, var(--libre-size-12));
+  gap: var(--libre-space-2);
+  padding-top: var(--libre-space-1);
+  font-size: var(--libre-fs-9-5);
   color: var(--color-text-tertiary);
   text-align: right;
-  width: 22px;
+  width: var(--libre-size-22);
   flex-shrink: 0;
 }
 
 .libre-profile-heatmap-rowlabels > span {
-  line-height: 12px;
+  line-height: var(--libre-lh-px-12);
 }
 
 .libre-profile-heatmap {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  align-content: flex-start;
+  /* CSS grid (column-major, matching the cell array order) so the 52-week
+     strip stretches edge-to-edge across the full-width card — each week is
+     a 1fr column. Rows stay a fixed 12px so they line up with the
+     Mon/Wed/Fri labels beside them. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--libre-size-12));
+  grid-auto-columns: minmax(0, 1fr);
   width: 100%;
-  height: calc(7 * 12px + 6 * 2px);
-  gap: 2px;
+  height: calc(7 * var(--libre-size-12) + 6 * var(--libre-size-2));
+  gap: var(--libre-space-2);
+}
+
+/* In the grid the cell width comes from its 1fr column (the fixed 12px in
+   the base rule only applies to the legend swatches outside this grid). */
+.libre-profile-heatmap > .libre-profile-heatmap-cell {
+  width: auto;
 }
 
 .libre-profile-heatmap-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  border: 1px solid transparent;
+  width: var(--libre-size-12);
+  height: var(--libre-size-12);
+  border-radius: var(--libre-radius-2);
+  border: var(--libre-bw-1) solid transparent;
   flex-shrink: 0;
-  transition: transform 0.12s ease, filter 0.12s ease;
+  transition: transform var(--libre-dur-120) var(--libre-ease-ease), filter var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-profile-heatmap-cell:hover:not(.libre-profile-heatmap-cell--pad) {
@@ -343,24 +361,24 @@
   background: transparent;
 }
 
-.libre-profile-heatmap-cell--lvl-0 { background: rgba(255, 255, 255, 0.04); }
-.libre-profile-heatmap-cell--lvl-1 { background: rgba(124, 217, 124, 0.22); border-color: rgba(124, 217, 124, 0.18); }
-.libre-profile-heatmap-cell--lvl-2 { background: rgba(124, 217, 124, 0.42); border-color: rgba(124, 217, 124, 0.32); }
-.libre-profile-heatmap-cell--lvl-3 { background: rgba(124, 217, 124, 0.65); border-color: rgba(124, 217, 124, 0.55); }
-.libre-profile-heatmap-cell--lvl-4 { background: #7cd97c;                     border-color: rgba(124, 217, 124, 0.85); }
+.libre-profile-heatmap-cell--lvl-0 { background: var(--libre-c-rgba-255-255-255-0-04); }
+.libre-profile-heatmap-cell--lvl-1 { background: var(--libre-c-rgba-124-217-124-0-22); border-color: var(--libre-c-rgba-124-217-124-0-18); }
+.libre-profile-heatmap-cell--lvl-2 { background: var(--libre-c-rgba-124-217-124-0-42); border-color: var(--libre-c-rgba-124-217-124-0-32); }
+.libre-profile-heatmap-cell--lvl-3 { background: var(--libre-c-rgba-124-217-124-0-65); border-color: var(--libre-c-rgba-124-217-124-0-55); }
+.libre-profile-heatmap-cell--lvl-4 { background: var(--libre-c-7cd97c);                     border-color: var(--libre-c-rgba-124-217-124-0-85); }
 
 .libre-profile-heatmap-legend {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
+  gap: var(--libre-space-4);
+  font-size: var(--libre-fs-10);
   color: var(--color-text-tertiary);
-  margin-top: -2px;
+  margin-top: var(--libre-space-neg-2);
 }
 
 .libre-profile-heatmap-legend > .libre-profile-heatmap-cell {
-  width: 10px;
-  height: 10px;
+  width: var(--libre-size-10);
+  height: var(--libre-size-10);
 }
 
 /* ─── XP by language card ─────────────────────────────────────
@@ -371,73 +389,73 @@
 
 .libre-profile-lang-chart {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-profile-lang-row {
   display: grid;
-  grid-template-columns: 110px minmax(0, 1fr) 56px 60px;
+  grid-template-columns: var(--libre-size-110) minmax(0, 1fr) var(--libre-size-56) var(--libre-size-60);
   align-items: center;
-  gap: 10px;
-  min-height: 22px;
+  gap: var(--libre-space-10);
+  min-height: var(--libre-size-22);
 }
 
 .libre-profile-lang-name {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.005em;
+  letter-spacing: var(--libre-ls-neg-0-005em);
 }
 
 .libre-profile-lang-bar {
   position: relative;
-  height: 7px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 999px;
+  height: var(--libre-size-7);
+  background: var(--libre-c-rgba-255-255-255-0-05);
+  border-radius: var(--libre-radius-pill);
   overflow: hidden;
 }
 
 .libre-profile-lang-bar-fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: var(--libre-space-0) auto var(--libre-space-0) var(--libre-space-0);
   background: var(--gg-fill-white);
-  border-radius: 999px;
-  transition: width 0.35s ease;
+  border-radius: var(--libre-radius-pill);
+  transition: width var(--libre-dur-350) var(--libre-ease-ease);
 }
 
 /* Brand colours per language. Preserved verbatim from the
    previous design so JS reads yellow, Rust reads oxblood, etc. */
-.libre-profile-lang-bar[data-lang="javascript"] .libre-profile-lang-bar-fill { background: #f7df1e; }
-.libre-profile-lang-bar[data-lang="typescript"] .libre-profile-lang-bar-fill { background: #3178c6; }
-.libre-profile-lang-bar[data-lang="python"]     .libre-profile-lang-bar-fill { background: #3776ab; }
-.libre-profile-lang-bar[data-lang="rust"]       .libre-profile-lang-bar-fill { background: #ce412b; }
-.libre-profile-lang-bar[data-lang="go"]         .libre-profile-lang-bar-fill { background: #00add8; }
-.libre-profile-lang-bar[data-lang="swift"]      .libre-profile-lang-bar-fill { background: #fa7343; }
-.libre-profile-lang-bar[data-lang="reactnative"] .libre-profile-lang-bar-fill { background: #61dafb; }
-.libre-profile-lang-bar[data-lang="svelte"]     .libre-profile-lang-bar-fill { background: #ff3e00; }
-.libre-profile-lang-bar[data-lang="solid"]      .libre-profile-lang-bar-fill { background: #2c4f7c; }
-.libre-profile-lang-bar[data-lang="htmx"]       .libre-profile-lang-bar-fill { background: #3a4252; }
-.libre-profile-lang-bar[data-lang="astro"]      .libre-profile-lang-bar-fill { background: #ff5d01; }
-.libre-profile-lang-bar[data-lang="bun"]        .libre-profile-lang-bar-fill { background: #fbf0df; }
-.libre-profile-lang-bar[data-lang="solidity"]   .libre-profile-lang-bar-fill { background: #6b4f7a; }
-.libre-profile-lang-bar[data-lang="vyper"]      .libre-profile-lang-bar-fill { background: #3f8a7c; }
-.libre-profile-lang-bar[data-lang="c"]          .libre-profile-lang-bar-fill { background: #a8b9cc; }
-.libre-profile-lang-bar[data-lang="cpp"]        .libre-profile-lang-bar-fill { background: #00599c; }
-.libre-profile-lang-bar[data-lang="java"]       .libre-profile-lang-bar-fill { background: #d9a74a; }
-.libre-profile-lang-bar[data-lang="kotlin"]     .libre-profile-lang-bar-fill { background: #7f52ff; }
-.libre-profile-lang-bar[data-lang="csharp"]     .libre-profile-lang-bar-fill { background: #5c2d91; }
-.libre-profile-lang-bar[data-lang="assembly"]   .libre-profile-lang-bar-fill { background: #6b6b6b; }
-.libre-profile-lang-bar[data-lang="threejs"]    .libre-profile-lang-bar-fill { background: #cbd5e1; }
+.libre-profile-lang-bar[data-lang="javascript"] .libre-profile-lang-bar-fill { background: var(--libre-c-f7df1e); }
+.libre-profile-lang-bar[data-lang="typescript"] .libre-profile-lang-bar-fill { background: var(--libre-c-3178c6); }
+.libre-profile-lang-bar[data-lang="python"]     .libre-profile-lang-bar-fill { background: var(--libre-c-3776ab); }
+.libre-profile-lang-bar[data-lang="rust"]       .libre-profile-lang-bar-fill { background: var(--libre-c-ce412b); }
+.libre-profile-lang-bar[data-lang="go"]         .libre-profile-lang-bar-fill { background: var(--libre-c-00add8); }
+.libre-profile-lang-bar[data-lang="swift"]      .libre-profile-lang-bar-fill { background: var(--libre-c-fa7343); }
+.libre-profile-lang-bar[data-lang="reactnative"] .libre-profile-lang-bar-fill { background: var(--libre-c-61dafb); }
+.libre-profile-lang-bar[data-lang="svelte"]     .libre-profile-lang-bar-fill { background: var(--libre-c-ff3e00); }
+.libre-profile-lang-bar[data-lang="solid"]      .libre-profile-lang-bar-fill { background: var(--libre-c-2c4f7c); }
+.libre-profile-lang-bar[data-lang="htmx"]       .libre-profile-lang-bar-fill { background: var(--libre-c-3a4252); }
+.libre-profile-lang-bar[data-lang="astro"]      .libre-profile-lang-bar-fill { background: var(--libre-c-ff5d01); }
+.libre-profile-lang-bar[data-lang="bun"]        .libre-profile-lang-bar-fill { background: var(--libre-c-fbf0df); }
+.libre-profile-lang-bar[data-lang="solidity"]   .libre-profile-lang-bar-fill { background: var(--libre-c-6b4f7a); }
+.libre-profile-lang-bar[data-lang="vyper"]      .libre-profile-lang-bar-fill { background: var(--libre-c-3f8a7c); }
+.libre-profile-lang-bar[data-lang="c"]          .libre-profile-lang-bar-fill { background: var(--libre-c-a8b9cc); }
+.libre-profile-lang-bar[data-lang="cpp"]        .libre-profile-lang-bar-fill { background: var(--libre-c-00599c); }
+.libre-profile-lang-bar[data-lang="java"]       .libre-profile-lang-bar-fill { background: var(--libre-c-d9a74a); }
+.libre-profile-lang-bar[data-lang="kotlin"]     .libre-profile-lang-bar-fill { background: var(--libre-c-7f52ff); }
+.libre-profile-lang-bar[data-lang="csharp"]     .libre-profile-lang-bar-fill { background: var(--libre-c-5c2d91); }
+.libre-profile-lang-bar[data-lang="assembly"]   .libre-profile-lang-bar-fill { background: var(--libre-c-6b6b6b); }
+.libre-profile-lang-bar[data-lang="threejs"]    .libre-profile-lang-bar-fill { background: var(--libre-c-cbd5e1); }
 
 .libre-profile-lang-meta {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-primary);
   text-align: right;
@@ -449,8 +467,8 @@
 }
 
 .libre-profile-lang-xp {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-secondary);
   text-align: right;
@@ -465,11 +483,11 @@
 
 .libre-profile-badges {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 @media (max-width: 1100px) {
@@ -484,35 +502,35 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 10px 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
+  gap: var(--libre-space-4);
+  padding: var(--libre-space-10) var(--libre-space-8);
+  background: var(--libre-c-rgba-255-255-255-0-02);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-06);
+  border-radius: var(--libre-radius-8);
   text-align: center;
   /* Locked badges are dimmed; unlocked override below brings
      them back to full opacity + warm glow. */
-  opacity: 0.55;
-  transition: opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  opacity: var(--libre-opacity-0-55);
+  transition: opacity var(--libre-dur-200) var(--libre-ease-ease), border-color var(--libre-dur-200) var(--libre-ease-ease), background var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-profile-badge-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.06);
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
+  background: var(--libre-c-rgba-255-255-255-0-06);
   color: var(--color-text-secondary);
-  border-radius: 50%;
+  border-radius: var(--libre-radius-circle);
   flex-shrink: 0;
 }
 
 .libre-profile-badge-label {
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  line-height: 1.15;
+  line-height: var(--libre-lh-1-15);
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
@@ -520,26 +538,26 @@
 }
 
 .libre-profile-badge-meta {
-  font-size: 9.5px;
+  font-size: var(--libre-fs-9-5);
   color: var(--color-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--libre-ls-0-06em);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-profile-badge--unlocked {
-  opacity: 1;
-  background: rgba(252, 211, 77, 0.08);
-  border-color: rgba(252, 211, 77, 0.32);
+  opacity: var(--libre-opacity-1);
+  background: var(--libre-c-rgba-252-211-77-0-08);
+  border-color: var(--libre-c-rgba-252-211-77-0-32);
 }
 
 .libre-profile-badge--unlocked .libre-profile-badge-icon {
-  background: rgba(252, 211, 77, 0.18);
-  color: #fcd34d;
+  background: var(--libre-c-rgba-252-211-77-0-18);
+  color: var(--libre-c-fcd34d);
 }
 
 .libre-profile-badge--unlocked .libre-profile-badge-meta {
-  color: #fcd34d;
+  color: var(--libre-c-fcd34d);
 }
 
 /* ─── Topics card ─────────────────────────────────────────────
@@ -551,18 +569,18 @@
 .libre-profile-topic-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-profile-topic-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 8px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-4) var(--libre-space-10) var(--libre-space-4) var(--libre-space-8);
   background: var(--color-bg-tertiary);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  font-size: 11.5px;
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-06);
+  border-radius: var(--libre-radius-pill);
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-primary);
   white-space: nowrap;
   max-width: 100%;
@@ -571,19 +589,19 @@
 .libre-profile-topic-name {
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: var(--libre-size-200);
 }
 
 .libre-profile-topic-count {
   font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-tertiary);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 1px 6px;
-  border-radius: 999px;
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  padding: var(--libre-space-1) var(--libre-space-6);
+  border-radius: var(--libre-radius-pill);
   font-variant-numeric: tabular-nums;
-  min-width: 18px;
+  min-width: var(--libre-size-18);
   text-align: center;
 }
 
@@ -597,76 +615,76 @@
   /* Slightly more vertical breathing room than the other cards
      because the feed often has more rows than the grid neighbours
      even at its 8-row preview height. */
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-profile-activity {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
   /* No gap between rows — the rows have their own hairline
      border-top so they read as a connected list rather than
      a stack of cards. The first row's border is suppressed
      below. */
-  gap: 0;
+  gap: var(--libre-space-0);
 }
 
 .libre-profile-activity > li:not(:first-child) .libre-profile-activity-row {
-  border-top: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.04));
+  border-top: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-04));
 }
 
 .libre-profile-activity-row {
   display: grid;
-  grid-template-columns: 14px minmax(0, 2fr) minmax(0, 1.4fr) auto;
+  grid-template-columns: var(--libre-size-14) minmax(0, 2fr) minmax(0, 1.4fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: var(--libre-space-12);
   width: 100%;
-  padding: 7px 4px;
+  padding: var(--libre-space-7) var(--libre-space-4);
   background: transparent;
   border: 0;
   text-align: left;
   cursor: pointer;
   color: inherit;
   font: inherit;
-  transition: background 0.12s ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-profile-activity-row:hover {
   background: var(--color-bg-tertiary);
-  border-radius: 6px;
+  border-radius: var(--libre-radius-6);
 }
 
 .libre-profile-activity-kind {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: var(--libre-size-8);
+  height: var(--libre-size-8);
+  border-radius: var(--libre-radius-circle);
   background: var(--color-text-tertiary);
   flex-shrink: 0;
 }
 
 .libre-profile-activity-kind--exercise,
-.libre-profile-activity-kind--mixed       { background: #7cc1d9; }
-.libre-profile-activity-kind--quiz         { background: #e8c46b; }
-.libre-profile-activity-kind--reading      { background: #7cd97c; }
+.libre-profile-activity-kind--mixed       { background: var(--libre-c-7cc1d9); }
+.libre-profile-activity-kind--quiz         { background: var(--libre-c-e8c46b); }
+.libre-profile-activity-kind--reading      { background: var(--libre-c-7cd97c); }
 .libre-profile-activity-kind--puzzle,
 .libre-profile-activity-kind--cloze,
-.libre-profile-activity-kind--micropuzzle  { background: #c79bff; }
+.libre-profile-activity-kind--micropuzzle  { background: var(--libre-c-c79bff); }
 
 .libre-profile-activity-lesson {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.005em;
+  letter-spacing: var(--libre-ls-neg-0-005em);
 }
 
 .libre-profile-activity-course {
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -674,12 +692,12 @@
 }
 
 .libre-profile-activity-time {
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
   white-space: nowrap;
   text-transform: lowercase;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--libre-ls-0-02em);
 }
 
 /* ─── Expander button ────────────────────────────────────────
@@ -693,27 +711,27 @@
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding: 5px 10px;
+  gap: var(--libre-space-6);
+  margin-top: var(--libre-space-6);
+  padding: var(--libre-space-5) var(--libre-space-10);
   background: transparent;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 999px;
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 11.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), color var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-profile-expander:hover {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
-  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.18));
+  border-color: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-18));
 }
 
 .libre-profile-expander:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) solid var(--color-text-secondary);
+  outline-offset: var(--libre-size-2);
 }

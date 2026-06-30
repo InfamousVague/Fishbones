@@ -1,89 +1,89 @@
 .libre-quiz {
-  max-width: 860px;
-  margin: 24px auto;
-  padding: 0 16px 40px;
+  max-width: var(--libre-size-860);
+  margin: var(--libre-space-24) auto;
+  padding: var(--libre-space-0) var(--libre-space-16) var(--libre-space-40);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
 }
 
 .libre-quiz-progress {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: var(--libre-space-6);
+  margin-bottom: var(--libre-space-8);
 }
 
 .libre-quiz-pip {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-border-default);
+  width: var(--libre-size-10);
+  height: var(--libre-size-10);
+  border-radius: var(--libre-radius-circle);
+  border: var(--libre-bw-1-5) solid var(--color-border-default);
   background: transparent;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background var(--libre-dur-200) var(--libre-ease-ease), border-color var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-quiz-pip--correct {
-  background: #7cd97c;
-  border-color: #7cd97c;
+  background: var(--libre-c-7cd97c);
+  border-color: var(--libre-c-7cd97c);
 }
 
 .libre-quiz-pip--wrong {
-  background: #ef6f6f;
-  border-color: #ef6f6f;
+  background: var(--libre-c-ef6f6f);
+  border-color: var(--libre-c-ef6f6f);
 }
 
 .libre-quiz-progress-label {
-  margin-left: 8px;
-  font-size: 11px;
+  margin-left: var(--libre-space-8);
+  font-size: var(--libre-fs-11);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
 }
 
 .libre-quiz-card {
   display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 12px;
-  padding: 14px 16px;
+  grid-template-columns: var(--libre-size-28) 1fr;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-14) var(--libre-space-16);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
 }
 
 .libre-quiz-card--correct {
-  border-color: rgba(124, 217, 124, 0.45);
-  background: rgba(124, 217, 124, 0.04);
+  border-color: var(--libre-c-rgba-124-217-124-0-45);
+  background: var(--libre-c-rgba-124-217-124-0-04);
 }
 
 .libre-quiz-card--wrong {
-  border-color: rgba(239, 111, 111, 0.45);
-  background: rgba(239, 111, 111, 0.04);
+  border-color: var(--libre-c-rgba-239-111-111-0-45);
+  background: var(--libre-c-rgba-239-111-111-0-04);
 }
 
 .libre-quiz-num {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: var(--libre-size-24);
+  height: var(--libre-size-24);
+  border-radius: var(--libre-radius-circle);
   background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-quiz-q-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--libre-space-10);
   min-width: 0;
 }
 
 .libre-quiz-prompt {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-primary);
   flex: 1;
   min-width: 0;
@@ -98,29 +98,29 @@
    `Option::Some` stand out from prose. */
 .libre-quiz-prompt p,
 .libre-quiz-explanation p {
-  margin: 0 0 8px;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-8);
 }
 
 .libre-quiz-prompt p:last-child,
 .libre-quiz-explanation p:last-child {
-  margin-bottom: 0;
+  margin-bottom: var(--libre-space-0);
 }
 
 .libre-quiz-prompt code,
 .libre-quiz-explanation code {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
-  font-size: 0.92em;
-  padding: 1px 5px;
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  border-radius: 4px;
+  font-size: var(--libre-fs-em-0-92);
+  padding: var(--libre-space-1) var(--libre-space-5);
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  border-radius: var(--libre-radius-4);
 }
 
 .libre-quiz-prompt pre,
 .libre-quiz-explanation pre,
 .libre-quiz-prompt .libre-code-block,
 .libre-quiz-explanation .libre-code-block {
-  margin: 8px 0;
+  margin: var(--libre-space-8) var(--libre-space-0);
   /* The card itself constrains width; let the code block fit and
      scroll horizontally for over-long lines rather than blowing out
      the row width. */
@@ -136,7 +136,7 @@
 .libre-quiz-explanation pre code,
 .libre-quiz-prompt .libre-code-block code,
 .libre-quiz-explanation .libre-code-block code {
-  padding: 0;
+  padding: var(--libre-space-0);
   background: none;
   border: 0;
   font-size: inherit;
@@ -148,7 +148,7 @@
 .libre-quiz-prompt-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 /* `?` badge that opens the AI panel pre-loaded with a hint prompt
@@ -157,26 +157,26 @@
    recognize the affordance across prose + quizzes. */
 .libre-quiz-ask {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 1px solid var(--color-border-default);
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  padding: var(--libre-space-0);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   background: var(--color-bg-secondary);
   color: var(--color-text-tertiary);
-  border-radius: 50%;
+  border-radius: var(--libre-radius-circle);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition:
-    color 0.12s,
-    border-color 0.12s,
-    background 0.12s,
-    transform 0.12s;
+    color var(--libre-dur-120),
+    border-color var(--libre-dur-120),
+    background var(--libre-dur-120),
+    transform var(--libre-dur-120);
 }
 
 .libre-quiz-ask:hover {
@@ -189,21 +189,21 @@
 .libre-quiz-options {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-quiz-option {
   display: grid;
-  grid-template-columns: 22px 1fr;
+  grid-template-columns: var(--libre-size-22) 1fr;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   text-align: left;
-  padding: 9px 12px;
+  padding: var(--libre-space-9) var(--libre-space-12);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   font-family: inherit;
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
@@ -218,48 +218,48 @@
 }
 
 .libre-quiz-option--correct {
-  border-color: rgba(124, 217, 124, 0.6);
-  background: rgba(124, 217, 124, 0.08) !important;
+  border-color: var(--libre-c-rgba-124-217-124-0-6);
+  background: var(--libre-c-rgba-124-217-124-0-08) !important;
   color: var(--color-text-primary);
 }
 
 .libre-quiz-option--wrong {
-  border-color: rgba(239, 111, 111, 0.6);
-  background: rgba(239, 111, 111, 0.1) !important;
+  border-color: var(--libre-c-rgba-239-111-111-0-6);
+  background: var(--libre-c-rgba-239-111-111-0-1) !important;
 }
 
 .libre-quiz-option-letter {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: var(--libre-size-20);
+  height: var(--libre-size-20);
   border-radius: var(--libre-radius-xs);
   background: var(--color-bg-tertiary);
   color: var(--color-text-tertiary);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
 }
 
 .libre-quiz-short {
   display: flex;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre-quiz-short-input {
   flex: 1;
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-primary);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
 }
 
 .libre-quiz-short-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: var(--libre-c-rgba-255-255-255-0-4);
 }
 
 /* Wrong-state input visual — applied while the user's input STILL
@@ -267,13 +267,13 @@
    start typing a fresh attempt (the JS toggles the class off), so
    the red doesn't stick around during the retry-typing window. */
 .libre-quiz-short-input--wrong {
-  border-color: rgba(239, 111, 111, 0.6);
-  background: rgba(239, 111, 111, 0.08);
+  border-color: var(--libre-c-rgba-239-111-111-0-6);
+  background: var(--libre-c-rgba-239-111-111-0-08);
 }
 
 .libre-quiz-short-input--correct {
-  border-color: rgba(124, 217, 124, 0.6);
-  background: rgba(124, 217, 124, 0.08);
+  border-color: var(--libre-c-rgba-124-217-124-0-6);
+  background: var(--libre-c-rgba-124-217-124-0-08);
 }
 
 /* "Try again" pill — surfaces in the question header whenever a
@@ -283,51 +283,51 @@
    final). Sits between the prompt and the AI-hint badge. */
 .libre-quiz-retry-pill {
   flex-shrink: 0;
-  padding: 3px 8px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  padding: var(--libre-space-3) var(--libre-space-8);
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-05em);
   text-transform: uppercase;
-  color: rgba(239, 111, 111, 0.95);
-  background: rgba(239, 111, 111, 0.12);
-  border: 1px solid rgba(239, 111, 111, 0.4);
-  border-radius: 999px;
+  color: var(--libre-c-rgba-239-111-111-0-95);
+  background: var(--libre-c-rgba-239-111-111-0-12);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-4);
+  border-radius: var(--libre-radius-pill);
   white-space: nowrap;
   align-self: flex-start;
 }
 
 .libre-quiz-short-submit {
-  padding: 0 14px;
-  background: var(--gg-fill-white, #ffffff);
-  color: var(--color-bg-primary, #000000);
+  padding: var(--libre-space-0) var(--libre-space-14);
+  background: var(--gg-fill-white, var(--libre-c-white));
+  color: var(--color-bg-primary, var(--libre-c-black));
   border: 0;
   border-radius: var(--libre-radius-sm);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
 }
 
 .libre-quiz-short-submit:disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: not-allowed;
 }
 
 .libre-quiz-explanation {
-  padding: 9px 12px;
+  padding: var(--libre-space-9) var(--libre-space-12);
   background: var(--color-bg-tertiary);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-secondary);
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-55);
 }
 
 .libre-quiz-done {
-  margin-top: 6px;
-  padding: 10px 14px;
-  background: rgba(124, 217, 124, 0.08);
-  border: 1px solid rgba(124, 217, 124, 0.35);
+  margin-top: var(--libre-space-6);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  background: var(--libre-c-rgba-124-217-124-0-08);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-124-217-124-0-35);
   border-radius: var(--libre-radius-md);
-  color: #7cd97c;
-  font-size: 13px;
-  font-weight: 500;
+  color: var(--libre-c-7cd97c);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-500);
 }

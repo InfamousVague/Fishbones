@@ -179,7 +179,7 @@
      + blur radius — used for the frosted-glass icon-button hover. */
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 
   /* Accent: demoted-white → hue ghost-white. Every var(--color-accent)
      consumer (Run button, nav-rail pill, library pills, slider thumb, focus
@@ -348,7 +348,7 @@
   --gg-glass-code: color-mix(in srgb, #04060c 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="retro-pulp"] .libre-editor-run,
@@ -433,7 +433,7 @@
   --gg-glass-code: color-mix(in srgb, #040303 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="raygun-gothic"] .libre-editor-run,
@@ -518,7 +518,7 @@
   --gg-glass-code: color-mix(in srgb, #070509 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="alien-invasion"] .libre-editor-run,
@@ -603,7 +603,7 @@
   --gg-glass-code: color-mix(in srgb, #080804 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="robot-menace"] .libre-editor-run,
@@ -688,7 +688,7 @@
   --gg-glass-code: color-mix(in srgb, #080510 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="time-warp"] .libre-editor-run,
@@ -773,7 +773,7 @@
   --gg-glass-code: color-mix(in srgb, #080904 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="lost-world"] .libre-editor-run,
@@ -858,7 +858,7 @@
   --gg-glass-code: color-mix(in srgb, #080603 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="cold-war-spy"] .libre-editor-run,
@@ -943,7 +943,7 @@
   --gg-glass-code: color-mix(in srgb, #06040a 82%, transparent);
   --gg-glass-brd: rgba(255, 255, 255, 0.1);
   --gg-glass-rim: rgba(255, 255, 255, 0.06);
-  --gg-blur: 24px;
+  --gg-blur: calc(24px * var(--libre-blur-scale, 1));
 }
 
 [data-theme-name="psychedelic-voyage"] .libre-editor-run,

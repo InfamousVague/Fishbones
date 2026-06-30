@@ -7,7 +7,7 @@
 .libre-shortcuts-pane {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--libre-space-24);
   /* Allow the inner scroll-area to claim height inside the
      SettingsDialog's fixed-height body. */
   min-height: 0;
@@ -19,9 +19,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  gap: var(--libre-space-16);
+  padding-bottom: var(--libre-space-14);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
 }
 
 .libre-shortcuts-pane__head-text {
@@ -32,22 +32,22 @@
 .libre-shortcuts-pane__title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 6px;
-  font-size: 16px;
-  font-weight: 600;
+  gap: var(--libre-space-8);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-6);
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--libre-ls-neg-0-01em);
 }
 
 .libre-shortcuts-pane__title :global(.libre-icon) {
-  color: var(--color-accent, #f3a93a);
+  color: var(--color-accent, var(--libre-c-f3a93a));
 }
 
 .libre-shortcuts-pane__hint {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.5;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-secondary);
   max-width: 50ch;
 }
@@ -55,30 +55,30 @@
 .libre-shortcuts-pane__reset-all {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-7) var(--libre-space-12);
   background: transparent;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.12));
-  border-radius: var(--libre-radius-md, 8px);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-12));
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
   color: var(--color-text-secondary);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-500);
   white-space: nowrap;
   transition:
-    color 120ms ease,
-    background 120ms ease,
-    border-color 120ms ease;
+    color var(--libre-dur-120) var(--libre-ease-ease),
+    background var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-shortcuts-pane__reset-all:not(:disabled):hover {
   color: var(--color-text-primary);
-  border-color: var(--color-accent, #f3a93a);
-  background: color-mix(in srgb, var(--color-accent, #f3a93a) 8%, transparent);
+  border-color: var(--color-accent, var(--libre-c-f3a93a));
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-f3a93a)) 8%, transparent);
 }
 
 .libre-shortcuts-pane__reset-all:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
@@ -87,27 +87,27 @@
 .libre-shortcuts-pane__groups {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--libre-space-20);
 }
 
 .libre-shortcuts-pane__group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-shortcuts-pane__group-title {
-  margin: 0 0 4px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-4);
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-1em);
   text-transform: uppercase;
-  color: var(--color-text-tertiary, rgba(255, 255, 255, 0.4));
+  color: var(--color-text-tertiary, var(--libre-c-rgba-255-255-255-0-4));
 }
 
 .libre-shortcuts-pane__rows {
   list-style: none;
-  margin: 0;
+  margin: var(--libre-space-0);
   /* The SettingsCard title sits at `padding: 16px 20px 0` so the
      "APP / NAVIGATION / …" eyebrow is inset 20px from the card
      edge. Mirror that inset on the rows + add 4px bottom so the
@@ -115,10 +115,10 @@
      has breathing room instead of clipping flush against the
      last row. The row's own internal padding handles per-side
      hover-target sizing without changing the visible alignment. */
-  padding: 4px 12px 12px;
+  padding: var(--libre-space-4) var(--libre-space-12) var(--libre-space-12);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 /* ---- Row -------------------------------------------------------- */
@@ -126,16 +126,16 @@
 .libre-shortcuts-pane__row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--libre-space-16);
   /* 8px horizontal so total inset (12px on __rows + 8px here) =
      20px from card edge — aligned with the section title. */
-  padding: 10px 8px;
-  border-radius: var(--libre-radius-md, 8px);
-  transition: background 120ms ease;
+  padding: var(--libre-space-10) var(--libre-space-8);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  transition: background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-shortcuts-pane__row:hover {
-  background: color-mix(in srgb, var(--color-bg-elevated, rgba(255, 255, 255, 0.04)) 70%, transparent);
+  background: color-mix(in srgb, var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-04)) 70%, transparent);
 }
 
 .libre-shortcuts-pane__row-text {
@@ -143,25 +143,25 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 .libre-shortcuts-pane__row-label {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-500);
   color: var(--color-text-primary);
 }
 
 .libre-shortcuts-pane__row-desc {
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--color-text-tertiary, rgba(255, 255, 255, 0.45));
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-4);
+  color: var(--color-text-tertiary, var(--libre-c-rgba-255-255-255-0-45));
 }
 
 .libre-shortcuts-pane__row-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   flex-shrink: 0;
 }
 
@@ -174,20 +174,20 @@
 .libre-shortcuts-pane__chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 6px 4px 8px;
-  background: var(--color-bg-primary, rgba(0, 0, 0, 0.25));
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  border-radius: var(--libre-radius-md, 8px);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-4) var(--libre-space-6) var(--libre-space-4) var(--libre-space-8);
+  background: var(--color-bg-primary, var(--libre-c-rgba-0-0-0-0-25));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
   color: var(--color-text-secondary);
   cursor: pointer;
   transition:
-    background 120ms ease,
-    border-color 120ms ease;
+    background var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-shortcuts-pane__chip:hover {
-  border-color: var(--color-accent, #f3a93a);
+  border-color: var(--color-accent, var(--libre-c-f3a93a));
 }
 
 /* Inner flex group that holds the individual <kbd> caps + any
@@ -195,7 +195,7 @@
 .libre-shortcuts-pane__keys {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 /* Each modifier or main key renders as a real keyboard-cap-shaped
@@ -205,53 +205,53 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
+  min-width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  padding: var(--libre-space-0) var(--libre-space-7);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.01em;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1);
+  letter-spacing: var(--libre-ls-0-01em);
   color: var(--color-text-primary);
-  background: var(--color-bg-elevated, rgba(255, 255, 255, 0.08));
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.14));
+  background: var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-08));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-14));
   /* Subtle bottom shadow so each cap has the slightly-pressed-up
      feel of a real key. */
-  border-bottom-width: 2px;
-  border-radius: 5px;
+  border-bottom-width: var(--libre-bw-2);
+  border-radius: var(--libre-radius-5);
 }
 
 /* "+" glue between caps on non-Mac platforms. Lighter weight +
    colour than the caps so the row reads as caps with separators
    rather than caps + caps + caps. */
 .libre-shortcuts-pane__key-plus {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-tertiary, rgba(255, 255, 255, 0.45));
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-tertiary, var(--libre-c-rgba-255-255-255-0-45));
   user-select: none;
 }
 
 /* Overridden binding: accent the chip border + tint each key cap
    so the custom state is visible at a glance. */
 .libre-shortcuts-pane__chip--custom {
-  border-color: color-mix(in srgb, var(--color-accent, #f3a93a) 55%, var(--color-border-default) 45%);
-  background: color-mix(in srgb, var(--color-accent, #f3a93a) 6%, var(--color-bg-primary, rgba(0, 0, 0, 0.25)));
+  border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-f3a93a)) 55%, var(--color-border-default) 45%);
+  background: color-mix(in srgb, var(--color-accent, var(--libre-c-f3a93a)) 6%, var(--color-bg-primary, var(--libre-c-rgba-0-0-0-0-25)));
 }
 
 .libre-shortcuts-pane__chip--custom .libre-shortcuts-pane__key {
-  border-color: color-mix(in srgb, var(--color-accent, #f3a93a) 45%, var(--color-border-default) 55%);
+  border-color: color-mix(in srgb, var(--color-accent, var(--libre-c-f3a93a)) 45%, var(--color-border-default) 55%);
 }
 
 /* Pencil icon inside the chip — subtler than the kbd label so it
    reads as "edit" without dominating. */
 .libre-shortcuts-pane__chip :global(.libre-icon) {
-  opacity: 0.55;
-  transition: opacity 120ms ease;
+  opacity: var(--libre-opacity-0-55);
+  transition: opacity var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-shortcuts-pane__chip:hover :global(.libre-icon) {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
 }
 
 /* ---- Per-row reset button (the rotate-ccw arrow) --------------- */
@@ -260,25 +260,25 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
+  padding: var(--libre-space-0);
   background: transparent;
   border: none;
-  border-radius: var(--libre-radius-sm, 6px);
-  color: var(--color-text-tertiary, rgba(255, 255, 255, 0.45));
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
+  color: var(--color-text-tertiary, var(--libre-c-rgba-255-255-255-0-45));
   cursor: pointer;
   transition:
-    color 120ms ease,
-    background 120ms ease;
+    color var(--libre-dur-120) var(--libre-ease-ease),
+    background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-shortcuts-pane__reset:not(:disabled):hover {
   color: var(--color-text-primary);
-  background: color-mix(in srgb, var(--color-bg-elevated, rgba(255, 255, 255, 0.06)) 100%, transparent);
+  background: color-mix(in srgb, var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-06)) 100%, transparent);
 }
 
 .libre-shortcuts-pane__reset:disabled {
-  opacity: 0.3;
+  opacity: var(--libre-opacity-0-3);
   cursor: not-allowed;
 }

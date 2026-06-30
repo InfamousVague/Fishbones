@@ -14,7 +14,7 @@
      Glossary applies the same flex-start so the pair reads as a
      consistent chip family. */
   justify-content: flex-start;
-  gap: 9px;
+  gap: var(--libre-space-9);
   /* Pinned height locks the row in lockstep with
      `.libre-reader-meta-glossary` — both chips share the same
      height + padding + line-height so neither's inner content can
@@ -23,31 +23,31 @@
      affordance; box-sizing: border-box keeps padding + border inside
      the 30px so the ring (20px) and font (12px) both fit comfortably
      without forcing extra rim. */
-  height: 36px;
+  height: var(--libre-size-36);
   box-sizing: border-box;
-  padding: 0 14px;
-  line-height: 1;
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.1));
-  border-radius: 999px;
-  background: var(--color-bg-secondary, #1a1a1f);
-  color: var(--color-text-secondary, #a4a4ad);
+  padding: var(--libre-space-0) var(--libre-space-14);
+  line-height: var(--libre-lh-1);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-bg-secondary, var(--libre-c-1a1a1f));
+  color: var(--color-text-secondary, var(--libre-c-a4a4ad));
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-01em);
   cursor: pointer;
   transition:
-    background var(--libre-motion-quick, 120ms ease),
-    color var(--libre-motion-quick, 120ms ease),
-    border-color var(--libre-motion-quick, 120ms ease);
+    background var(--libre-motion-quick, var(--libre-dur-120) var(--libre-ease-ease)),
+    color var(--libre-motion-quick, var(--libre-dur-120) var(--libre-ease-ease)),
+    border-color var(--libre-motion-quick, var(--libre-dur-120) var(--libre-ease-ease));
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
 .libre-tts-pill:hover {
-  background: var(--color-bg-tertiary, #21262d);
-  color: var(--color-text-primary, #f5f5f7);
-  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.18));
+  background: var(--color-bg-tertiary, var(--libre-c-21262d));
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  border-color: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-18));
 }
 
 /* Static variant — when there's no audio for the lesson. Reads as
@@ -59,9 +59,9 @@
   cursor: default;
 }
 .libre-tts-pill--static:hover {
-  background: var(--color-bg-secondary, #1a1a1f);
-  color: var(--color-text-secondary, #a4a4ad);
-  border-color: var(--color-border-default, rgba(255, 255, 255, 0.1));
+  background: var(--color-bg-secondary, var(--libre-c-1a1a1f));
+  color: var(--color-text-secondary, var(--libre-c-a4a4ad));
+  border-color: var(--color-border-default, var(--libre-c-rgba-255-255-255-0-1));
 }
 
 /* Active states — playing OR mid-track-paused both surface the
@@ -69,17 +69,17 @@
    (the completion-tier frames). Mid-track gets a softer treatment
    so a paused listener doesn't feel they've stopped doing anything. */
 .libre-tts-pill--playing {
-  background: rgba(214, 185, 105, 0.18);
-  color: #efe2b3;
-  border-color: rgba(214, 185, 105, 0.55);
+  background: var(--libre-c-rgba-214-185-105-0-18);
+  color: var(--libre-c-efe2b3);
+  border-color: var(--libre-c-rgba-214-185-105-0-55);
 }
 .libre-tts-pill--playing:hover {
-  background: rgba(214, 185, 105, 0.28);
-  border-color: rgba(214, 185, 105, 0.75);
+  background: var(--libre-c-rgba-214-185-105-0-28);
+  border-color: var(--libre-c-rgba-214-185-105-0-75);
 }
 .libre-tts-pill--mid:not(.libre-tts-pill--playing) {
-  color: var(--color-text-primary, #f5f5f7);
-  border-color: rgba(214, 185, 105, 0.32);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  border-color: var(--libre-c-rgba-214-185-105-0-32);
 }
 
 /* Progress-ring wrapper. 16×16 — well inside the pill's 26px clamped
@@ -92,8 +92,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   flex-shrink: 0;
 }
 
@@ -101,8 +101,8 @@
   /* CSS-set width/height intentionally overrides the SVG element's
      `width="32" height="32"` attributes so we can shrink the ring
      without changing the JSX RADIUS / viewBox math. */
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   /* Rotate so the arc grows from 12 o'clock clockwise. SVG default
      starts at 3 o'clock; -90° rotation snaps it to the top. */
   transform: rotate(-90deg);
@@ -110,7 +110,7 @@
 }
 
 .libre-tts-pill__ring-track {
-  stroke: var(--color-border-default, rgba(255, 255, 255, 0.12));
+  stroke: var(--color-border-default, var(--libre-c-rgba-255-255-255-0-12));
 }
 
 .libre-tts-pill__ring-fill {
@@ -121,14 +121,14 @@
   /* Smooth animate the offset on each timeupdate tick. ~250ms is
      long enough to feel intentional, short enough that a 4× speed
      scrub still tracks the cursor. */
-  transition: stroke-dashoffset 250ms linear;
+  transition: stroke-dashoffset var(--libre-dur-250) var(--libre-ease-linear);
 }
 
 /* Center icon over the SVG ring. The Icon component renders an
    inline SVG; we wrap it in a span we can absolute-position. */
 .libre-tts-pill__icon {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,13 +145,13 @@
    am I in" rather than "press here." `!important` forces past the
    same-specificity `.icon--xs` rule in App.css. */
 .libre-tts-pill__icon svg {
-  width: 12px !important;
-  height: 12px !important;
+  width: var(--libre-size-12) !important;
+  height: var(--libre-size-12) !important;
 }
 
 /* Loader spin while the MP3 is fetching from the CDN on first play. */
 .libre-tts-pill--loading .libre-tts-pill__icon svg {
-  animation: libre-tts-spin 0.9s linear infinite;
+  animation: libre-tts-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
 }
 
 @keyframes libre-tts-spin {
@@ -176,7 +176,7 @@
     display: none;
   }
   .libre-tts-pill {
-    padding: 4px;
+    padding: var(--libre-space-4);
   }
   .libre-tts-pill--static .libre-tts-pill__text {
     /* Static (read-time) variant on phone keeps the text — without

@@ -6,23 +6,23 @@
 
 .libre-ptr {
   position: fixed;
-  top: 0;
+  top: var(--libre-space-0);
   left: 50%;
-  margin-left: -16px;
-  width: 32px;
-  height: 32px;
+  margin-left: var(--libre-space-neg-16);
+  width: var(--libre-size-32);
+  height: var(--libre-size-32);
   pointer-events: none;
-  z-index: 200;
+  z-index: var(--libre-z-200);
   display: grid;
   place-items: center;
   color: var(--color-text-secondary);
-  transition: transform 0ms;
+  transition: transform var(--libre-dur-0);
 }
 
 .libre-ptr--refreshing {
   /* Lock the indicator at the trigger height while the refresh is
    * running so it doesn't snap back the moment the finger lifts. */
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform var(--libre-dur-200) var(--libre-ease-cb-6);
 }
 
 .libre-ptr--armed {
@@ -36,7 +36,7 @@
 }
 
 .libre-ptr--refreshing .libre-ptr__svg {
-  animation: libre-ptr-spin 0.9s linear infinite;
+  animation: libre-ptr-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
 }
 
 .libre-ptr__track {
@@ -47,13 +47,13 @@
 .libre-ptr__fill {
   stroke: currentColor;
   stroke-width: 2.5;
-  transition: stroke-dashoffset 80ms linear;
+  transition: stroke-dashoffset var(--libre-dur-80) var(--libre-ease-linear);
 }
 
 .libre-ptr--armed .libre-ptr__fill {
   /* Subtle pulse when armed — gives the user a "yes, release will
    * refresh" hint without being loud about it. */
-  animation: libre-ptr-pulse 1s ease-in-out infinite;
+  animation: libre-ptr-pulse var(--libre-dur-1000) var(--libre-ease-ease-in-out) infinite;
 }
 
 @keyframes libre-ptr-spin {
@@ -62,8 +62,8 @@
 }
 
 @keyframes libre-ptr-pulse {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: var(--libre-opacity-0-85); }
+  50% { opacity: var(--libre-opacity-1); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,49 +4,49 @@
    apply-fixes, etc.) and need to sit above them. */
 
 .libre-confirm-panel {
-  width: min(420px, 90vw);
+  width: min(var(--libre-size-420), 90vw);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
-  padding: 20px;
-  animation: libre-confirm-enter 0.16s ease-out;
+  padding: var(--libre-space-20);
+  animation: libre-confirm-enter var(--libre-dur-160) var(--libre-ease-ease-out);
 }
 
 @keyframes libre-confirm-enter {
-  from { opacity: 0; transform: translateY(6px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0)   scale(1); }
+  from { opacity: var(--libre-opacity-0); transform: translateY(var(--libre-size-6)) scale(0.98); }
+  to   { opacity: var(--libre-opacity-1); transform: translateY(0)   scale(1); }
 }
 
 .libre-confirm-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: var(--libre-space-8);
 }
 
 .libre-confirm-message {
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
-  margin-bottom: 18px;
+  margin-bottom: var(--libre-space-18);
   white-space: pre-line; /* respect \n in the message prop */
 }
 
 .libre-confirm-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre-confirm-btn {
-  padding: 8px 14px;
+  padding: var(--libre-space-8) var(--libre-space-14);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
@@ -61,29 +61,29 @@
 }
 
 .libre-confirm-btn--cancel:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.25);
-  outline-offset: 2px;
+  outline: var(--libre-bw-2) solid var(--libre-c-rgba-255-255-255-0-25);
+  outline-offset: var(--libre-size-2);
 }
 
 .libre-confirm-btn--primary {
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-confirm-btn--primary:hover {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 .libre-confirm-btn--danger {
-  background: #ef6f6f;
-  color: #ffffff;
-  border-color: #ef6f6f;
-  font-weight: 600;
+  background: var(--libre-c-ef6f6f);
+  color: var(--libre-c-white);
+  border-color: var(--libre-c-ef6f6f);
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-confirm-btn--danger:hover {
-  background: #e05a5a;
-  border-color: #e05a5a;
+  background: var(--libre-c-e05a5a);
+  border-color: var(--libre-c-e05a5a);
 }

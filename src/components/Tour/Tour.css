@@ -7,24 +7,24 @@
    for the highlighted UI underneath. */
 .libre-tour {
   position: fixed;
-  inset: 0;
-  z-index: 9000;
+  inset: var(--libre-space-0);
+  z-index: var(--libre-z-9000);
   pointer-events: none;
 }
 
 .libre-tour__backdrop {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   pointer-events: auto;
   cursor: pointer;
 }
 
 .libre-tour__backdrop-full {
   position: absolute;
-  inset: 0;
-  background: rgba(8, 8, 12, 0.62);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  inset: var(--libre-space-0);
+  background: var(--libre-c-rgba-8-8-12-0-62);
+  backdrop-filter: blur(var(--libre-blur-2));
+  -webkit-backdrop-filter: blur(var(--libre-blur-2));
 }
 
 /* Mask layer — the magic. Two stacked solid rectangles, the
@@ -34,10 +34,10 @@
    black overlay; inside, the underlying UI shows clean. */
 .libre-tour__backdrop-mask {
   position: absolute;
-  inset: 0;
-  background: rgba(8, 8, 12, 0.62);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  inset: var(--libre-space-0);
+  background: var(--libre-c-rgba-8-8-12-0-62);
+  backdrop-filter: blur(var(--libre-blur-2));
+  -webkit-backdrop-filter: blur(var(--libre-blur-2));
 }
 
 /* The spotlight border — a thin bone-colored ring around the
@@ -46,53 +46,49 @@
    just point at it). */
 .libre-tour__spotlight {
   position: fixed;
-  border-radius: 10px;
-  box-shadow:
-    0 0 0 2px rgba(212, 197, 161, 0.85),
-    0 0 28px 4px rgba(212, 197, 161, 0.18);
+  border-radius: var(--libre-radius-10);
+  box-shadow: var(--libre-shadow-14);
   pointer-events: none;
-  z-index: 9001;
+  z-index: var(--libre-z-9001);
   transition:
-    top 200ms ease,
-    left 200ms ease,
-    width 200ms ease,
-    height 200ms ease;
+    top var(--libre-dur-200) var(--libre-ease-ease),
+    left var(--libre-dur-200) var(--libre-ease-ease),
+    width var(--libre-dur-200) var(--libre-ease-ease),
+    height var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 /* ── Tooltip card ───────────────────────────────────────────── */
 
 .libre-tour__tooltip {
   position: fixed;
-  width: 360px;
-  max-width: calc(100vw - 32px);
+  width: var(--libre-size-360);
+  max-width: calc(100vw - var(--libre-size-32));
   background: linear-gradient(
     180deg,
-    rgba(20, 22, 30, 0.98) 0%,
-    rgba(14, 16, 22, 0.98) 100%
+    var(--libre-c-rgba-20-22-30-0-98) 0%,
+    var(--libre-c-rgba-14-16-22-0-98) 100%
   );
-  border: 1px solid rgba(212, 197, 161, 0.18);
-  border-radius: 14px;
-  box-shadow:
-    0 20px 60px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
-  color: var(--color-text-primary, #eaeaea);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-212-197-161-0-18);
+  border-radius: var(--libre-radius-14);
+  box-shadow: var(--libre-shadow-70);
+  color: var(--color-text-primary, var(--libre-c-eaeaea));
   font-family: inherit;
-  z-index: 9002;
+  z-index: var(--libre-z-9002);
   pointer-events: auto;
   overflow: hidden;
   /* Slide-in entrance — the tooltip remounts every step (key
      prop in JSX), so this animation re-runs on each transition
      for a deliberate "now look here" cue. */
-  animation: libre-tour-slide-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: libre-tour-slide-in var(--libre-dur-220) var(--libre-ease-cb-3) both;
 }
 
 @keyframes libre-tour-slide-in {
   from {
-    opacity: 0;
-    transform: translate3d(0, 6px, 0) scale(0.985);
+    opacity: var(--libre-opacity-0);
+    transform: translate3d(0, var(--libre-size-6), 0) scale(0.985);
   }
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translate3d(0, 0, 0) scale(1);
   }
 }
@@ -103,27 +99,27 @@
    `animation: none` for the centered case and using a softer
    fade instead. */
 .libre-tour__tooltip[style*="translate(-50%"] {
-  animation: libre-tour-fade-in 220ms ease both;
+  animation: libre-tour-fade-in var(--libre-dur-220) var(--libre-ease-ease) both;
 }
 @keyframes libre-tour-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: var(--libre-opacity-0); }
+  to { opacity: var(--libre-opacity-1); }
 }
 
 /* ── Progress bar (top edge of tooltip) ─────────────────────── */
 
 .libre-tour__progress-bar {
   position: relative;
-  height: 4px;
-  background: rgba(212, 197, 161, 0.08);
+  height: var(--libre-size-4);
+  background: var(--libre-c-rgba-212-197-161-0-08);
   overflow: hidden;
 }
 
 .libre-tour__progress-fill {
   position: absolute;
-  inset: 0 auto 0 0;
-  background: rgba(212, 197, 161, 0.45);
-  transition: width 280ms ease;
+  inset: var(--libre-space-0) auto var(--libre-space-0) var(--libre-space-0);
+  background: var(--libre-c-rgba-212-197-161-0-45);
+  transition: width var(--libre-dur-280) var(--libre-ease-ease);
 }
 
 /* The audio sub-progress overlays the step-progress fill. Same
@@ -132,12 +128,12 @@
    "where we are inside the current step's narration". */
 .libre-tour__progress-audio {
   position: absolute;
-  top: 1px;
-  bottom: 1px;
-  left: 0;
-  background: rgba(232, 110, 196, 0.85);
-  border-radius: 0 2px 2px 0;
-  transition: width 120ms linear;
+  top: var(--libre-space-1);
+  bottom: var(--libre-space-1);
+  left: var(--libre-space-0);
+  background: var(--libre-c-rgba-232-110-196-0-85);
+  border-radius: 0 var(--libre-radius-2) var(--libre-radius-2) 0;
+  transition: width var(--libre-dur-120) var(--libre-ease-linear);
 }
 
 /* ── Header ─────────────────────────────────────────────────── */
@@ -145,14 +141,14 @@
 .libre-tour__header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 18px 8px;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-16) var(--libre-space-18) var(--libre-space-8);
 }
 
 .libre-tour__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
+  border-radius: var(--libre-radius-9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,48 +161,48 @@
 }
 
 .libre-tour__step-label {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
-  color: rgba(234, 234, 234, 0.55);
+  color: var(--libre-c-rgba-234-234-234-0-55);
 }
 
 .libre-tour__title {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--color-text-primary, #eaeaea);
-  margin-top: 2px;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-600);
+  line-height: var(--libre-lh-1-25);
+  color: var(--color-text-primary, var(--libre-c-eaeaea));
+  margin-top: var(--libre-space-2);
 }
 
 .libre-tour__mute {
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  color: rgba(234, 234, 234, 0.55);
+  border: var(--libre-bw-1) solid transparent;
+  border-radius: var(--libre-radius-7);
+  color: var(--libre-c-rgba-234-234-234-0-55);
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-tour__mute:hover {
-  background: rgba(212, 197, 161, 0.08);
-  color: rgba(234, 234, 234, 0.85);
+  background: var(--libre-c-rgba-212-197-161-0-08);
+  color: var(--libre-c-rgba-234-234-234-0-85);
 }
 
 /* ── Body ───────────────────────────────────────────────────── */
 
 .libre-tour__body {
-  padding: 4px 18px 14px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: rgba(234, 234, 234, 0.82);
+  padding: var(--libre-space-4) var(--libre-space-18) var(--libre-space-14);
+  font-size: var(--libre-fs-13-5);
+  line-height: var(--libre-lh-1-55);
+  color: var(--libre-c-rgba-234-234-234-0-82);
 }
 
 /* ── Dot row (step indicator) ──────────────────────────────── */
@@ -214,24 +210,24 @@
 .libre-tour__dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
-  padding: 0 18px 12px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-0) var(--libre-space-18) var(--libre-space-12);
 }
 
 .libre-tour__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(212, 197, 161, 0.18);
-  transition: background 180ms ease, transform 180ms ease;
+  width: var(--libre-size-6);
+  height: var(--libre-size-6);
+  border-radius: var(--libre-radius-circle);
+  background: var(--libre-c-rgba-212-197-161-0-18);
+  transition: background var(--libre-dur-180) var(--libre-ease-ease), transform var(--libre-dur-180) var(--libre-ease-ease);
 }
 
 .libre-tour__dot--done {
-  background: rgba(212, 197, 161, 0.55);
+  background: var(--libre-c-rgba-212-197-161-0-55);
 }
 
 .libre-tour__dot--active {
-  background: rgba(212, 197, 161, 0.95);
+  background: var(--libre-c-rgba-212-197-161-0-95);
   transform: scale(1.4);
 }
 
@@ -241,59 +237,59 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px 14px;
-  border-top: 1px solid rgba(212, 197, 161, 0.08);
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-10) var(--libre-space-14) var(--libre-space-14);
+  border-top: var(--libre-bw-1) solid var(--libre-c-rgba-212-197-161-0-08);
 }
 
 .libre-tour__actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-tour__btn {
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 7px 14px;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-600);
+  padding: var(--libre-space-7) var(--libre-space-14);
+  border-radius: var(--libre-radius-8);
+  border: var(--libre-bw-1) solid transparent;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), color var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-tour__btn--ghost {
   background: transparent;
-  color: rgba(234, 234, 234, 0.7);
+  color: var(--libre-c-rgba-234-234-234-0-7);
 }
 
 .libre-tour__btn--ghost:hover {
-  background: rgba(212, 197, 161, 0.08);
-  color: rgba(234, 234, 234, 0.95);
+  background: var(--libre-c-rgba-212-197-161-0-08);
+  color: var(--libre-c-rgba-234-234-234-0-95);
 }
 
 .libre-tour__btn--icon {
-  padding: 7px 8px;
-  min-width: 32px;
+  padding: var(--libre-space-7) var(--libre-space-8);
+  min-width: var(--libre-size-32);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .libre-tour__btn--primary {
-  background: rgba(212, 197, 161, 0.92);
-  color: #1a1a1f;
+  background: var(--libre-c-rgba-212-197-161-0-92);
+  color: var(--libre-c-1a1a1f);
 }
 
 .libre-tour__btn--primary:hover {
-  background: rgba(228, 215, 184, 0.98);
+  background: var(--libre-c-rgba-228-215-184-0-98);
 }
 
 /* ── Mobile-narrow tweaks ──────────────────────────────────── */
 
 @media (max-width: 720px) {
   .libre-tour__tooltip {
-    width: calc(100vw - 32px);
+    width: calc(100vw - var(--libre-size-32));
   }
 }

@@ -1,5 +1,5 @@
 .m-lib {
-  padding: 18px 16px 8px;
+  padding: var(--libre-space-18) var(--libre-space-16) var(--libre-space-8);
 }
 
 /* Brand wordmark sitting at the very top of the Library page —
@@ -10,7 +10,7 @@
 .m-lib__brand {
   display: flex;
   justify-content: center;
-  padding: 4px 0 14px;
+  padding: var(--libre-space-4) var(--libre-space-0) var(--libre-space-14);
 }
 .m-lib__brand-img {
   /* Source asset is libreacademy.png (350×123 ~= 2.85:1 aspect).
@@ -29,7 +29,7 @@
      phones / tablets — staying at 350 px when the column is
      wider keeps the letterforms crisp. */
   width: 100%;
-  max-width: 350px;
+  max-width: var(--libre-size-350);
   height: auto;
   display: block;
   user-select: none;
@@ -43,29 +43,29 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--libre-space-12);
+  margin-bottom: var(--libre-space-14);
 }
 
 .m-lib__head-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
 }
 
 .m-lib__title {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 2px;
+  font-size: var(--libre-fs-28);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-neg-0-02em);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-2);
   color: var(--color-text-primary);
 }
 
 .m-lib__subtitle {
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   color: var(--color-text-tertiary);
-  margin: 0;
+  margin: var(--libre-space-0);
 }
 
 /* Right-edge action group: view toggle + search. Pinned to the
@@ -74,8 +74,8 @@
 .m-lib__head-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: var(--libre-space-8);
+  margin-top: var(--libre-space-6);
   flex-shrink: 0;
 }
 
@@ -83,22 +83,22 @@
    Mirrors the desktop toggle visually but sized for thumb taps. */
 .m-lib__viewtoggle {
   display: inline-flex;
-  background: var(--color-bg-elevated, #19191d);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
   border-radius: var(--libre-radius-md);
-  padding: 2px;
-  gap: 2px;
+  padding: var(--libre-space-2);
+  gap: var(--libre-space-2);
 }
 
 .m-lib__viewbtn {
-  width: 26px;
-  height: 26px;
+  width: var(--libre-size-26);
+  height: var(--libre-size-26);
   display: grid;
   place-items: center;
   background: transparent;
   border: 0;
   color: var(--color-text-tertiary);
-  border-radius: calc(var(--libre-radius-md) - 2px);
+  border-radius: calc(var(--libre-radius-md) - var(--libre-radius-2));
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
@@ -106,7 +106,7 @@
 }
 
 .m-lib__viewbtn--active {
-  background: var(--color-bg-secondary, #21262d);
+  background: var(--color-bg-secondary, var(--libre-c-21262d));
   color: var(--color-text-primary);
 }
 
@@ -120,10 +120,10 @@
 .m-lib__cardlist {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--libre-space-10);
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
 }
 
 .m-lib__cardcell {
@@ -137,13 +137,13 @@
    "Library" wordmark for visual weight. Tapping it opens the global
    MobileSearchPalette. */
 .m-lib__search {
-  width: 28px;
-  height: 28px;
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  background: var(--color-bg-elevated, #19191d);
-  border: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
   color: var(--color-text-secondary);
   border-radius: var(--libre-radius-md);
   cursor: pointer;
@@ -166,8 +166,8 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  gap: 8px;
-  padding: 4px 0 14px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-4) var(--libre-space-0) var(--libre-space-14);
   /* Chop the scrollbar so the row reads as a pill cluster, not a
      scroll affordance. */
   scrollbar-width: none;
@@ -181,13 +181,13 @@
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-7) var(--libre-space-12);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -206,14 +206,14 @@
 }
 
 .m-lib__pill-count {
-  font-size: 11px;
-  font-weight: 700;
-  opacity: 0.7;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  opacity: var(--libre-opacity-0-7);
   font-feature-settings: "tnum";
 }
 
 .m-lib__pill--active .m-lib__pill-count {
-  opacity: 0.85;
+  opacity: var(--libre-opacity-0-85);
 }
 
 /* Section wrapper — Books up top, Challenges below, mirroring the
@@ -221,35 +221,35 @@
    piles visually so the language-pill filter row above doesn't lead
    straight into a wall of mixed covers. */
 .m-lib__section {
-  margin-top: 18px;
+  margin-top: var(--libre-space-18);
 }
 .m-lib__section:first-of-type {
-  margin-top: 0;
+  margin-top: var(--libre-space-0);
 }
 
 .m-lib__section-head {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 0 2px;
+  gap: var(--libre-space-8);
+  margin-bottom: var(--libre-space-10);
+  padding: var(--libre-space-0) var(--libre-space-2);
 }
 
 .m-lib__section-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--color-text-primary, #f5f5f7);
-  margin: 0;
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  margin: var(--libre-space-0);
 }
 
 .m-lib__section-count {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-tertiary, #6b7180);
-  background: var(--color-bg-tertiary, #21262d);
-  padding: 1px 7px;
-  border-radius: 999px;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-tertiary, var(--libre-c-6b7180));
+  background: var(--color-bg-tertiary, var(--libre-c-21262d));
+  padding: var(--libre-space-1) var(--libre-space-7);
+  border-radius: var(--libre-radius-pill);
   font-variant-numeric: tabular-nums;
 }
 
@@ -260,10 +260,10 @@
 .m-lib__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  gap: var(--libre-space-14);
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
 }
 
 @media (max-width: 320px) {
@@ -279,9 +279,9 @@
      :nth-child handles the delay so we don't need a JS animation
      orchestrator. Keeping the rise small (4px) and the curve quick
      (0.32s) so scrolls don't fight the entrance. */
-  opacity: 0;
-  transform: translateY(4px);
-  animation: m-lib-cell-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: var(--libre-opacity-0);
+  transform: translateY(var(--libre-size-4));
+  animation: m-lib-cell-rise var(--libre-dur-320) var(--libre-ease-cb-6) forwards;
 }
 
 .m-lib__cell:nth-child(1)  { animation-delay: 0ms;   }
@@ -296,14 +296,14 @@
 
 @keyframes m-lib-cell-rise {
   to {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .m-lib__cell {
-    opacity: 1;
+    opacity: var(--libre-opacity-1);
     transform: none;
     animation: none;
   }
@@ -314,8 +314,8 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-  padding: 0;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-0);
   background: transparent;
   border: 0;
   color: var(--color-text-primary);
@@ -323,7 +323,7 @@
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.08s ease;
+  transition: transform var(--libre-dur-80) var(--libre-ease-ease);
 }
 
 .m-lib__tile:active {
@@ -338,11 +338,10 @@
   background-size: cover;
   background-position: center;
   border-radius: var(--libre-radius-md);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   overflow: hidden;
   /* Subtle inset shadow gives the cover that printed-page feel. */
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--libre-shadow-102);
 }
 
 /* Fallback cover when no artwork — large initial centred on a tinted
@@ -351,46 +350,46 @@
   display: grid;
   place-items: center;
   font-family: var(--font-mono);
-  font-size: 56px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.85);
-  background-color: #2a2a30;
+  font-size: var(--libre-fs-56);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-neg-0-02em);
+  color: var(--libre-c-rgba-255-255-255-0-85);
+  background-color: var(--libre-c-2a2a30);
 }
 
 .m-lib__cover--fallback[data-lang="javascript"],
 .m-lib__cover--fallback[data-lang="typescript"] {
-  background: linear-gradient(135deg, #1c1a3a 0%, #0d0d1d 100%);
+  background: linear-gradient(135deg, var(--libre-c-1c1a3a) 0%, var(--libre-c-0d0d1d) 100%);
 }
 
 .m-lib__cover--fallback[data-lang="python"] {
-  background: linear-gradient(135deg, #1a3a2c 0%, #0d1d12 100%);
+  background: linear-gradient(135deg, var(--libre-c-1a3a2c) 0%, var(--libre-c-0d1d12) 100%);
 }
 
 .m-lib__cover--fallback[data-lang="rust"] {
-  background: linear-gradient(135deg, #3a1a14 0%, #1d0a0a 100%);
+  background: linear-gradient(135deg, var(--libre-c-3a1a14) 0%, var(--libre-c-1d0a0a) 100%);
 }
 
 .m-lib__cover--fallback[data-lang="go"] {
-  background: linear-gradient(135deg, #14323a 0%, #0a151d 100%);
+  background: linear-gradient(135deg, var(--libre-c-14323a) 0%, var(--libre-c-0a151d) 100%);
 }
 
 .m-lib__cover--fallback[data-lang="solidity"],
 .m-lib__cover--fallback[data-lang="vyper"] {
-  background: linear-gradient(135deg, #2c1a3a 0%, #150a1d 100%);
+  background: linear-gradient(135deg, var(--libre-c-2c1a3a) 0%, var(--libre-c-150a1d) 100%);
 }
 
 .m-lib__tile-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 0 2px;
+  gap: var(--libre-space-2);
+  padding: var(--libre-space-0) var(--libre-space-2);
 }
 
 .m-lib__tile-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: var(--libre-fs-13-5);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1-25);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -399,28 +398,28 @@
 }
 
 .m-lib__tile-meta {
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-tertiary);
   font-feature-settings: "tnum";
 }
 
 .m-lib__tile-bar {
   display: block;
-  height: 2.5px;
-  background: var(--color-bg-inset, rgba(255, 255, 255, 0.08));
-  border-radius: 2px;
+  height: var(--libre-size-2-5);
+  background: var(--color-bg-inset, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-2);
   overflow: hidden;
-  margin: 0 2px;
+  margin: var(--libre-space-0) var(--libre-space-2);
   position: relative;
 }
 
 .m-lib__tile-bar::after {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: var(--libre-space-0);
+  top: var(--libre-space-0);
+  bottom: var(--libre-space-0);
   width: var(--m-lib-pct, 0%);
   background: var(--gg-fill-white);
-  transition: width 0.3s ease;
+  transition: width var(--libre-dur-300) var(--libre-ease-ease);
 }

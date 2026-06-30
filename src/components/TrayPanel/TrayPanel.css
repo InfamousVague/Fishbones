@@ -23,8 +23,8 @@
 :root,
 body,
 #root {
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   height: 100%;
   overflow: hidden;
   background: transparent;
@@ -35,12 +35,12 @@ body,
   /* Defaults — overridden per mode below. Chat mode is the
      fallback when the `data-tray-mode` attribute is missing
      (initial render before sessions resolve). */
-  --tray-accent: var(--color-accent, #5b6bd6);
+  --tray-accent: var(--color-accent, var(--libre-c-5b6bd6));
   --tray-accent-soft: color-mix(in srgb, var(--tray-accent) 16%, transparent);
-  --tray-accent-fg: var(--color-accent-fg, #ffffff);
-  --tray-ok: #46d49a;
-  --tray-warn: #f3b14a;
-  --tray-bad: #ef5a6f;
+  --tray-accent-fg: var(--color-accent-fg, var(--libre-c-white));
+  --tray-ok: var(--libre-c-46d49a);
+  --tray-warn: var(--libre-c-f3b14a);
+  --tray-bad: var(--libre-c-ef5a6f);
 
   position: relative;
   display: flex;
@@ -51,8 +51,8 @@ body,
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   font-family: inherit;
-  border-radius: 14px;
-  border: 1px solid var(--color-border-default);
+  border-radius: var(--libre-radius-14);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   overflow: hidden;
 }
 
@@ -72,19 +72,19 @@ body,
      for perceptual smoothness so the result doesn't drift
      into an unexpected hue. */
 .libre-tray[data-tray-mode="chat"] {
-  --tray-accent: var(--color-accent, #5b6bd6);
+  --tray-accent: var(--color-accent, var(--libre-c-5b6bd6));
   --tray-accent-soft: color-mix(in srgb, var(--tray-accent) 16%, transparent);
-  --tray-accent-fg: var(--color-accent-fg, #ffffff);
+  --tray-accent-fg: var(--color-accent-fg, var(--libre-c-white));
 }
 
 .libre-tray[data-tray-mode="agent"] {
   --tray-accent: color-mix(
     in oklab,
-    var(--color-accent, #5b6bd6) 65%,
-    var(--color-text-secondary, #a4a4ad) 35%
+    var(--color-accent, var(--libre-c-5b6bd6)) 65%,
+    var(--color-text-secondary, var(--libre-c-a4a4ad)) 35%
   );
   --tray-accent-soft: color-mix(in srgb, var(--tray-accent) 18%, transparent);
-  --tray-accent-fg: var(--color-accent-fg, #ffffff);
+  --tray-accent-fg: var(--color-accent-fg, var(--libre-c-white));
 }
 
 /* Drag region — 10px-tall invisible strip at the top of the
@@ -96,13 +96,13 @@ body,
 .libre-tray::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 10px;
+  top: var(--libre-space-0);
+  left: var(--libre-space-0);
+  right: var(--libre-space-0);
+  height: var(--libre-size-10);
   -webkit-app-region: drag;
   app-region: drag;
-  z-index: 100;
+  z-index: var(--libre-z-100);
   pointer-events: none;
 }
 
@@ -118,7 +118,7 @@ body,
    like it does in the main window. */
 .libre-tray .libre-ai-panel {
   position: relative;
-  inset: 0;
+  inset: var(--libre-space-0);
   top: auto;
   bottom: auto;
   left: auto;
@@ -130,7 +130,7 @@ body,
   border-radius: 0;
   box-shadow: none;
   transform: none !important;
-  opacity: 1 !important;
+  opacity: var(--libre-opacity-1) !important;
   pointer-events: auto !important;
   transition: none !important;
 }
@@ -145,11 +145,11 @@ body,
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 10px 10px 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-10) var(--libre-space-10) var(--libre-space-12);
   /* Hairline divider in the glass-border token so it matches the
      host card's edge instead of the heavier opaque default. */
-  border-bottom: 1px solid var(--color-glass-border);
+  border-bottom: var(--libre-bw-1) solid var(--color-glass-border);
   /* Drag region for the entire header strip — controls
      individually opt out below. */
   -webkit-app-region: drag;
@@ -167,10 +167,10 @@ body,
 .libre-tray-header-mode {
   display: inline-flex;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
-  padding: 2px;
-  gap: 0;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
+  padding: var(--libre-space-2);
+  gap: var(--libre-space-0);
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
@@ -180,17 +180,17 @@ body,
   app-region: no-drag;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: var(--libre-space-5);
+  padding: var(--libre-space-4) var(--libre-space-10);
   background: transparent;
   color: var(--color-text-tertiary);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--libre-radius-pill);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease;
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease);
 }
 
 .libre-tray-header-mode-btn:hover {
@@ -203,9 +203,7 @@ body,
   /* Subtle inner highlight so the pill reads as "glowing"
      rather than flat — picks up the interactive feel of the
      brand sliver above. */
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: var(--libre-shadow-60);
 }
 
 .libre-tray-header-spacer {
@@ -221,35 +219,35 @@ body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  border-radius: var(--libre-radius-pill);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   cursor: default;
-  padding: 0;
+  padding: var(--libre-space-0);
 }
 
 .libre-tray-header-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+  width: var(--libre-size-8);
+  height: var(--libre-size-8);
+  border-radius: var(--libre-radius-pill);
   display: inline-block;
 }
 
 .libre-tray-header-status--ok .libre-tray-header-status-dot {
   background: var(--tray-ok);
-  box-shadow: 0 0 6px var(--tray-ok);
+  box-shadow: var(--libre-shadow-36);
 }
 
 .libre-tray-header-status--warn .libre-tray-header-status-dot {
   background: var(--tray-warn);
-  box-shadow: 0 0 6px var(--tray-warn);
+  box-shadow: var(--libre-shadow-37);
 }
 
 .libre-tray-header-status--bad .libre-tray-header-status-dot {
   background: var(--tray-bad);
-  box-shadow: 0 0 6px var(--tray-bad);
+  box-shadow: var(--libre-shadow-35);
 }
 
 /* Sessions menu — clickable trigger that opens a popover-anchored
@@ -263,18 +261,18 @@ body,
 .libre-tray-header-sessions-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 22px;
-  padding: 0 8px;
+  gap: var(--libre-space-4);
+  height: var(--libre-size-22);
+  padding: var(--libre-space-0) var(--libre-space-8);
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
   font: inherit;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease;
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease);
 }
 
 .libre-tray-header-sessions-trigger:hover {
@@ -288,41 +286,41 @@ body,
 
 .libre-tray-header-sessions-menu {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  width: 260px;
-  max-height: 320px;
+  top: calc(100% + var(--libre-space-6));
+  right: var(--libre-space-0);
+  width: var(--libre-size-260);
+  max-height: var(--libre-size-320);
   overflow-y: auto;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-  z-index: 1100;
-  padding: 6px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+  box-shadow: var(--libre-shadow-40);
+  z-index: var(--libre-z-1100);
+  padding: var(--libre-space-6);
 }
 
 .libre-tray-header-sessions-menu-title {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: var(--libre-ls-0-6);
   color: var(--color-text-tertiary);
-  padding: 4px 6px 6px;
+  padding: var(--libre-space-4) var(--libre-space-6) var(--libre-space-6);
 }
 
 .libre-tray-header-sessions-menu-empty {
-  padding: 12px 6px;
+  padding: var(--libre-space-12) var(--libre-space-6);
   color: var(--color-text-tertiary);
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
 }
 
 .libre-tray-header-sessions-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--libre-space-1);
 }
 
 .libre-tray-header-sessions-row {
@@ -335,14 +333,14 @@ body,
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-8);
   background: transparent;
   color: var(--color-text-primary);
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--libre-radius-6);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   text-align: left;
   cursor: pointer;
   min-width: 0;
@@ -372,28 +370,28 @@ body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  border-radius: var(--libre-radius-6);
   flex-shrink: 0;
-  color: #fff;
+  color: var(--libre-c-white);
 }
 
 /* Session-row mode badges. Same two-tone-from-one-accent system
    the active pill uses, so a row's badge color matches the
    color the header would adopt if you picked that row. */
 .libre-tray-header-sessions-mode--chat {
-  background: var(--color-accent, #5b6bd6);
-  color: var(--color-accent-fg, #fff);
+  background: var(--color-accent, var(--libre-c-5b6bd6));
+  color: var(--color-accent-fg, var(--libre-c-white));
 }
 
 .libre-tray-header-sessions-mode--agent {
   background: color-mix(
     in oklab,
-    var(--color-accent, #5b6bd6) 65%,
-    var(--color-text-secondary, #a4a4ad) 35%
+    var(--color-accent, var(--libre-c-5b6bd6)) 65%,
+    var(--color-text-secondary, var(--libre-c-a4a4ad)) 35%
   );
-  color: var(--color-accent-fg, #fff);
+  color: var(--color-accent-fg, var(--libre-c-white));
 }
 
 .libre-tray-header-sessions-name {
@@ -401,11 +399,11 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-tray-header-sessions-time {
-  font-size: 10px;
+  font-size: var(--libre-fs-10);
   color: var(--color-text-tertiary);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
@@ -415,20 +413,20 @@ body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   background: transparent;
   color: var(--color-text-tertiary);
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--libre-radius-6);
   cursor: pointer;
-  margin-right: 2px;
-  opacity: 0.5;
-  transition: opacity 140ms ease, color 140ms ease, background 140ms ease;
+  margin-right: var(--libre-space-2);
+  opacity: var(--libre-opacity-0-5);
+  transition: opacity var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease), background var(--libre-dur-140) var(--libre-ease-ease);
 }
 
 .libre-tray-header-sessions-row:hover .libre-tray-header-sessions-row-delete {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
 }
 
 .libre-tray-header-sessions-row-delete:hover {
@@ -445,22 +443,20 @@ body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   background: var(--tray-accent);
   color: var(--tray-accent-fg);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--libre-radius-pill);
   cursor: pointer;
-  padding: 0;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  transition: transform 120ms ease, filter 120ms ease, background 200ms ease;
+  padding: var(--libre-space-0);
+  box-shadow: var(--libre-shadow-61);
+  transition: transform var(--libre-dur-120) var(--libre-ease-ease), filter var(--libre-dur-120) var(--libre-ease-ease), background var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-tray-header-new:hover {
-  transform: translateY(-1px);
+  transform: translateY(var(--libre-size-neg-1));
   filter: brightness(1.08);
 }
 
@@ -477,15 +473,15 @@ body,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   background: var(--color-bg-secondary);
   color: var(--color-text-tertiary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
   cursor: pointer;
-  padding: 0;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  padding: var(--libre-space-0);
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease), border-color var(--libre-dur-140) var(--libre-ease-ease);
 }
 
 .libre-tray-header-close:hover {
@@ -504,10 +500,10 @@ body,
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-7) var(--libre-space-12);
   background: transparent;
-  border-bottom: 1px solid var(--color-glass-border);
+  border-bottom: var(--libre-bw-1) solid var(--color-glass-border);
   -webkit-app-region: no-drag;
   app-region: no-drag;
   /* MUST out-stack the panel BODY. The subheader and the
@@ -520,7 +516,7 @@ body,
      Anything ≤ 91 makes the dropdown render BEHIND the agent/chat
      content. Sit comfortably above it (and below the header's
      sessions popover at 1100). */
-  z-index: 200;
+  z-index: var(--libre-z-200);
 }
 
 .libre-tray-dd {
@@ -533,18 +529,18 @@ body,
 .libre-tray-dd-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  max-width: 200px;
-  padding: 4px 8px 4px 7px;
+  gap: var(--libre-space-5);
+  max-width: var(--libre-size-200);
+  padding: var(--libre-space-4) var(--libre-space-8) var(--libre-space-4) var(--libre-space-7);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-8);
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  transition: background var(--libre-dur-140) var(--libre-ease-ease), color var(--libre-dur-140) var(--libre-ease-ease), border-color var(--libre-dur-140) var(--libre-ease-ease);
 }
 .libre-tray-dd-trigger:hover,
 .libre-tray-dd-trigger.is-open {
@@ -569,7 +565,7 @@ body,
   display: inline-flex;
   color: var(--color-text-tertiary);
   flex-shrink: 0;
-  margin-left: 1px;
+  margin-left: var(--libre-space-1);
 }
 
 /* Popover panel — frosted card dropped below the trigger. Uses the
@@ -577,24 +573,22 @@ body,
    a blur + shadow so it reads as floating above the content. */
 .libre-tray-dd-panel {
   position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 20;
-  border-radius: 12px;
-  background: var(--color-glass-bg-strong, rgba(14, 15, 20, 0.92));
-  border: 1px solid var(--color-glass-border, rgba(255, 255, 255, 0.1));
-  box-shadow:
-    0 12px 34px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  backdrop-filter: blur(28px) saturate(160%);
+  top: calc(100% + var(--libre-space-6));
+  left: var(--libre-space-0);
+  z-index: var(--libre-z-20);
+  border-radius: var(--libre-radius-12);
+  background: var(--color-glass-bg-strong, var(--libre-c-rgba-14-15-20-0-92));
+  border: var(--libre-bw-1) solid var(--color-glass-border, var(--libre-c-rgba-255-255-255-0-1));
+  box-shadow: var(--libre-shadow-42);
+  -webkit-backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
   overflow: hidden;
-  animation: libre-tray-dd-in 120ms ease;
+  animation: libre-tray-dd-in var(--libre-dur-120) var(--libre-ease-ease);
 }
 @keyframes libre-tray-dd-in {
   from {
-    opacity: 0;
-    transform: translateY(-4px);
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-neg-4));
   }
 }
 
@@ -602,43 +596,43 @@ body,
    and strip the picker's settings-sheet chrome (it was styled to sit
    atop the sheet with a bottom divider + outer padding). */
 .libre-tray-dd-panel--model {
-  width: 320px;
-  max-width: calc(100vw - 36px);
-  max-height: min(440px, 60vh);
+  width: var(--libre-size-320);
+  max-width: calc(100vw - var(--libre-size-36));
+  max-height: min(var(--libre-size-440), 60vh);
   overflow-y: auto;
 }
 .libre-tray-dd-panel--model .libre-model-picker {
-  padding: 6px 12px 12px;
+  padding: var(--libre-space-6) var(--libre-space-12) var(--libre-space-12);
   border-bottom: none;
 }
 
 /* Effort panel — a short radio list of the four rungs. */
 .libre-tray-dd-panel--effort {
-  width: 250px;
-  padding: 5px;
+  width: var(--libre-size-250);
+  padding: var(--libre-space-5);
 }
 .libre-tray-effort-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 .libre-tray-effort-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   width: 100%;
   text-align: left;
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: var(--libre-bw-1) solid transparent;
+  border-radius: var(--libre-radius-8);
   color: var(--color-text-primary);
   font: inherit;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre-tray-effort-item:hover {
   background: color-mix(in srgb, var(--color-text-primary) 7%, transparent);
@@ -650,22 +644,22 @@ body,
 .libre-tray-effort-name {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  font-weight: 650;
+  gap: var(--libre-space-6);
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-650);
 }
 .libre-tray-effort-max {
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: var(--tray-accent-fg, #fff);
+  font-size: var(--libre-fs-8-5);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-0-06em);
+  color: var(--tray-accent-fg, var(--libre-c-white));
   background: var(--tray-accent);
-  border-radius: 4px;
-  padding: 1px 4px;
+  border-radius: var(--libre-radius-4);
+  padding: var(--libre-space-1) var(--libre-space-4);
 }
 .libre-tray-effort-blurb {
-  font-size: 10.5px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-10-5);
+  line-height: var(--libre-lh-1-4);
   color: var(--color-text-secondary);
 }
 
@@ -682,36 +676,36 @@ body,
     color-mix(in srgb, var(--tray-accent) 8%, var(--color-bg-secondary)),
     var(--color-bg-secondary)
   );
-  border: 1px solid color-mix(
+  border: var(--libre-bw-1) solid color-mix(
     in srgb,
     var(--tray-accent) 22%,
     var(--color-border-default)
   );
-  transition: background 200ms ease, border-color 200ms ease;
+  transition: background var(--libre-dur-200) var(--libre-ease-ease), border-color var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-tray .libre-ai-panel-empty-chip {
   position: relative;
-  padding-left: 18px;
-  transition: transform 120ms ease, border-color 120ms ease;
+  padding-left: var(--libre-space-18);
+  transition: transform var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-tray .libre-ai-panel-empty-chip::before {
   content: "";
   position: absolute;
-  left: 8px;
+  left: var(--libre-space-8);
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
+  width: var(--libre-size-4);
   height: 60%;
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
   background: var(--tray-accent);
-  opacity: 0.8;
-  transition: background 200ms ease;
+  opacity: var(--libre-opacity-0-8);
+  transition: background var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-tray .libre-ai-panel-empty-chip:hover {
-  transform: translateX(2px);
+  transform: translateX(var(--libre-size-2));
   border-color: color-mix(
     in srgb,
     var(--tray-accent) 45%,
@@ -727,10 +721,8 @@ body,
   background: var(--tray-accent);
   border-color: transparent;
   color: var(--tray-accent-fg);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transition: background 200ms ease, filter 120ms ease;
+  box-shadow: var(--libre-shadow-58);
+  transition: background var(--libre-dur-200) var(--libre-ease-ease), filter var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-tray .libre-ai-panel-send:not(:disabled):hover {
@@ -746,8 +738,7 @@ body,
     var(--tray-accent) 60%,
     var(--color-border-default)
   );
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--tray-accent) 25%, transparent);
+  box-shadow: var(--libre-shadow-25);
 }
 
 /* ── In-app host (`.libre-ai-host`) ──────────────────────────────
@@ -766,12 +757,12 @@ body,
 .libre-ai-host {
   /* Inherit the same defaults `.libre-tray` declares. The mode
      attribute overrides below pick the right per-mode accent. */
-  --tray-accent: var(--color-accent, #5b6bd6);
+  --tray-accent: var(--color-accent, var(--libre-c-5b6bd6));
   --tray-accent-soft: color-mix(in srgb, var(--tray-accent) 16%, transparent);
-  --tray-accent-fg: var(--color-accent-fg, #ffffff);
-  --tray-ok: #46d49a;
-  --tray-warn: #f3b14a;
-  --tray-bad: #ef5a6f;
+  --tray-accent-fg: var(--color-accent-fg, var(--libre-c-white));
+  --tray-ok: var(--libre-c-46d49a);
+  --tray-warn: var(--libre-c-f3b14a);
+  --tray-bad: var(--libre-c-ef5a6f);
   /* Glass remap — SCOPED to the AI panel. The base bg tokens are
      fully OPAQUE in dark themes (#050507 / #101117 / #181a21), so
      every inner surface that paints with them (context bar, input
@@ -810,18 +801,18 @@ body,
      Drives both the `bottom` anchor here AND the `top` + `height`
      calculations below (they subtract the same 80px so the panel
      fits in the remaining viewport above the orb). */
-  bottom: 80px;
-  right: 20px;
-  top: max(14px, calc(100vh - 80px - min(720px, 88vh)));
-  height: min(720px, calc(100vh - 80px - 14px));
+  bottom: var(--libre-space-80);
+  right: var(--libre-space-20);
+  top: max(var(--libre-space-14), calc(100vh - var(--libre-space-80) - min(var(--libre-space-720), 88vh)));
+  height: min(var(--libre-size-720), calc(100vh - var(--libre-size-80) - var(--libre-size-14)));
   /* Width: 485px — 15% smaller than the prior 570px. Keeps the
      HUD row readable (confidence + tokens + duration + Stop)
      while leaving more of the editor + project tree visible
      underneath. Scales down further on narrow viewports via the
      @media stack below. */
-  width: 485px;
-  max-width: calc(100vw - 28px);
-  z-index: 91;
+  width: var(--libre-size-485);
+  max-width: calc(100vw - var(--libre-size-28));
+  z-index: var(--libre-z-91);
   /* Frosted-glass surface — same material as the navigation rail
      + sidebar (theme/themes.css tokens, blur(28px) saturate(160%))
      so the floating AI card reads as part of the same chrome
@@ -832,11 +823,11 @@ body,
      glow through. The blur is what makes it "glass"; the slightly
      stronger fill is the content-density adjustment. */
   background: var(--color-glass-bg-strong);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid var(--color-glass-border);
+  -webkit-backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  border: var(--libre-bw-1) solid var(--color-glass-border);
   border-radius: var(--libre-radius-lg);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  box-shadow: var(--libre-shadow-47);
   overflow: hidden;
 }
 
@@ -847,13 +838,13 @@ body,
    project tree beneath. */
 @media (max-width: 1024px) {
   .libre-ai-host--floating {
-    width: calc(100vw - 60px);
-    max-width: 485px;
+    width: calc(100vw - var(--libre-size-60));
+    max-width: var(--libre-size-485);
   }
 }
 @media (max-width: 640px) {
   .libre-ai-host--floating {
-    width: calc(100vw - 28px);
+    width: calc(100vw - var(--libre-size-28));
   }
 }
 
@@ -861,19 +852,19 @@ body,
    as the menu-bar tray above. Single source of truth for the
    color logic; both surfaces look identical for a given mode. */
 .libre-ai-host[data-tray-mode="chat"] {
-  --tray-accent: var(--color-accent, #5b6bd6);
+  --tray-accent: var(--color-accent, var(--libre-c-5b6bd6));
   --tray-accent-soft: color-mix(in srgb, var(--tray-accent) 16%, transparent);
-  --tray-accent-fg: var(--color-accent-fg, #ffffff);
+  --tray-accent-fg: var(--color-accent-fg, var(--libre-c-white));
 }
 
 .libre-ai-host[data-tray-mode="agent"] {
   --tray-accent: color-mix(
     in oklab,
-    var(--color-accent, #5b6bd6) 65%,
-    var(--color-text-secondary, #a4a4ad) 35%
+    var(--color-accent, var(--libre-c-5b6bd6)) 65%,
+    var(--color-text-secondary, var(--libre-c-a4a4ad)) 35%
   );
   --tray-accent-soft: color-mix(in srgb, var(--tray-accent) 18%, transparent);
-  --tray-accent-fg: var(--color-accent-fg, #ffffff);
+  --tray-accent-fg: var(--color-accent-fg, var(--libre-c-white));
 }
 
 /* In-app panel mirrors the same per-element overrides the tray
@@ -891,7 +882,7 @@ body,
      panel's own floating chrome since the host owns the
      surrounding card. */
   position: relative;
-  inset: 0;
+  inset: var(--libre-space-0);
   top: auto;
   bottom: auto;
   left: auto;
@@ -910,7 +901,7 @@ body,
   border-radius: 0;
   box-shadow: none;
   transform: none !important;
-  opacity: 1 !important;
+  opacity: var(--libre-opacity-1) !important;
   pointer-events: auto !important;
   transition: none !important;
 }
@@ -924,36 +915,36 @@ body,
     color-mix(in srgb, var(--tray-accent) 8%, var(--color-bg-secondary)),
     var(--color-bg-secondary)
   );
-  border: 1px solid color-mix(
+  border: var(--libre-bw-1) solid color-mix(
     in srgb,
     var(--tray-accent) 22%,
     var(--color-border-default)
   );
-  transition: background 200ms ease, border-color 200ms ease;
+  transition: background var(--libre-dur-200) var(--libre-ease-ease), border-color var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-ai-host .libre-ai-panel-empty-chip {
   position: relative;
-  padding-left: 18px;
-  transition: transform 120ms ease, border-color 120ms ease;
+  padding-left: var(--libre-space-18);
+  transition: transform var(--libre-dur-120) var(--libre-ease-ease), border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-ai-host .libre-ai-panel-empty-chip::before {
   content: "";
   position: absolute;
-  left: 8px;
+  left: var(--libre-space-8);
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
+  width: var(--libre-size-4);
   height: 60%;
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
   background: var(--tray-accent);
-  opacity: 0.8;
-  transition: background 200ms ease;
+  opacity: var(--libre-opacity-0-8);
+  transition: background var(--libre-dur-200) var(--libre-ease-ease);
 }
 
 .libre-ai-host .libre-ai-panel-empty-chip:hover {
-  transform: translateX(2px);
+  transform: translateX(var(--libre-size-2));
   border-color: color-mix(
     in srgb,
     var(--tray-accent) 45%,
@@ -965,10 +956,8 @@ body,
   background: var(--tray-accent);
   border-color: transparent;
   color: var(--tray-accent-fg);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transition: background 200ms ease, filter 120ms ease;
+  box-shadow: var(--libre-shadow-58);
+  transition: background var(--libre-dur-200) var(--libre-ease-ease), filter var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-ai-host .libre-ai-panel-send:not(:disabled):hover {
@@ -981,6 +970,5 @@ body,
     var(--tray-accent) 60%,
     var(--color-border-default)
   );
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--tray-accent) 25%, transparent);
+  box-shadow: var(--libre-shadow-25);
 }

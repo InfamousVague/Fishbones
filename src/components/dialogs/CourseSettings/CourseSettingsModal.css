@@ -1,10 +1,10 @@
 /* Backdrop chrome lives in `Shared/ModalBackdrop.css`. */
 
 .libre-coursesettings-panel {
-  width: min(540px, 92vw);
+  width: min(var(--libre-size-540), 92vw);
   max-height: 85vh;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
   display: flex;
   flex-direction: column;
@@ -15,29 +15,29 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border-default);
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-16) var(--libre-space-20);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-coursesettings-titleblock {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
 }
 
 .libre-coursesettings-title {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-coursesettings-course {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -45,7 +45,7 @@
 }
 
 .libre-coursesettings-author {
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-tertiary);
 }
 
@@ -53,10 +53,10 @@
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  font-size: 22px;
-  line-height: 1;
+  font-size: var(--libre-fs-22);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
-  padding: 2px 8px;
+  padding: var(--libre-space-2) var(--libre-space-8);
 }
 
 .libre-coursesettings-close:hover {
@@ -67,15 +67,15 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 20px 16px;
+  padding: var(--libre-space-8) var(--libre-space-20) var(--libre-space-16);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 .libre-coursesettings-body section {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--libre-space-12) var(--libre-space-0);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-coursesettings-body section:last-child {
@@ -83,51 +83,51 @@
 }
 
 .libre-coursesettings-section {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  margin-bottom: 10px;
+  margin-bottom: var(--libre-space-10);
 }
 
 .libre-coursesettings-section--danger {
-  color: #f1b5b5;
+  color: var(--libre-c-f1b5b5);
 }
 
 .libre-coursesettings-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-coursesettings-stats > div {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   text-align: center;
 }
 
 .libre-coursesettings-stat-value {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--libre-fs-17);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-coursesettings-stat-label {
-  font-size: 10px;
+  font-size: var(--libre-fs-10);
   color: var(--color-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-top: 2px;
+  letter-spacing: var(--libre-ls-0-4);
+  margin-top: var(--libre-space-2);
 }
 
 .libre-coursesettings-row {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--libre-space-12);
   justify-content: space-between;
 }
 
@@ -137,17 +137,17 @@
 }
 
 .libre-coursesettings-row-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
-  margin-bottom: 2px;
+  margin-bottom: var(--libre-space-2);
 }
 
 .libre-coursesettings-row-hint {
-  font-size: 11.5px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-secondary);
-  max-width: 360px;
+  max-width: var(--libre-size-360);
 }
 
 /* Inline error beneath a row-hint — used by the "Fetch cover artwork"
@@ -155,27 +155,27 @@
    the modal. Amber-outline rather than red so it reads as "heads up"
    not "critical failure". */
 .libre-coursesettings-row-error {
-  margin-top: 6px;
-  padding: 6px 8px;
-  background: rgba(217, 168, 0, 0.08);
-  border: 1px solid rgba(217, 168, 0, 0.35);
-  border-radius: 5px;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #e8c46b;
-  max-width: 360px;
+  margin-top: var(--libre-space-6);
+  padding: var(--libre-space-6) var(--libre-space-8);
+  background: var(--libre-c-rgba-217-168-0-0-08);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-217-168-0-0-35);
+  border-radius: var(--libre-radius-5);
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-45);
+  color: var(--libre-c-e8c46b);
+  max-width: var(--libre-size-360);
 }
 
 .libre-coursesettings-btn {
   flex-shrink: 0;
-  padding: 7px 14px;
+  padding: var(--libre-space-7) var(--libre-space-14);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
   white-space: nowrap;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
@@ -187,26 +187,26 @@
 .libre-coursesettings-lang-controls {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
   flex-shrink: 0;
   align-items: stretch;
-  min-width: 160px;
+  min-width: var(--libre-size-160);
 }
 
 .libre-coursesettings-lang-select {
-  padding: 7px 10px;
+  padding: var(--libre-space-7) var(--libre-space-10);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   cursor: pointer;
   transition: border-color var(--libre-motion-snappy);
 }
 
 .libre-coursesettings-lang-select:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 /* Single-ring focus — same idiom as `.libre-coursesettings-meta-input`
@@ -218,17 +218,17 @@
 }
 
 .libre-coursesettings-lang-select:disabled {
-  opacity: 0.6;
+  opacity: var(--libre-opacity-0-6);
   cursor: not-allowed;
 }
 
 .libre-coursesettings-btn:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-coursesettings-btn:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
@@ -236,23 +236,23 @@
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-coursesettings-btn--primary:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
   background: var(--gg-fill-white);
 }
 
 .libre-coursesettings-btn--danger {
-  color: #ef6f6f;
-  border-color: rgba(239, 111, 111, 0.4);
+  color: var(--libre-c-ef6f6f);
+  border-color: var(--libre-c-rgba-239-111-111-0-4);
 }
 
 .libre-coursesettings-btn--danger:hover:not(:disabled) {
-  background: rgba(239, 111, 111, 0.12);
-  color: #ef6f6f;
-  border-color: rgba(239, 111, 111, 0.7);
+  background: var(--libre-c-rgba-239-111-111-0-12);
+  color: var(--libre-c-ef6f6f);
+  border-color: var(--libre-c-rgba-239-111-111-0-7);
 }
 
 /* ────────── Course details (title / author / release status) ──────
@@ -264,13 +264,13 @@
 .libre-coursesettings-row--column {
   flex-direction: column;
   align-items: stretch;
-  gap: 12px;
+  gap: var(--libre-space-12);
 }
 
 .libre-coursesettings-meta-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 @media (max-width: 540px) {
@@ -289,37 +289,37 @@
 .libre-coursesettings-meta-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
   min-width: 0;
 }
 
 .libre-coursesettings-meta-field-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-coursesettings-meta-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   color: var(--color-text-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   /* Match input + select chrome so they read as siblings. The select
      gets a visible disclosure caret on macOS by default. */
   -webkit-appearance: none;
-  appearance: none;
-  background-image:
-    /* Caret only on the select — `select.libre-...` would be
+  appearance: none;/* Caret only on the select — `select.libre-...` would be
        cleaner but we render via <select className="..."> sharing the
        class with <input>. Add the caret unconditionally; on plain
        inputs the bg-image still applies but is hidden behind the
        value text. */
+  background-image:
+    
     none;
 }
 
@@ -335,11 +335,11 @@ select.libre-coursesettings-meta-input {
     var(--color-text-tertiary) 50%
   );
   background-position:
-    calc(100% - 18px) center,
-    calc(100% - 12px) center;
-  background-size: 6px 6px, 6px 6px;
+    calc(100% - var(--libre-size-18)) center,
+    calc(100% - var(--libre-size-12)) center;
+  background-size: var(--libre-size-6) var(--libre-size-6), var(--libre-size-6) var(--libre-size-6);
   background-repeat: no-repeat;
-  padding-right: 28px;
+  padding-right: var(--libre-space-28);
   cursor: pointer;
 }
 
@@ -355,7 +355,7 @@ select.libre-coursesettings-meta-input {
 }
 
 .libre-coursesettings-meta-input:disabled {
-  opacity: 0.55;
+  opacity: var(--libre-opacity-0-55);
   cursor: not-allowed;
 }
 
@@ -363,18 +363,18 @@ select.libre-coursesettings-meta-input {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-coursesettings-meta-saved {
-  font-size: 12px;
-  font-weight: 600;
-  color: #4dd699;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-4dd699);
   /* Quiet fade-in so the indicator doesn't jump. */
-  animation: libre-meta-saved-in 0.2s ease-out both;
+  animation: libre-meta-saved-in var(--libre-dur-200) var(--libre-ease-ease-out) both;
 }
 
 @keyframes libre-meta-saved-in {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: var(--libre-opacity-0); transform: translateY(var(--libre-size-2)); }
+  to { opacity: var(--libre-opacity-1); transform: translateY(0); }
 }

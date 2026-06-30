@@ -21,8 +21,8 @@
      + section rules (each carries `max-width: 1200px; margin:
      0 auto` so the scroll happens on the full-width pane
      while the cards stay centred). */
-  padding: 48px 32px 80px;
-  color: var(--color-text-primary, #f5f5f7);
+  padding: var(--libre-space-48) var(--libre-space-32) var(--libre-space-80);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
 }
 
 /* Children get the max-width + auto-margin treatment that used
@@ -34,71 +34,71 @@
 .libre-certs-page__section,
 .libre-certs-page__empty,
 .libre-certs-page__loading {
-  max-width: 1200px;
+  max-width: var(--libre-size-1200);
   margin-left: auto;
   margin-right: auto;
 }
 
 .libre-certs-page__header {
-  margin-bottom: 36px;
+  margin-bottom: var(--libre-space-36);
 }
 
 .libre-certs-page__title {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 10px;
+  font-size: var(--libre-fs-32);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-10);
 }
 
 .libre-certs-page__subtitle {
-  font-size: 15px;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.72));
-  max-width: 640px;
-  line-height: 1.5;
-  margin: 0;
+  font-size: var(--libre-fs-15);
+  color: var(--color-text-secondary, var(--libre-c-rgba-245-245-247-0-72));
+  max-width: var(--libre-size-640);
+  line-height: var(--libre-lh-1-5);
+  margin: var(--libre-space-0);
 }
 
 .libre-certs-page__loading {
-  padding: 40px 0;
-  color: var(--color-text-tertiary, rgba(245, 245, 247, 0.5));
-  font-size: 14px;
+  padding: var(--libre-space-40) var(--libre-space-0);
+  color: var(--color-text-tertiary, var(--libre-c-rgba-245-245-247-0-5));
+  font-size: var(--libre-fs-14);
 }
 
 /* Section wrapper — used by both "In progress" and "Earned"
    sections so each gets its own header + grid pair stacked
    under the page title. */
 .libre-certs-page__section {
-  margin-bottom: 36px;
+  margin-bottom: var(--libre-space-36);
 }
 
 .libre-certs-page__section:last-child {
-  margin-bottom: 0;
+  margin-bottom: var(--libre-space-0);
 }
 
 .libre-certs-page__section-title {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  gap: var(--libre-space-10);
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.7));
-  margin: 0 0 14px 4px;
+  letter-spacing: var(--libre-ls-0-12em);
+  color: var(--color-text-secondary, var(--libre-c-rgba-245-245-247-0-7));
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-14) var(--libre-space-4);
 }
 
 .libre-certs-page__section-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
-  border-radius: 999px;
+  min-width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  padding: var(--libre-space-0) var(--libre-space-7);
+  border-radius: var(--libre-radius-pill);
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -110,8 +110,8 @@
      back to one column on phone widths via the media query
      below. */
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--libre-size-380), 1fr));
+  gap: var(--libre-space-16);
   justify-items: center;
 }
 
@@ -153,30 +153,30 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 80px 24px;
-  color: var(--color-text-secondary, rgba(245, 245, 247, 0.72));
+  padding: var(--libre-space-80) var(--libre-space-24);
+  color: var(--color-text-secondary, var(--libre-c-rgba-245-245-247-0-72));
 }
 
 .libre-certs-page__empty-seal {
-  font-size: 48px;
+  font-size: var(--libre-fs-48);
   /* Theme-token-driven; the old parchment `#d4c5a1` fallback
      belonged to the warm-cert era and is replaced with a neutral
      white that matches the modern monochrome system if no
      `--color-accent` is set. */
-  color: var(--color-accent, #ffffff);
-  margin-bottom: 12px;
+  color: var(--color-accent, var(--libre-c-white));
+  margin-bottom: var(--libre-space-12);
 }
 
 .libre-certs-page__empty-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 12px;
-  color: var(--color-text-primary, #f5f5f7);
+  font-size: var(--libre-fs-22);
+  font-weight: var(--libre-fw-700);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-12);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
 }
 
 .libre-certs-page__empty-body {
-  font-size: 14px;
-  max-width: 560px;
-  line-height: 1.55;
-  margin: 0;
+  font-size: var(--libre-fs-14);
+  max-width: var(--libre-size-560);
+  line-height: var(--libre-lh-1-55);
+  margin: var(--libre-space-0);
 }

@@ -159,10 +159,10 @@ export default function PoppedWorkbench() {
   }
 
   if (error) {
-    return <div style={{ padding: 20, color: "#ef6f6f" }}>{error}</div>;
+    return <div style={{ padding: 'var(--libre-space-20)', color: 'var(--libre-c-ef6f6f)' }}>{error}</div>;
   }
   if (!lesson) {
-    return <div style={{ padding: 20, color: "#888" }}>Loading…</div>;
+    return <div style={{ padding: 'var(--libre-space-20)', color: 'var(--libre-c-888888)' }}>Loading…</div>;
   }
 
   return (

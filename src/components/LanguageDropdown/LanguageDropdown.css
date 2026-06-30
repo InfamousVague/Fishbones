@@ -22,16 +22,16 @@
 .libre-langdrop__trigger {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   font: inherit;
   color: var(--color-text-primary);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 8px);
-  padding: 8px 12px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  padding: var(--libre-space-8) var(--libre-space-12);
   cursor: pointer;
-  transition: background var(--libre-motion-snappy, 0.15s ease),
-    border-color var(--libre-motion-snappy, 0.15s ease);
+  transition: background var(--libre-motion-snappy, var(--libre-dur-150) var(--libre-ease-ease)),
+    border-color var(--libre-motion-snappy, var(--libre-dur-150) var(--libre-ease-ease));
 }
 
 .libre-langdrop--field .libre-langdrop__trigger {
@@ -40,9 +40,9 @@
 }
 
 .libre-langdrop--compact .libre-langdrop__trigger {
-  padding: 6px 10px;
-  font-size: 13px;
-  border-radius: var(--libre-radius-pill, 999px);
+  padding: var(--libre-space-6) var(--libre-space-10);
+  font-size: var(--libre-fs-13);
+  border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
 }
 
 .libre-langdrop__trigger:hover,
@@ -57,16 +57,16 @@
      the latin/cjk glyphs. The exact offset varies per platform — 1px
      is the median that doesn't read as misaligned anywhere. */
   display: inline-block;
-  line-height: 1;
-  transform: translateY(1px);
-  font-size: 16px;
+  line-height: var(--libre-lh-1);
+  transform: translateY(var(--libre-size-1));
+  font-size: var(--libre-fs-16);
 }
 
 .libre-langdrop__label {
   flex: 1;
   text-align: left;
-  font-weight: 600;
-  letter-spacing: -0.005em;
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-neg-0-005em);
 }
 
 .libre-langdrop--compact .libre-langdrop__label {
@@ -82,8 +82,8 @@
      flag + label that are doing the identification work. */
   display: inline-flex;
   align-items: center;
-  margin-left: 4px;
-  opacity: 0.7;
+  margin-left: var(--libre-space-4);
+  opacity: var(--libre-opacity-0-7);
 }
 
 /* ─── Menu ──────────────────────────────────────────────── */
@@ -95,39 +95,37 @@
    coords inline (`top`/`left`/`minWidth` from the trigger's
    measured rect); CSS only handles the visual chrome here. */
 .libre-langdrop__menu {
-  max-width: 240px;
+  max-width: var(--libre-size-240);
   list-style: none;
-  margin: 0;
-  padding: 6px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-6);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 8px);
-  box-shadow:
-    0 16px 40px -8px rgba(0, 0, 0, 0.45),
-    0 4px 12px rgba(0, 0, 0, 0.22);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  box-shadow: var(--libre-shadow-45);
   /* Above modal backdrops (which usually sit at z-index 1000-
      1200). The dropdown is invoked from inside a dialog so it
      needs to outrank the dialog's own surface. */
-  z-index: 1300;
+  z-index: var(--libre-z-1300);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 .libre-langdrop__option {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   width: 100%;
-  padding: 8px 10px;
+  padding: var(--libre-space-8) var(--libre-space-10);
   font: inherit;
   color: var(--color-text-primary);
   background: transparent;
   border: 0;
-  border-radius: var(--libre-radius-sm, 6px);
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
   cursor: pointer;
   text-align: left;
-  transition: background var(--libre-motion-snappy, 0.15s ease);
+  transition: background var(--libre-motion-snappy, var(--libre-dur-150) var(--libre-ease-ease));
 }
 
 .libre-langdrop__option:hover,
@@ -139,16 +137,16 @@
 .libre-langdrop__option--active {
   background: color-mix(
     in srgb,
-    var(--color-accent-warm, #e8954a) 14%,
+    var(--color-accent-warm, var(--libre-c-e8954a)) 14%,
     transparent
   );
   color: var(--color-text-primary);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-langdrop__check {
   margin-left: auto;
-  font-size: 12px;
-  color: var(--color-accent-warm, #e8954a);
-  font-weight: 700;
+  font-size: var(--libre-fs-12);
+  color: var(--color-accent-warm, var(--libre-c-e8954a));
+  font-weight: var(--libre-fw-700);
 }

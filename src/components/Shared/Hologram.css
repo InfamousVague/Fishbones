@@ -24,7 +24,7 @@
 
 .libre-holo {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   pointer-events: none;
   /* Match the parent's clipping by inheriting border-radius —
      consumers that round their corners get a rounded foil for
@@ -44,19 +44,19 @@
 
 .libre-holo__foil {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   --libre-holo-space: 5%;
   background-image: repeating-linear-gradient(
     -45deg,
-    hsl(0, 95%, 60%) 0%,
-    hsl(30, 95%, 60%) calc(var(--libre-holo-space) * 1),
-    hsl(60, 95%, 60%) calc(var(--libre-holo-space) * 2),
-    hsl(120, 90%, 55%) calc(var(--libre-holo-space) * 3),
-    hsl(180, 90%, 55%) calc(var(--libre-holo-space) * 4),
-    hsl(222, 95%, 60%) calc(var(--libre-holo-space) * 5),
-    hsl(258, 95%, 60%) calc(var(--libre-holo-space) * 6),
-    hsl(300, 95%, 60%) calc(var(--libre-holo-space) * 7),
-    hsl(0, 95%, 60%) calc(var(--libre-holo-space) * 8)
+    var(--libre-c-hsl-0-95-60) 0%,
+    var(--libre-c-hsl-30-95-60) calc(var(--libre-holo-space) * 1),
+    var(--libre-c-hsl-60-95-60) calc(var(--libre-holo-space) * 2),
+    var(--libre-c-hsl-120-90-55) calc(var(--libre-holo-space) * 3),
+    var(--libre-c-hsl-180-90-55) calc(var(--libre-holo-space) * 4),
+    var(--libre-c-hsl-222-95-60) calc(var(--libre-holo-space) * 5),
+    var(--libre-c-hsl-258-95-60) calc(var(--libre-holo-space) * 6),
+    var(--libre-c-hsl-300-95-60) calc(var(--libre-holo-space) * 7),
+    var(--libre-c-hsl-0-95-60) calc(var(--libre-holo-space) * 8)
   );
   background-size: 200% 200%;
   background-position: var(--libre-holo-h) var(--libre-holo-h);
@@ -121,28 +121,28 @@
    rule (`!important` if they need to win against this).
 */
 .libre-holo--sparkle-snake.libre-holo--size-xxs .libre-holo__foil {
-  mask-size: 10px 10px;
-  -webkit-mask-size: 10px 10px;
+  mask-size: var(--libre-size-10) var(--libre-size-10);
+  -webkit-mask-size: var(--libre-size-10) var(--libre-size-10);
 }
 .libre-holo--sparkle-snake.libre-holo--size-xs .libre-holo__foil {
-  mask-size: 14px 14px;
-  -webkit-mask-size: 14px 14px;
+  mask-size: var(--libre-size-14) var(--libre-size-14);
+  -webkit-mask-size: var(--libre-size-14) var(--libre-size-14);
 }
 .libre-holo--sparkle-snake.libre-holo--size-sm .libre-holo__foil {
-  mask-size: 22px 22px;
-  -webkit-mask-size: 22px 22px;
+  mask-size: var(--libre-size-22) var(--libre-size-22);
+  -webkit-mask-size: var(--libre-size-22) var(--libre-size-22);
 }
 .libre-holo--sparkle-snake.libre-holo--size-md .libre-holo__foil {
-  mask-size: 36px 36px;
-  -webkit-mask-size: 36px 36px;
+  mask-size: var(--libre-size-36) var(--libre-size-36);
+  -webkit-mask-size: var(--libre-size-36) var(--libre-size-36);
 }
 .libre-holo--sparkle-snake.libre-holo--size-lg .libre-holo__foil {
-  mask-size: 56px 56px;
-  -webkit-mask-size: 56px 56px;
+  mask-size: var(--libre-size-56) var(--libre-size-56);
+  -webkit-mask-size: var(--libre-size-56) var(--libre-size-56);
 }
 .libre-holo--sparkle-snake.libre-holo--size-xl .libre-holo__foil {
-  mask-size: 88px 88px;
-  -webkit-mask-size: 88px 88px;
+  mask-size: var(--libre-size-88) var(--libre-size-88);
+  -webkit-mask-size: var(--libre-size-88) var(--libre-size-88);
 }
 
 /* Surface variants — flip the blend mode + filter chain so the
@@ -166,12 +166,12 @@
 
 .libre-holo__shine {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   background-image: linear-gradient(
     -70deg,
-    rgba(212, 176, 107, 0) 42%,
-    rgba(212, 176, 107, 0.4) 50%,
-    rgba(212, 176, 107, 0) 58%
+    var(--libre-c-rgba-212-176-107-0) 42%,
+    var(--libre-c-rgba-212-176-107-0-4) 50%,
+    var(--libre-c-rgba-212-176-107-0) 58%
   );
   background-size: 220% 220%;
   background-position: var(--libre-holo-p) var(--libre-holo-p);
@@ -184,9 +184,9 @@
      amber-on-multiply default. */
   background-image: linear-gradient(
     -70deg,
-    rgba(255, 255, 255, 0) 42%,
-    rgba(255, 255, 255, 0.18) 50%,
-    rgba(255, 255, 255, 0) 58%
+    var(--libre-c-rgba-255-255-255-0) 42%,
+    var(--libre-c-rgba-255-255-255-0-18) 50%,
+    var(--libre-c-rgba-255-255-255-0) 58%
   );
   mix-blend-mode: plus-lighter;
 }
@@ -211,14 +211,14 @@
 
 /* ─── Intensity tiers — resting foil + shine opacity ───────── */
 
-.libre-holo--whisper .libre-holo__foil  { opacity: 0.18; }
-.libre-holo--whisper .libre-holo__shine { opacity: 0.08; }
+.libre-holo--whisper .libre-holo__foil  { opacity: var(--libre-opacity-0-18); }
+.libre-holo--whisper .libre-holo__shine { opacity: var(--libre-opacity-0-08); }
 
-.libre-holo--subtle .libre-holo__foil   { opacity: 0.34; }
-.libre-holo--subtle .libre-holo__shine  { opacity: 0.18; }
+.libre-holo--subtle .libre-holo__foil   { opacity: var(--libre-opacity-0-34); }
+.libre-holo--subtle .libre-holo__shine  { opacity: var(--libre-opacity-0-18); }
 
-.libre-holo--vivid .libre-holo__foil    { opacity: 0.6; }
-.libre-holo--vivid .libre-holo__shine   { opacity: 0.28; }
+.libre-holo--vivid .libre-holo__foil    { opacity: var(--libre-opacity-0-6); }
+.libre-holo--vivid .libre-holo__shine   { opacity: var(--libre-opacity-0-28); }
 
 /* ─── Ambient drift ─────────────────────────────────────────── */
 
@@ -229,11 +229,11 @@
    feeling without ever swinging hard enough to read as
    intentional motion. */
 .libre-holo--ambient .libre-holo__foil {
-  animation: libre-holo-foil-drift 14s ease-in-out infinite;
+  animation: libre-holo-foil-drift var(--libre-dur-14000) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-holo--ambient .libre-holo__shine {
-  animation: libre-holo-shine-drift 22s ease-in-out infinite;
+  animation: libre-holo-shine-drift var(--libre-dur-22000) var(--libre-ease-ease-in-out) infinite;
 }
 
 @keyframes libre-holo-foil-drift {
@@ -274,12 +274,12 @@
 
 .libre-holo--excited .libre-holo__foil {
   animation:
-    libre-holo-foil-excited-h 2.3s ease-in-out infinite,
-    libre-holo-foil-excited-x 3.7s ease-in-out infinite;
+    libre-holo-foil-excited-h var(--libre-dur-2300) var(--libre-ease-ease-in-out) infinite,
+    libre-holo-foil-excited-x var(--libre-dur-3700) var(--libre-ease-ease-in-out) infinite;
 }
 
 .libre-holo--excited .libre-holo__shine {
-  animation: libre-holo-shine-excited 1.7s ease-in-out infinite;
+  animation: libre-holo-shine-excited var(--libre-dur-1700) var(--libre-ease-ease-in-out) infinite;
 }
 
 /* Slight intensity boost on the foil while excited — pushes the
@@ -289,10 +289,10 @@
    surfaces feel involved during a run without us having to swap
    the intensity class at the consumer level. */
 .libre-holo--excited .libre-holo__foil {
-  opacity: 0.78;
+  opacity: var(--libre-opacity-0-78);
 }
 .libre-holo--excited .libre-holo__shine {
-  opacity: 0.42;
+  opacity: var(--libre-opacity-0-42);
 }
 
 @keyframes libre-holo-foil-excited-h {
@@ -364,23 +364,23 @@
  * once muddied the read in early tests. */
 
 *:hover > .libre-holo > .libre-holo__shine {
-  animation: libre-holo-shine-hover 800ms ease-out;
+  animation: libre-holo-shine-hover var(--libre-dur-800) var(--libre-ease-ease-out);
 }
 
 @keyframes libre-holo-shine-hover {
   0% {
     --libre-holo-p: -20%;
-    opacity: var(--libre-holo-shine-base, 0.18);
+    opacity: var(--libre-holo-shine-base, var(--libre-opacity-0-18));
   }
   20% {
     /* Brighten just past entry so the leading edge of the sweep
        is when the highlight is most visible — same way a real
        reflection catches strongest at the angle of incidence. */
-    opacity: calc(var(--libre-holo-shine-base, 0.18) * 1.6);
+    opacity: calc(var(--libre-holo-shine-base, var(--libre-opacity-0-18)) * var(--libre-opacity-1-6));
   }
   100% {
     --libre-holo-p: 120%;
-    opacity: var(--libre-holo-shine-base, 0.18);
+    opacity: var(--libre-holo-shine-base, var(--libre-opacity-0-18));
   }
 }
 

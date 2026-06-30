@@ -14,7 +14,7 @@
 .libre-langchip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   border-radius: var(--libre-radius-pill);
   /* `color-mix` is supported in every browser Tauri's webview runs
      against (Safari 16.2+, Chromium 111+). Falls back gracefully to
@@ -22,8 +22,8 @@
      less elegant. */
   background: color-mix(in srgb, var(--langchip-color) 12%, transparent);
   color: var(--langchip-color);
-  font-weight: 600;
-  letter-spacing: 0.1px;
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-1);
   /* Don't let parent flex containers stretch us — chips should hug
      their content. */
   flex: 0 0 auto;
@@ -37,59 +37,59 @@
 /* ── Sizes ─────────────────────────────────────────────────────── */
 
 .libre-langchip--xs {
-  height: 16px;
-  padding: 0 6px;
-  font-size: 9.5px;
-  gap: 4px;
+  height: var(--libre-size-16);
+  padding: var(--libre-space-0) var(--libre-space-6);
+  font-size: var(--libre-fs-9-5);
+  gap: var(--libre-space-4);
 }
 .libre-langchip--xs .libre-langchip-icon svg {
-  width: 13px;
-  height: 13px;
+  width: var(--libre-size-13);
+  height: var(--libre-size-13);
 }
 
 .libre-langchip--sm {
-  height: 22px;
-  padding: 0 8px;
-  font-size: 11px;
-  gap: 5px;
+  height: var(--libre-size-22);
+  padding: var(--libre-space-0) var(--libre-space-8);
+  font-size: var(--libre-fs-11);
+  gap: var(--libre-space-5);
 }
 .libre-langchip--sm .libre-langchip-icon svg {
-  width: 15px;
-  height: 15px;
+  width: var(--libre-size-15);
+  height: var(--libre-size-15);
 }
 
 .libre-langchip--md {
-  height: 28px;
-  padding: 0 10px;
-  font-size: 13px;
-  gap: 6px;
+  height: var(--libre-size-28);
+  padding: var(--libre-space-0) var(--libre-space-10);
+  font-size: var(--libre-fs-13);
+  gap: var(--libre-space-6);
 }
 .libre-langchip--md .libre-langchip-icon svg {
-  width: 18px;
-  height: 18px;
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
 }
 
 .libre-langchip--lg {
-  height: 34px;
-  padding: 0 12px;
-  font-size: 15px;
-  gap: 7px;
+  height: var(--libre-size-34);
+  padding: var(--libre-space-0) var(--libre-space-12);
+  font-size: var(--libre-fs-15);
+  gap: var(--libre-space-7);
 }
 .libre-langchip--lg .libre-langchip-icon svg {
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
 }
 
 .libre-langchip--xl {
-  height: 80px;
-  width: 80px;
-  padding: 0 14px;
-  font-size: 17px;
-  gap: 8px;
+  height: var(--libre-size-80);
+  width: var(--libre-size-80);
+  padding: var(--libre-space-0) var(--libre-space-14);
+  font-size: var(--libre-fs-17);
+  gap: var(--libre-space-8);
 }
 .libre-langchip--xl .libre-langchip-icon svg {
-  width: 64px;
-  height: 64px;
+  width: var(--libre-size-64);
+  height: var(--libre-size-64);
 }
 
 /* ── Icon-only variant ─────────────────────────────────────────── */
@@ -97,21 +97,21 @@
 /* Square the chip when there's no label so the icon sits centred
    in a circle instead of an oblong pill. */
 .libre-langchip--icon-only {
-  padding: 0;
-  width: 22px;
+  padding: var(--libre-space-0);
+  width: var(--libre-size-22);
   justify-content: center;
 }
 .libre-langchip--xs.libre-langchip--icon-only {
-  width: 16px;
+  width: var(--libre-size-16);
 }
 .libre-langchip--md.libre-langchip--icon-only {
-  width: 28px;
+  width: var(--libre-size-28);
 }
 .libre-langchip--lg.libre-langchip--icon-only {
-  width: 34px;
+  width: var(--libre-size-34);
 }
 .libre-langchip--xl.libre-langchip--icon-only {
-  width: 80px;
+  width: var(--libre-size-80);
 }
 
 /* ── Internal layout ───────────────────────────────────────────── */
@@ -125,11 +125,11 @@
      SVGs we ship use a 24-grid viewBox where the glyph isn't always
      dead-centre, so a 1-px nudge keeps things visually balanced
      across icons. */
-  margin-top: -0.5px;
+  margin-top: var(--libre-space-neg-0-5);
 }
 
 .libre-langchip-label {
   /* Tighter line-height than default — keeps a single-line label
      vertically centred even when the parent uses a larger leading. */
-  line-height: 1;
+  line-height: var(--libre-lh-1);
 }

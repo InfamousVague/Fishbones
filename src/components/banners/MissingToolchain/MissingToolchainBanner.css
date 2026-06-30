@@ -7,55 +7,55 @@
 .libre-missing-tc {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 14px;
+  gap: var(--libre-space-14);
   align-items: start;
-  padding: 14px 16px;
-  margin: 0 0 10px;
+  padding: var(--libre-space-14) var(--libre-space-16);
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-10);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-left: 3px solid #ff9b5e; /* warm orange — matches the streak flame */
-  border-radius: 10px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-left: var(--libre-bw-3) solid var(--libre-c-ff9b5e); /* warm orange — matches the streak flame */
+  border-radius: var(--libre-radius-10);
 }
 
 .libre-missing-tc-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding-top: 2px;
-  color: #ff9b5e; /* match the left-border accent so they read as a pair */
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
+  padding-top: var(--libre-space-2);
+  color: var(--libre-c-ff9b5e); /* match the left-border accent so they read as a pair */
 }
 
 .libre-missing-tc-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
   min-width: 0;
 }
 
 .libre-missing-tc-title {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--libre-ls-neg-0-01em);
 }
 
 .libre-missing-tc-desc {
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   color: var(--color-text-secondary);
-  line-height: 1.55;
+  line-height: var(--libre-lh-1-55);
 }
 
 /* Exact command block — monospace, slightly inset so it reads as the
    "this is what will run" artifact separate from the prose. */
 .libre-missing-tc-cmd {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
-  padding: 6px 10px;
+  padding: var(--libre-space-6) var(--libre-space-10);
   font-family: var(--font-mono, ui-monospace, Menlo, Monaco, monospace);
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   color: var(--color-text-primary);
   overflow-x: auto;
   white-space: nowrap;
@@ -63,7 +63,7 @@
 
 .libre-missing-tc-cmd code {
   background: none;
-  padding: 0;
+  padding: var(--libre-space-0);
   font-family: inherit;
   font-size: inherit;
   color: inherit;
@@ -75,82 +75,82 @@
 .libre-missing-tc-pw-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
+  gap: var(--libre-space-4);
+  margin-top: var(--libre-space-4);
 }
 
 .libre-missing-tc-pw-label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
+  gap: var(--libre-space-4);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
-  letter-spacing: 0.2px;
+  letter-spacing: var(--libre-ls-0-2);
   text-transform: uppercase;
 }
 
 .libre-missing-tc-pw-input {
-  padding: 7px 10px;
+  padding: var(--libre-space-7) var(--libre-space-10);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   outline: none;
   transition: border-color var(--libre-motion-snappy), box-shadow var(--libre-motion-snappy);
   text-transform: none;
   letter-spacing: 0;
-  font-weight: 400;
+  font-weight: var(--libre-fw-400);
 }
 
 .libre-missing-tc-pw-input:focus {
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+  border-color: var(--libre-c-rgba-255-255-255-0-28);
+  box-shadow: var(--libre-shadow-18);
 }
 
 .libre-missing-tc-pw-hint {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
-  line-height: 1.5;
+  line-height: var(--libre-lh-1-5);
   text-transform: none;
   letter-spacing: 0;
-  font-weight: 400;
+  font-weight: var(--libre-fw-400);
 }
 
 .libre-missing-tc-pw-hint code {
   background: var(--color-bg-tertiary);
-  padding: 1px 5px;
+  padding: var(--libre-space-1) var(--libre-space-5);
   border-radius: var(--libre-radius-xs);
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
 }
 
 /* Error + output blocks. Monospace, wrap-preserving, scrollable. Capped
    height so a 200-line brew install doesn't blow out the page. */
 .libre-missing-tc-error,
 .libre-missing-tc-output {
-  margin: 8px 0 0;
-  padding: 8px 10px;
-  max-height: 180px;
+  margin: var(--libre-space-8) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-8) var(--libre-space-10);
+  max-height: var(--libre-size-180);
   overflow: auto;
   font-family: var(--font-mono, ui-monospace, Menlo, Monaco, monospace);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-4);
   white-space: pre-wrap;
   word-break: break-word;
   border-radius: var(--libre-radius-sm);
 }
 
 .libre-missing-tc-error {
-  background: rgba(239, 111, 111, 0.08);
-  border: 1px solid rgba(239, 111, 111, 0.3);
-  color: #ef6f6f;
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-3);
+  color: var(--libre-c-ef6f6f);
 }
 
 .libre-missing-tc-output {
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   color: var(--color-text-secondary);
 }
 
@@ -159,20 +159,20 @@
 .libre-missing-tc-actions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
   align-items: stretch;
-  min-width: 140px;
+  min-width: var(--libre-size-140);
 }
 
 .libre-missing-tc-btn {
-  padding: 8px 14px;
+  padding: var(--libre-space-8) var(--libre-space-14);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
   white-space: nowrap;
@@ -180,11 +180,11 @@
 
 .libre-missing-tc-btn:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-missing-tc-btn:disabled {
-  opacity: 0.55;
+  opacity: var(--libre-opacity-0-55);
   cursor: not-allowed;
 }
 
@@ -193,7 +193,7 @@
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 /* On really narrow pane widths (popped-out window, split editor), flip

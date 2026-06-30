@@ -15,14 +15,14 @@
 .libre-practice-blocks {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--libre-space-14);
   width: 100%;
   font-family: var(--font-body, system-ui);
 }
 
 .libre-practice-blocks__prompt {
-  margin: 0;
-  font-size: 13px;
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
   font-style: italic;
 }
@@ -30,17 +30,17 @@
 /* ── Template ──────────────────────────────────────────────────── */
 
 .libre-practice-blocks__template {
-  margin: 0;
-  padding: 14px 16px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-14) var(--libre-space-16);
   font-family: var(--font-mono, "SF Mono", Menlo, monospace);
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-65);
   color: var(--color-text-primary);
   /* Same canvas the lesson BlocksView uses — Shiki's github-dark
    * tokens are tuned for this exact background. */
-  background: #0d1117;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, 10px);
+  background: var(--libre-c-0d1117);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-10));
   white-space: pre-wrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -55,13 +55,13 @@
 .libre-practice-blocks__slot {
   display: inline-block;
   vertical-align: baseline;
-  min-width: 56px;
+  min-width: var(--libre-size-56);
   min-height: 1.6em;
-  padding: 0 6px;
-  margin: 0 2px;
-  border-radius: 6px;
-  border: 1px dashed var(--color-border-strong, var(--color-border-default));
-  background: var(--color-bg-elevated, rgba(255, 255, 255, 0.03));
+  padding: var(--libre-space-0) var(--libre-space-6);
+  margin: var(--libre-space-0) var(--libre-space-2);
+  border-radius: var(--libre-radius-6);
+  border: var(--libre-bw-1) dashed var(--color-border-strong, var(--color-border-default));
+  background: var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-03));
   cursor: pointer;
   user-select: none;
   text-align: center;
@@ -69,47 +69,47 @@
   font-size: inherit;
   color: inherit;
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    background-color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease),
+    box-shadow var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-practice-blocks__slot:hover:not(:disabled) {
-  background: rgba(214, 185, 105, 0.08);
-  border-color: rgba(214, 185, 105, 0.5);
+  background: var(--libre-c-rgba-214-185-105-0-08);
+  border-color: var(--libre-c-rgba-214-185-105-0-5);
 }
 
 .libre-practice-blocks__slot--filled {
   border: 0;
   background: transparent;
-  padding: 0;
+  padding: var(--libre-space-0);
   border-radius: 0;
 }
 
 .libre-practice-blocks__slot--filled:hover:not(:disabled) {
-  background: rgba(214, 185, 105, 0.08);
-  box-shadow: 0 0 0 1px rgba(214, 185, 105, 0.35);
-  border-radius: 4px;
+  background: var(--libre-c-rgba-214-185-105-0-08);
+  box-shadow: var(--libre-shadow-8);
+  border-radius: var(--libre-radius-4);
 }
 
 .libre-practice-blocks__slot--correct {
-  border-color: rgba(120, 200, 140, 0.6);
-  box-shadow: inset 0 0 0 1px rgba(120, 200, 140, 0.35);
-  background: rgba(120, 200, 140, 0.05);
+  border-color: var(--libre-c-rgba-120-200-140-0-6);
+  box-shadow: var(--libre-shadow-104);
+  background: var(--libre-c-rgba-120-200-140-0-05);
 }
 
 .libre-practice-blocks__slot--wrong {
-  border-color: rgba(220, 110, 110, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(220, 110, 110, 0.4);
-  background: rgba(220, 110, 110, 0.05);
+  border-color: var(--libre-c-rgba-220-110-110-0-7);
+  box-shadow: var(--libre-shadow-105);
+  background: var(--libre-c-rgba-220-110-110-0-05);
 }
 
 .libre-practice-blocks__slot-placeholder {
   display: inline-block;
-  font-size: 0.92em;
+  font-size: var(--libre-fs-em-0-92);
   color: var(--color-text-tertiary, var(--color-text-secondary));
   font-style: italic;
-  opacity: 0.7;
+  opacity: var(--libre-opacity-0-7);
 }
 
 .libre-practice-blocks__slot-code {
@@ -122,31 +122,31 @@
 .libre-practice-blocks__pool {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
-  border-radius: var(--libre-radius-md, 10px);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-12);
+  border-radius: var(--libre-radius-md, var(--libre-radius-10));
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  min-height: 56px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  min-height: var(--libre-size-56);
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease;
+    background-color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 /* Highlighted while a chip is being dragged over the pool. Same
  * gold tint the lesson's `.libre-blocks__pool--over` uses so "drop
  * back to pool" reads identically. */
 .libre-practice-blocks__pool--over {
-  background: rgba(214, 185, 105, 0.10);
-  border-color: rgba(214, 185, 105, 0.45);
+  background: var(--libre-c-rgba-214-185-105-0-10);
+  border-color: var(--libre-c-rgba-214-185-105-0-45);
 }
 
 .libre-practice-blocks__pool-empty {
-  font-size: 12.5px;
+  font-size: var(--libre-fs-12-5);
   color: var(--color-text-tertiary);
   font-style: italic;
   align-self: center;
-  padding-left: 4px;
+  padding-left: var(--libre-space-4);
 }
 
 /* ── Chip ──────────────────────────────────────────────────────── */
@@ -156,13 +156,13 @@
 
 .libre-practice-blocks__chip {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--color-bg-elevated, #19191d);
-  border: 1px solid var(--color-border-default);
+  padding: var(--libre-space-4) var(--libre-space-10);
+  border-radius: var(--libre-radius-6);
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default);
   font-family: var(--font-mono, "SF Mono", Menlo, monospace);
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-4);
   white-space: nowrap;
   cursor: grab;
   color: var(--color-text-primary);
@@ -173,9 +173,9 @@
    * if CSS interpolates it the chip lags ~80ms behind the cursor.
    * Same constraint as `.libre-blocks__chip` in the lesson view. */
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    box-shadow 120ms ease;
+    background-color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease),
+    box-shadow var(--libre-dur-120) var(--libre-ease-ease);
   touch-action: none;
 }
 
@@ -189,14 +189,14 @@
 }
 
 .libre-practice-blocks__chip.is-disabled {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: default;
 }
 
 /* Tap-to-arm fallback ring — same gold the lesson's armed chip uses. */
 .libre-practice-blocks__chip--armed {
-  border-color: rgba(214, 185, 105, 0.7);
-  box-shadow: 0 0 0 2px rgba(214, 185, 105, 0.25);
+  border-color: var(--libre-c-rgba-214-185-105-0-7);
+  box-shadow: var(--libre-shadow-15);
 }
 
 /* Placed chips read as continuous code — drop all chrome so the
@@ -205,7 +205,7 @@
 .libre-practice-blocks__chip--placed {
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: var(--libre-space-0);
   border-radius: 0;
   cursor: grab;
 }
@@ -218,9 +218,7 @@
 /* Floating ghost the DragOverlay renders. Slight elevation so the
  * learner sees what they're carrying. Mirrors `.libre-blocks__chip--ghost`. */
 .libre-practice-blocks__chip--ghost {
-  box-shadow:
-    0 6px 14px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(214, 185, 105, 0.5);
+  box-shadow: var(--libre-shadow-86);
   pointer-events: none;
   transform: scale(1.02);
 }
@@ -229,7 +227,7 @@
   font-family: inherit;
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: var(--libre-space-0);
   font-size: inherit;
   color: inherit;
 }
@@ -239,48 +237,48 @@
 .libre-practice-blocks__actions {
   display: flex;
   justify-content: flex-end;
-  padding-top: 4px;
+  padding-top: var(--libre-space-4);
 }
 
 .libre-practice-blocks__check {
-  padding: 10px 18px;
+  padding: var(--libre-space-10) var(--libre-space-18);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border: 0;
-  border-radius: var(--libre-radius-md, 10px);
+  border-radius: var(--libre-radius-md, var(--libre-radius-10));
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--libre-fw-700);
   cursor: pointer;
-  transition: opacity 120ms ease, transform 80ms ease;
+  transition: opacity var(--libre-dur-120) var(--libre-ease-ease), transform var(--libre-dur-80) var(--libre-ease-ease);
 }
 
 .libre-practice-blocks__check:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
 .libre-practice-blocks__check:hover:not(:disabled) {
-  opacity: 0.88;
+  opacity: var(--libre-opacity-0-88);
 }
 
 .libre-practice-blocks__check:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(var(--libre-size-1));
 }
 
 .libre-practice-blocks.is-committed .libre-practice-blocks__check {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 /* ── Responsive ────────────────────────────────────────────────── */
 
 @media (max-width: 720px) {
   .libre-practice-blocks__template {
-    font-size: 12.5px;
-    padding: 12px 14px;
+    font-size: var(--libre-fs-12-5);
+    padding: var(--libre-space-12) var(--libre-space-14);
   }
   .libre-practice-blocks__chip {
-    font-size: 12.5px;
+    font-size: var(--libre-fs-12-5);
   }
 }

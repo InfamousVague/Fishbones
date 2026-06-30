@@ -1,10 +1,10 @@
 /* Backdrop chrome lives in `Shared/ModalBackdrop.css`. */
 
 .libre-genpack-panel {
-  width: min(520px, 92vw);
+  width: min(var(--libre-size-520), 92vw);
   max-height: 86vh;
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
   display: flex;
   flex-direction: column;
@@ -15,33 +15,33 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--libre-space-16) var(--libre-space-20);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-genpack-kicker {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-genpack-title {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  margin-top: 2px;
+  margin-top: var(--libre-space-2);
 }
 
 .libre-genpack-close {
   background: none;
   border: 0;
   color: var(--color-text-tertiary);
-  font-size: 22px;
-  line-height: 1;
+  font-size: var(--libre-fs-22);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
-  padding: 2px 8px;
+  padding: var(--libre-space-2) var(--libre-space-8);
 }
 
 .libre-genpack-close:hover {
@@ -52,33 +52,33 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 20px 14px;
+  padding: var(--libre-space-8) var(--libre-space-20) var(--libre-space-14);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--libre-space-16);
 }
 
 .libre-genpack-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre-genpack-section-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  margin-top: 8px;
+  margin-top: var(--libre-space-8);
 }
 
 .libre-genpack-section-value {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   text-transform: none;
@@ -86,28 +86,28 @@
 }
 
 .libre-genpack-section-hint {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-secondary);
-  line-height: 1.55;
+  line-height: var(--libre-lh-1-55);
 }
 
 /* Language segmented control */
 
 .libre-genpack-lang-row {
   display: flex;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-genpack-lang-btn {
   flex: 1;
-  padding: 8px 12px;
+  padding: var(--libre-space-8) var(--libre-space-12);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
@@ -134,7 +134,7 @@
 .libre-genpack-slider-ticks {
   display: flex;
   justify-content: space-between;
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
 }
@@ -144,17 +144,17 @@
 .libre-genpack-model-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-genpack-model {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   text-align: left;
-  padding: 10px 12px;
+  padding: var(--libre-space-10) var(--libre-space-12);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   cursor: pointer;
   font-family: inherit;
@@ -163,7 +163,7 @@
 }
 
 .libre-genpack-model:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--libre-c-rgba-255-255-255-0-18);
 }
 
 .libre-genpack-model--active {
@@ -172,44 +172,44 @@
 }
 
 .libre-genpack-model-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-genpack-model-hint {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
 }
 
 /* Cost estimate */
 
 .libre-genpack-estimate {
-  padding: 12px 14px;
+  padding: var(--libre-space-12) var(--libre-space-14);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 .libre-genpack-estimate-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-genpack-estimate-value {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--libre-fs-22);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-genpack-estimate-hint {
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-secondary);
 }
 
@@ -218,27 +218,27 @@
 .libre-genpack-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 20px 16px;
-  border-top: 1px solid var(--color-border-default);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-12) var(--libre-space-20) var(--libre-space-16);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-genpack-btn {
-  padding: 7px 14px;
+  padding: var(--libre-space-7) var(--libre-space-14);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
 .libre-genpack-btn:hover {
   background: var(--color-bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-genpack-btn--primary,
@@ -246,5 +246,5 @@
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }

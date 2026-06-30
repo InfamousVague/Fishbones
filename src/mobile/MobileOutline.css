@@ -1,18 +1,18 @@
 .m-outline-backdrop {
   position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  inset: var(--libre-space-0);
+  z-index: var(--libre-z-200);
+  background: var(--libre-c-rgba-0-0-0-0-55);
+  backdrop-filter: blur(var(--libre-blur-3));
+  -webkit-backdrop-filter: blur(var(--libre-blur-3));
   display: flex;
   align-items: flex-end;
-  animation: m-outline-fade 0.16s ease-out;
+  animation: m-outline-fade var(--libre-dur-160) var(--libre-ease-ease-out);
 }
 
 @keyframes m-outline-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: var(--libre-opacity-0); }
+  to   { opacity: var(--libre-opacity-1); }
 }
 
 .m-outline {
@@ -20,11 +20,11 @@
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-elevated, #19191d);
-  border-top: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  border-radius: 18px 18px 0 0;
-  padding: 8px 0 calc(env(safe-area-inset-bottom, 0) + 12px);
-  animation: m-outline-slideup 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border-top: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-18) var(--libre-radius-18) 0 0;
+  padding: var(--libre-space-8) var(--libre-space-0) calc(env(safe-area-inset-bottom, var(--libre-space-0)) + var(--libre-space-12));
+  animation: m-outline-slideup var(--libre-dur-220) var(--libre-ease-cb-6);
 }
 
 @keyframes m-outline-slideup {
@@ -35,47 +35,47 @@
 /* iOS-style top grip — purely decorative cue that the sheet is
    dismissable. */
 .m-outline__grip {
-  width: 36px;
-  height: 4px;
-  margin: 6px auto 8px;
-  background: var(--color-border-strong, rgba(255, 255, 255, 0.18));
-  border-radius: 2px;
+  width: var(--libre-size-36);
+  height: var(--libre-size-4);
+  margin: var(--libre-space-6) auto var(--libre-space-8);
+  background: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-18));
+  border-radius: var(--libre-radius-2);
 }
 
 .m-outline__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 6px 18px 10px;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-6) var(--libre-space-18) var(--libre-space-10);
 }
 
 .m-outline__head-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
 }
 
 .m-outline__head-title {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--libre-ls-neg-0-01em);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .m-outline__head-meta {
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-tertiary);
   font-feature-settings: "tnum";
 }
 
 .m-outline__close {
-  width: 32px;
-  height: 32px;
+  width: var(--libre-size-32);
+  height: var(--libre-size-32);
   display: grid;
   place-items: center;
   background: transparent;
@@ -91,10 +91,10 @@
 }
 
 .m-outline__progress {
-  height: 3px;
-  margin: 0 18px 12px;
-  background: var(--color-bg-inset, rgba(255, 255, 255, 0.08));
-  border-radius: 2px;
+  height: var(--libre-size-3);
+  margin: var(--libre-space-0) var(--libre-space-18) var(--libre-space-12);
+  background: var(--color-bg-inset, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-2);
   position: relative;
   overflow: hidden;
 }
@@ -102,18 +102,18 @@
 .m-outline__progress::after {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: var(--libre-space-0);
+  top: var(--libre-space-0);
+  bottom: var(--libre-space-0);
   width: var(--m-outline-pct, 0%);
   background: var(--gg-fill-white);
-  transition: width 0.3s ease;
+  transition: width var(--libre-dur-300) var(--libre-ease-ease);
 }
 
 .m-outline__chapters {
   list-style: none;
-  margin: 0;
-  padding: 0 12px 6px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0) var(--libre-space-12) var(--libre-space-6);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   flex: 1;
@@ -121,34 +121,34 @@
 }
 
 .m-outline__chapter {
-  margin-bottom: 14px;
+  margin-bottom: var(--libre-space-14);
 }
 
 .m-outline__chapter-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  padding: 8px 8px 6px;
-  margin: 0;
+  padding: var(--libre-space-8) var(--libre-space-8) var(--libre-space-6);
+  margin: var(--libre-space-0);
 }
 
 .m-outline__lessons {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-0);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
 }
 
 .m-outline__row {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 8px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-10) var(--libre-space-8);
   background: transparent;
   border: 0;
   border-radius: var(--libre-radius-md);
@@ -172,12 +172,12 @@
 .m-outline__row--active::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
+  left: var(--libre-space-0);
+  top: var(--libre-space-8);
+  bottom: var(--libre-space-8);
+  width: var(--libre-size-3);
   background: var(--gg-fill-white);
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
 }
 
 /* Mirrors the desktop Sidebar `.libre__lesson-status` pattern: a
@@ -187,15 +187,15 @@
    the desktop sidebar uses, so the two surfaces feel like the same
    product. */
 .m-outline__bullet {
-  width: 20px;
-  height: 20px;
+  width: var(--libre-size-20);
+  height: var(--libre-size-20);
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--color-border-default, rgba(255, 255, 255, 0.12));
-  border-radius: 50%;
-  color: var(--color-text-disabled, rgba(255, 255, 255, 0.22));
+  border: var(--libre-bw-1-5) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-12));
+  border-radius: var(--libre-radius-circle);
+  color: var(--color-text-disabled, var(--libre-c-rgba-255-255-255-0-22));
   background: transparent;
 }
 
@@ -219,15 +219,15 @@
 .m-outline__row-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--libre-space-1);
   min-width: 0;
   flex: 1;
 }
 
 .m-outline__row-title {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.3;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-500);
+  line-height: var(--libre-lh-1-3);
   color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -237,9 +237,9 @@
 }
 
 .m-outline__row-kind {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-05em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }

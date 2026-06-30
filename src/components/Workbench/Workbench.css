@@ -21,13 +21,13 @@
      240px still fits Monaco's gutter + a few chars + the run-button row
      without the toolbar overflowing. Mirrors `MIN_WORKBENCH_PCT = 18`
      in Workbench.tsx; whichever is larger on the current window wins. */
-  min-width: 240px;
+  min-width: var(--libre-size-240);
   max-width: 75%;
   /* Only a left margin — the parent `.libre__lesson` supplies the top/bottom
      10px so our top/bottom edges line up with the sidebar card. Doubling
      the vertical margins made the workbench float lower than the sidebar
      by 10px. */
-  margin-left: 10px;
+  margin-left: var(--libre-space-10);
   background: var(--color-bg-secondary);
   /* Match the sidebar's edge treatment exactly — same rgba-7%-white
      rim, same radius, same fill. The earlier inset-shadow attempt was
@@ -35,7 +35,7 @@
      but that blended too far into the page and the card edge
      disappeared entirely. Sidebar uses this pattern with no
      complaints, so we reuse it here for visual consistency. */
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
   overflow: hidden;
 }
@@ -66,11 +66,11 @@
 }
 
 .libre-workbench-divider {
-  flex: 0 0 6px;
+  flex: 0 0 var(--libre-size-6);
   cursor: row-resize;
   background: var(--color-bg-primary);
-  border-top: 1px solid var(--color-border-default);
-  border-bottom: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   display: grid;
   place-items: center;
   transition: background var(--libre-motion-snappy);
@@ -85,10 +85,10 @@
 }
 
 .libre-workbench-divider-grip {
-  width: 28px;
-  height: 2px;
+  width: var(--libre-size-28);
+  height: var(--libre-size-2);
   background: var(--color-border-default);
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
 }
 
 .libre-workbench-divider:hover .libre-workbench-divider-grip,
@@ -103,12 +103,12 @@
    reader prose, just a discoverable hit target. */
 .libre-workbench-width-handle {
   position: absolute;
-  top: 0;
-  left: -4px; /* overlap the border so the hit target feels intuitive */
-  width: 8px;
+  top: var(--libre-space-0);
+  left: var(--libre-space-neg-4); /* overlap the border so the hit target feels intuitive */
+  width: var(--libre-size-8);
   height: 100%;
   cursor: col-resize;
-  z-index: 3;
+  z-index: var(--libre-z-3);
   background: transparent;
   transition: background var(--libre-motion-snappy);
   user-select: none;
@@ -124,9 +124,9 @@
   top: 30%;
   bottom: 30%;
   left: 50%;
-  width: 2px;
+  width: var(--libre-size-2);
   transform: translateX(-50%);
-  border-radius: 2px;
+  border-radius: var(--libre-radius-2);
   background: transparent;
   transition: background var(--libre-motion-snappy);
 }
@@ -138,7 +138,7 @@
 
 .libre-workbench-width-handle:hover,
 .libre-workbench-width-handle:active {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--libre-c-rgba-255-255-255-0-04);
 }
 
 /* Vertical (stacked) orientation — the outer handle moves from the left
@@ -146,10 +146,10 @@
    flips from vertical to horizontal to match. See Workbench.tsx
    `orientation` + lib/layoutPrefs.ts. */
 .libre-workbench--vertical .libre-workbench-width-handle {
-  top: -4px;
-  left: 0;
+  top: var(--libre-space-neg-4);
+  left: var(--libre-space-0);
   width: 100%;
-  height: 8px;
+  height: var(--libre-size-8);
   cursor: row-resize;
 }
 .libre-workbench--vertical .libre-workbench-width-handle::after {
@@ -158,7 +158,7 @@
   left: 30%;
   right: 30%;
   width: auto;
-  height: 2px;
+  height: var(--libre-size-2);
   transform: translateY(-50%);
 }
 
@@ -172,7 +172,7 @@
 [data-theme-name="ayu-light"] .libre-workbench-width-handle:active,
 [data-theme-name="catppuccin-latte"] .libre-workbench-width-handle:hover,
 [data-theme-name="catppuccin-latte"] .libre-workbench-width-handle:active {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--libre-c-rgba-0-0-0-0-04);
 }
 
 /* Fill-width mode: the workbench is the only card in its pane (e.g. the
@@ -184,7 +184,7 @@
   width: 100% !important; /* beats the inline style the non-fill branch sets */
   min-width: 0;
   max-width: 100%;
-  margin-left: 0;
+  margin-left: var(--libre-space-0);
 }
 
 /* When the workbench is rendered inside the popped-out window it occupies
@@ -194,7 +194,7 @@
   width: 100%;
   min-width: 0;
   height: 100vh;
-  margin: 0;
+  margin: var(--libre-space-0);
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -211,25 +211,25 @@
 }
 
 .libre-workbench-standalone-title {
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: var(--libre-space-8) var(--libre-space-14);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-workbench-standalone-title span {
   color: var(--color-text-tertiary);
-  font-weight: 400;
-  margin-left: 4px;
+  font-weight: var(--libre-fw-400);
+  margin-left: var(--libre-space-4);
 }
 
 .libre-workbench-standalone-host > .libre-workbench {
   flex: 1;
   width: 100%;
   min-width: 0;
-  margin: 0;
+  margin: var(--libre-space-0);
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -252,8 +252,8 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    margin-left: -16px;
-    margin-right: -16px;
+    margin-left: var(--libre-space-neg-16);
+    margin-right: var(--libre-space-neg-16);
     /* Override the inline-style width the desktop branch sets, plus
        the desktop bounds. `auto` lets the box fit its parent
        (m-lesson__body) which after our negative margin spans the

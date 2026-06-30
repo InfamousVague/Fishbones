@@ -3,8 +3,8 @@
    interactive. Sized conservatively so it doesn't dominate the prose. */
 
 .libre-inline-sandbox-root {
-  margin: 16px 0;
-  border: 1px solid var(--color-border-default);
+  margin: var(--libre-space-16) var(--libre-space-0);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   overflow: hidden;
   background: var(--color-bg-primary);
@@ -13,48 +13,48 @@
 .libre-inline-sandbox-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-6) var(--libre-space-10);
   background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-inline-sandbox-lang {
   display: inline-flex;
   align-items: center;
-  padding: 1px 6px;
-  border-radius: 3px;
+  padding: var(--libre-space-1) var(--libre-space-6);
+  border-radius: var(--libre-radius-3);
   background: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
 }
 
 .libre-inline-sandbox-label {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--libre-ls-0-5);
   color: var(--color-text-tertiary);
 }
 
 .libre-inline-sandbox-actions {
   margin-left: auto;
   display: flex;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-inline-sandbox-btn {
-  padding: 3px 10px;
+  padding: var(--libre-space-3) var(--libre-space-10);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-xs);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
 }
@@ -62,22 +62,22 @@
 .libre-inline-sandbox-btn:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-inline-sandbox-btn--run {
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-inline-sandbox-btn--run:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 .libre-inline-sandbox-btn:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }
 
@@ -92,20 +92,20 @@
    edges. */
 .libre-inline-sandbox-editor {
   background: var(--color-bg-primary);
-  padding: 0 12px;
+  padding: var(--libre-space-0) var(--libre-space-12);
 }
 
 /* Output strip — mono font, dim backdrop, tight padding. Renders below
    the editor the first time the learner clicks Run. */
 .libre-inline-sandbox-output {
-  padding: 8px 12px;
+  padding: var(--libre-space-8) var(--libre-space-12);
   background: var(--color-bg-primary);
-  border-top: 1px solid var(--color-border-default);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-secondary);
-  max-height: 180px;
+  max-height: var(--libre-size-180);
   overflow-y: auto;
 }
 
@@ -119,15 +119,15 @@
   word-break: break-word;
 }
 
-.libre-inline-sandbox-out-line--warn { color: #d9a800; }
-.libre-inline-sandbox-out-line--error { color: #ef6f6f; }
+.libre-inline-sandbox-out-line--warn { color: var(--libre-c-d9a800); }
+.libre-inline-sandbox-out-line--error { color: var(--libre-c-ef6f6f); }
 
 .libre-inline-sandbox-out-error {
-  margin: 4px 0;
-  padding: 6px 8px;
-  background: rgba(239, 111, 111, 0.08);
-  border-left: 2px solid rgba(239, 111, 111, 0.5);
-  border-radius: 3px;
-  color: #f1b5b5;
+  margin: var(--libre-space-4) var(--libre-space-0);
+  padding: var(--libre-space-6) var(--libre-space-8);
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  border-left: var(--libre-bw-2) solid var(--libre-c-rgba-239-111-111-0-5);
+  border-radius: var(--libre-radius-3);
+  color: var(--libre-c-f1b5b5);
   white-space: pre-wrap;
 }

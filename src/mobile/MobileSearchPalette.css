@@ -5,17 +5,17 @@
    than the bottom-sheet pattern the outline / sign-in dialogs use. */
 .m-search-backdrop {
   position: fixed;
-  inset: 0;
-  z-index: 220;
+  inset: var(--libre-space-0);
+  z-index: var(--libre-z-220);
   background: var(--color-bg-primary);
   display: flex;
   flex-direction: column;
-  animation: m-search-fade 0.14s ease-out;
+  animation: m-search-fade var(--libre-dur-140) var(--libre-ease-ease-out);
 }
 
 @keyframes m-search-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: var(--libre-opacity-0); }
+  to   { opacity: var(--libre-opacity-1); }
 }
 
 .m-search {
@@ -27,16 +27,16 @@
      The outline / lesson views already include their own
      safe-area handling; the search overlay sits above them so it
      repeats the inset. */
-  padding-top: env(safe-area-inset-top, 0);
+  padding-top: env(safe-area-inset-top, var(--libre-space-0));
 }
 
 .m-search__head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border-default, rgba(255, 255, 255, 0.08));
-  background: var(--color-bg-elevated, #19191d);
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-12) var(--libre-space-16);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
 }
 
 .m-search__icon {
@@ -58,9 +58,9 @@
   border: 0;
   outline: 0;
   font: inherit;
-  font-size: 17px;
+  font-size: var(--libre-fs-17);
   color: var(--color-text-primary);
-  padding: 6px 0;
+  padding: var(--libre-space-6) var(--libre-space-0);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -78,8 +78,8 @@
 }
 
 .m-search__close {
-  width: 36px;
-  height: 36px;
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -100,40 +100,40 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 8px 0 calc(env(safe-area-inset-bottom, 0) + 16px);
+  padding: var(--libre-space-8) var(--libre-space-0) calc(env(safe-area-inset-bottom, var(--libre-space-0)) + var(--libre-space-16));
 }
 
 .m-search__empty {
-  padding: 32px 24px;
+  padding: var(--libre-space-32) var(--libre-space-24);
   color: var(--color-text-tertiary);
-  font-size: 14px;
+  font-size: var(--libre-fs-14);
   text-align: center;
 }
 
 .m-search__empty strong {
   color: var(--color-text-secondary);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .m-search__section + .m-search__section {
-  margin-top: 8px;
+  margin-top: var(--libre-space-8);
 }
 
 .m-search__section-heading {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  padding: 14px 18px 6px;
+  padding: var(--libre-space-14) var(--libre-space-18) var(--libre-space-6);
 }
 
 .m-search__row {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-12) var(--libre-space-18);
   background: transparent;
   border: 0;
   text-align: left;
@@ -149,28 +149,28 @@
 }
 
 .m-search__row-icon {
-  width: 32px;
-  height: 32px;
+  width: var(--libre-size-32);
+  height: var(--libre-size-32);
   flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: var(--libre-radius-md);
-  background: var(--color-bg-secondary, #15151a);
+  background: var(--color-bg-secondary, var(--libre-c-15151a));
   color: var(--color-text-secondary);
 }
 
 .m-search__row-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
   flex: 1;
 }
 
 .m-search__row-label {
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.3;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-500);
+  line-height: var(--libre-lh-1-3);
   color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -180,8 +180,8 @@
 }
 
 .m-search__row-hint {
-  font-size: 12px;
-  line-height: 1.3;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-3);
   color: var(--color-text-tertiary);
   overflow: hidden;
   text-overflow: ellipsis;

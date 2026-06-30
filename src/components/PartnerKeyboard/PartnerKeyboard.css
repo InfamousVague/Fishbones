@@ -7,27 +7,27 @@
 
 .libre-pk {
   position: fixed;
-  left: 0;
-  right: 0;
+  left: var(--libre-space-0);
+  right: var(--libre-space-0);
   /* `bottom` is set inline by JS in pixel units from the
      visualViewport math. Default 0 = sits at the layout
      viewport's bottom edge. */
-  bottom: 0;
-  background: var(--color-bg-secondary, #15161c);
-  border-top: 1px solid var(--color-border-default, #2a2c36);
+  bottom: var(--libre-space-0);
+  background: var(--color-bg-secondary, var(--libre-c-15161c));
+  border-top: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-2a2c36));
   /* --libre-pk-shim is set by the React component to 44 px when the
      target has focus on iOS — pushes the strip down so its bottom
      edge hides behind iOS's form accessory bar, plus matching
      bottom padding so the keys + tabs stay above the bar's draw
      region. See PartnerKeyboard.tsx for the full rationale. */
   padding-bottom: calc(
-    env(safe-area-inset-bottom, 0px) + var(--libre-pk-shim, 0px)
+    env(safe-area-inset-bottom, var(--libre-space-0)) + var(--libre-pk-shim, var(--libre-space-0))
   );
   /* Above the mobile tab bar (z-index 100) AND above the
      achievement modal backdrop (z-index 10010) — the strip must
      be tappable from any UI surface the editor can render
      beneath. */
-  z-index: 10020;
+  z-index: var(--libre-z-10020);
   /* Hidden until the target textarea is focused. Component flips
      this via the `--active` modifier. */
   display: none;
@@ -40,8 +40,8 @@
 /* Tab strip — categories. Horizontal scroll for overflow. */
 .libre-pk__tabs {
   display: flex;
-  gap: 2px;
-  padding: 6px 6px 0;
+  gap: var(--libre-space-2);
+  padding: var(--libre-space-6) var(--libre-space-6) var(--libre-space-0);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -52,29 +52,29 @@
 
 .libre-pk__tab {
   flex: 0 0 auto;
-  padding: 5px 12px;
+  padding: var(--libre-space-5) var(--libre-space-12);
   background: transparent;
   border: 0;
-  color: var(--color-text-tertiary, #9ea1ac);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  color: var(--color-text-tertiary, var(--libre-c-9ea1ac));
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-02em);
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 6px;
-  transition: background 100ms ease, color 100ms ease;
+  border-radius: var(--libre-radius-6);
+  transition: background var(--libre-dur-100) var(--libre-ease-ease), color var(--libre-dur-100) var(--libre-ease-ease);
   font-family: inherit;
 }
 .libre-pk__tab--active {
-  background: var(--color-bg-tertiary, #1f2028);
-  color: var(--color-text-primary, #ffffff);
+  background: var(--color-bg-tertiary, var(--libre-c-1f2028));
+  color: var(--color-text-primary, var(--libre-c-white));
 }
 
 /* Key row — horizontal scrollable strip of symbols / snippets. */
 .libre-pk__row {
   display: flex;
-  gap: 4px;
-  padding: 6px;
+  gap: var(--libre-space-4);
+  padding: var(--libre-space-6);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -91,16 +91,16 @@
   flex: 0 0 auto;
   /* 44 px is Apple's minimum touch target. Keys narrower than
      this become hard to hit reliably under thumb. */
-  min-width: 44px;
-  height: 44px;
-  padding: 0 10px;
-  background: var(--color-bg-tertiary, #1f2028);
-  border: 1px solid var(--color-border-default, #2a2c36);
-  border-radius: 8px;
-  color: var(--color-text-primary, #ffffff);
+  min-width: var(--libre-size-44);
+  height: var(--libre-size-44);
+  padding: var(--libre-space-0) var(--libre-space-10);
+  background: var(--color-bg-tertiary, var(--libre-c-1f2028));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-2a2c36));
+  border-radius: var(--libre-radius-8);
+  color: var(--color-text-primary, var(--libre-c-white));
   font-family: "SF Mono", "Monaco", "Cascadia Code", monospace;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -108,20 +108,20 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  transition: background 80ms ease, transform 80ms ease;
+  transition: background var(--libre-dur-80) var(--libre-ease-ease), transform var(--libre-dur-80) var(--libre-ease-ease);
 }
 .libre-pk__key:active {
-  background: var(--color-bg-secondary, #2a2c36);
+  background: var(--color-bg-secondary, var(--libre-c-2a2c36));
   transform: scale(0.96);
 }
 .libre-pk__key--wide {
-  min-width: 60px;
-  padding: 0 12px;
+  min-width: var(--libre-size-60);
+  padding: var(--libre-space-0) var(--libre-space-12);
 }
 .libre-pk__key--snippet {
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
 }
 .libre-pk__key--mod {
-  color: var(--color-accent-warm, #f37239);
-  font-weight: 600;
+  color: var(--color-accent-warm, var(--libre-c-f37239));
+  font-weight: var(--libre-fw-600);
 }

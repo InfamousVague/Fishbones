@@ -5,8 +5,8 @@
    desktop WKWebView — see the Hologram-foil note). */
 
 .libre-ai-bubble-markdown {
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-13-5);
+  line-height: var(--libre-lh-1-55);
   color: var(--color-text-primary);
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -25,30 +25,30 @@
 .libre-ai-bubble-markdown--streaming > :last-child::after {
   content: "";
   display: inline-block;
-  width: 6px;
+  width: var(--libre-size-6);
   height: 1em;
-  margin-left: 2px;
+  margin-left: var(--libre-space-2);
   vertical-align: text-bottom;
   background: var(--color-text-tertiary);
-  animation: libre-ai-bubble-caret 1s steps(2) infinite;
+  animation: libre-ai-bubble-caret var(--libre-dur-1000) var(--libre-ease-cb-11) infinite;
 }
 
 @keyframes libre-ai-bubble-caret {
   to {
-    opacity: 0;
+    opacity: var(--libre-opacity-0);
   }
 }
 
 /* ── Block spacing ─────────────────────────────────────────── */
 
 .libre-ai-bubble-markdown > :first-child {
-  margin-top: 0;
+  margin-top: var(--libre-space-0);
 }
 .libre-ai-bubble-markdown > :last-child {
-  margin-bottom: 0;
+  margin-bottom: var(--libre-space-0);
 }
 .libre-ai-bubble-markdown p {
-  margin: 0 0 8px;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-8);
 }
 
 /* ── Headings — scaled for chat, NOT the giant UA defaults ──── */
@@ -59,18 +59,18 @@
 .libre-ai-bubble-markdown h4,
 .libre-ai-bubble-markdown h5,
 .libre-ai-bubble-markdown h6 {
-  margin: 14px 0 6px;
-  font-weight: 650;
-  line-height: 1.3;
+  margin: var(--libre-space-14) var(--libre-space-0) var(--libre-space-6);
+  font-weight: var(--libre-fw-650);
+  line-height: var(--libre-lh-1-3);
   color: var(--color-text-primary);
 }
-.libre-ai-bubble-markdown h1 { font-size: 16px; }
-.libre-ai-bubble-markdown h2 { font-size: 15px; }
-.libre-ai-bubble-markdown h3 { font-size: 14px; }
+.libre-ai-bubble-markdown h1 { font-size: var(--libre-fs-16); }
+.libre-ai-bubble-markdown h2 { font-size: var(--libre-fs-15); }
+.libre-ai-bubble-markdown h3 { font-size: var(--libre-fs-14); }
 .libre-ai-bubble-markdown h4,
 .libre-ai-bubble-markdown h5,
 .libre-ai-bubble-markdown h6 {
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   color: var(--color-text-secondary);
 }
 
@@ -78,15 +78,15 @@
 
 .libre-ai-bubble-markdown ul,
 .libre-ai-bubble-markdown ol {
-  margin: 0 0 8px;
-  padding-left: 20px;
+  margin: var(--libre-space-0) var(--libre-space-0) var(--libre-space-8);
+  padding-left: var(--libre-space-20);
 }
 .libre-ai-bubble-markdown li {
-  margin: 2px 0;
+  margin: var(--libre-space-2) var(--libre-space-0);
 }
 .libre-ai-bubble-markdown li > ul,
 .libre-ai-bubble-markdown li > ol {
-  margin: 2px 0;
+  margin: var(--libre-space-2) var(--libre-space-0);
 }
 .libre-ai-bubble-markdown li::marker {
   color: var(--color-text-tertiary);
@@ -96,45 +96,45 @@
 
 .libre-ai-bubble-markdown :not(pre) > code {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 0.86em;
+  font-size: var(--libre-fs-em-0-86);
   padding: 0.1em 0.36em;
-  border-radius: 5px;
+  border-radius: var(--libre-radius-5);
   background: color-mix(in srgb, var(--color-text-primary) 9%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  border: var(--libre-bw-1) solid color-mix(in srgb, var(--color-text-primary) 8%, transparent);
 }
 
 /* ── Links ─────────────────────────────────────────────────── */
 
 .libre-ai-bubble-markdown a {
-  color: var(--color-accent, #6aa);
+  color: var(--color-accent, var(--libre-c-66aaaa));
   text-decoration: none;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--color-accent, #6aa) 40%, transparent);
+  border-bottom: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--color-accent, var(--libre-c-66aaaa)) 40%, transparent);
   cursor: pointer;
 }
 .libre-ai-bubble-markdown a:hover {
-  border-bottom-color: var(--color-accent, #6aa);
+  border-bottom-color: var(--color-accent, var(--libre-c-66aaaa));
 }
 
 /* ── Blockquote ────────────────────────────────────────────── */
 
 .libre-ai-bubble-markdown blockquote {
-  margin: 8px 0;
-  padding: 2px 0 2px 12px;
-  border-left: 3px solid
-    color-mix(in srgb, var(--color-accent, #6aa) 50%, var(--color-border-default));
+  margin: var(--libre-space-8) var(--libre-space-0);
+  padding: var(--libre-space-2) var(--libre-space-0) var(--libre-space-2) var(--libre-space-12);
+  border-left: var(--libre-bw-3) solid
+    color-mix(in srgb, var(--color-accent, var(--libre-c-66aaaa)) 50%, var(--color-border-default));
   color: var(--color-text-secondary);
 }
 .libre-ai-bubble-markdown blockquote p {
-  margin: 2px 0;
+  margin: var(--libre-space-2) var(--libre-space-0);
 }
 
 /* ── Horizontal rule ───────────────────────────────────────── */
 
 .libre-ai-bubble-markdown hr {
   border: none;
-  border-top: 1px solid var(--color-border-default);
-  margin: 12px 0;
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  margin: var(--libre-space-12) var(--libre-space-0);
 }
 
 /* ── Tables ────────────────────────────────────────────────── */
@@ -145,17 +145,17 @@
   max-width: 100%;
   overflow-x: auto;
   border-collapse: collapse;
-  margin: 8px 0;
-  font-size: 12.5px;
+  margin: var(--libre-space-8) var(--libre-space-0);
+  font-size: var(--libre-fs-12-5);
 }
 .libre-ai-bubble-markdown th,
 .libre-ai-bubble-markdown td {
-  border: 1px solid var(--color-border-default);
-  padding: 5px 9px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  padding: var(--libre-space-5) var(--libre-space-9);
   text-align: left;
 }
 .libre-ai-bubble-markdown th {
-  font-weight: 650;
+  font-weight: var(--libre-fw-650);
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
 }
@@ -163,20 +163,20 @@
 /* ── Code block shell ──────────────────────────────────────── */
 
 .libre-chat-code {
-  margin: 8px 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: 9px;
+  margin: var(--libre-space-8) var(--libre-space-0);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-9);
   overflow: hidden;
-  background: var(--color-code-surface, #1e1e1e);
+  background: var(--color-code-surface, var(--libre-c-1e1e1e));
 }
 
 .libre-chat-code-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-5) var(--libre-space-10);
   background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
   cursor: default;
   list-style: none;
 }
@@ -187,9 +187,9 @@
 
 .libre-chat-code-lang {
   flex: 1;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-3);
   text-transform: lowercase;
   color: var(--color-text-tertiary);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
@@ -198,46 +198,46 @@
 .libre-chat-code-copy {
   flex-shrink: 0;
   appearance: none;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 2px 9px;
-  border-radius: 6px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  padding: var(--libre-space-2) var(--libre-space-9);
+  border-radius: var(--libre-radius-6);
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), color var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre-chat-code-copy:hover {
   background: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   color: var(--color-text-primary);
 }
 .libre-chat-code-copy.is-copied {
-  color: var(--color-success, #4caf7d);
-  border-color: color-mix(in srgb, var(--color-success, #4caf7d) 45%, transparent);
+  color: var(--color-success, var(--libre-c-4caf7d));
+  border-color: color-mix(in srgb, var(--color-success, var(--libre-c-4caf7d)) 45%, transparent);
 }
 
 .libre-chat-code-body {
-  margin: 0;
-  max-height: 440px;
+  margin: var(--libre-space-0);
+  max-height: var(--libre-size-440);
   overflow: auto;
 }
 .libre-chat-code-body .shiki {
-  margin: 0;
-  padding: 10px 12px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-10) var(--libre-space-12);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
   background: transparent !important;
   overflow: visible;
 }
 /* Plain <pre> fallback (Shiki unavailable). */
 .libre-chat-code-body > pre:not(.shiki) {
-  margin: 0;
-  padding: 10px 12px;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-10) var(--libre-space-12);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-primary);
   white-space: pre;
 }
@@ -250,7 +250,7 @@ details.libre-chat-code > summary:hover .libre-chat-code-lang {
   color: var(--color-text-secondary);
 }
 details.libre-chat-code[open] > summary {
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 /* ── Shiki dual-theme flip (scoped to chat code) ───────────────

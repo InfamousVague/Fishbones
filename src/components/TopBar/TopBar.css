@@ -5,7 +5,7 @@
 .libre__topbar {
   display: flex;
   align-items: center;
-  height: 52px;
+  height: var(--libre-size-52);
   flex-shrink: 0;
   /* `backdrop-filter` creates a new stacking context. That bottles
      up the stats popover (which lives inside the topbar in the DOM
@@ -17,7 +17,7 @@
      content lets the popover overhang correctly.
      position: relative + z-index together do the lift. */
   position: relative;
-  z-index: 60;
+  z-index: var(--libre-z-60);
   /* Frosted-glass surface. Surface + border read from theme-aware
      --color-glass-* tokens (themes.css) so the topbar inverts to a
      light glass on white in light themes instead of printing a
@@ -26,9 +26,9 @@
      WKWebView (Tauri) and older Safari; the unprefixed version
      covers Chromium. */
   background: var(--color-glass-bg);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  backdrop-filter: blur(28px) saturate(160%);
-  border-bottom: 1px solid var(--color-glass-border);
+  -webkit-backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  border-bottom: var(--libre-bw-1) solid var(--color-glass-border);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -46,7 +46,7 @@
      here; bumped to 138 so the tab strip starts at x=138 with a
      ~20px gap past the chip's right edge instead of colliding
      with it. */
-  width: 138px;
+  width: var(--libre-size-138);
   flex-shrink: 0;
   height: 100%;
 }
@@ -55,29 +55,29 @@
 .libre__topbar-nav {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--libre-space-2);
   flex-shrink: 0;
-  margin-right: 6px;
+  margin-right: var(--libre-space-6);
 }
 .libre__topbar-navbtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: var(--libre-size-38);
+  height: var(--libre-size-38);
   border: 0;
-  border-radius: var(--libre-radius-pill, 999px);
+  border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, opacity 120ms ease;
+  transition: background var(--libre-dur-120) var(--libre-ease-ease), color var(--libre-dur-120) var(--libre-ease-ease), opacity var(--libre-dur-120) var(--libre-ease-ease);
 }
 .libre__topbar-navbtn:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
 }
 .libre__topbar-navbtn:disabled {
-  opacity: 0.3;
+  opacity: var(--libre-opacity-0-3);
   cursor: default;
 }
 
@@ -88,12 +88,12 @@
 
 .libre__topbar-tabs {
   display: flex;
-  gap: 4px;
+  gap: var(--libre-space-4);
   flex: 1;
   overflow-x: auto;
   height: 100%;
   align-items: center;
-  padding: 0 8px;
+  padding: var(--libre-space-0) var(--libre-space-8);
   scrollbar-width: none;
 }
 
@@ -110,10 +110,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  margin: 0 4px 0 0;
-  padding: 0;
+  width: var(--libre-size-38);
+  height: var(--libre-size-38);
+  margin: var(--libre-space-0) var(--libre-space-4) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-0);
   background: transparent;
   border: 0;
   border-radius: var(--libre-radius-pill);
@@ -132,20 +132,20 @@
    labels the sidebar uses so the top bar reads like a breadcrumb of
    where the learner has been. */
 .libre__topbar-tabs-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  padding-right: 6px;
+  padding-right: var(--libre-space-6);
   white-space: nowrap;
 }
 
 .libre__topbar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-0) var(--libre-space-10);
   height: 100%;
 }
 
@@ -161,11 +161,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
+  padding: var(--libre-space-0);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -179,25 +179,25 @@
    line up on the same baseline. */
 .libre__topbar-icon-btn--labeled {
   width: auto;
-  gap: 7px;
-  padding: 0 14px;
+  gap: var(--libre-space-7);
+  padding: var(--libre-space-0) var(--libre-space-14);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-neg-0-005em);
 }
 
 .libre__topbar-icon-btn-label {
   /* Cheap line-height reset so the label sits on the icon's
      vertical centre without nudging the button taller. */
-  line-height: 1;
+  line-height: var(--libre-lh-1);
 }
 
 .libre__topbar-icon-btn:hover,
 .libre__topbar-icon-btn:focus-visible {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border-color: var(--libre-c-rgba-255-255-255-0-18);
   outline: none;
 }
 
@@ -206,9 +206,9 @@
    rest so it doesn't compete with the editor/lesson surface. */
 .libre__topbar-icon-btn--discord:hover,
 .libre__topbar-icon-btn--discord:focus-visible {
-  color: #5865f2;
-  border-color: rgba(88, 101, 242, 0.5);
-  background: rgba(88, 101, 242, 0.08);
+  color: var(--libre-c-5865f2);
+  border-color: var(--libre-c-rgba-88-101-242-0-5);
+  background: var(--libre-c-rgba-88-101-242-0-08);
 }
 
 /* Search trigger — looks like a search <input> with a leading
@@ -227,17 +227,17 @@
 .libre__topbar-search {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 6px 0 8px;
-  min-width: 180px;
-  max-width: 240px;
+  gap: var(--libre-space-6);
+  height: var(--libre-size-26);
+  padding: var(--libre-space-0) var(--libre-space-6) var(--libre-space-0) var(--libre-space-8);
+  min-width: var(--libre-size-180);
+  max-width: var(--libre-size-240);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   color: var(--color-text-tertiary);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   cursor: pointer;
   text-align: left;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
@@ -246,14 +246,14 @@
 .libre__topbar-search:hover,
 .libre__topbar-search:focus-visible {
   color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border-color: var(--libre-c-rgba-255-255-255-0-18);
   outline: none;
 }
 
 .libre__topbar-search-icon {
   flex-shrink: 0;
-  opacity: 0.75;
+  opacity: var(--libre-opacity-0-75);
 }
 
 .libre__topbar-search-placeholder {
@@ -264,20 +264,20 @@
   white-space: nowrap;
   /* Slightly heavier than body copy so it reads as a label, not a
      value the user already typed. */
-  font-weight: 500;
+  font-weight: var(--libre-fw-500);
 }
 
 .libre__topbar-search-kbd {
   flex-shrink: 0;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10px;
-  letter-spacing: 0.4px;
-  padding: 1px 5px;
+  font-size: var(--libre-fs-10);
+  letter-spacing: var(--libre-ls-0-4);
+  padding: var(--libre-space-1) var(--libre-space-5);
   border-radius: var(--libre-radius-xs);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-08);
   color: var(--color-text-tertiary);
-  opacity: 0.85;
+  opacity: var(--libre-opacity-0-85);
 }
 
 /* Tight windows: drop the kbd hint, then the placeholder, leaving a
@@ -292,9 +292,9 @@
 }
 @media (max-width: 720px) {
   .libre__topbar-search {
-    width: 28px;
-    min-width: 28px;
-    padding: 0;
+    width: var(--libre-size-28);
+    min-width: var(--libre-size-28);
+    padding: var(--libre-space-0);
     justify-content: center;
   }
   .libre__topbar-search-placeholder {
@@ -312,18 +312,18 @@
 .libre__topbar-stats-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 10px 0 12px;
+  gap: var(--libre-space-8);
+  height: var(--libre-size-36);
+  padding: var(--libre-space-0) var(--libre-space-10) var(--libre-space-0) var(--libre-space-12);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--libre-ls-0-3);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
@@ -331,33 +331,33 @@
 .libre__topbar-stats-trigger:hover,
 .libre__topbar-stats-trigger--open {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--libre-c-rgba-255-255-255-0-08);
+  border-color: var(--libre-c-rgba-255-255-255-0-18);
 }
 
 .libre__topbar-streak {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--libre-space-3);
   color: var(--color-text-tertiary);
   transition: color var(--libre-motion-snappy);
 }
 
 .libre__topbar-streak--active {
-  color: #ff9b5e; /* warm orange for active fire */
+  color: var(--libre-c-ff9b5e); /* warm orange for active fire */
 }
 
 .libre__topbar-streak-flame {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
-  line-height: 1;
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
+  line-height: var(--libre-lh-1);
 }
 
 .libre__topbar-streak-count {
-  font-weight: 700;
+  font-weight: var(--libre-fw-700);
 }
 
 /* The circular progress ring (track + fill + center label) lives in
@@ -369,90 +369,90 @@
    right edge of the window. */
 .libre__topbar-stats-panel {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  top: calc(100% + var(--libre-space-6));
+  right: var(--libre-space-0);
   /* z-index only sorts within the topbar's own stacking context
      (the backdrop-filter on .libre__topbar creates one). The
      POPover-over-page-content lifting actually happens at the
      topbar root via its own position+z-index — see the comment on
      `.libre__topbar`. Here we just need to be above any inline
      siblings inside the topbar, which is comfortably handled by 1. */
-  z-index: 1;
-  width: 360px;
+  z-index: var(--libre-z-1);
+  width: var(--libre-size-360);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
-  border-radius: 14px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-14);
   /* Generous padding so the hero ring + stat blocks + mini heatmap
      don't crowd each other or the panel edges. The divider below
      uses negative margin to bleed across the full panel width even
      with this larger inset. */
-  padding: 18px 20px 16px;
+  padding: var(--libre-space-18) var(--libre-space-20) var(--libre-space-16);
   /* Scale the whole popup up a notch — the ring, text, heatmap, pips
      and buttons all grow together (the panel is built from fixed px, so
      `zoom` is the one-knob way to enlarge everything uniformly). Anchored
      top-right, so it grows down-and-left and stays pinned to the chip.
      Tune this single number to taste. */
   zoom: 1.12;
-  animation: libre-stats-enter 0.16s ease-out;
+  animation: libre-stats-enter var(--libre-dur-160) var(--libre-ease-ease-out);
 }
 
 @keyframes libre-stats-enter {
-  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0)    scale(1); }
+  from { opacity: var(--libre-opacity-0); transform: translateY(var(--libre-size-neg-6)) scale(0.98); }
+  to   { opacity: var(--libre-opacity-1); transform: translateY(0)    scale(1); }
 }
 
 /* Hero row: ring on left, level + XP text on right. */
 .libre__topbar-stats-hero {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 2px 0 4px;
+  gap: var(--libre-space-14);
+  padding: var(--libre-space-2) var(--libre-space-0) var(--libre-space-4);
 }
 
 .libre__topbar-stats-hero-body {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--libre-space-1);
   min-width: 0;
   flex: 1;
 }
 
 .libre__topbar-stats-heading {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--libre-ls-neg-0-01em);
 }
 
 .libre__topbar-stats-sub {
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .libre__topbar-stats-to-next {
-  margin-top: 3px;
-  font-size: 10.5px;
+  margin-top: var(--libre-space-3);
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-tertiary);
   font-style: italic;
 }
 
 .libre__topbar-stats-divider {
-  height: 1px;
+  height: var(--libre-size-1);
   background: var(--color-border-default);
-  margin: 10px -14px;
+  margin: var(--libre-space-10) var(--libre-space-neg-14);
 }
 
 .libre__topbar-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 14px;
+  gap: var(--libre-space-10) var(--libre-space-14);
 }
 
 .libre__topbar-stats-block {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--libre-space-1);
   min-width: 0;
 }
 
@@ -463,10 +463,10 @@
 .libre__topbar-stats-block-label {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  gap: var(--libre-space-5);
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -475,21 +475,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 12px;
-  height: 12px;
-  line-height: 1;
+  width: var(--libre-size-12);
+  height: var(--libre-size-12);
+  line-height: var(--libre-lh-1);
 }
 
 .libre__topbar-stats-block-value {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
-  margin-top: 1px;
+  margin-top: var(--libre-space-1);
 }
 
 .libre__topbar-stats-block-hint {
-  font-size: 10px;
+  font-size: var(--libre-fs-10);
   color: var(--color-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -506,38 +506,38 @@
 .libre__topbar-stats-mini-heat {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--libre-space-8);
   /* Breathing room above the heatmap card so it reads as a distinct
      section, not glued to the bottom of the StatBlock grid. The 4px
      gap that used to live here let the card crash into "5 reading ·
      10 quiz · 20 exercise" hint text above. */
-  margin-top: 18px;
+  margin-top: var(--libre-space-18);
   /* Symmetrical bottom gap separates the heatmap from the streak
      CTA / sign-in row underneath. */
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  background: var(--color-bg-elevated, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--color-border-default);
-  border-radius: 10px;
+  margin-bottom: var(--libre-space-14);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  background: var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-03));
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
 }
 
 .libre__topbar-stats-mini-heat-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre__topbar-stats-mini-heat-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre__topbar-stats-mini-heat-count {
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
@@ -545,7 +545,7 @@
 .libre__topbar-stats-mini-heat-body {
   display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre__topbar-stats-mini-heat-rowlabels {
@@ -554,12 +554,12 @@
      labels line up with their corresponding cell rows. Bumped from
      2 → 3px in lockstep with the cell gap so the cells actually
      separate visually instead of butting up against each other. */
-  grid-template-rows: repeat(7, 10px);
-  row-gap: 3px;
-  font-size: 9px;
-  font-weight: 700;
+  grid-template-rows: repeat(7, var(--libre-size-10));
+  row-gap: var(--libre-space-3);
+  font-size: var(--libre-fs-9);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-tertiary);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--libre-ls-0-04em);
   user-select: none;
 }
 
@@ -567,7 +567,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-width: 10px;
+  min-width: var(--libre-size-10);
 }
 
 .libre__topbar-stats-mini-heat-grid {
@@ -575,15 +575,15 @@
   flex-direction: column;
   flex-wrap: wrap;
   align-content: flex-start;
-  height: calc(7 * 10px + 6 * 3px);
-  gap: 3px;
+  height: calc(7 * var(--libre-size-10) + 6 * var(--libre-size-3));
+  gap: var(--libre-space-3);
 }
 
 .libre__topbar-stats-mini-heat-cell {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: var(--color-bg-inset, rgba(255, 255, 255, 0.05));
+  width: var(--libre-size-10);
+  height: var(--libre-size-10);
+  border-radius: var(--libre-radius-2);
+  background: var(--color-bg-inset, var(--libre-c-rgba-255-255-255-0-05));
   flex-shrink: 0;
   display: inline-block;
 }
@@ -595,19 +595,19 @@
    we don't ink them differently because the calendar context
    already tells you they're upcoming. */
 .libre__topbar-stats-mini-heat-cell--pad {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 255, 255, 0.06);
+  background: var(--libre-c-rgba-255-255-255-0-03);
+  border: var(--libre-bw-1) dashed var(--libre-c-rgba-255-255-255-0-06);
   /* Compensate for the 1px border so the cell still occupies 10×10
      of layout space and the columns stay aligned with the labels. */
-  width: 8px;
-  height: 8px;
+  width: var(--libre-size-8);
+  height: var(--libre-size-8);
 }
 
-.libre__topbar-stats-mini-heat-cell--lvl-0 { background: rgba(255, 255, 255, 0.05); }
-.libre__topbar-stats-mini-heat-cell--lvl-1 { background: rgba(124, 217, 124, 0.28); }
-.libre__topbar-stats-mini-heat-cell--lvl-2 { background: rgba(124, 217, 124, 0.5); }
-.libre__topbar-stats-mini-heat-cell--lvl-3 { background: rgba(124, 217, 124, 0.72); }
-.libre__topbar-stats-mini-heat-cell--lvl-4 { background: #7cd97c; }
+.libre__topbar-stats-mini-heat-cell--lvl-0 { background: var(--libre-c-rgba-255-255-255-0-05); }
+.libre__topbar-stats-mini-heat-cell--lvl-1 { background: var(--libre-c-rgba-124-217-124-0-28); }
+.libre__topbar-stats-mini-heat-cell--lvl-2 { background: var(--libre-c-rgba-124-217-124-0-5); }
+.libre__topbar-stats-mini-heat-cell--lvl-3 { background: var(--libre-c-rgba-124-217-124-0-72); }
+.libre__topbar-stats-mini-heat-cell--lvl-4 { background: var(--libre-c-7cd97c); }
 
 /* ---- Next-milestone teaser ---------------------------------------- */
 /* Single-line strip showing the closest still-locked achievement.
@@ -617,31 +617,31 @@
 .libre__topbar-stats-next {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 8px 12px;
-  background: linear-gradient(90deg, rgba(252, 211, 77, 0.08), transparent 90%);
-  border: 1px solid rgba(252, 211, 77, 0.2);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-8) var(--libre-space-12);
+  background: linear-gradient(90deg, var(--libre-c-rgba-252-211-77-0-08), transparent 90%);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-252-211-77-0-2);
   border-radius: var(--libre-radius-md);
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   /* Breathing room above the teaser so it doesn't crash into the
      "bank for upgrades…" hint text below the Coins block. The
      mini-heatmap (sibling above when wired) uses the same 18px
      top-gap pattern; this picks up the slack on accounts that
      don't have any history yet and so don't render the heatmap. */
-  margin-top: 18px;
+  margin-top: var(--libre-space-18);
 }
 
 .libre__topbar-stats-next-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-08em);
   text-transform: uppercase;
-  color: rgba(252, 211, 77, 0.85);
+  color: var(--libre-c-rgba-252-211-77-0-85);
   flex-shrink: 0;
 }
 
 .libre__topbar-stats-next-name {
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   flex: 1;
   overflow: hidden;
@@ -650,8 +650,8 @@
 }
 
 .libre__topbar-stats-next-progress {
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
@@ -659,7 +659,7 @@
 
 .libre__topbar-stats-next-unit {
   color: var(--color-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--libre-fw-500);
 }
 
 /* ---- Streak shield panel ----------------------------------------- */
@@ -671,70 +671,70 @@
    two panels read as two different affordances at a glance. */
 
 .libre__topbar-stats-freeze {
-  margin-top: 10px;
-  padding: 9px 12px 10px;
-  background: linear-gradient(90deg, rgba(127, 200, 255, 0.08), transparent 90%);
-  border: 1px solid rgba(127, 200, 255, 0.22);
+  margin-top: var(--libre-space-10);
+  padding: var(--libre-space-9) var(--libre-space-12) var(--libre-space-10);
+  background: linear-gradient(90deg, var(--libre-c-rgba-127-200-255-0-08), transparent 90%);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-127-200-255-0-22);
   border-radius: var(--libre-radius-md);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre__topbar-stats-freeze-head {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre__topbar-stats-freeze-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
-  line-height: 1;
+  width: var(--libre-size-14);
+  height: var(--libre-size-14);
+  line-height: var(--libre-lh-1);
 }
 
 .libre__topbar-stats-freeze-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: var(--libre-fs-9-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-08em);
   text-transform: uppercase;
-  color: rgba(127, 200, 255, 0.95);
+  color: var(--libre-c-rgba-127-200-255-0-95);
   flex: 1;
 }
 
 .libre__topbar-stats-freeze-count {
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .libre__topbar-stats-freeze-pips {
   display: flex;
-  gap: 5px;
+  gap: var(--libre-space-5);
 }
 
 .libre__topbar-stats-freeze-pip {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  width: var(--libre-size-10);
+  height: var(--libre-size-10);
+  border-radius: var(--libre-radius-circle);
   background: transparent;
-  border: 1.5px solid rgba(127, 200, 255, 0.55);
+  border: var(--libre-bw-1-5) solid var(--libre-c-rgba-127-200-255-0-55);
   transition: background var(--libre-motion-snappy);
 }
 
 .libre__topbar-stats-freeze-pip--used {
-  background: rgba(127, 200, 255, 0.55);
-  border-color: rgba(127, 200, 255, 0.55);
+  background: var(--libre-c-rgba-127-200-255-0-55);
+  border-color: var(--libre-c-rgba-127-200-255-0-55);
 }
 
 .libre__topbar-stats-freeze-hint {
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-35);
   color: var(--color-text-secondary);
 }
 
@@ -743,29 +743,29 @@
    with the bottom button. Only shown when the streak is in danger
    AND a shield is available. */
 .libre__topbar-stats-freeze-btn {
-  margin-top: 4px;
+  margin-top: var(--libre-space-4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
   width: 100%;
-  padding: 7px 12px;
-  background: rgba(127, 200, 255, 0.18);
-  color: #cfe6ff;
-  border: 1px solid rgba(127, 200, 255, 0.55);
-  border-radius: 7px;
+  padding: var(--libre-space-7) var(--libre-space-12);
+  background: var(--libre-c-rgba-127-200-255-0-18);
+  color: var(--libre-c-cfe6ff);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-127-200-255-0-55);
+  border-radius: var(--libre-radius-7);
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  line-height: 1.2;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-1);
+  line-height: var(--libre-lh-1-2);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
 .libre__topbar-stats-freeze-btn:hover {
-  background: rgba(127, 200, 255, 0.3);
-  color: #ffffff;
+  background: var(--libre-c-rgba-127-200-255-0-3);
+  color: var(--libre-c-white);
 }
 
 /* Snowflake indicator that rides next to the streak count in the
@@ -776,11 +776,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 11px;
-  height: 11px;
-  margin-left: 1px;
-  color: #7fc8ff;
-  line-height: 1;
+  width: var(--libre-size-11);
+  height: var(--libre-size-11);
+  margin-left: var(--libre-space-1);
+  color: var(--libre-c-7fc8ff);
+  line-height: var(--libre-lh-1);
 }
 
 /* Full-width "View profile" CTA pinned to the bottom of the dropdown.
@@ -788,22 +788,22 @@
    natural next action rather than another stat chip. */
 .libre__topbar-stats-view-profile {
   width: 100%;
-  margin-top: 14px;
-  padding: 9px 12px;
+  margin-top: var(--libre-space-14);
+  padding: var(--libre-space-9) var(--libre-space-12);
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border: 1px solid var(--gg-fill-white);
+  border: var(--libre-bw-1) solid var(--gg-fill-white);
   border-radius: var(--libre-radius-md);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-1);
   cursor: pointer;
   transition: opacity var(--libre-motion-snappy);
 }
 
 .libre__topbar-stats-view-profile:hover {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 /* Secondary variant — used when "Sign in" is the primary CTA, so View
@@ -815,17 +815,17 @@
 .libre__topbar-stats-view-profile--secondary {
   background: transparent;
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border, rgba(127, 127, 127, 0.3));
-  margin-top: 0;
-  padding: 7px 12px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
+  border: var(--libre-bw-1) solid var(--color-border, var(--libre-c-rgba-127-127-127-0-3));
+  margin-top: var(--libre-space-0);
+  padding: var(--libre-space-7) var(--libre-space-12);
+  border-radius: var(--libre-radius-7);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  line-height: var(--libre-lh-1-2);
 }
 .libre__topbar-stats-view-profile--secondary:hover {
-  background: var(--color-bg-hover, rgba(127, 127, 127, 0.08));
-  opacity: 1;
+  background: var(--color-bg-hover, var(--libre-c-rgba-127-127-127-0-08));
+  opacity: var(--libre-opacity-1);
 }
 
 /* Account row at the bottom of the dropdown. Holds the identity blurb
@@ -834,23 +834,23 @@
    the existing divider treatment above the View-profile button reads
    as enough hierarchy. */
 .libre__topbar-stats-account {
-  margin-top: 12px;
+  margin-top: var(--libre-space-12);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre__topbar-stats-account-blurb {
-  margin: 0;
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--color-text-secondary, rgba(127, 127, 127, 0.85));
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-4);
+  color: var(--color-text-secondary, var(--libre-c-rgba-127-127-127-0-85));
 }
 
 .libre__topbar-stats-account-identity {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   /* Tight constraint so a long email doesn't push the dropdown wider
      than its 320-ish-px home. */
   max-width: 100%;
@@ -858,8 +858,8 @@
 }
 
 .libre__topbar-stats-account-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -867,8 +867,8 @@
 }
 
 .libre__topbar-stats-account-email {
-  font-size: 11.5px;
-  color: var(--color-text-secondary, rgba(127, 127, 127, 0.85));
+  font-size: var(--libre-fs-11-5);
+  color: var(--color-text-secondary, var(--libre-c-rgba-127-127-127-0-85));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -876,7 +876,7 @@
 
 .libre__topbar-stats-account-row {
   display: flex;
-  gap: 8px;
+  gap: var(--libre-space-8);
   align-items: stretch;
 }
 
@@ -892,11 +892,11 @@
    loses its standalone "anchored to the bottom" margin and matches
    the slim button metrics of its row neighbours. */
 .libre__topbar-stats-account-row > .libre__topbar-stats-view-profile {
-  margin-top: 0;
-  padding: 7px 12px;
-  border-radius: 7px;
-  font-size: 12px;
-  line-height: 1.2;
+  margin-top: var(--libre-space-0);
+  padding: var(--libre-space-7) var(--libre-space-12);
+  border-radius: var(--libre-radius-7);
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-2);
 }
 
 /* Both buttons in the account row inherit the View-profile padding so
@@ -906,13 +906,13 @@
    make the dropdown feel chunky. */
 .libre__topbar-stats-signin,
 .libre__topbar-stats-signout {
-  padding: 7px 12px;
-  border-radius: 7px;
+  padding: var(--libre-space-7) var(--libre-space-12);
+  border-radius: var(--libre-radius-7);
   font-family: inherit;
-  font-size: 12px;
-  letter-spacing: 0.1px;
+  font-size: var(--libre-fs-12);
+  letter-spacing: var(--libre-ls-0-1);
   cursor: pointer;
-  line-height: 1.2;
+  line-height: var(--libre-lh-1-2);
 }
 
 /* "Sign in" — primary fill, same treatment as View-profile's primary
@@ -920,25 +920,25 @@
 .libre__topbar-stats-signin {
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
-  border: 1px solid var(--gg-fill-white);
-  font-weight: 600;
+  border: var(--libre-bw-1) solid var(--gg-fill-white);
+  font-weight: var(--libre-fw-600);
   transition: opacity var(--libre-motion-snappy);
 }
 .libre__topbar-stats-signin:hover {
-  opacity: 0.9;
+  opacity: var(--libre-opacity-0-9);
 }
 
 /* "Sign out" — quiet outline / ghost so it doesn't compete with the
    View-profile primary above it. */
 .libre__topbar-stats-signout {
   background: transparent;
-  color: var(--color-text-secondary, rgba(127, 127, 127, 0.85));
-  border: 1px solid var(--color-border, rgba(127, 127, 127, 0.3));
-  font-weight: 500;
+  color: var(--color-text-secondary, var(--libre-c-rgba-127-127-127-0-85));
+  border: var(--libre-bw-1) solid var(--color-border, var(--libre-c-rgba-127-127-127-0-3));
+  font-weight: var(--libre-fw-500);
   transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 .libre__topbar-stats-signout:hover {
-  background: var(--color-bg-hover, rgba(127, 127, 127, 0.08));
+  background: var(--color-bg-hover, var(--libre-c-rgba-127-127-127-0-08));
   color: var(--color-text-primary);
 }
 
@@ -946,13 +946,13 @@
 .libre__tab {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 14px;
+  gap: var(--libre-space-9);
+  padding: var(--libre-space-7) var(--libre-space-14);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 10px;
+  border: var(--libre-bw-1) solid transparent;
+  border-radius: var(--libre-radius-10);
   color: var(--color-text-secondary);
-  font-size: 13.5px;
+  font-size: var(--libre-fs-13-5);
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--libre-motion-snappy), background var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
@@ -973,7 +973,7 @@
    sees what they're holding. The browser's own drag image still
    renders normally over the cursor. */
 .libre__tab--dragging {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: grabbing;
 }
 
@@ -989,17 +989,17 @@
 .libre__tab--drag-over::before {
   content: "";
   position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: -3px;
-  width: 2px;
-  border-radius: 1px;
+  top: var(--libre-space-4);
+  bottom: var(--libre-space-4);
+  left: var(--libre-space-neg-3);
+  width: var(--libre-size-2);
+  border-radius: var(--libre-radius-1);
   background: var(--gg-fill-white);
   pointer-events: none;
 }
 .libre__tab--drag-over.libre__tab--drop-after::before {
   left: auto;
-  right: -3px;
+  right: var(--libre-space-neg-3);
 }
 
 /* Layout-only positioning for the language chip inside the tab pill.
@@ -1013,15 +1013,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.5;
-  padding: 0 2px;
-  margin-left: 2px;
-  line-height: 1;
+  opacity: var(--libre-opacity-0-5);
+  padding: var(--libre-space-0) var(--libre-space-2);
+  margin-left: var(--libre-space-2);
+  line-height: var(--libre-lh-1);
   cursor: pointer;
 }
 
 .libre__tab-close:hover {
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
 }
 
 /* ── Tab groups ──────────────────────────────────────────────────
@@ -1042,7 +1042,7 @@
   /* The 2px coloured underline sits on the bottom edge of the tab.
      Box-shadow rather than border so we don't disturb the tab's
      vertical alignment with neighbouring ungrouped tabs. */
-  box-shadow: inset 0 -2px 0 0 var(--libre-tab-group-color, transparent);
+  box-shadow: var(--libre-shadow-100);
 }
 
 .libre__tab--grouped:hover {
@@ -1054,25 +1054,25 @@
      underline opacity so the group affiliation still shows. */
   background: var(--color-bg-secondary);
   border-color: color-mix(in srgb, var(--libre-tab-group-color, transparent) 60%, var(--color-border-default));
-  box-shadow: inset 0 -2px 0 0 var(--libre-tab-group-color, transparent);
+  box-shadow: var(--libre-shadow-100);
 }
 
 .libre__tab-group-badge {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  padding: 1px 6px;
-  margin-right: 4px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  padding: var(--libre-space-1) var(--libre-space-6);
+  margin-right: var(--libre-space-4);
+  border-radius: var(--libre-radius-4);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-3);
   text-transform: uppercase;
   color: var(--color-bg-primary);
   background: var(--libre-tab-group-color, var(--gg-fill-white));
   /* Cap the badge width so a long group name doesn't push the
      tab's title off the strip. Truncation via ellipsis. */
-  max-width: 80px;
+  max-width: var(--libre-size-80);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1085,11 +1085,11 @@
    Adding a new colour: append a token here AND its palette name
    to `TAB_GROUP_PALETTE` in App.tsx. */
 :root {
-  --libre-tab-group-color-gold: #d6b969;
-  --libre-tab-group-color-coral: #e08a78;
-  --libre-tab-group-color-mint: #78c896;
-  --libre-tab-group-color-sky: #7aa6d6;
-  --libre-tab-group-color-lavender: #b08fd0;
+  --libre-tab-group-color-gold: var(--libre-c-d6b969);
+  --libre-tab-group-color-coral: var(--libre-c-e08a78);
+  --libre-tab-group-color-mint: var(--libre-c-78c896);
+  --libre-tab-group-color-sky: var(--libre-c-7aa6d6);
+  --libre-tab-group-color-lavender: var(--libre-c-b08fd0);
 }
 
 /* ── Tab right-click menu ────────────────────────────────────────
@@ -1100,27 +1100,25 @@
 
 .libre__tab-menu {
   position: fixed;
-  z-index: 100;
-  min-width: 220px;
-  max-width: 280px;
+  z-index: var(--libre-z-100);
+  min-width: var(--libre-size-220);
+  max-width: var(--libre-size-280);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.45),
-    0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--libre-shadow-93);
   display: flex;
   flex-direction: column;
-  padding: 4px;
-  font-size: 12px;
+  padding: var(--libre-space-4);
+  font-size: var(--libre-fs-12);
 }
 
 .libre__tab-menu-label {
-  padding: 4px 10px 6px;
-  font-size: 10.5px;
-  font-weight: 600;
+  padding: var(--libre-space-4) var(--libre-space-10) var(--libre-space-6);
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--libre-ls-0-5);
   color: var(--color-text-tertiary);
   /* Truncate long course titles so the menu doesn't grow unbounded. */
   white-space: nowrap;
@@ -1129,31 +1127,31 @@
 }
 
 .libre__tab-menu-section {
-  padding: 6px 10px 2px;
-  font-size: 10px;
-  font-weight: 600;
+  padding: var(--libre-space-6) var(--libre-space-10) var(--libre-space-2);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--libre-ls-0-5);
   color: var(--color-text-tertiary);
 }
 
 .libre__tab-menu-sep {
-  height: 1px;
-  margin: 4px 0;
+  height: var(--libre-size-1);
+  margin: var(--libre-space-4) var(--libre-space-0);
   background: var(--color-border-default);
 }
 
 .libre__tab-menu-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-6) var(--libre-space-10);
   background: transparent;
   border: 0;
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-primary);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--libre-fs-12);
   text-align: left;
   font-family: inherit;
 }
@@ -1163,9 +1161,9 @@
 }
 
 .libre__tab-menu-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  width: var(--libre-size-10);
+  height: var(--libre-size-10);
+  border-radius: var(--libre-radius-circle);
   flex-shrink: 0;
 }
 

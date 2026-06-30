@@ -5,16 +5,16 @@
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 12px;
-  margin: 28px 0 8px;
-  padding-top: 18px;
-  border-top: 1px solid var(--color-border-default);
+  gap: var(--libre-space-12);
+  margin: var(--libre-space-28) var(--libre-space-0) var(--libre-space-8);
+  padding-top: var(--libre-space-18);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-lesson-nav-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
   /* flex-basis 0 + flex-grow 1 + flex-shrink 1 + min-width: 0 together
      force the button to respect its column width. Without min-width:0 a
      flex item defaults to min-width:auto (its intrinsic content width),
@@ -25,13 +25,13 @@
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
-  padding: 10px 14px;
+  padding: var(--libre-space-10) var(--libre-space-14);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
   text-align: left;
   cursor: pointer;
   transition: color var(--libre-motion-snappy), background var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
@@ -40,11 +40,11 @@
 .libre-lesson-nav-btn:hover:not(:disabled) {
   color: var(--color-text-primary);
   background: var(--color-bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--libre-c-rgba-255-255-255-0-25);
 }
 
 .libre-lesson-nav-btn:disabled {
-  opacity: 0.35;
+  opacity: var(--libre-opacity-0-35);
   cursor: not-allowed;
 }
 
@@ -92,7 +92,7 @@
 .libre-lesson-nav-btn--next .libre-lesson-nav-text,
 .libre-lesson-nav-btn--next .libre-lesson-nav-arrow {
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
 }
 
 /* ── Auto-advance countdown ring ─────────────────────────────────
@@ -112,13 +112,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--libre-size-28);
+  height: var(--libre-size-28);
 }
 
 .libre-lesson-nav-countdown-ring {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   /* Rotate so the stroke starts at the top + sweeps clockwise. */
   transform: rotate(-90deg);
 }
@@ -126,7 +126,7 @@
 .libre-lesson-nav-countdown-track {
   stroke: currentColor;
   stroke-width: 2;
-  opacity: 0.2;
+  opacity: var(--libre-opacity-0-2);
 }
 
 .libre-lesson-nav-countdown-fill {
@@ -140,12 +140,12 @@
 
 .libre-lesson-nav-countdown-digit {
   position: relative;
-  z-index: 1;
-  font-size: 11px;
-  font-weight: 700;
+  z-index: var(--libre-z-1);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
-  line-height: 1;
+  line-height: var(--libre-lh-1);
 }
 
 /* Reduced motion: drop the per-frame ring sweep to a static
@@ -171,20 +171,20 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: var(--color-accent, var(--gg-fill-white, #ffffff));
-  color: var(--color-accent-fg, var(--color-bg-primary, #000000));
-  border-color: var(--color-accent, var(--gg-fill-white, #ffffff));
-  font-weight: 600;
+  background: var(--color-accent, var(--gg-fill-white, var(--libre-c-white)));
+  color: var(--color-accent-fg, var(--color-bg-primary, var(--libre-c-black)));
+  border-color: var(--color-accent, var(--gg-fill-white, var(--libre-c-white)));
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-lesson-nav-btn--cta:hover:not(:disabled) {
-  background: var(--color-accent, var(--gg-fill-white, #ffffff));
-  color: var(--color-accent-fg, var(--color-bg-primary, #000000));
-  border-color: var(--color-accent, var(--gg-fill-white, #ffffff));
+  background: var(--color-accent, var(--gg-fill-white, var(--libre-c-white)));
+  color: var(--color-accent-fg, var(--color-bg-primary, var(--libre-c-black)));
+  border-color: var(--color-accent, var(--gg-fill-white, var(--libre-c-white)));
   /* Slight opacity tick on hover instead of the standard
      swap — the foil + base together are already the
      emphasis; a colour swap on top fights the hologram. */
-  opacity: 0.96;
+  opacity: var(--libre-opacity-0-96);
 }
 
 /* Lift the label, arrow, and middle-title stacks above the
@@ -195,7 +195,7 @@
 .libre-lesson-nav-btn--cta .libre-lesson-nav-text,
 .libre-lesson-nav-btn--cta .libre-lesson-nav-arrow {
   position: relative;
-  z-index: 1;
+  z-index: var(--libre-z-1);
 }
 
 /* The label inside the CTA inherits the accent-fg colour; the
@@ -205,7 +205,7 @@
    transparent fill so the chip stays visible. */
 .libre-lesson-nav-btn--cta .libre-lesson-nav-label {
   color: inherit;
-  opacity: 1;
+  opacity: var(--libre-opacity-1);
 }
 
 .libre-lesson-nav-btn--cta .libre-shortcut-hint {
@@ -215,7 +215,7 @@
 }
 
 .libre-lesson-nav-arrow {
-  font-size: 14px;
+  font-size: var(--libre-fs-14);
   color: var(--color-text-tertiary);
   flex-shrink: 0;
 }
@@ -227,7 +227,7 @@
 .libre-lesson-nav-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--libre-space-2);
   min-width: 0;
   flex: 1;
 }
@@ -237,16 +237,16 @@
 }
 
 .libre-lesson-nav-label {
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: var(--libre-ls-0-6);
   color: var(--color-text-tertiary);
 }
 
 .libre-lesson-nav-btn--next .libre-lesson-nav-label {
   color: inherit;
-  opacity: 0.75;
+  opacity: var(--libre-opacity-0-75);
 }
 
 /* Middle-ellipsis pattern: a flex row where the head shrinks (picking up the
@@ -258,8 +258,8 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
 }
 
 .libre-lesson-nav-text--right .libre-lesson-nav-title {

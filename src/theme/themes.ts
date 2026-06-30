@@ -224,3 +224,87 @@ export function readActiveTheme(): ThemeName {
   if (attr && THEMES.some((t) => t.id === attr)) return attr;
   return loadTheme();
 }
+
+/// ---- Appearance scale knobs ---------------------------------------------
+/// Global multipliers over the generated design-token scales in
+/// `theme/scale-tokens.css`. Each `--libre-<cat>-scale` defaults to 1 there;
+/// the size-like tokens are defined as `calc(<raw> * var(--libre-<cat>-scale))`,
+/// so changing one multiplier reshapes the whole app proportionally without
+/// any per-component work. Settings writes the chosen value inline on <html>
+/// (persisted), exactly like `applyHue`.
+export type ScaleKey = "font" | "space" | "radius" | "border" | "motion" | "blur";
+
+export const SCALE_KEYS: ScaleKey[] = ["font", "space", "radius", "border", "motion", "blur"];
+
+export const DEFAULT_SCALES: Record<ScaleKey, number> = {
+  font: 1, space: 1, radius: 1, border: 1, motion: 1, blur: 1,
+};
+
+/// [min, max] guard rails per knob. Generous enough to be expressive, tight
+/// enough to keep the UI usable (e.g. text never shrinks below 80%).
+export const SCALE_BOUNDS: Record<ScaleKey, [number, number]> = {
+  font: [0.8, 1.4],
+  space: [0.7, 1.4],
+  radius: [0, 2],
+  border: [0, 2.5],
+  motion: [0, 2],
+  blur: [0, 1.5],
+};
+
+const SCALE_STORAGE_PREFIX = "libre:scale:";
+
+function clampScale(k: ScaleKey, n: number): number {
+  if (!Number.isFinite(n)) return DEFAULT_SCALES[k];
+  const [lo, hi] = SCALE_BOUNDS[k];
+  return Math.min(hi, Math.max(lo, n));
+}
+
+/// Read a persisted scale multiplier (falls back to 1 / the default).
+export function loadScale(k: ScaleKey): number {
+  try {
+    const raw = localStorage.getItem(SCALE_STORAGE_PREFIX + k);
+    if (raw != null) {
+      const n = Number(raw);
+      if (Number.isFinite(n)) return clampScale(k, n);
+    }
+  } catch {
+    /* private mode — fall through */
+  }
+  return DEFAULT_SCALES[k];
+}
+
+/// Apply + persist one scale multiplier. Writes `--libre-<k>-scale` inline on
+/// <html> (highest specificity, beats the :root default in scale-tokens.css).
+export function applyScale(k: ScaleKey, value: number) {
+  const v = clampScale(k, value);
+  try {
+    localStorage.setItem(SCALE_STORAGE_PREFIX + k, String(v));
+  } catch {
+    /* ignore */
+  }
+  try {
+    document.documentElement.style.setProperty(`--libre-${k}-scale`, String(v));
+  } catch {
+    /* ignore */
+  }
+}
+
+/// Apply every persisted scale at startup (before first paint, from main.tsx).
+/// Skips knobs left at their default so we don't litter <html> with no-op
+/// inline props.
+export function applyAllScales() {
+  for (const k of SCALE_KEYS) {
+    const v = loadScale(k);
+    if (v === DEFAULT_SCALES[k]) continue;
+    try {
+      document.documentElement.style.setProperty(`--libre-${k}-scale`, String(v));
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+/// Reset every scale knob back to 1 (used by the "Reset" button in Settings).
+export function resetScales() {
+  for (const k of SCALE_KEYS) applyScale(k, DEFAULT_SCALES[k]);
+}

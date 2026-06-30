@@ -1,0 +1,156 @@
+/* Early-release notice strip. Mounted by App.tsx as a flex-column sibling
+   directly under .libre__topbar, so it's a full-width row that pushes the
+   body down rather than overlapping it. Accent-tinted glass so it reads as
+   an in-app system notice in the same brand language as the topbar, but
+   distinct from it. All values use stable, long-lived tokens (--color-*,
+   --gg-accent*, --libre-radius-*, --libre-motion-*) with literal fallbacks,
+   so the strip renders correctly regardless of the design-token migration
+   state. */
+.libre-early-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 14px 7px 16px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--gg-accent, #e88f68) 14%, var(--color-bg-secondary)),
+    color-mix(in srgb, var(--gg-accent, #e88f68) 9%, var(--color-bg-secondary))
+  );
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--gg-accent, #e88f68) 30%, var(--color-border-default));
+  color: var(--color-text-primary);
+  font-family: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* "EARLY RELEASE" pill — accent wash + accent text + accent border.
+   Wash-on-text (rather than a filled pill) keeps the label readable on
+   every theme, including light themes, without a theme-specific text
+   colour. */
+.libre-early-banner__badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--libre-radius-pill, 999px);
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gg-accent, #e88f68) 38%, transparent);
+  color: var(--gg-accent-deep, var(--gg-accent, #df7649));
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.libre-early-banner__badge svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.libre-early-banner__text {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+.libre-early-banner__warn {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+.libre-early-banner__support {
+  color: var(--color-text-secondary);
+}
+
+.libre-early-banner__actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* "Support us" — accent-wash button (matches the badge language). Stays a
+   wash on hover (a touch stronger) rather than filling, so the accent text
+   never has to fight a filled-accent background for contrast. */
+.libre-early-banner__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--gg-accent, #e88f68) 42%, transparent);
+  border-radius: var(--libre-radius-pill, 999px);
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 16%, transparent);
+  color: var(--gg-accent-deep, var(--gg-accent, #df7649));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--libre-motion-snappy, 0.15s ease),
+    border-color var(--libre-motion-snappy, 0.15s ease),
+    transform var(--libre-motion-snappy, 0.15s ease);
+}
+.libre-early-banner__cta:hover,
+.libre-early-banner__cta:focus-visible {
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 26%, transparent);
+  border-color: color-mix(in srgb, var(--gg-accent, #e88f68) 60%, transparent);
+  outline: none;
+}
+.libre-early-banner__cta:active {
+  transform: translateY(1px);
+}
+
+.libre-early-banner__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--libre-radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--libre-motion-snappy, 0.15s ease),
+    background var(--libre-motion-snappy, 0.15s ease);
+}
+.libre-early-banner__close:hover,
+.libre-early-banner__close:focus-visible {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
+  outline: none;
+}
+
+/* Narrow windows: let the message wrap onto its own line while the badge +
+   actions stay on the top row at opposite ends. */
+@media (max-width: 720px) {
+  .libre-early-banner {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 8px 12px;
+  }
+  .libre-early-banner__actions {
+    margin-left: auto;
+  }
+  .libre-early-banner__text {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
+
+/* Respect reduced-motion: kill the press nudge + transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .libre-early-banner__cta,
+  .libre-early-banner__close {
+    transition: none;
+  }
+  .libre-early-banner__cta:active {
+    transform: none;
+  }
+}

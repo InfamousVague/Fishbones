@@ -4,21 +4,21 @@
    to a stack at narrow widths so the playground stays usable when the
    workbench split has the output column compact. */
 .libre-rndev {
-  margin: 12px 0 0;
-  padding: 12px 14px;
+  margin: var(--libre-space-12) var(--libre-space-0) var(--libre-space-0);
+  padding: var(--libre-space-12) var(--libre-space-14);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-md);
 }
 
 .libre-rndev-head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  gap: var(--libre-space-6);
+  margin-bottom: var(--libre-space-10);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -30,7 +30,7 @@
 .libre-rndev-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--libre-space-12);
 }
 
 @media (max-width: 720px) {
@@ -42,10 +42,10 @@
 .libre-rndev-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-12);
   background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
 }
 
@@ -53,50 +53,50 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--libre-space-8);
 }
 
 .libre-rndev-card-title {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  letter-spacing: 0.05px;
+  letter-spacing: var(--libre-ls-0-05);
 }
 
 .libre-rndev-card-hint {
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
-  line-height: 1.5;
+  line-height: var(--libre-lh-1-5);
 }
 
 .libre-rndev-qrwrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  background: #0b0b10;
+  padding: var(--libre-space-8);
+  background: var(--libre-c-0b0b10);
   border-radius: var(--libre-radius-sm);
 }
 
 .libre-rndev-qr {
   display: block;
-  width: 180px;
-  height: 180px;
+  width: var(--libre-size-180);
+  height: var(--libre-size-180);
   max-width: 100%;
   image-rendering: pixelated;
 }
 
 .libre-rndev-qr-placeholder {
-  width: 180px;
-  height: 180px;
+  width: var(--libre-size-180);
+  height: var(--libre-size-180);
   max-width: 100%;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--libre-c-rgba-255-255-255-0-04);
   border-radius: var(--libre-radius-xs);
 }
 
 .libre-rndev-url {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11px;
+  font-size: var(--libre-fs-11);
   color: var(--color-text-secondary);
   word-break: break-all;
   user-select: all;
@@ -106,15 +106,15 @@
 .libre-rndev-probebtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-6) var(--libre-space-10);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-sm);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition: background var(--libre-motion-quick), border-color var(--libre-motion-quick), opacity var(--libre-motion-quick);
 }
@@ -126,50 +126,50 @@
 .libre-rndev-btn:hover,
 .libre-rndev-probebtn:hover:not([disabled]) {
   background: var(--color-bg-secondary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-rndev-probebtn[disabled] {
-  opacity: 0.5;
+  opacity: var(--libre-opacity-0-5);
   cursor: default;
 }
 
 .libre-rndev-msg {
-  font-size: 11px;
-  line-height: 1.45;
-  padding: 6px 8px;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-45);
+  padding: var(--libre-space-6) var(--libre-space-8);
   border-radius: var(--libre-radius-xs);
 }
 
 .libre-rndev-msg--ok {
-  background: rgba(124, 217, 124, 0.08);
-  color: #b7e6b7;
-  border: 1px solid rgba(124, 217, 124, 0.25);
+  background: var(--libre-c-rgba-124-217-124-0-08);
+  color: var(--libre-c-b7e6b7);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-124-217-124-0-25);
 }
 
 .libre-rndev-msg--err {
-  background: rgba(239, 111, 111, 0.08);
-  color: #f3b0b0;
-  border: 1px solid rgba(239, 111, 111, 0.3);
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  color: var(--libre-c-f3b0b0);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-3);
 }
 
 .libre-rndev-steps {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 11px;
+  margin: var(--libre-space-0);
+  padding-left: var(--libre-space-18);
+  font-size: var(--libre-fs-11);
   color: var(--color-text-secondary);
-  line-height: 1.55;
+  line-height: var(--libre-lh-1-55);
 }
 
 .libre-rndev-steps li {
-  margin: 3px 0;
+  margin: var(--libre-space-3) var(--libre-space-0);
 }
 
 .libre-rndev-code {
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11px;
-  padding: 1px 5px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 3px;
+  font-size: var(--libre-fs-11);
+  padding: var(--libre-space-1) var(--libre-space-5);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border-radius: var(--libre-radius-3);
   color: var(--color-text-primary);
 }

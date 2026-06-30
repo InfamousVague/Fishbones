@@ -121,7 +121,7 @@ export default function AccountSection({
             </span>
           </span>
           <span className="libre-settings-row__control">
-            <span style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>
+            <span style={{ fontSize: 'var(--libre-fs-11)', color: "var(--color-text-tertiary)" }}>
               {providerLabel}
             </span>
           </span>
@@ -189,7 +189,7 @@ export default function AccountSection({
               <span
                 style={{
                   display: "inline-flex",
-                  gap: 6,
+                  gap: 'var(--libre-space-6)',
                 }}
               >
                 <button

@@ -9,9 +9,9 @@
      would feel empty. 380px reads as "small focused prompt" and
      matches the visual weight of "What's the name?" rather than
      "Here is a settings page". */
-  width: min(380px, 92vw);
+  width: min(var(--libre-size-380), 92vw);
   background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-lg);
   display: flex;
   flex-direction: column;
@@ -19,46 +19,46 @@
 }
 
 .libre-newproj__head {
-  padding: 14px 18px 8px;
+  padding: var(--libre-space-14) var(--libre-space-18) var(--libre-space-8);
 }
 
 .libre-newproj__title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-primary);
-  margin: 0;
+  margin: var(--libre-space-0);
 }
 
 .libre-newproj__body {
-  padding: 4px 18px 14px;
+  padding: var(--libre-space-4) var(--libre-space-18) var(--libre-space-14);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--libre-space-12);
 }
 
 .libre-newproj__field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--libre-space-5);
 }
 
 .libre-newproj__label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-5);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .libre-newproj__input,
 .libre-newproj__select {
-  padding: 7px 10px;
+  padding: var(--libre-space-7) var(--libre-space-10);
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--libre-radius-sm, 6px);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--libre-fs-13);
 }
 
 .libre-newproj__input:focus,
@@ -74,28 +74,28 @@
 .libre-newproj__foot {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 10px 18px 14px;
-  border-top: 1px solid var(--color-border-default);
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-18) var(--libre-space-14);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
   background: color-mix(in srgb, var(--color-bg-primary) 35%, transparent);
 }
 
 .libre-newproj__btn {
-  padding: 6px 14px;
+  padding: var(--libre-space-6) var(--libre-space-14);
   background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: 7px;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
   cursor: pointer;
   transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), color var(--libre-motion-snappy);
 }
 
 .libre-newproj__btn:hover:not(:disabled) {
   background: var(--color-bg-tertiary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-newproj__btn--primary,
@@ -103,10 +103,10 @@
   background: var(--gg-fill-white);
   color: var(--color-bg-primary);
   border-color: var(--gg-fill-white);
-  font-weight: 600;
+  font-weight: var(--libre-fw-600);
 }
 
 .libre-newproj__btn:disabled {
-  opacity: 0.4;
+  opacity: var(--libre-opacity-0-4);
   cursor: not-allowed;
 }

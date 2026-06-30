@@ -7,9 +7,9 @@
    `className` prop on `<ModalBackdrop>`. */
 .libre-modal-backdrop {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
+  inset: var(--libre-space-0);
+  background: var(--libre-c-rgba-0-0-0-0-55);
+  backdrop-filter: blur(var(--libre-blur-4));
   display: grid;
   place-items: center;
   /* Beat the celebration / confetti canvases (z-index 90/91) so
@@ -18,7 +18,7 @@
      would paint particles ON TOP of the badge artwork instead of
      framing it. 200 leaves room for any future "always on top"
      surfaces (toasts, scanner) to sit above. */
-  z-index: 200;
+  z-index: var(--libre-z-200);
 }
 
 /* Inner wrapper exists so the click-stop handler has a definite

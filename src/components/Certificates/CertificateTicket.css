@@ -45,10 +45,10 @@
   /* Perspective context for the 3D wobble. Per-stage perspective
      means tickets in a grid tilt independently rather than all
      sharing a single vanishing point. */
-  perspective: 1800px;
+  perspective: var(--libre-size-1800);
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: var(--libre-space-24);
   width: 100%;
 }
 
@@ -77,7 +77,7 @@
      renders the ticket at 224px tall — extra vertical room for
      the centered cluster too. */
   width: 100%;
-  max-width: 560px;
+  max-width: var(--libre-size-560);
   aspect-ratio: 5 / 2;
 
   position: relative;
@@ -104,14 +104,14 @@
      to wear; the certificate now reads as a clean, paper-white
      diploma fitted to the rest of the app's monochrome theme
      rather than a Victorian artefact. */
-  background-color: #ffffff;
+  background-color: var(--libre-c-white);
   background-image: radial-gradient(
     circle at var(--p) 35%,
-    rgba(0, 0, 0, 0.04) 0%,
+    var(--libre-c-rgba-0-0-0-0-04) 0%,
     transparent 65%
   );
 
-  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 var(--libre-size-18) var(--libre-size-28) var(--libre-c-rgba-0-0-0-0-45));
 
   /* Smooth ease-back to rest values when hover ends. All four
      holographic props are `@property`-registered (see top of
@@ -130,32 +130,32 @@
      ease-out quartic curve so each prop decelerates into rest
      without overshooting. */
   transition:
-    --r 3.5s cubic-bezier(0.22, 1, 0.36, 1),
-    --o 2.8s cubic-bezier(0.22, 1, 0.36, 1),
-    --p 2.8s cubic-bezier(0.22, 1, 0.36, 1),
-    --h 2.8s cubic-bezier(0.22, 1, 0.36, 1);
+    --r var(--libre-dur-3500) var(--libre-ease-cb-6),
+    --o var(--libre-dur-2800) var(--libre-ease-cb-6),
+    --p var(--libre-dur-2800) var(--libre-ease-cb-6),
+    --h var(--libre-dur-2800) var(--libre-ease-cb-6);
 }
 
 /* ─── Holographic foil overlay ────────────────────────────── */
 
 .libre-cert-ticket__holo {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   pointer-events: none;
 
   /* Rainbow band running -45° across the ticket. */
   --space: 5%;
   background-image: repeating-linear-gradient(
     -45deg,
-    hsl(0, 95%, 60%) 0%,
-    hsl(30, 95%, 60%) calc(var(--space) * 1),
-    hsl(60, 95%, 60%) calc(var(--space) * 2),
-    hsl(120, 90%, 55%) calc(var(--space) * 3),
-    hsl(180, 90%, 55%) calc(var(--space) * 4),
-    hsl(222, 95%, 60%) calc(var(--space) * 5),
-    hsl(258, 95%, 60%) calc(var(--space) * 6),
-    hsl(300, 95%, 60%) calc(var(--space) * 7),
-    hsl(0, 95%, 60%) calc(var(--space) * 8)
+    var(--libre-c-hsl-0-95-60) 0%,
+    var(--libre-c-hsl-30-95-60) calc(var(--space) * 1),
+    var(--libre-c-hsl-60-95-60) calc(var(--space) * 2),
+    var(--libre-c-hsl-120-90-55) calc(var(--space) * 3),
+    var(--libre-c-hsl-180-90-55) calc(var(--space) * 4),
+    var(--libre-c-hsl-222-95-60) calc(var(--space) * 5),
+    var(--libre-c-hsl-258-95-60) calc(var(--space) * 6),
+    var(--libre-c-hsl-300-95-60) calc(var(--space) * 7),
+    var(--libre-c-hsl-0-95-60) calc(var(--space) * 8)
   );
   background-size: 200% 200%;
   background-position: var(--h) var(--h);
@@ -200,7 +200,7 @@
 
 .libre-cert-ticket__shine {
   position: absolute;
-  inset: 0;
+  inset: var(--libre-space-0);
   pointer-events: none;
   /* Modern monochrome diagonal sweep — replaces the old warm
      amber gold (`rgba(212, 176, 107, 0.4)`) with a neutral
@@ -210,14 +210,14 @@
   background-image: linear-gradient(
     -70deg,
     transparent 42%,
-    rgba(0, 0, 0, 0.18) 50%,
+    var(--libre-c-rgba-0-0-0-0-18) 50%,
     transparent 58%
   );
   background-size: 220% 220%;
   background-position: var(--p) var(--p);
   background-repeat: no-repeat;
   mix-blend-mode: multiply;
-  opacity: calc(var(--o) * 0.55);
+  opacity: calc(var(--o) * var(--libre-opacity-0-55));
 }
 
 /* ─── Body (left ~71%) ────────────────────────────────────── */
@@ -227,7 +227,7 @@
      28.8% — matches the PNG layout's PERF_X / W ratio. */
   flex: 0 0 71.2%;
   position: relative;
-  z-index: 2;
+  z-index: var(--libre-z-2);
   /* Tightened vertical padding (was 4.5% all around). The body
      stacks 7 elements (head / eyebrow / recipient / rule / for
      / course / badges / foot) and the previous gutters were
@@ -246,7 +246,7 @@
      margins, which puts equal padding above the cluster and
      between the cluster and the foot. */
   text-align: center;
-  color: #111111;
+  color: var(--libre-c-111111);
   /* Hard-clip any overshoot rather than letting the badges row
      or course title spill outside the ticket mask. With
      content this constrained, an overflow elsewhere should be
@@ -264,8 +264,8 @@
      in the same visual spot it did when the wordmark occupied
      the left half. */
   justify-content: flex-end;
-  font-size: 11px;
-  letter-spacing: 0.15em;
+  font-size: var(--libre-fs-11);
+  letter-spacing: var(--libre-ls-0-15em);
 }
 
 /* Brand + sparkle + wordmark classes retired with the
@@ -279,10 +279,10 @@
 
 .libre-cert-ticket__daterange {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.62);
-  letter-spacing: 0.04em;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-rgba-0-0-0-0-62);
+  letter-spacing: var(--libre-ls-0-04em);
   text-transform: none;
 }
 
@@ -295,11 +295,11 @@
 
 .libre-cert-ticket__eyebrow {
   font-family: inherit;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-32em);
   text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.62);
+  color: var(--libre-c-rgba-26-26-26-0-62);
   /* Paired with `.libre-cert-ticket__body-foot { margin-top:
      auto }` — flexbox splits the body's free vertical space
      evenly between these two auto-margins, which centres the
@@ -311,12 +311,12 @@
 .libre-cert-ticket__recipient {
   font-family: inherit;
   font-style: normal;
-  font-weight: 700;
-  font-size: clamp(20px, 3.6vw, 32px);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
-  color: #111111;
-  margin-top: 4px;
+  font-weight: var(--libre-fw-700);
+  font-size: clamp(var(--libre-fs-20), 3.6vw, var(--libre-fs-32));
+  line-height: var(--libre-lh-1-05);
+  letter-spacing: var(--libre-ls-neg-0-015em);
+  color: var(--libre-c-111111);
+  margin-top: var(--libre-space-4);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -325,27 +325,27 @@
 
 .libre-cert-ticket__rule {
   width: 36%;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.14);
-  margin: 10px 0 6px;
+  height: var(--libre-size-1);
+  background: var(--libre-c-rgba-0-0-0-0-14);
+  margin: var(--libre-space-10) var(--libre-space-0) var(--libre-space-6);
 }
 
 .libre-cert-ticket__for {
   font-family: inherit;
-  font-size: clamp(9px, 1.05vw, 11px);
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.62);
-  letter-spacing: 0.2em;
+  font-size: clamp(var(--libre-fs-9), 1.05vw, var(--libre-fs-11));
+  font-weight: var(--libre-fw-600);
+  color: var(--libre-c-rgba-0-0-0-0-62);
+  letter-spacing: var(--libre-ls-0-2em);
   text-transform: uppercase;
 }
 
 .libre-cert-ticket__course {
   font-family: inherit;
-  font-weight: 600;
-  font-size: clamp(13px, 1.9vw, 18px);
-  line-height: 1.1;
-  color: #111111;
-  margin-top: 4px;
+  font-weight: var(--libre-fw-600);
+  font-size: clamp(var(--libre-fs-13), 1.9vw, var(--libre-fs-18));
+  line-height: var(--libre-lh-1-1);
+  color: var(--libre-c-111111);
+  margin-top: var(--libre-space-4);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -362,13 +362,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: clamp(10px, 1.1vw, 12px);
-  color: rgba(0, 0, 0, 0.64);
-  font-weight: 500;
+  font-size: clamp(var(--libre-fs-10), 1.1vw, var(--libre-fs-12));
+  color: var(--libre-c-rgba-0-0-0-0-64);
+  font-weight: var(--libre-fw-500);
 }
 
 .libre-cert-ticket__stats {
-  letter-spacing: 0.02em;
+  letter-spacing: var(--libre-ls-0-02em);
 }
 
 .libre-cert-ticket__lang {
@@ -377,9 +377,9 @@
      rest of the modern cert uses. The language identity is
      still visually distinct from the stats on the other side
      of the footer thanks to the bolder weight + wide tracking. */
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  color: rgba(0, 0, 0, 0.85);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-22em);
+  color: var(--libre-c-rgba-0-0-0-0-85);
   text-transform: uppercase;
 }
 
@@ -399,33 +399,31 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: var(--libre-space-8);
   /* Tighter top/bottom margin + a narrower badge size below so
      the row + the body foot underneath both fit inside the 5:2
      ticket. Previously the 18+14px stacked gaps pushed the
      stats / language footer below the cert's bottom edge. */
-  margin: 8px 0 6px;
-  padding-top: 8px;
+  margin: var(--libre-space-8) var(--libre-space-0) var(--libre-space-6);
+  padding-top: var(--libre-space-8);
   /* Dashed perforation line above the badges — echoes the
      full ticket's tear-off stub vocabulary so the badge row
      reads as a stamped band rather than another text row. */
-  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+  border-top: var(--libre-bw-1) dashed var(--libre-c-rgba-0-0-0-0-12);
 }
 
 .libre-cert-ticket__badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: var(--libre-size-22);
+  height: var(--libre-size-22);
   /* White line-art icon on a solid black squircle chip — matches
      the mini-cert banner's sticker treatment. */
-  color: #ffffff;
-  background: #141414;
-  border-radius: 30%;
-  box-shadow:
-    0 0 0 0.5px rgba(20, 16, 28, 0.35),
-    0 1px 2px rgba(20, 16, 28, 0.22);
+  color: var(--libre-c-white);
+  background: var(--libre-c-141414);
+  border-radius: var(--libre-radius-pct-30);
+  box-shadow: var(--libre-shadow-4);
 }
 
 /* Badges render as LINE ART (the Icon primitive's stroke-only
@@ -446,7 +444,7 @@
      at the notch x position from the ticket-mask SVG. */
   flex: 0 0 28.8%;
   position: relative;
-  z-index: 2;
+  z-index: var(--libre-z-2);
   padding: 5% 4.5%;
   display: flex;
   flex-direction: column;
@@ -470,10 +468,10 @@
     180deg,
     transparent 0px,
     transparent 6px,
-    rgba(0, 0, 0, 0.35) 6px,
-    rgba(0, 0, 0, 0.35) 12px
+    var(--libre-c-rgba-0-0-0-0-35) 6px,
+    var(--libre-c-rgba-0-0-0-0-35) 12px
   );
-  background-size: 1.5px 100%;
+  background-size: var(--libre-size-1-5) 100%;
   background-repeat: no-repeat;
   background-position: 0 0;
 }
@@ -485,21 +483,21 @@
      two eyebrows read as one typographic system across the
      perforation. */
   font-family: inherit;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-32em);
   text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.62);
-  margin-bottom: 8px;
+  color: var(--libre-c-rgba-26-26-26-0-62);
+  margin-bottom: var(--libre-space-8);
 }
 
 .libre-cert-ticket__qr {
   width: 64%;
   aspect-ratio: 1;
-  padding: 4px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 4px;
+  padding: var(--libre-space-4);
+  background: var(--libre-c-rgba-255-255-255-0-55);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-0-0-0-0-12);
+  border-radius: var(--libre-radius-4);
   /* Auto top-margin pairs with stub-id's auto top-margin to
      centre the QR + download cluster between the top-anchored
      stub-eyebrow and the bottom-anchored stub-id. */
@@ -507,7 +505,7 @@
 }
 
 .libre-cert-ticket__qr--loading {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--libre-c-rgba-0-0-0-0-04);
 }
 
 .libre-cert-ticket__qr img {
@@ -524,18 +522,18 @@
      ticket frame so we use a black-alpha fill rather than the
      app's accent token — the cert is meant to read as
      stationery, not as a theme-tinted UI surface. */
-  margin-top: 10px;
+  margin-top: var(--libre-space-10);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.22);
-  border-radius: 999px;
-  color: #111111;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  gap: var(--libre-space-5);
+  padding: var(--libre-space-6) var(--libre-space-12);
+  background: var(--libre-c-rgba-0-0-0-0-06);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-0-0-0-0-22);
+  border-radius: var(--libre-radius-pill);
+  color: var(--libre-c-111111);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-05em);
   /* `Resume →` was wrapping onto two lines on in-progress cards
      with a narrow stub — the arrow glyph counts as its own
      break opportunity. Force nowrap so the label and arrow stay
@@ -543,13 +541,13 @@
   white-space: nowrap;
   cursor: pointer;
   transition:
-    background 0.18s ease,
-    transform 0.12s ease;
+    background var(--libre-dur-180) var(--libre-ease-ease),
+    transform var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-cert-ticket__download:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.12);
-  transform: translateY(-1px);
+  background: var(--libre-c-rgba-0-0-0-0-12);
+  transform: translateY(var(--libre-size-neg-1));
 }
 
 .libre-cert-ticket__download:active:not(:disabled) {
@@ -557,7 +555,7 @@
 }
 
 .libre-cert-ticket__download:disabled {
-  opacity: 0.6;
+  opacity: var(--libre-opacity-0-6);
   cursor: progress;
 }
 
@@ -567,13 +565,13 @@
      split the stub's free space evenly. */
   margin-top: auto;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 9px;
-  font-weight: 500;
+  font-size: var(--libre-fs-9);
+  font-weight: var(--libre-fw-500);
   /* Neutralized from warm `rgba(26, 20, 24, 0.65)` to a
      plain black-alpha so the monospace ID reads as paper-ink
      rather than parchment-ink. */
-  color: rgba(0, 0, 0, 0.64);
-  letter-spacing: 0.04em;
+  color: var(--libre-c-rgba-0-0-0-0-64);
+  letter-spacing: var(--libre-ls-0-04em);
 }
 
 /* ─── Hover animation: dramatic hologram shimmer ──────────── */
@@ -621,7 +619,7 @@
 .libre-cert-ticket:hover {
   /* Slightly faster cycle (5.5s, was 7s) so the bigger wobble
      reads as energetic shimmer rather than a slow swing. */
-  animation: libre-cert-ticket-shimmer 5.5s ease-in-out infinite;
+  animation: libre-cert-ticket-shimmer var(--libre-dur-5500) var(--libre-ease-ease-in-out) infinite;
 }
 
 /* Reduced motion — kill the shimmer keyframe. The ticket sits

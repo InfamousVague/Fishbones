@@ -15,20 +15,18 @@
    celebration bursts were retired as too much); pairs with the
    `success` sound cue on the same pass. */
 .libre-output--pass-pulse {
-  animation: libre-output-pass-pulse 0.75s ease-out;
+  animation: libre-output-pass-pulse var(--libre-dur-750) var(--libre-ease-ease-out);
 }
 
 @keyframes libre-output-pass-pulse {
   0% {
-    box-shadow: inset 0 0 0 0 rgba(124, 217, 124, 0);
+    box-shadow: var(--libre-shadow-101);
   }
   22% {
-    box-shadow:
-      inset 0 0 0 2px rgba(124, 217, 124, 0.55),
-      inset 0 0 26px rgba(124, 217, 124, 0.22);
+    box-shadow: var(--libre-shadow-108);
   }
   100% {
-    box-shadow: inset 0 0 0 0 rgba(124, 217, 124, 0);
+    box-shadow: var(--libre-shadow-101);
   }
 }
 
@@ -49,7 +47,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background: #ffffff;
+  background: var(--libre-c-white);
 }
 
 .libre-output-preview-iframe {
@@ -58,18 +56,18 @@
   width: 100%;
   height: 100%;
   border: 0;
-  background: #ffffff;
+  background: var(--libre-c-white);
 }
 
 /* React Native preview renders its own dark chrome (the preview HTML
    sets body background to #0b0b10). Match the wrapper + iframe so
    nothing peeks through around the rounded body edges. */
 .libre-output-preview-fill--rn {
-  background: #0b0b10;
+  background: var(--libre-c-0b0b10);
 }
 
 .libre-output-preview-iframe--rn {
-  background: #0b0b10;
+  background: var(--libre-c-0b0b10);
 }
 
 /* Console-tab override: hide the preview iframe via display:none
@@ -90,10 +88,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  padding: 0 6px;
-  font-size: 11px;
-  font-weight: 700;
+  min-width: var(--libre-size-18);
+  padding: var(--libre-space-0) var(--libre-space-6);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
   color: var(--color-text-tertiary);
   background: var(--color-bg-secondary);
   border-radius: var(--libre-radius-pill);
@@ -109,13 +107,13 @@
 /* Error-tinted badge — fires when at least one captured log is an
    error, drawing the eye to the console segment. */
 .libre-output-mode-btn-badge--error {
-  background: rgba(239, 111, 111, 0.18);
-  color: #ef6f6f;
+  background: var(--libre-c-rgba-239-111-111-0-18);
+  color: var(--libre-c-ef6f6f);
 }
 
 .seg__option--active .libre-output-mode-btn-badge--error {
-  background: rgba(239, 111, 111, 0.85);
-  color: #fff;
+  background: var(--libre-c-rgba-239-111-111-0-85);
+  color: var(--libre-c-white);
 }
 
 /* Header-slotted preview action cluster. Sits inside
@@ -126,60 +124,60 @@
 .libre-output-preview-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--libre-space-6);
 }
 
 .libre-output-preview-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 36px;
+  gap: var(--libre-space-6);
+  min-height: var(--libre-size-36);
   box-sizing: border-box;
-  padding: 0 14px;
+  padding: var(--libre-space-0) var(--libre-space-14);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
   cursor: pointer;
   transition: background var(--libre-motion-quick), border-color var(--libre-motion-quick);
 }
 
 .libre-output-preview-btn:hover {
   background: var(--color-bg-secondary);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--libre-c-rgba-255-255-255-0-2);
 }
 
 .libre-output-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
+  padding: var(--libre-space-6) var(--libre-space-12);
   /* Header sits on the same code surface as the body and editor —
      just the "CONSOLE" label + run-meta floating above the code
      bg, with the border-bottom giving the structural cue. */
   background: var(--color-code-surface);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--libre-bw-1) solid var(--color-border-default);
 }
 
 .libre-output-label {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-600);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: var(--libre-ls-0-6);
   color: var(--color-text-tertiary);
 }
 
 .libre-output-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--libre-space-10);
 }
 
 .libre-output-duration {
-  font-size: 10.5px;
+  font-size: var(--libre-fs-10-5);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
 }
@@ -192,30 +190,30 @@
    * looked like a stray rule under the header bar. */
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--libre-space-4);
 }
 
 .libre-output-test {
   display: grid;
-  grid-template-columns: 16px 1fr;
+  grid-template-columns: var(--libre-size-16) 1fr;
   align-items: start;
-  column-gap: 8px;
-  font-size: 12px;
+  column-gap: var(--libre-space-8);
+  font-size: var(--libre-fs-12);
 }
 
 .libre-output-test-glyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 17px;
+  height: var(--libre-size-17);
 }
 
 .libre-output-test--pass .libre-output-test-glyph {
-  color: #7cd97c;
+  color: var(--libre-c-7cd97c);
 }
 
 .libre-output-test--fail .libre-output-test-glyph {
-  color: #ef6f6f;
+  color: var(--libre-c-ef6f6f);
 }
 
 .libre-output-test-name {
@@ -224,13 +222,13 @@
 
 .libre-output-test-error {
   grid-column: 2 / -1;
-  margin: 4px 0 6px;
-  padding: 6px 8px;
-  background: rgba(239, 111, 111, 0.08);
-  border-left: 2px solid rgba(239, 111, 111, 0.5);
-  border-radius: 3px;
-  color: #f1b5b5;
-  font-size: 11.5px;
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-6);
+  padding: var(--libre-space-6) var(--libre-space-8);
+  background: var(--libre-c-rgba-239-111-111-0-08);
+  border-left: var(--libre-bw-2) solid var(--libre-c-rgba-239-111-111-0-5);
+  border-radius: var(--libre-radius-3);
+  color: var(--libre-c-f1b5b5);
+  font-size: var(--libre-fs-11-5);
   white-space: pre-wrap;
 }
 
@@ -240,7 +238,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--libre-space-8);
   min-width: 0;
 }
 
@@ -254,40 +252,40 @@
 .libre-output-test-view {
   flex: none;
   font-family: inherit;
-  font-size: 11px;
-  line-height: 1.6;
-  padding: 0 6px;
+  font-size: var(--libre-fs-11);
+  line-height: var(--libre-lh-1-6);
+  padding: var(--libre-space-0) var(--libre-space-6);
   color: var(--color-text-secondary);
   background: transparent;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 3px;
+  border: var(--libre-bw-1) solid var(--color-border-subtle);
+  border-radius: var(--libre-radius-3);
   cursor: pointer;
   transition:
-    color 0.12s ease,
-    border-color 0.12s ease,
-    background 0.12s ease;
+    color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease),
+    background var(--libre-dur-120) var(--libre-ease-ease);
 }
 
 .libre-output-test-view:hover,
 .libre-output-test-view:focus-visible {
   color: var(--color-text-primary);
   border-color: var(--color-border);
-  background: rgba(127, 127, 127, 0.1);
+  background: var(--libre-c-rgba-127-127-127-0-1);
 }
 
 /* Revealed test source — the actual code the test runs, so the learner can
    see exactly what's being asserted. Monospace, horizontally scrollable. */
 .libre-output-test-source {
   grid-column: 2 / -1;
-  margin: 4px 0 8px;
-  padding: 8px 10px;
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-8);
+  padding: var(--libre-space-8) var(--libre-space-10);
   background: var(--color-code-surface);
-  border-left: 2px solid var(--color-border);
-  border-radius: 3px;
+  border-left: var(--libre-bw-2) solid var(--color-border);
+  border-radius: var(--libre-radius-3);
   color: var(--color-text-primary);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 11.5px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-5);
   white-space: pre;
   overflow-x: auto;
 }
@@ -302,21 +300,21 @@
    font size are too large here). */
 .libre-output-test-codeblock.libre-code-block {
   grid-column: 2 / -1;
-  margin: 4px 0 8px;
+  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-8);
 }
 
 .libre-output-test-codeblock .shiki {
-  font-size: 11.5px;
-  line-height: 1.5;
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-5);
 }
 
 .libre-output-body {
   flex: 1;
-  padding: 10px 14px;
+  padding: var(--libre-space-10) var(--libre-space-14);
   color: var(--color-text-primary);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-55);
   overflow: auto;
   background: var(--color-code-surface);
 }
@@ -327,7 +325,7 @@
    own scrolling, so the body's `overflow: auto` would add a
    double scrollbar if left on. */
 .libre-output-body--preview {
-  padding: 0;
+  padding: var(--libre-space-0);
   overflow: hidden;
   background: transparent;
 }
@@ -343,29 +341,29 @@
 .libre-output-running-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px 2px 7px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--color-border-default);
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-2) var(--libre-space-8) var(--libre-space-2) var(--libre-space-7);
+  background: var(--libre-c-rgba-255-255-255-0-06);
+  border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-3);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .libre-output-running-pill-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  width: var(--libre-size-6);
+  height: var(--libre-size-6);
+  border-radius: var(--libre-radius-circle);
   background: var(--gg-fill-white);
-  animation: libre-output-pulse 1.2s ease-in-out infinite;
+  animation: libre-output-pulse var(--libre-dur-1200) var(--libre-ease-ease-in-out) infinite;
 }
 
 @keyframes libre-output-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.4; transform: scale(0.85); }
+  0%, 100% { opacity: var(--libre-opacity-1); transform: scale(1); }
+  50%      { opacity: var(--libre-opacity-0-4); transform: scale(0.85); }
 }
 
 /* Big centered running overlay. Shown inside the console body while an
@@ -378,15 +376,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 24px 0 8px;
+  gap: var(--libre-space-14);
+  padding: var(--libre-space-24) var(--libre-space-0) var(--libre-space-8);
   color: var(--color-text-primary);
 }
 
 .libre-output-running-stack {
   position: relative;
-  width: 88px;
-  height: 88px;
+  width: var(--libre-size-88);
+  height: var(--libre-size-88);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -397,9 +395,9 @@
    motion notes live with that component. */
 
 .libre-output-running-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-8);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -410,8 +408,8 @@
    that wants the old pulse animation can opt in by name without
    redefining it. */
 @keyframes libre-output-logo-pulse {
-  0%, 100% { opacity: 0.9; transform: scale(1); }
-  50%      { opacity: 0.5; transform: scale(0.94); }
+  0%, 100% { opacity: var(--libre-opacity-0-9); transform: scale(1); }
+  50%      { opacity: var(--libre-opacity-0-5); transform: scale(0.94); }
 }
 
 /* Light themes: ring track switches to a darker alpha so the stroke
@@ -420,14 +418,14 @@
 [data-theme-name="ayu-light"] .libre-output-running-ring,
 [data-theme-name="ayu-light"] .libre-output-running-ring,
 [data-theme-name="catppuccin-latte"] .libre-output-running-ring {
-  border-color: rgba(0, 0, 0, 0.08);
+  border-color: var(--libre-c-rgba-0-0-0-0-08);
   border-top-color: currentColor;
 }
 
 [data-theme-name="ayu-light"] .libre-output-running-pill,
 [data-theme-name="ayu-light"] .libre-output-running-pill,
 [data-theme-name="catppuccin-latte"] .libre-output-running-pill {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--libre-c-rgba-0-0-0-0-04);
 }
 
 /* Console / Tests tab strip. Lives inside the OutputPane header
@@ -442,24 +440,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  padding: 1px 6px;
+  min-width: var(--libre-size-18);
+  padding: var(--libre-space-1) var(--libre-space-6);
   border-radius: var(--libre-radius-pill);
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-tertiary);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-02em);
 }
 
 .libre-output-tab-badge--pass {
-  background: rgba(80, 200, 120, 0.18);
-  color: #87dca0;
+  background: var(--libre-c-rgba-80-200-120-0-18);
+  color: var(--libre-c-87dca0);
 }
 
 .libre-output-tab-badge--fail {
-  background: rgba(239, 111, 111, 0.2);
-  color: #f29c9c;
+  background: var(--libre-c-rgba-239-111-111-0-2);
+  color: var(--libre-c-f29c9c);
 }
 
 /* Badges on the filled (white) active segment — recolour so the count
@@ -469,24 +467,24 @@
   background: color-mix(in srgb, var(--color-accent-fg, var(--color-bg-primary)) 85%, transparent);
 }
 .seg__option--active .libre-output-tab-badge--pass {
-  background: #2f9e5a;
-  color: #fff;
+  background: var(--libre-c-2f9e5a);
+  color: var(--libre-c-white);
 }
 .seg__option--active .libre-output-tab-badge--fail {
-  background: #d65656;
-  color: #fff;
+  background: var(--libre-c-d65656);
+  color: var(--libre-c-white);
 }
 
 /* Attention pulse on the Tests label when a run has failures — draws
    the eye so a learner looking at Console sees a hint to switch.
    Applied to the label span inside the Tests segment. */
 .libre-output-seg-attn {
-  animation: libre-output-tab-attn 2.4s ease-in-out;
+  animation: libre-output-tab-attn var(--libre-dur-2400) var(--libre-ease-ease-in-out);
 }
 
 @keyframes libre-output-tab-attn {
   0%, 100% { color: inherit; }
-  20%, 80% { color: #f29c9c; }
+  20%, 80% { color: var(--libre-c-f29c9c); }
 }
 
 .libre-output-console {
@@ -499,18 +497,18 @@
  * debug prints). The previous behaviour hid the tab entirely, which
  * was confusing — "wait, did Console disappear, or is it just empty?". */
 .libre-output-pane-empty {
-  padding: 16px 8px;
-  font-size: 12px;
-  line-height: 1.5;
+  padding: var(--libre-space-16) var(--libre-space-8);
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-5);
   color: var(--color-text-tertiary);
 }
 
 .libre-output-pane-empty code {
-  background: var(--color-bg-tertiary, rgba(255, 255, 255, 0.06));
+  background: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-06));
   color: var(--color-text-secondary);
-  padding: 1px 6px;
+  padding: var(--libre-space-1) var(--libre-space-6);
   border-radius: var(--libre-radius-xs);
-  font-size: 11.5px;
+  font-size: var(--libre-fs-11-5);
   font-family: "SF Mono", ui-monospace, Menlo, monospace;
 }
 
@@ -521,8 +519,8 @@
 .libre-output-line {
   white-space: pre-wrap;
   word-break: break-word;
-  padding: 2px 0;
-  border-bottom: 1px dashed transparent;
+  padding: var(--libre-space-2) var(--libre-space-0);
+  border-bottom: var(--libre-bw-1) dashed transparent;
 }
 
 .libre-output-line--info {
@@ -530,33 +528,33 @@
 }
 
 .libre-output-line--warn {
-  color: #d9a800;
+  color: var(--libre-c-d9a800);
 }
 
 .libre-output-line--error {
-  color: #ef6f6f;
+  color: var(--libre-c-ef6f6f);
 }
 
 .libre-output-error {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border: 1px solid rgba(239, 111, 111, 0.35);
-  background: rgba(239, 111, 111, 0.08);
+  margin-top: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-12);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-239-111-111-0-35);
+  background: var(--libre-c-rgba-239-111-111-0-08);
   border-radius: var(--libre-radius-sm);
 }
 
 .libre-output-error-title {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-6);
   text-transform: uppercase;
-  color: #ef6f6f;
-  margin-bottom: 4px;
+  color: var(--libre-c-ef6f6f);
+  margin-bottom: var(--libre-space-4);
 }
 
 .libre-output-error pre {
-  margin: 0;
-  color: #f1b5b5;
+  margin: var(--libre-space-0);
+  color: var(--libre-c-f1b5b5);
   white-space: pre-wrap;
   word-break: break-word;
 }
