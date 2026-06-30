@@ -63,6 +63,23 @@ export function usePrelaunchUpdate(): PrelaunchUpdate {
 
     async function run() {
       try {
+        // If a dedicated splashscreen window exists (macOS — see
+        // tauri.macos.conf.json), IT is the sole launch updater. Doing the
+        // check + download here too downloaded the update TWICE on every
+        // launch (once per window) and surfaced progress in the big main
+        // window instead of only the small splash. Defer entirely: release
+        // the boot hold and let the splash own the update.
+        const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow");
+        const splash = await WebviewWindow.getByLabel("splashscreen").catch(
+          () => null,
+        );
+        if (splash) {
+          window.clearTimeout(hold);
+          setStatus(null);
+          setBusy(false);
+          return;
+        }
+
         setStatus("Checking for updates…");
         const { check } = await import("@tauri-apps/plugin-updater");
         const update = await withTimeout(check(), CHECK_TIMEOUT_MS, "update check");

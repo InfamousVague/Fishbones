@@ -2391,6 +2391,10 @@ export default function App() {
         <LoadingScreen
           status={updateStatus ?? "loading Libre…"}
           progress={updateProgress}
+          // On platforms without a separate splash window (Windows/Linux) the
+          // update downloads here — show just the progress bar, no spinner.
+          // Normal boot (no update progress) keeps the spinner.
+          progressOnly={updateProgress !== null}
         />
       </div>
 
