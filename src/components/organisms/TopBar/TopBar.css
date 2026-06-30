@@ -960,13 +960,22 @@
 
 .libre__tab:hover {
   color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-rim);
 }
 
+/* The active tab reads as a frosted-glass pill on the frosted bar: a
+   translucent glass fill + a backdrop blur so the surface behind it diffuses
+   through, with a faint top rim for the lifted-glass edge. The glass tokens
+   are theme-aware (translucent on dark themes, solid white on light), so the
+   tab stays legible everywhere. */
 .libre__tab--active {
-  background: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border-color: var(--color-border-default);
+  background: var(--color-glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  backdrop-filter: blur(var(--libre-blur-28)) saturate(160%);
+  border-color: var(--color-glass-border);
+  box-shadow: inset 0 var(--libre-bw-1) 0 var(--color-glass-rim);
 }
 
 /* While being dragged the source tab dims and lifts so the user

@@ -211,68 +211,91 @@ export default function TopBar({
   // hiding it for fresh learners would orphan the latter.
   const showStats = !!stats;
 
-  // Drag-to-reorder state. `draggingIdx` is the source tab being
-  // dragged; `overIdx` is the slot it would land in if dropped now.
-  // Both clear on dragend / drop.
-  //
-  // We keep TWO sources of truth for the dragging-from index: a
-  // `useState` for visual rendering (the dragged tab dims, the
-  // hovered tab gets the drop-side indicator) AND a `useRef` for
-  // the per-event bailout check.
-  //
-  // Why both? React batches state updates from event handlers, so
-  // by the time the FIRST `dragover` fires after a `dragstart`, the
-  // `setDraggingIdx(idx)` from dragstart hasn't necessarily flushed
-  // yet — the dragover's closure still reads the old `null` value
-  // and bails BEFORE calling `preventDefault()` + setting
-  // `dropEffect = "move"`. The browser then falls back to its
-  // default drop effect (= "copy" on macOS), which renders as the
-  // "green plus" cursor and explains the symptom "tabs don't drag,
-  // they show + green circle." Refs update synchronously so the
-  // dragover bailout reads the right value on its very first call.
+  // Drag-to-reorder via POINTER events. HTML5 drag-and-drop is unreliable in
+  // WKWebView (the Tauri desktop webview) — `dragstart`/`drop` frequently
+  // never fire — which is why the rest of the app drives dragging with
+  // pointer events too. We capture the pointer on the source tab, track it
+  // across the strip, and reorder on release. `draggingIdx` dims/lifts the
+  // source tab; `overIdx` draws the drop indicator on the hovered tab. Refs
+  // mirror them so the pointerup closure reads the latest values.
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
-  const draggingIdxRef = useRef<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
+  const tabsStripRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    from: number;
+    startX: number;
+    started: boolean;
+  } | null>(null);
+  const overIdxRef = useRef<number | null>(null);
+  // Set right after a real drag so the click that fires on pointerup doesn't
+  // ALSO re-activate the source tab; the tab's onClick clears it.
+  const suppressClickRef = useRef(false);
   const reorderable = !!onReorder;
 
-  function handleDragStart(idx: number, e: React.DragEvent<HTMLButtonElement>) {
-    if (!reorderable) return;
-    draggingIdxRef.current = idx;
-    setDraggingIdx(idx);
-    // Required for Firefox to actually start the drag — and the data
-    // payload is also useful if a future feature wants to drag tabs
-    // out of the bar entirely (e.g. to spawn a popped-out window).
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", String(idx));
+  // Index of the tab whose box clientX falls within (clamped to the strip's
+  // ends). Matches the index semantics `reorderTab` (App.tsx) expects.
+  function tabIndexAtX(clientX: number): number | null {
+    const strip = tabsStripRef.current;
+    if (!strip) return null;
+    const els = Array.from(strip.querySelectorAll<HTMLElement>(".libre__tab"));
+    if (!els.length) return null;
+    for (let i = 0; i < els.length; i++) {
+      if (clientX <= els[i].getBoundingClientRect().right) return i;
+    }
+    return els.length - 1;
   }
 
-  function handleDragOver(idx: number, e: React.DragEvent<HTMLButtonElement>) {
-    if (!reorderable || draggingIdxRef.current === null) return;
-    // preventDefault() FIRST + ALWAYS — this is what tells the
-    // browser "yes, this slot accepts the drop" and switches the
-    // cursor away from the no-drop / copy default. The dropEffect
-    // assignment after only takes effect when the event has been
-    // accepted via preventDefault.
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    if (overIdx !== idx) setOverIdx(idx);
+  function handleTabPointerDown(
+    idx: number,
+    e: React.PointerEvent<HTMLButtonElement>,
+  ) {
+    // Left button only; never start a drag from the close affordance.
+    if (!reorderable || e.button !== 0) return;
+    if ((e.target as HTMLElement).closest(".libre__tab-close")) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { from: idx, startX: e.clientX, started: false };
   }
 
-  function handleDrop(idx: number, e: React.DragEvent<HTMLButtonElement>) {
-    if (!reorderable) return;
-    e.preventDefault();
-    const from = draggingIdxRef.current;
-    draggingIdxRef.current = null;
+  function handleTabPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    const d = dragRef.current;
+    if (!d) return;
+    if (!d.started) {
+      // A few px of slop so a plain click isn't read as a drag.
+      if (Math.abs(e.clientX - d.startX) < 4) return;
+      d.started = true;
+      setDraggingIdx(d.from);
+    }
+    const over = tabIndexAtX(e.clientX);
+    if (over !== null && over !== overIdxRef.current) {
+      overIdxRef.current = over;
+      setOverIdx(over);
+    }
+  }
+
+  function endTabDrag(
+    e: React.PointerEvent<HTMLButtonElement>,
+    commit: boolean,
+  ) {
+    const d = dragRef.current;
+    dragRef.current = null;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* capture may already be released */
+    }
+    const from = d?.from ?? null;
+    const to = overIdxRef.current;
+    const dragged = !!d?.started;
+    overIdxRef.current = null;
     setDraggingIdx(null);
     setOverIdx(null);
-    if (from === null || from === idx) return;
-    onReorder?.(from, idx);
-  }
-
-  function handleDragEnd() {
-    draggingIdxRef.current = null;
-    setDraggingIdx(null);
-    setOverIdx(null);
+    if (dragged) {
+      // Swallow the click that follows a real drag.
+      suppressClickRef.current = true;
+      if (commit && from !== null && to !== null && from !== to) {
+        onReorder?.(from, to);
+      }
+    }
   }
 
   // ── Tab right-click menu ───────────────────────────────────────
@@ -406,7 +429,11 @@ export default function TopBar({
         </button>
       )}
 
-      <div className="libre__topbar-tabs" data-tauri-drag-region>
+      <div
+        className="libre__topbar-tabs"
+        data-tauri-drag-region
+        ref={tabsStripRef}
+      >
         {tabs.map((tab, i) => {
           const isActive = i === activeIndex;
           const isDragging = draggingIdx === i;
@@ -446,13 +473,20 @@ export default function TopBar({
                 .filter(Boolean)
                 .join(" ")}
               style={styleVars}
-              onClick={() => onActivate(i)}
+              onClick={() => {
+                // A drag just happened on this tab — eat the trailing click
+                // so we don't also re-activate it.
+                if (suppressClickRef.current) {
+                  suppressClickRef.current = false;
+                  return;
+                }
+                onActivate(i);
+              }}
               onContextMenu={(e) => openTabMenu(i, e)}
-              draggable={reorderable}
-              onDragStart={(e) => handleDragStart(i, e)}
-              onDragOver={(e) => handleDragOver(i, e)}
-              onDrop={(e) => handleDrop(i, e)}
-              onDragEnd={handleDragEnd}
+              onPointerDown={(e) => handleTabPointerDown(i, e)}
+              onPointerMove={handleTabPointerMove}
+              onPointerUp={(e) => endTabDrag(e, true)}
+              onPointerCancel={(e) => endTabDrag(e, false)}
               data-tauri-drag-region={false}
             >
               {isFirstOfGroup && (
