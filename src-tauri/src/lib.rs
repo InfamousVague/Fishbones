@@ -227,6 +227,31 @@ fn relaunch_for_update<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<()
     app.restart();
 }
 
+/// Open an http(s)/mailto URL in the user's default browser via a direct OS
+/// spawn — a robust fallback for `@tauri-apps/plugin-opener`'s `openUrl` (see
+/// `src/lib/openExternal.ts`). The app already spawns child processes for the
+/// local runtimes and the relaunch helper, so this works even where the
+/// plugin's command path doesn't. The URL is validated to a web/mail scheme so
+/// we never hand an arbitrary string to a shell.
+#[tauri::command]
+fn open_external_url(url: String) -> Result<(), String> {
+    if !(url.starts_with("https://")
+        || url.starts_with("http://")
+        || url.starts_with("mailto:"))
+    {
+        return Err(format!("refusing to open non-web url: {url}"));
+    }
+    #[cfg(target_os = "macos")]
+    let spawned = std::process::Command::new("/usr/bin/open").arg(&url).spawn();
+    #[cfg(target_os = "windows")]
+    let spawned = std::process::Command::new("cmd")
+        .args(["/C", "start", "", &url])
+        .spawn();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let spawned = std::process::Command::new("xdg-open").arg(&url).spawn();
+    spawned.map(|_| ()).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // rustls 0.23+ refuses to auto-pick a default crypto provider when
@@ -341,6 +366,7 @@ pub fn run() {
             run_swift,
             start_oauth,
             relaunch_for_update,
+            open_external_url,
             // `mod haptics` is gated out on iOS/Android (see top of
             // file), so its command registration must carry the same
             // gate or the handler list references an unlinked module
