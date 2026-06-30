@@ -17,8 +17,8 @@
 /// an upgraded daemon can still learn the truth.
 
 import { invoke } from "@tauri-apps/api/core";
-import { isDesktop } from "../platform";
-import { aiHostUrl } from "../aiHost";
+import { isDesktop } from "@/lib/platform";
+import { aiHostUrl } from "@/lib/aiHost";
 import { isToolNative } from "./models";
 
 interface DesktopCapsResult {

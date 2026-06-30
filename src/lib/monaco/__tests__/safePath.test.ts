@@ -3,7 +3,7 @@
 /// the result has no colon (so no scheme) and only Uri-safe chars.
 
 import { describe, expect, it } from "vitest";
-import { safeMonacoPath } from "../safePath";
+import { safeMonacoPath } from "@/lib/monaco/safePath";
 
 // A faithful stand-in for Monaco's scheme rule: the part before the
 // first ":" must be a valid scheme (letter, then [A-Za-z0-9+.-]).

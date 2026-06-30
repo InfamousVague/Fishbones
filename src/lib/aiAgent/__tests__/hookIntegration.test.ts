@@ -12,19 +12,19 @@
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ToolDef } from "../../aiTools/types";
-import type { AgentTransport, AgentTurnResponse } from "../types";
+import type { ToolDef } from "@/lib/aiTools/types";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
 
 // Mock the transport module BEFORE the hook is imported, so the
 // hook's useMemo(createTauriTransport) closure picks up the
 // scripted version instead of the real Tauri one.
 const transportRef: { current: AgentTransport | null } = { current: null };
-vi.mock("../transport", () => ({
+vi.mock("@/lib/aiAgent/transport", () => ({
   createTauriTransport: () => transportRef.current,
 }));
 
 // Import AFTER the mock is registered.
-import { useAiAgent } from "../../../hooks/useAiAgent";
+import { useAiAgent } from "@/hooks/useAiAgent";
 
 function scripted(turns: AgentTurnResponse[]): AgentTransport {
   let i = 0;

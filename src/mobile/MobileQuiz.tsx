@@ -4,7 +4,7 @@
 /// the last question and taps Continue, calls `onComplete`.
 
 import { useState } from "react";
-import type { QuizLesson, QuizQuestion } from "../data/types";
+import type { QuizLesson, QuizQuestion } from "@/data/types";
 import "./MobileQuiz.css";
 
 interface Props {

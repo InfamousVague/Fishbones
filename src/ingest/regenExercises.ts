@@ -17,7 +17,7 @@ import type {
   Lesson,
   LanguageId,
   MixedLesson,
-} from "../data/types";
+} from "@/data/types";
 import type { IngestEvent, PipelineStats } from "./pipeline";
 
 interface LessonStub {

@@ -20,7 +20,7 @@
 /// guard runs once per turn on the cleaned content, before the
 /// message is stored or rendered.
 
-import type { Course } from "../../data/types";
+import type { Course } from "@/data/types";
 
 const MD_LINK_RE = /\[([^\]]*)\]\((libre:\/\/[^)\s]+)\)/g;
 const BARE_URI_RE = /libre:\/\/[^\s)\]>"',;]+/g;

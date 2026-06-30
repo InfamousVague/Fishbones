@@ -9,13 +9,13 @@
 /// across all three so navigation feels uniform.
 
 import { useEffect, useState } from "react";
-import type { Course, Lesson } from "../data/types";
-import { isExerciseKind, isQuiz } from "../data/types";
+import type { Course, Lesson } from "@/data/types";
+import { isExerciseKind, isQuiz } from "@/data/types";
 import MobileReader from "./MobileReader";
 import MobileQuiz from "./MobileQuiz";
 import MobileOutline from "./MobileOutline";
-import BlocksView from "../components/Blocks/BlocksView";
-import { haptics } from "../lib/haptics";
+import BlocksView from "@/components/organisms/Blocks/BlocksView";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@base/primitives/icon";
 import { chevronLeft } from "@base/primitives/icon/icons/chevron-left";
 import { chevronRight } from "@base/primitives/icon/icons/chevron-right";

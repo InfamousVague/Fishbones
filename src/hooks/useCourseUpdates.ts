@@ -15,9 +15,9 @@
 /// change anything user-visible.
 
 import { useCallback, useEffect, useState } from "react";
-import type { Course } from "../data/types";
-import { checkUpdateAvailable, clearUpdateCache } from "../lib/courseSync";
-import { storage } from "../lib/storage";
+import type { Course } from "@/data/types";
+import { checkUpdateAvailable, clearUpdateCache } from "@/lib/courseSync";
+import { storage } from "@/lib/storage";
 
 export function useCourseUpdates(courses: Course[]): {
   /// Map from courseId → true when an upstream update is available.

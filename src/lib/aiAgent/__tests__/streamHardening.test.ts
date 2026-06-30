@@ -9,7 +9,7 @@ import {
   looksLikeToolCallPayload,
   parseFencedBlocks,
   splitInfoString,
-} from "../streaming";
+} from "@/lib/aiAgent/streaming";
 
 describe("splitInfoString — keeps legit fences", () => {
   const legit: Array<[string, string]> = [

@@ -29,13 +29,13 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import type { Course, Lesson } from "../data/types";
-import type { Completion } from "../hooks/useProgress";
-import type { StreakAndXp } from "../hooks/useStreakAndXp";
-import { harvestPracticeItems } from "../components/Practice/practiceHarvest";
-import { buildQueue } from "../components/Practice/practiceQueue";
-import { loadAllRecords } from "../components/Practice/practiceStore";
-import { isMobile } from "../lib/platform";
+import type { Course, Lesson } from "@/data/types";
+import type { Completion } from "@/hooks/useProgress";
+import type { StreakAndXp } from "@/hooks/useStreakAndXp";
+import { harvestPracticeItems } from "@/components/templates/Practice/practiceHarvest";
+import { buildQueue } from "@/components/templates/Practice/practiceQueue";
+import { loadAllRecords } from "@/components/templates/Practice/practiceStore";
+import { isMobile } from "@/lib/platform";
 
 interface SnapshotInput {
   courses: readonly Course[];

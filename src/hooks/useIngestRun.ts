@@ -5,24 +5,24 @@ import {
   IngestAborted,
   type IngestEvent,
   type PipelineStats,
-} from "../ingest/pipeline";
+} from "@/ingest/pipeline";
 import {
   regenerateExercises,
   RegenAborted,
-} from "../ingest/regenExercises";
+} from "@/ingest/regenExercises";
 import {
   generateChallengePack,
   ChallengePackAborted,
   type GenerateChallengePackOptions,
-} from "../ingest/generateChallengePack";
-import { enrichCourse, EnrichAborted } from "../ingest/enrichCourse";
-import { retryLesson, RetryAborted } from "../ingest/retryLesson";
+} from "@/ingest/generateChallengePack";
+import { enrichCourse, EnrichAborted } from "@/ingest/enrichCourse";
+import { retryLesson, RetryAborted } from "@/ingest/retryLesson";
 import {
   ingestDocsSite,
   DocsIngestAborted,
   type DocsIngestOptions,
-} from "../ingest/ingestDocsSite";
-import type { LanguageId } from "../data/types";
+} from "@/ingest/ingestDocsSite";
+import type { LanguageId } from "@/data/types";
 
 export type IngestStatus = "idle" | "running" | "success" | "error" | "aborted";
 

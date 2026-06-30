@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { profileKey } from "../lib/profileStore";
+import { profileKey } from "@/lib/profileStore";
 
 /// localStorage key for the `{ [courseId]: unixSeconds }` map that tracks
 /// the last time each course was opened / focused. Bumped whenever the

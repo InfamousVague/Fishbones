@@ -4,13 +4,13 @@
 /// agent turn with a 400.
 
 import { describe, expect, it } from "vitest";
-import { isToolsUnsupportedError, runAgentLoop } from "../loop";
+import { isToolsUnsupportedError, runAgentLoop } from "@/lib/aiAgent/loop";
 import type {
   AgentTransport,
   AgentTurnRequest,
   AgentTurnResponse,
-} from "../types";
-import type { ToolDef } from "../../aiTools/types";
+} from "@/lib/aiAgent/types";
+import type { ToolDef } from "@/lib/aiTools/types";
 
 function tool(name: string): ToolDef {
   return {

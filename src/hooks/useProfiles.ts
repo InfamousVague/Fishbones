@@ -12,12 +12,12 @@
 /// carrying stale in-memory state.
 
 import { useCallback, useEffect, useState } from "react";
-import { isWeb } from "../lib/platform";
+import { isWeb } from "@/lib/platform";
 import {
   setActiveProfileIdCache,
   activeProfileId,
   DEFAULT_PROFILE_ID,
-} from "../lib/profileStore";
+} from "@/lib/profileStore";
 
 export interface ProfileMeta {
   id: string;

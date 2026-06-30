@@ -10,7 +10,7 @@ import {
   planStreamWrites,
   sniffProjectId,
   type StreamPlannerState,
-} from "../fileStream";
+} from "@/lib/aiAgent/fileStream";
 
 function freshState(
   projectId: string | null,

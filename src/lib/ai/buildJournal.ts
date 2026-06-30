@@ -17,8 +17,8 @@
 /// inference. The model's own prose narration renders alongside —
 /// but the journal's spine is computed, not generated.
 
-import type { Course } from "../../data/types";
-import type { ToolResult } from "../aiTools/types";
+import type { Course } from "@/data/types";
+import type { ToolResult } from "@/lib/aiTools/types";
 import { analyzeBuildState, type BuildStage } from "./buildState";
 import {
   analyzeConceptCoverage,

@@ -9,9 +9,9 @@
 /// broke.
 
 import { describe, expect, it } from "vitest";
-import { runAgentLoop } from "../loop";
-import type { AgentTransport, AgentTurnResponse } from "../types";
-import type { ToolDef } from "../../aiTools/types";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
+import type { ToolDef } from "@/lib/aiTools/types";
 
 function scriptedTransport(turns: AgentTurnResponse[]): AgentTransport {
   let i = 0;

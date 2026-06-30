@@ -10,7 +10,7 @@
 /// for a finished build, offered once, only when the learner opted
 /// into co-working.
 
-import type { PairMode } from "../aiAgent/pairMode";
+import type { PairMode } from "@/lib/aiAgent/pairMode";
 
 /// Once a learner has earned the diff for a concept this many times,
 /// stop offering rewinds for it — they've shown they've got it.

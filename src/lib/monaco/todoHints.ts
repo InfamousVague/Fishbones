@@ -23,9 +23,9 @@
 /// Ollama.
 
 import type * as MonacoNS from "monaco-editor";
-import { aiHostUrl, readAiEnabled } from "../aiHost";
-import { loadSettings } from "../aiAgent/settings";
-import { DEFAULT_MODEL_ID } from "../ai/models";
+import { aiHostUrl, readAiEnabled } from "@/lib/aiHost";
+import { loadSettings } from "@/lib/aiAgent/settings";
+import { DEFAULT_MODEL_ID } from "@/lib/ai/models";
 
 type Monaco = typeof MonacoNS;
 type ICodeEditor = MonacoNS.editor.IStandaloneCodeEditor;

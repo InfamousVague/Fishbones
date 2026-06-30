@@ -6,8 +6,8 @@ import {
   analyzeBuildTape,
   buildStruggleConcepts,
   strugglePathsForConcept,
-} from "../buildTape";
-import type { ToolResult } from "../../aiTools/types";
+} from "@/lib/ai/buildTape";
+import type { ToolResult } from "@/lib/aiTools/types";
 
 function tr(name: string, ok: boolean, payload: Record<string, unknown>): ToolResult {
   return { toolCallId: `id-${name}-${Math.random()}`, name, ok, content: JSON.stringify(payload) };

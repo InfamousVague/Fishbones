@@ -10,7 +10,7 @@
 /// the app at level 12).
 
 import { useEffect, useRef } from "react";
-import { playSound, type PlayOptions, type SfxName } from "../lib/sfx";
+import { playSound, type PlayOptions, type SfxName } from "@/lib/sfx";
 
 interface SoundOnChangeOptions extends PlayOptions {
   /// Only fire when the value INCREASED (e.g. streak went up, not a

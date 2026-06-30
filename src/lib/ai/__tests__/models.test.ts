@@ -14,13 +14,13 @@ import {
   modelParamsB,
   modelTagMatches,
   streamsFilesLive,
-} from "../models";
+} from "@/lib/ai/models";
 import {
   DEFAULT_SETTINGS,
   loadSettings,
   mergeSettings,
   saveSettings,
-} from "../../aiAgent/settings";
+} from "@/lib/aiAgent/settings";
 
 describe("model registry", () => {
   it("has the historical default as a registered model", () => {

@@ -105,7 +105,7 @@ export const CATEGORY_META: Record<HapticCategory, CategoryMeta> = {
 // Intent → category mapping. Kept here (not on the intent
 // definitions in haptics.ts) so the policy module owns the
 // classification and the engine stays category-agnostic.
-import type { HapticIntent } from "../haptics";
+import type { HapticIntent } from "@/lib/haptics";
 
 export const INTENT_CATEGORY: Record<HapticIntent, HapticCategory> = {
   tap: "chrome",

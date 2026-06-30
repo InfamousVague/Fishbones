@@ -46,7 +46,7 @@
 
 import { storage, metaDelete } from "./storage";
 import { isWeb } from "./platform";
-import type { UseLibreCloud } from "../hooks/useLibreCloud";
+import type { UseLibreCloud } from "@/hooks/useLibreCloud";
 
 /// localStorage keys that carry progress-shaped (earned) data. Kept
 /// here rather than imported from the constituent modules because
@@ -195,9 +195,9 @@ export async function resetAccount(
   // both paths. The Certificates page re-reads on the
   // `libre:certificates-changed` event the helper dispatches.
   try {
-    const { clearCertificates } = await import("../data/certificates");
+    const { clearCertificates } = await import("@/data/certificates");
     const { notifyCertificatesChanged } = await import(
-      "../hooks/useCertificates"
+      "@/hooks/useCertificates"
     );
     await clearCertificates();
     notifyCertificatesChanged();

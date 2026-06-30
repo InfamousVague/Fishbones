@@ -5,7 +5,7 @@
 /// prompt block.
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { diagnoseRunError } from "../diagnosis";
+import { diagnoseRunError } from "@/lib/ai/diagnosis";
 import {
   addFact,
   buildMemoryBlock,
@@ -17,7 +17,7 @@ import {
   recordStruggleIn,
   removeFact,
   saveMemory,
-} from "../memory";
+} from "@/lib/ai/memory";
 
 // ── Diagnosis ───────────────────────────────────────────────
 

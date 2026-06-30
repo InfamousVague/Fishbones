@@ -3,7 +3,7 @@
 /// splitter. Each multi-file template gets its own file; single-file
 /// templates live together in `../single-file.ts`.
 
-import type { WorkbenchFile } from "../../../data/types";
+import type { WorkbenchFile } from "@/data/types";
 
 /// React (web) starter — a counter component that exercises hooks and
 /// CSS so the learner sees the "JSX + state + styles" loop wired up

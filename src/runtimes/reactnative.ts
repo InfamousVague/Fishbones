@@ -1,6 +1,6 @@
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { RunResult } from "./types";
-import { presentPreview } from "../lib/preview";
+import { presentPreview } from "@/lib/preview";
 
 /// React Native runtime — assembles an HTML shell that pulls in React,
 /// ReactDOM, and react-native-web from esm.sh + @babel/standalone from

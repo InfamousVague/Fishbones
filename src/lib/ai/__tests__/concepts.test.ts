@@ -15,8 +15,8 @@ import {
   detectConceptsInCode,
   lessonsForConcept,
   prerequisiteChain,
-} from "../concepts";
-import type { Course } from "../../../data/types";
+} from "@/lib/ai/concepts";
+import type { Course } from "@/data/types";
 
 // ── Taxonomy integrity ──────────────────────────────────────
 

@@ -20,18 +20,18 @@
 /// drill into one course rather than browsing the catalog.
 
 import { useEffect, useMemo, useState } from "react";
-import type { Course, LanguageId } from "../data/types";
-import type { Completion } from "../hooks/useProgress";
-import { isChallengePack, isExerciseTrack, isKoans, isLings } from "../data/types";
-import { prefetchCovers } from "../hooks/useCourseCover";
-import { useLocalStorageState } from "../hooks/useLocalStorageState";
-import { haptics } from "../lib/haptics";
+import type { Course, LanguageId } from "@/data/types";
+import type { Completion } from "@/hooks/useProgress";
+import { isChallengePack, isExerciseTrack, isKoans, isLings } from "@/data/types";
+import { prefetchCovers } from "@/hooks/useCourseCover";
+import { useLocalStorageState } from "@/hooks/useLocalStorageState";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@base/primitives/icon";
 import { search as searchIcon } from "@base/primitives/icon/icons/search";
 import { layoutGrid as gridIcon } from "@base/primitives/icon/icons/layout-grid";
 import { libraryBig as coversIcon } from "@base/primitives/icon/icons/library-big";
-import BookCover from "../components/Library/BookCover";
-import CourseCard from "../components/Library/CourseCard";
+import BookCover from "@/components/templates/Library/BookCover";
+import CourseCard from "@/components/templates/Library/CourseCard";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileLibrary.css";

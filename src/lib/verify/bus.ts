@@ -36,7 +36,7 @@
 /// listeners (e.g. a LessonView mid-unmount) ignore commands meant
 /// for the next lesson.
 
-import type { RunResult } from "../../runtimes";
+import type { RunResult } from "@/runtimes/index";
 
 export type VerifierCommand =
   | { type: "revealSolution"; lessonId: string }

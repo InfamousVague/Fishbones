@@ -8,7 +8,7 @@ import type {
   LanguageId,
   MixedLesson,
   WorkbenchFile,
-} from "../data/types";
+} from "@/data/types";
 
 /// Default filename + Monaco language for a given primary language. Only
 /// used when a lesson has no explicit `files` array — this synthesizes a

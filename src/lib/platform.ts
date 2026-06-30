@@ -17,7 +17,7 @@
 ///   - Phase 5: `<InstallBanner>` mounts and uses `downloadUrl()` to
 ///     pick the OS-appropriate primary CTA.
 
-import type { LanguageId } from "../data/types";
+import type { LanguageId } from "@/data/types";
 
 /// Build target — either "desktop" (the Tauri shell) or "web" (the
 /// static-hosted build on libre.academy/learn). Threaded through

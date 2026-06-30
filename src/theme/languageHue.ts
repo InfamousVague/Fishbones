@@ -1,5 +1,5 @@
 import { loadHue } from "./themes";
-import { languageMeta } from "../lib/languages";
+import { languageMeta } from "@/lib/languages";
 
 // Brand-colour HUE (HSL degrees) per language, derived from each language's
 // canonical brand colour (the same palette the Profile language bars use). The

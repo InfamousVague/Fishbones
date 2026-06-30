@@ -3,7 +3,7 @@
 /// see `./index.ts` for the assembled `PLAYGROUND_TEMPLATES`
 /// record.
 
-import type { FileLanguage, LanguageId, WorkbenchFile } from "../../data/types";
+import type { FileLanguage, LanguageId, WorkbenchFile } from "@/data/types";
 
 /// One template entry. `files` is the multi-file form (web /
 /// react / react-native / threejs); single-file templates leave

@@ -11,8 +11,8 @@
 ///     (the install happens on the host machine, not from a browser).
 
 import { invoke } from "@tauri-apps/api/core";
-import { isDesktop } from "../platform";
-import { aiHostUrl } from "../aiHost";
+import { isDesktop } from "@/lib/platform";
+import { aiHostUrl } from "@/lib/aiHost";
 
 export interface InstallProbe {
   reachable: boolean;

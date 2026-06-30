@@ -4,9 +4,9 @@ import type {
   Lesson,
   ExerciseLesson,
   MixedLesson,
-} from "../data/types";
-import { deriveStarterFiles } from "../lib/workbenchFiles";
-import { profileKey } from "../lib/profileStore";
+} from "@/data/types";
+import { deriveStarterFiles } from "@/lib/workbenchFiles";
+import { profileKey } from "@/lib/profileStore";
 
 /// Per-lesson workbench persistence. Keeps the learner's in-progress code
 /// in localStorage keyed on `{courseId, lessonId}` so reopening an exercise

@@ -4,10 +4,10 @@
 /// much as the hit cases.
 
 import { describe, expect, it } from "vitest";
-import { gradeRewindGuess, selectRewindStep } from "../rewind";
-import { analyzeBuildTape } from "../buildTape";
-import type { ToolResult } from "../../aiTools/types";
-import type { Course } from "../../../data/types";
+import { gradeRewindGuess, selectRewindStep } from "@/lib/ai/rewind";
+import { analyzeBuildTape } from "@/lib/ai/buildTape";
+import type { ToolResult } from "@/lib/aiTools/types";
+import type { Course } from "@/data/types";
 
 function tr(name: string, ok: boolean, payload: Record<string, unknown>): ToolResult {
   return { toolCallId: `id-${Math.random()}`, name, ok, content: JSON.stringify(payload) };

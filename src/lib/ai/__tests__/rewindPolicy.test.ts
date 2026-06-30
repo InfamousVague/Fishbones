@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   REWIND_MASTERY_THRESHOLD,
   shouldOfferRewind,
-} from "../rewindPolicy";
+} from "@/lib/ai/rewindPolicy";
 
 const base = {
   pairMode: "build-with-me" as const,

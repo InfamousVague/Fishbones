@@ -22,7 +22,7 @@ import {
   isLocale,
   LOCALE_STORAGE_KEY,
   type Locale,
-} from "../data/locales";
+} from "@/data/locales";
 import { useLocalStorageState } from "./useLocalStorageState";
 
 /// Cached default so every call site in the same session returns the

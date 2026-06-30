@@ -16,15 +16,15 @@
 /// window while Claude thinks.
 
 import { invoke } from "@tauri-apps/api/core";
-import type { Course, Lesson, ExerciseLesson } from "../data/types";
+import type { Course, Lesson, ExerciseLesson } from "@/data/types";
 import type {
   IngestEvent,
   PipelineOptions,
   PipelineStats,
-} from "./pipeline/types";
-import { costFor } from "./pipeline/types";
-import { cacheRead, cacheWrite } from "./pipeline/cache";
-import { validateExerciseWithRetry } from "./pipeline/validation";
+} from "@/ingest/pipeline/types";
+import { costFor } from "@/ingest/pipeline/types";
+import { cacheRead, cacheWrite } from "@/ingest/pipeline/cache";
+import { validateExerciseWithRetry } from "@/ingest/pipeline/validation";
 import {
   fitReference,
   splitForCleaning,
@@ -35,9 +35,9 @@ import {
   buildFilteredPlaceholder,
   formatBytes,
   MAX_REFERENCE_CHARS,
-} from "./pipeline/helpers";
+} from "@/ingest/pipeline/helpers";
 
-export type { PipelineOptions, IngestEvent, PipelineStats } from "./pipeline/types";
+export type { PipelineOptions, IngestEvent, PipelineStats } from "@/ingest/pipeline/types";
 
 export class IngestAborted extends Error {
   constructor() {

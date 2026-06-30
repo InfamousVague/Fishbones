@@ -33,13 +33,13 @@
 ///   dispatch next                                  ← Next button click
 ///   loop
 
-import type { RunResult } from "../../runtimes";
+import type { RunResult } from "@/runtimes/index";
 import {
   isExerciseKind,
   isQuiz,
   type Course,
   type Lesson,
-} from "../../data/types";
+} from "@/data/types";
 import {
   dispatchCommand,
   waitForEvent,

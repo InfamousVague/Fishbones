@@ -1,6 +1,6 @@
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { RunResult } from "./types";
-import { presentPreview } from "../lib/preview";
+import { presentPreview } from "@/lib/preview";
 
 /// React runtime — assembles an HTML shell that pulls in React +
 /// ReactDOM from esm.sh, transpiles the learner's JSX in-browser via

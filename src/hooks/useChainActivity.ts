@@ -3,12 +3,12 @@ import {
   evmChainHasActivity,
   getSnapshot as getEvmSnapshot,
   subscribe as subscribeEvm,
-} from "../lib/evm/chainService";
+} from "@/lib/evm/chainService";
 import {
   bitcoinChainHasActivity,
   getBitcoinChainSnapshot,
   subscribeBitcoinChain,
-} from "../lib/bitcoin/chainService";
+} from "@/lib/bitcoin/chainService";
 
 /// Reactive booleans for "is there a transaction the user could see
 /// right now?" on each in-process chain. Drives the dock visibility

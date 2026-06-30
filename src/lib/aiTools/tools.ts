@@ -25,16 +25,16 @@
 /// model isn't reading stale data.
 
 import { invoke } from "@tauri-apps/api/core";
-import type { Course, Lesson, LanguageId } from "../../data/types";
-import type { Completion } from "../../hooks/useProgress";
-import { runFiles } from "../../runtimes";
+import type { Course, Lesson, LanguageId } from "@/data/types";
+import type { Completion } from "@/hooks/useProgress";
+import { runFiles } from "@/runtimes/index";
 import type { ToolDef } from "./types";
 import {
   type AgentScope,
   enforceProject,
   enforceWrite,
 } from "./scope";
-import { diagnoseRunError } from "../ai/diagnosis";
+import { diagnoseRunError } from "@/lib/ai/diagnosis";
 import {
   dedupeProjectName,
   validateFilePath,
@@ -47,7 +47,7 @@ import {
   findConceptByName,
   lessonsForConcept,
   prerequisiteChain,
-} from "../ai/concepts";
+} from "@/lib/ai/concepts";
 import {
   addFact,
   conceptMasteryOf,
@@ -55,7 +55,7 @@ import {
   recordStruggle,
   removeFact,
   saveMemory,
-} from "../ai/memory";
+} from "@/lib/ai/memory";
 
 /// State + callbacks the tools execute against. Provided by the
 /// host (App.tsx / TrayPanel) when it instantiates the agent so

@@ -3,7 +3,7 @@
 /// splitter. Each multi-file template gets its own file; single-file
 /// templates live together in `../single-file.ts`.
 
-import type { WorkbenchFile } from "../../../data/types";
+import type { WorkbenchFile } from "@/data/types";
 
 /// The playground's "Hello, world!" shim for a three-file web project.
 /// Buttons click, logs appear — nothing clever, enough to show the

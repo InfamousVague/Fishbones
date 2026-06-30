@@ -1,6 +1,6 @@
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { RunResult } from "./types";
-import { presentPreview } from "../lib/preview";
+import { presentPreview } from "@/lib/preview";
 
 /// Svelte 5 runtime — assembles an HTML shell that pulls in the Svelte
 /// compiler + runtime from esm.sh, compiles the learner's `App.svelte`

@@ -8,7 +8,7 @@
 /// at the bottom, slide-up animation, tap-backdrop-to-dismiss.
 
 import { useEffect, useRef } from "react";
-import type { Course, Lesson } from "../data/types";
+import type { Course, Lesson } from "@/data/types";
 import { Icon } from "@base/primitives/icon";
 import { bookOpen } from "@base/primitives/icon/icons/book-open";
 import { code as codeIcon } from "@base/primitives/icon/icons/code";

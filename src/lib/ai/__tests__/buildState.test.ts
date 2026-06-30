@@ -7,13 +7,13 @@ import {
   analyzeBuildState,
   buildContinuationNudge,
   looksLikeBuildRequest,
-} from "../buildState";
-import { runAgentLoop } from "../../aiAgent/loop";
+} from "@/lib/ai/buildState";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
 import type {
   AgentTransport,
   AgentTurnResponse,
-} from "../../aiAgent/types";
-import type { ToolDef, ToolResult } from "../../aiTools/types";
+} from "@/lib/aiAgent/types";
+import type { ToolDef, ToolResult } from "@/lib/aiTools/types";
 
 function tr(
   name: string,

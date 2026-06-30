@@ -8,24 +8,24 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { useMemo } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ToolDef } from "../../aiTools/types";
-import type { AgentTransport, AgentTurnResponse } from "../types";
+import type { ToolDef } from "@/lib/aiTools/types";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
 
 const transportRef: { current: AgentTransport | null } = { current: null };
-vi.mock("../transport", () => ({
+vi.mock("@/lib/aiAgent/transport", () => ({
   createTauriTransport: () => transportRef.current,
 }));
-vi.mock("../../../i18n/i18n", () => ({
+vi.mock("@/i18n/i18n", () => ({
   useT: () => (k: string) => k,
 }));
-vi.mock("../../../components/Lesson/markdown", () => ({
+vi.mock("@/components/templates/Lesson/markdown", () => ({
   renderMarkdown: async (input: string) =>
     `<p>${input.replace(/</g, "&lt;")}</p>`,
 }));
 
-import AiAgentPanel from "../../../components/AiAssistant/AiAgentPanel";
-import { useAiAgent } from "../../../hooks/useAiAgent";
-import type { AiAgentSettings } from "../settings";
+import AiAgentPanel from "@/components/organisms/AiAssistant/AiAgentPanel";
+import { useAiAgent } from "@/hooks/useAiAgent";
+import type { AiAgentSettings } from "@/lib/aiAgent/settings";
 
 function scripted(turns: AgentTurnResponse[]): AgentTransport {
   let i = 0;

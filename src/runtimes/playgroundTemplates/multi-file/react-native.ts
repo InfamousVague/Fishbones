@@ -3,7 +3,7 @@
 /// splitter. Each multi-file template gets its own file; single-file
 /// templates live together in `../single-file.ts`.
 
-import type { WorkbenchFile } from "../../../data/types";
+import type { WorkbenchFile } from "@/data/types";
 
 /// React Native starter — rendered via react-native-web in the local
 /// preview server. A single-file component is enough: the runtime

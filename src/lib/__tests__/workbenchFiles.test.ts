@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { assembleRunnable } from "../workbenchFiles";
-import type { WorkbenchFile } from "../../data/types";
+import { assembleRunnable } from "@/lib/workbenchFiles";
+import type { WorkbenchFile } from "@/data/types";
 
 const rs = (name: string, content: string): WorkbenchFile => ({
   name,

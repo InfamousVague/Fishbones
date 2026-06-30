@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { isWeb } from "../lib/platform";
-import { catalogAssetBase } from "../lib/catalog";
+import { isWeb } from "@/lib/platform";
+import { catalogAssetBase } from "@/lib/catalog";
 
 /// Base URL for cover JPEGs — delegated to `catalogAssetBase()` so cover
 /// resolution always matches wherever the catalog itself loads from: the

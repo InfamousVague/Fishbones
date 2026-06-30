@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Course } from "../data/types";
+import type { Course } from "@/data/types";
 import type { Completion } from "./useProgress";
 
 /// XP award per lesson kind. Readings are cheap; quizzes take more effort;

@@ -15,7 +15,7 @@ import type {
   Course,
   Lesson,
   LanguageId,
-} from "../data/types";
+} from "@/data/types";
 import type { IngestEvent, PipelineStats } from "./pipeline";
 
 const MAX_REFERENCE_CHARS = 500_000;

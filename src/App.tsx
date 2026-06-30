@@ -6,28 +6,28 @@ import {
   type Course,
   filterCourseForDesktop,
   isExerciseKind,
-} from "./data/types";
-import { getAutoAdvanceEnabled } from "./lib/autoAdvance";
+} from "@/data/types";
+import { getAutoAdvanceEnabled } from "@/lib/autoAdvance";
 import { Icon } from "@base/primitives/icon";
 import { libraryBig } from "@base/primitives/icon/icons/library-big";
 import "@base/primitives/icon/icon.css";
-import Sidebar from "./components/Sidebar/Sidebar";
-import SidebarToggle from "./components/Sidebar/SidebarToggle";
-import NavigationRail from "./components/NavigationRail/NavigationRail";
-import TopBar from "./components/TopBar/TopBar";
-import { Tour } from "./components/Tour/Tour";
-import { TOUR_STEPS, type TourPage } from "./components/Tour/tourSteps";
-import { stopTourAudio } from "./components/Tour/useTourAudio";
-import { stopLessonAudio } from "./hooks/useLessonAudio";
-const ChallengesView = lazy(() => import("./components/Challenges/ChallengesView"));
-const MonkeysPawView = lazy(() => import("./components/MonkeysPaw/MonkeysPawView"));
-const PracticeView = lazy(() => import("./components/Practice/PracticeView"));
-import EvmDockBanner from "./components/ChainDock/EvmDockBanner";
-import BitcoinDockBanner from "./components/BitcoinChainDock/BitcoinDockBanner";
-import SvmDockBanner from "./components/SvmDock/SvmDockBanner";
-import TradeDockBanner from "./components/TradeDock/TradeDockBanner";
-import ChallengeFrame from "./components/ChallengeFrame/ChallengeFrame";
-import LessonView from "./components/Lesson/LessonView";
+import Sidebar from "@/components/organisms/Sidebar/Sidebar";
+import SidebarToggle from "@/components/organisms/Sidebar/SidebarToggle";
+import NavigationRail from "@/components/organisms/NavigationRail/NavigationRail";
+import TopBar from "@/components/organisms/TopBar/TopBar";
+import { Tour } from "@/components/organisms/Tour/Tour";
+import { TOUR_STEPS, type TourPage } from "@/components/organisms/Tour/tourSteps";
+import { stopTourAudio } from "@/components/organisms/Tour/useTourAudio";
+import { stopLessonAudio } from "@/hooks/useLessonAudio";
+const ChallengesView = lazy(() => import("@/components/templates/Challenges/ChallengesView"));
+const MonkeysPawView = lazy(() => import("@/components/organisms/MonkeysPaw/MonkeysPawView"));
+const PracticeView = lazy(() => import("@/components/templates/Practice/PracticeView"));
+import EvmDockBanner from "@/components/organisms/ChainDock/EvmDockBanner";
+import BitcoinDockBanner from "@/components/organisms/BitcoinChainDock/BitcoinDockBanner";
+import SvmDockBanner from "@/components/organisms/SvmDock/SvmDockBanner";
+import TradeDockBanner from "@/components/organisms/TradeDock/TradeDockBanner";
+import ChallengeFrame from "@/components/organisms/ChallengeFrame/ChallengeFrame";
+import LessonView from "@/components/templates/Lesson/LessonView";
 import {
   findNeighbors,
   slugify,
@@ -37,92 +37,92 @@ import {
   shouldShowSvmDock,
   shouldShowTradeDock,
 } from "./lessonHelpers";
-import { useLocalStorageState } from "./hooks/useLocalStorageState";
-import { useKeybinding } from "./hooks/useKeybinding";
-const ImportDialog = lazy(() => import("./components/dialogs/ImportDialog/ImportDialog"));
-const BulkImportDialog = lazy(() => import("./components/dialogs/ImportDialog/BulkImportDialog"));
-const DocsImportDialog = lazy(() => import("./components/dialogs/ImportDialog/DocsImportDialog"));
-const SettingsDialog = lazy(() => import("./components/dialogs/SettingsDialog/SettingsDialog"));
-import CourseLibrary from "./components/Library/CourseLibrary";
-import ArchiveDropOverlay from "./components/Library/ArchiveDropOverlay";
-import { useArchiveDrop } from "./hooks/useArchiveDrop";
-import { DeferredMount, LoadingPane } from "./components/Shared/DeferredMount";
-import LoadingScreen from "./components/Shared/LoadingScreen";
-import HalftoneCanvas from "./components/Shared/HalftoneCanvas";
-import { usePrelaunchUpdate } from "./components/Shared/usePrelaunchUpdate";
-import { applyLanguageHue } from "./theme/languageHue";
-import { prefetchCovers } from "./hooks/useCourseCover";
-const ConfirmDialog = lazy(() => import("./components/dialogs/ConfirmDialog/ConfirmDialog"));
-const CourseSettingsModal = lazy(() => import("./components/dialogs/CourseSettings/CourseSettingsModal"));
-const FloatingIngestPanel = lazy(() => import("./components/IngestPanel/FloatingIngestPanel"));
-const ProfileView = lazy(() => import("./components/Profile/ProfileView"));
-const SandboxView = lazy(() => import("./components/Sandbox/SandboxView"));
-import SandboxSidebar from "./components/Sandbox/SandboxSidebar";
-import { useSandboxProjects } from "./hooks/useSandboxProjects";
-import SectionCompleteSummary from "./components/Achievements/SectionCompleteSummary";
-const CertificatesPage = lazy(() => import("./components/Certificates/CertificatesPage"));
-const PathsPage = lazy(() => import("./components/Paths/PathsPage"));
-import { mintCertificate } from "./data/certificates";
-import { notifyCertificatesChanged } from "./hooks/useCertificates";
-import { playSound, unlockAudioContext } from "./lib/sfx";
-import { isWeb, isMobile } from "./lib/platform";
-import { consumePendingOAuthSession } from "./lib/oauthSession";
-import { isoToUnixSeconds } from "./lib/timestamps";
-import DownloadButton from "./components/DownloadButton/DownloadButton";
-const GeneratePackDialog = lazy(() => import("./components/dialogs/ChallengePack/GeneratePackDialog"));
-import { useIngestRun } from "./hooks/useIngestRun";
+import { useLocalStorageState } from "@/hooks/useLocalStorageState";
+import { useKeybinding } from "@/hooks/useKeybinding";
+const ImportDialog = lazy(() => import("@/components/organisms/dialogs/ImportDialog/ImportDialog"));
+const BulkImportDialog = lazy(() => import("@/components/organisms/dialogs/ImportDialog/BulkImportDialog"));
+const DocsImportDialog = lazy(() => import("@/components/organisms/dialogs/ImportDialog/DocsImportDialog"));
+const SettingsDialog = lazy(() => import("@/components/organisms/dialogs/SettingsDialog/SettingsDialog"));
+import CourseLibrary from "@/components/templates/Library/CourseLibrary";
+import ArchiveDropOverlay from "@/components/templates/Library/ArchiveDropOverlay";
+import { useArchiveDrop } from "@/hooks/useArchiveDrop";
+import { DeferredMount, LoadingPane } from "@/components/atoms/DeferredMount/DeferredMount";
+import LoadingScreen from "@/components/molecules/LoadingScreen/LoadingScreen";
+import HalftoneCanvas from "@/components/atoms/HalftoneCanvas/HalftoneCanvas";
+import { usePrelaunchUpdate } from "@/hooks/usePrelaunchUpdate";
+import { applyLanguageHue } from "@/theme/languageHue";
+import { prefetchCovers } from "@/hooks/useCourseCover";
+const ConfirmDialog = lazy(() => import("@/components/organisms/dialogs/ConfirmDialog/ConfirmDialog"));
+const CourseSettingsModal = lazy(() => import("@/components/organisms/dialogs/CourseSettings/CourseSettingsModal"));
+const FloatingIngestPanel = lazy(() => import("@/components/organisms/IngestPanel/FloatingIngestPanel"));
+const ProfileView = lazy(() => import("@/components/templates/Profile/ProfileView"));
+const SandboxView = lazy(() => import("@/components/templates/Sandbox/SandboxView"));
+import SandboxSidebar from "@/components/templates/Sandbox/SandboxSidebar";
+import { useSandboxProjects } from "@/hooks/useSandboxProjects";
+import SectionCompleteSummary from "@/components/organisms/Achievements/SectionCompleteSummary";
+const CertificatesPage = lazy(() => import("@/components/organisms/Certificates/CertificatesPage"));
+const PathsPage = lazy(() => import("@/components/templates/Paths/PathsPage"));
+import { mintCertificate } from "@/data/certificates";
+import { notifyCertificatesChanged } from "@/hooks/useCertificates";
+import { playSound, unlockAudioContext } from "@/lib/sfx";
+import { isWeb, isMobile } from "@/lib/platform";
+import { consumePendingOAuthSession } from "@/lib/oauthSession";
+import { isoToUnixSeconds } from "@/lib/timestamps";
+import DownloadButton from "@/components/atoms/DownloadButton/DownloadButton";
+const GeneratePackDialog = lazy(() => import("@/components/organisms/dialogs/ChallengePack/GeneratePackDialog"));
+import { useIngestRun } from "@/hooks/useIngestRun";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-const AiAssistant = lazy(() => import("./components/AiAssistant/AiAssistant"));
-import XpBurst, { fireXpBurst } from "./components/Shared/XpBurst";
-import AppToast, { type AppToastData } from "./components/Shared/AppToast";
-import { harvestPracticeItems } from "./components/Practice/practiceHarvest";
-import { loadAllRecords, summariseStats } from "./components/Practice/practiceStore";
-import { InstallBanner } from "./components/banners/InstallBanner/InstallBanner";
-import { UpdateBanner } from "./components/banners/UpdateBanner/UpdateBanner";
-import { EarlyReleaseBanner } from "./components/banners/EarlyReleaseBanner/EarlyReleaseBanner";
-const CommandPalette = lazy(() => import("./components/CommandPalette/CommandPalette"));
-import type { VerifySessionView } from "./components/VerifyCourse";
-const VerifyCourseOverlay = lazy(() => import("./components/VerifyCourse/VerifyCourseOverlay"));
-const FixApplierDialog = lazy(() => import("./components/dialogs/FixApplier/FixApplierDialog"));
+const AiAssistant = lazy(() => import("@/components/organisms/AiAssistant/AiAssistant"));
+import XpBurst, { fireXpBurst } from "@/components/atoms/XpBurst/XpBurst";
+import AppToast, { type AppToastData } from "@/components/molecules/AppToast/AppToast";
+import { harvestPracticeItems } from "@/components/templates/Practice/practiceHarvest";
+import { loadAllRecords, summariseStats } from "@/components/templates/Practice/practiceStore";
+import { InstallBanner } from "@/components/molecules/banners/InstallBanner/InstallBanner";
+import { UpdateBanner } from "@/components/molecules/banners/UpdateBanner/UpdateBanner";
+import { EarlyReleaseBanner } from "@/components/molecules/banners/EarlyReleaseBanner/EarlyReleaseBanner";
+const CommandPalette = lazy(() => import("@/components/organisms/CommandPalette/CommandPalette"));
+import type { VerifySessionView } from "@/components/organisms/VerifyCourse/index";
+const VerifyCourseOverlay = lazy(() => import("@/components/organisms/VerifyCourse/VerifyCourseOverlay"));
+const FixApplierDialog = lazy(() => import("@/components/organisms/dialogs/FixApplier/FixApplierDialog"));
 import {
   verifyCourse,
   verifyAllCourses,
   collectVerifyTargets,
-} from "./lib/verify/course";
-import { autoSyncUpdatedCourses, syncBundledToInstalled } from "./lib/courseSync";
+} from "@/lib/verify/course";
+import { autoSyncUpdatedCourses, syncBundledToInstalled } from "@/lib/courseSync";
 import {
   emitEvent as emitVerifierEvent,
-} from "./lib/verify/bus";
-import { useProgress } from "./hooks/useProgress";
-import { useChainActivity } from "./hooks/useChainActivity";
-import { useLibreCloud } from "./hooks/useLibreCloud";
-import { useRealtimeSync } from "./hooks/useRealtimeSync";
-const FirstLaunchPrompt = lazy(() => import("./components/dialogs/SignInDialog/FirstLaunchPrompt"));
-const SetupWizard = lazy(() => import("./components/dialogs/SetupWizard/SetupWizard"));
+} from "@/lib/verify/bus";
+import { useProgress } from "@/hooks/useProgress";
+import { useChainActivity } from "@/hooks/useChainActivity";
+import { useLibreCloud } from "@/hooks/useLibreCloud";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+const FirstLaunchPrompt = lazy(() => import("@/components/organisms/dialogs/SignInDialog/FirstLaunchPrompt"));
+const SetupWizard = lazy(() => import("@/components/organisms/dialogs/SetupWizard/SetupWizard"));
 const ThemePickerFirstLaunch = lazy(() =>
-  import("./components/dialogs/ThemePicker/ThemePickerModal").then((m) => ({
+  import("@/components/organisms/dialogs/ThemePicker/ThemePickerModal").then((m) => ({
     default: m.ThemePickerFirstLaunch,
   })),
 );
-const SignInDialog = lazy(() => import("./components/dialogs/SignInDialog/SignInDialog"));
-import { useCourses } from "./hooks/useCourses";
-import { useRecentCourses } from "./hooks/useRecentCourses";
-import { useStreakAndXp } from "./hooks/useStreakAndXp";
-import { useStreakShields } from "./hooks/useStreakShields";
+const SignInDialog = lazy(() => import("@/components/organisms/dialogs/SignInDialog/SignInDialog"));
+import { useCourses } from "@/hooks/useCourses";
+import { useRecentCourses } from "@/hooks/useRecentCourses";
+import { useStreakAndXp } from "@/hooks/useStreakAndXp";
+import { useStreakShields } from "@/hooks/useStreakShields";
 import {
   LIBRARY_INSTALLED_IDS_KEY,
   LIBRARY_MARKER_LESSON_ID,
   isLibraryMarkerRow,
   serializeLibraryAllowlist,
-} from "./lib/librarySync";
-import { isHiddenCourse } from "./lib/hiddenCourses";
+} from "@/lib/librarySync";
+import { isHiddenCourse } from "@/lib/hiddenCourses";
 import {
   loadPersistedTabs,
   savePersistedTabs,
   validateTabsAgainstCourses,
   type OpenCourse,
   type TabGroup,
-} from "./lib/openTabsState";
+} from "@/lib/openTabsState";
 
 /// Last session's open-tab snapshot, read once at module load (same
 /// timing as the storage key resolution inside openTabsState — a
@@ -821,7 +821,7 @@ export default function App() {
       // sensitive data — so the Plausible dashboard can break
       // "which courses are people finishing?" out by id without
       // touching individual users. No-op on desktop / iOS builds.
-      void import("./lib/analytics").then(({ trackEvent }) => {
+      void import("@/lib/analytics").then(({ trackEvent }) => {
         trackEvent("lesson.complete", { courseId, lessonId });
       });
       // Compute and stash XP for the lesson so the section summary
@@ -1599,7 +1599,7 @@ export default function App() {
           id: pendingOpen.courseId,
           hidden: true,
         };
-        const { storage } = await import("./lib/storage");
+        const { storage } = await import("@/lib/storage");
         await storage.saveCourse(pendingOpen.courseId, record);
         await refreshCourses();
       } catch (err) {
@@ -1967,7 +1967,7 @@ export default function App() {
     // dashboard breaks events by props out of the box so
     // `course.open · { courseId: "a-to-ts" }` gives us a per-
     // course click chart with no extra config.
-    void import("./lib/analytics").then(({ trackEvent }) => {
+    void import("@/lib/analytics").then(({ trackEvent }) => {
       trackEvent("course.open", { courseId });
     });
   }
@@ -2064,7 +2064,7 @@ export default function App() {
   /// per-view traffic via this coarse one.
   useEffect(() => {
     let cancelled = false;
-    void import("./lib/analytics").then(({ trackPageview, trackEvent }) => {
+    void import("@/lib/analytics").then(({ trackPageview, trackEvent }) => {
       if (cancelled) return;
       trackPageview();
       trackEvent("view", { view });
@@ -2139,7 +2139,7 @@ export default function App() {
   /// course row. Open tabs close and the course list refreshes either way.
   async function deleteCourseDirect(courseId: string) {
     if (isWeb) {
-      const { storage } = await import("./lib/storage");
+      const { storage } = await import("@/lib/storage");
       await storage.deleteCourse(courseId);
       setOpenTabs((prev) => prev.filter((t) => t.courseId !== courseId));
       await refreshCourses();
@@ -3393,12 +3393,12 @@ export default function App() {
     title: string;
   }) {
     try {
-      const { jsonHref } = await import("./lib/catalog");
+      const { jsonHref } = await import("@/lib/catalog");
       const url = jsonHref({ file: entry.file } as Parameters<typeof jsonHref>[0]);
       const res = await fetch(url, { cache: "no-cache" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const course = await res.json();
-      const { storage } = await import("./lib/storage");
+      const { storage } = await import("@/lib/storage");
       await storage.saveCourse(entry.id, course);
       await refreshCourses();
       await hydrateCourse(entry.id);
@@ -3417,7 +3417,7 @@ export default function App() {
   /// on failure so callers can keep a per-row "installing" spinner
   /// honest; the underlying handler already surfaces an alert.
   async function installCourseById(courseId: string): Promise<void> {
-    const { fetchCatalog } = await import("./lib/catalog");
+    const { fetchCatalog } = await import("@/lib/catalog");
     const entries = await fetchCatalog();
     const entry = entries.find((e) => e.id === courseId);
     if (!entry) {

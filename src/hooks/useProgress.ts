@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { storage, type Completion } from "../lib/storage";
+import { storage, type Completion } from "@/lib/storage";
 import {
   clearWorkbenchForChapter,
   clearWorkbenchForCourse,

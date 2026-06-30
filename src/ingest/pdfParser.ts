@@ -5,7 +5,7 @@
 /// The Tauri command `extract_pdf_text` handles the poppler call (pdftotext);
 /// everything else runs in the webview so we only maintain one parser.
 
-import type { Course, LanguageId } from "../data/types";
+import type { Course, LanguageId } from "@/data/types";
 
 export interface IngestOptions {
   courseId: string;

@@ -10,8 +10,8 @@ import {
   PAIR_MODES,
   pairModeSection,
   type PairMode,
-} from "../pairMode";
-import { mergeSettings, DEFAULT_SETTINGS } from "../settings";
+} from "@/lib/aiAgent/pairMode";
+import { mergeSettings, DEFAULT_SETTINGS } from "@/lib/aiAgent/settings";
 
 describe("clampPairMode", () => {
   it("accepts the three real modes", () => {

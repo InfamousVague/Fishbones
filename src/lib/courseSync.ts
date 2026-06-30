@@ -25,7 +25,7 @@
 /// positives. Cost is one `crypto.subtle.digest` per course on
 /// Library mount, which is microseconds for a few-MB JSON.
 
-import type { Course, Lesson, ExerciseLesson, MixedLesson, WorkbenchFile } from "../data/types";
+import type { Course, Lesson, ExerciseLesson, MixedLesson, WorkbenchFile } from "@/data/types";
 import { storage } from "./storage";
 import { isDesktop } from "./platform";
 import { catalogAssetBase } from "./catalog";

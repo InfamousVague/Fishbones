@@ -25,16 +25,16 @@
 ///     binary assets either; structurally the same gap)
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LanguageId, WorkbenchFile } from "../data/types";
-import { templateFiles } from "../runtimes/playgroundTemplates";
+import type { LanguageId, WorkbenchFile } from "@/data/types";
+import { templateFiles } from "@/runtimes/playgroundTemplates/index";
 import {
   SANDBOX_FS_AVAILABLE,
   deleteProject as fsDeleteProject,
   listProjects as fsListProjects,
   loadProject as fsLoadProject,
   saveProject as fsSaveProject,
-} from "../lib/sandboxFs";
-import { profileKey } from "../lib/profileStore";
+} from "@/lib/sandboxFs";
+import { profileKey } from "@/lib/profileStore";
 
 // Profile-scoped localStorage mirror of the sandbox project list.
 // The on-disk projects dir is already profile-rooted in the Rust

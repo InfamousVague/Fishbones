@@ -1,6 +1,6 @@
-import type { WorkbenchAsset, WorkbenchFile } from "../data/types";
+import type { WorkbenchAsset, WorkbenchFile } from "@/data/types";
 import type { RunResult, LogLine, TestResult } from "./types";
-import { presentPreview } from "../lib/preview";
+import { presentPreview } from "@/lib/preview";
 
 /// Web runtime — assembles an HTML document from the user's files and
 /// ships it to the Tauri-side preview server, returning a URL the user

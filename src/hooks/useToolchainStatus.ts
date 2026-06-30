@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { isWeb } from "../lib/platform";
+import { isWeb } from "@/lib/platform";
 
 /// Everything the `MissingToolchainBanner` needs to render the install
 /// affordance. Mirrors `toolchain::InstallHint` in the Rust side.

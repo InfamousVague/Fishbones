@@ -13,8 +13,8 @@ import {
   parseFencedBlocks,
   splitInfoString,
   stripInlineToolCallJson,
-} from "../streaming";
-import type { ToolDef } from "../../aiTools/types";
+} from "@/lib/aiAgent/streaming";
+import type { ToolDef } from "@/lib/aiTools/types";
 
 const tools: ToolDef[] = [
   {

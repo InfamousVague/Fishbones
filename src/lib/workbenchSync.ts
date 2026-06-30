@@ -9,8 +9,8 @@
 ///   const bus = makeBus(courseId, lessonId);
 ///   bus.listen((msg) => { ... });           // returns unlisten fn
 ///   await bus.emit({ type: "code", value }); // fire and forget is fine
-import type { WorkbenchFile } from "../data/types";
-import type { RunResult } from "../runtimes";
+import type { WorkbenchFile } from "@/data/types";
+import type { RunResult } from "@/runtimes/index";
 
 export type WorkbenchMsg =
   // Whole-file-array updates. We send the full array rather than individual

@@ -17,11 +17,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { useCourses } from "../hooks/useCourses";
-import { useProgress } from "../hooks/useProgress";
-import { useLibreCloud } from "../hooks/useLibreCloud";
-import { useRealtimeSync } from "../hooks/useRealtimeSync";
-import { useStreakAndXp } from "../hooks/useStreakAndXp";
+import { useCourses } from "@/hooks/useCourses";
+import { useProgress } from "@/hooks/useProgress";
+import { useLibreCloud } from "@/hooks/useLibreCloud";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { useStreakAndXp } from "@/hooks/useStreakAndXp";
 import { useWidgetSnapshot } from "./useWidgetSnapshot";
 import {
   LIBRARY_INSTALLED_IDS_KEY,
@@ -29,23 +29,23 @@ import {
   parseLibraryAllowlist,
   reconcilePerception,
   serializeLibraryAllowlist,
-} from "../lib/librarySync";
-import { isHiddenCourse } from "../lib/hiddenCourses";
-import { unlockAudioContext } from "../lib/sfx";
-import { haptics } from "../lib/haptics";
-import type { Course, Lesson } from "../data/types";
-import { isoToUnixSeconds } from "../lib/timestamps";
+} from "@/lib/librarySync";
+import { isHiddenCourse } from "@/lib/hiddenCourses";
+import { unlockAudioContext } from "@/lib/sfx";
+import { haptics } from "@/lib/haptics";
+import type { Course, Lesson } from "@/data/types";
+import { isoToUnixSeconds } from "@/lib/timestamps";
 import MobileLibrary from "./MobileLibrary";
 import MobileLesson from "./MobileLesson";
 import MobilePlayground from "./MobilePlayground";
 import MobileProfile from "./MobileProfile";
 import MobileSettings from "./MobileSettings";
-import PracticeView from "../components/Practice/PracticeView";
+import PracticeView from "@/components/templates/Practice/PracticeView";
 import MobileSearchPalette from "./MobileSearchPalette";
-import SignInDialog from "../components/dialogs/SignInDialog/SignInDialog";
-import MobileTabBar, { type MobileTab } from "../components/MobileTabBar/MobileTabBar";
-import AiAssistant from "../components/AiAssistant/AiAssistant";
-import LibreLoader from "../components/Shared/LibreLoader";
+import SignInDialog from "@/components/organisms/dialogs/SignInDialog/SignInDialog";
+import MobileTabBar, { type MobileTab } from "@/components/molecules/MobileTabBar/MobileTabBar";
+import AiAssistant from "@/components/organisms/AiAssistant/AiAssistant";
+import LibreLoader from "@/components/molecules/LibreLoader/LibreLoader";
 import StreakExtendedOverlay from "./StreakExtendedOverlay";
 import "./MobileApp.css";
 

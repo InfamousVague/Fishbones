@@ -17,7 +17,7 @@ import {
   fetchCatalog,
   readPersistedCatalog,
   type CatalogEntry,
-} from "../lib/catalog";
+} from "@/lib/catalog";
 
 export function useCatalog(): {
   catalog: CatalogEntry[];

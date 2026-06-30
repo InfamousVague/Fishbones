@@ -22,7 +22,7 @@
 /// sees "project ✓ → files (3) → run ✗" instead of guessing what
 /// the agent is up to.
 
-import type { ToolResult } from "../aiTools/types";
+import type { ToolResult } from "@/lib/aiTools/types";
 
 export type BuildStage =
   /// No build activity observed in this run.

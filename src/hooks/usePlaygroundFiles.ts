@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LanguageId, WorkbenchFile } from "../data/types";
-import { templateFiles } from "../runtimes/playgroundTemplates";
+import type { LanguageId, WorkbenchFile } from "@/data/types";
+import { templateFiles } from "@/runtimes/playgroundTemplates/index";
 
 /// Per-language playground persistence. Switching from Rust → Go → Rust
 /// restores your Rust snippet; nothing is tied to a course or lesson.

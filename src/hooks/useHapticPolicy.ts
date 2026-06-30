@@ -20,8 +20,8 @@ import {
   type HapticCategory,
   type QuietHours,
   type PolicyDecision,
-} from "../lib/haptics/context";
-import type { HapticIntent } from "../lib/haptics";
+} from "@/lib/haptics/context";
+import type { HapticIntent } from "@/lib/haptics";
 
 /// Returns the current QuietHours config + whether the wall
 /// clock is inside the configured window right now. Polls every

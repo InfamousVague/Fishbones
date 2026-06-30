@@ -28,7 +28,7 @@
 /// local model only writes flavour text around a decision this
 /// engine already made.
 
-import type { Course } from "../../data/types";
+import type { Course } from "@/data/types";
 import {
   analyzeConceptCoverage,
   conceptForDiagnosis,

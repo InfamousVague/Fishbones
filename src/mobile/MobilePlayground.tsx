@@ -28,10 +28,10 @@ import { play as playIcon } from "@base/primitives/icon/icons/play";
 import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
 import "@base/primitives/icon/icon.css";
 
-import type { LanguageId } from "../data/types";
-import { usePlaygroundFiles } from "../hooks/usePlaygroundFiles";
-import { runFiles, type RunResult } from "../runtimes";
-import PartnerKeyboard from "../components/PartnerKeyboard/PartnerKeyboard";
+import type { LanguageId } from "@/data/types";
+import { usePlaygroundFiles } from "@/hooks/usePlaygroundFiles";
+import { runFiles, type RunResult } from "@/runtimes/index";
+import PartnerKeyboard from "@/components/organisms/PartnerKeyboard/PartnerKeyboard";
 
 import "./MobilePlayground.css";
 

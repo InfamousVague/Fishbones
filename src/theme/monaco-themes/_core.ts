@@ -3,7 +3,7 @@
 /// registers them with Monaco. See the splitter at
 /// `scripts/split-monaco-themes.mjs`.
 
-import type { ThemeName } from "../themes";
+import type { ThemeName } from "@/theme/themes";
 
 export type MonacoThemeName =
   | "vs"

@@ -4,11 +4,11 @@
 /// from the completion set. No hallucinated URLs.
 
 import { describe, expect, it } from "vitest";
-import { buildToolRegistry } from "../tools";
-import type { ToolContext } from "../tools";
-import type { ToolDef } from "../types";
-import { findConceptByName } from "../../ai/concepts";
-import type { Course } from "../../../data/types";
+import { buildToolRegistry } from "@/lib/aiTools/tools";
+import type { ToolContext } from "@/lib/aiTools/tools";
+import type { ToolDef } from "@/lib/aiTools/types";
+import { findConceptByName } from "@/lib/ai/concepts";
+import type { Course } from "@/data/types";
 
 const RUST_COURSE: Course = {
   id: "rust-book",

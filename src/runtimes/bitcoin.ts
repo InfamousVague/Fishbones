@@ -22,12 +22,12 @@
 
 import * as btc from "@scure/btc-signer";
 
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { LogLine, RunResult, TestResult } from "./types";
-import { buildBitcoinChain } from "./bitcoin/buildChain";
-import type { BitcoinChainHarness } from "./bitcoin/types";
-import { stringify } from "./evm/helpers";
-import { expect } from "./evm/expect";
+import { buildBitcoinChain } from "@/runtimes/bitcoin/buildChain";
+import type { BitcoinChainHarness } from "@/runtimes/bitcoin/types";
+import { stringify } from "@/runtimes/evm/helpers";
+import { expect } from "@/runtimes/evm/expect";
 
 /// Resolve a chain to use for this run. Prefers the long-lived
 /// singleton (so the dock UI shows balances + recent txs across
@@ -37,7 +37,7 @@ async function resolveChain(
   logs: LogLine[],
 ): Promise<BitcoinChainHarness> {
   try {
-    const svc = await import("../lib/bitcoin/chainService");
+    const svc = await import("@/lib/bitcoin/chainService");
     const { chain } = await svc.getOrCreateBitcoinChain();
     // Reset the chain to its pristine first-build state at the top
     // of every Run so test assertions like "account[0] has 50 BTC"
@@ -136,7 +136,7 @@ export async function runBitcoin(
   // whatever state the test produced. The dock's mempool / accounts
   // / UTXOs panels then reflect what actually happened. Historical
   // recentTxs / recentBlocks accumulate across tests / Runs.
-  const svc = await import("../lib/bitcoin/chainService");
+  const svc = await import("@/lib/bitcoin/chainService");
   let prev: Promise<unknown> = Promise.resolve();
   const wrappedBody =
     (body: () => void | Promise<void>) => async (): Promise<void> => {

@@ -1,4 +1,4 @@
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { RunResult, LogLine, TestResult } from "./types";
 
 /// EVM runtime — compiles Solidity/Vyper source, then *executes* the
@@ -36,10 +36,10 @@ import type { RunResult, LogLine, TestResult } from "./types";
 import { type Abi } from "viem";
 
 import { loadSolc, buildSolcInput } from "./solidity";
-import { stringify } from "./evm/helpers";
-import { expect } from "./evm/expect";
-import { makeTestRequire } from "./evm/testRequire";
-import { buildChain } from "./evm/buildChain";
+import { stringify } from "@/runtimes/evm/helpers";
+import { expect } from "@/runtimes/evm/expect";
+import { makeTestRequire } from "@/runtimes/evm/testRequire";
+import { buildChain } from "@/runtimes/evm/buildChain";
 import type {
   Hex,
   CompiledContract,
@@ -47,7 +47,7 @@ import type {
   ChainHarness,
   ChainAttachHooks,
   PersistentChainExtras,
-} from "./evm/types";
+} from "@/runtimes/evm/types";
 
 // Re-export the AccountSnapshot/ContractSnapshot/TxSnapshot/
 // ChainAttachHooks types under stable names so evm/chainService can
@@ -57,7 +57,7 @@ export type {
   AccountSnapshot as EvmAccountSnapshot,
   ContractSnapshot as EvmContractSnapshot,
   TxSnapshot as EvmTxSnapshot,
-} from "./evm/types";
+} from "@/runtimes/evm/types";
 
 /// Singleton-friendly factory used by `evm/chainService.ts`. Builds a
 /// chain with empty compiled artifacts (so it can be attached before
@@ -183,7 +183,7 @@ export async function runEvm(
   // still get a fresh ephemeral chain via the catch fallback.
   let chain: ChainHarness & PersistentChainExtras;
   try {
-    const svc = await import("../lib/evm/chainService");
+    const svc = await import("@/lib/evm/chainService");
     const { chain: persistent } = await svc.getOrCreateChain();
     const c = persistent as ChainHarness & PersistentChainExtras;
     c.setCompiled(compiled);

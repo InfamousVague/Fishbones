@@ -17,7 +17,7 @@
 /// run outcomes; the file CONTENT comes from disk (the host loads
 /// the final project and hands it to `rewind.ts`). Pure — no I/O.
 
-import type { ToolResult } from "../aiTools/types";
+import type { ToolResult } from "@/lib/aiTools/types";
 import { conceptForDiagnosis, type Concept } from "./concepts";
 
 export interface BuildStep {

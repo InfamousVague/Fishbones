@@ -9,9 +9,9 @@
 /// milliseconds against a deterministic mock.
 
 import { describe, expect, it } from "vitest";
-import { runAgentLoop } from "../loop";
-import type { AgentTransport, AgentTurnResponse } from "../types";
-import type { ToolDef, ToolResult } from "../../aiTools/types";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
+import type { ToolDef, ToolResult } from "@/lib/aiTools/types";
 
 /// Build a scripted transport from an array of turn responses.
 /// Each call to `send` pops the next entry off the front.

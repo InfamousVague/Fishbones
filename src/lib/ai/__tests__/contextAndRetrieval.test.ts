@@ -8,16 +8,16 @@ import { describe, expect, it } from "vitest";
 import {
   buildContextBlock,
   DEFAULT_CONTEXT_BUDGET,
-} from "../context";
+} from "@/lib/ai/context";
 import {
   formatRetrievalBlock,
   searchCourseContent,
-} from "../retrieval";
+} from "@/lib/ai/retrieval";
 import {
   compactWireMessages,
   type WireMessage,
-} from "../compaction";
-import type { Course } from "../../../data/types";
+} from "@/lib/ai/compaction";
+import type { Course } from "@/data/types";
 
 // ── Fixtures ────────────────────────────────────────────────
 

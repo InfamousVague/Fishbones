@@ -17,7 +17,7 @@ import { bookOpen } from "@base/primitives/icon/icons/book-open";
 import { code as codeIcon } from "@base/primitives/icon/icons/code";
 import { helpCircle } from "@base/primitives/icon/icons/help-circle";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
-import type { Course, Lesson } from "../data/types";
+import type { Course, Lesson } from "@/data/types";
 import "./MobileSearchPalette.css";
 
 /// Each row in the result list. `kind` only drives the icon + section

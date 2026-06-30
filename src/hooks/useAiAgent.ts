@@ -18,22 +18,22 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import type { ToolApproval, ToolCall, ToolDef, ToolResult } from "../lib/aiTools/types";
-import { runAgentLoop } from "../lib/aiAgent/loop";
-import { createTauriTransport } from "../lib/aiAgent/transport";
-import { EMPTY_RUN_USAGE, type RunUsage } from "../lib/aiAgent/usage";
+import type { ToolApproval, ToolCall, ToolDef, ToolResult } from "@/lib/aiTools/types";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import { createTauriTransport } from "@/lib/aiAgent/transport";
+import { EMPTY_RUN_USAGE, type RunUsage } from "@/lib/aiAgent/usage";
 import {
   loadSettings,
   resolveEffortParams,
   type AiAgentSettings,
-} from "../lib/aiAgent/settings";
-import { DEFAULT_MODEL_ID } from "../lib/ai/models";
+} from "@/lib/aiAgent/settings";
+import { DEFAULT_MODEL_ID } from "@/lib/ai/models";
 import {
   deriveConfidenceFromTool,
   estimateTokens,
   parseStreamingConfidence,
-} from "../lib/aiAgent/confidence";
-import type { AgentMessage as InternalAgentMessage } from "../lib/aiAgent/types";
+} from "@/lib/aiAgent/confidence";
+import type { AgentMessage as InternalAgentMessage } from "@/lib/aiAgent/types";
 
 /// Re-export the message type at this module's path so the
 /// existing import sites (`import type { AgentMessage } from
@@ -250,7 +250,7 @@ export function useAiAgent(params: {
     // Fire-and-forget save; lib/aiAgent/settings.ts handles
     // localStorage quota / disabled-storage failures internally.
     void Promise.resolve().then(async () => {
-      const { saveSettings } = await import("../lib/aiAgent/settings");
+      const { saveSettings } = await import("@/lib/aiAgent/settings");
       saveSettings(next);
     });
   }, []);

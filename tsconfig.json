@@ -36,7 +36,8 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@base/*": ["node_modules/@mattmattmattmatt/base/*"]
+      "@base/*": ["node_modules/@mattmattmattmatt/base/*"],
+      "@/*": ["src/*"]
     }
   },
   "include": ["src"],

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { storage } from "../lib/storage";
-import { seedCourses } from "../data/seedCourses";
-import { seedWebStarterCourses } from "../data/webSeedCourses";
-import { isWeb } from "../lib/platform";
-import type { Course } from "../data/types";
-import { profileKey } from "../lib/profileStore";
+import { storage } from "@/lib/storage";
+import { seedCourses } from "@/data/seedCourses";
+import { seedWebStarterCourses } from "@/data/webSeedCourses";
+import { isWeb } from "@/lib/platform";
+import type { Course } from "@/data/types";
+import { profileKey } from "@/lib/profileStore";
 
 /// Last-fetched summary cache. Read synchronously on first render so
 /// the library has SOMETHING to paint while the IPC is in flight —

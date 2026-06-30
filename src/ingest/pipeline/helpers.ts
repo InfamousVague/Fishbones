@@ -1,5 +1,5 @@
-import type { ReadingLesson } from "../../data/types";
-import { splitChapters } from "../pdfParser";
+import type { ReadingLesson } from "@/data/types";
+import { splitChapters } from "@/ingest/pdfParser";
 import type { ChapterBlob } from "./types";
 
 /// Max cleaned-markdown characters we'll feed to outline_chapter or

@@ -11,9 +11,9 @@ export type {
   ToolApproval,
   ToolSchema,
   ToolParamSchema,
-} from "../aiTools/types";
+} from "@/lib/aiTools/types";
 
-import type { ToolCall } from "../aiTools/types";
+import type { ToolCall } from "@/lib/aiTools/types";
 import type { TurnUsage } from "./usage";
 
 /// One turn of agent / model conversation.

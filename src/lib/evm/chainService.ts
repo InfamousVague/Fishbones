@@ -147,7 +147,7 @@ export async function getOrCreateChain(): Promise<{
     // contract registry — contracts get added as `chain.deploy()`
     // calls happen at lesson run time.
     const { _buildChainPersistent } = (await import(
-      "../../runtimes/evm"
+      "@/runtimes/evm"
     )) as unknown as {
       _buildChainPersistent: (
         attach: ChainAttachHooks,

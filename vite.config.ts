@@ -102,6 +102,7 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       "@base": resolve(__dirname, "node_modules/@mattmattmattmatt/base"),
+      "@": resolve(__dirname, "src"),
       ...tauriAliases,
     },
   },
@@ -179,6 +180,7 @@ export default defineConfig(async () => ({
     // `@monaco-editor/react` <Editor> is mocked per-suite anyway.
     alias: {
       "monaco-editor": resolve(__dirname, "src/test/monacoStub.ts"),
+      "@": resolve(__dirname, "src"),
     },
   },
 }));

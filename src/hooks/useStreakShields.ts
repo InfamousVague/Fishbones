@@ -28,7 +28,7 @@
 ///     turns the streak into a participation trophy.
 
 import { useCallback, useEffect, useState } from "react";
-import { profileKey } from "../lib/profileStore";
+import { profileKey } from "@/lib/profileStore";
 
 // Profile-scoped streak shields + frozen-day registry.
 const SHIELDS_KEY = profileKey("libre:streak-shields:v1");

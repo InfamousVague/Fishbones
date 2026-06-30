@@ -26,9 +26,9 @@
 ///   7. Recent — last few completed lessons.
 
 import { useMemo } from "react";
-import type { Course, LanguageId } from "../data/types";
-import type { Completion } from "../hooks/useProgress";
-import type { StreakAndXp } from "../hooks/useStreakAndXp";
+import type { Course, LanguageId } from "@/data/types";
+import type { Completion } from "@/hooks/useProgress";
+import type { StreakAndXp } from "@/hooks/useStreakAndXp";
 import { Icon } from "@base/primitives/icon";
 import { search as searchIcon } from "@base/primitives/icon/icons/search";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";

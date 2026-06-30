@@ -34,7 +34,7 @@
 ///     uses our bundled instance instead of trying to fetch a CDN copy
 ///
 /// IT MUST BE IMPORTED BEFORE ANY MONACO-USING COMPONENT MOUNTS.
-/// Putting `import "../../lib/monaco/setup";` at the top of EditorPane
+/// Putting `import "./setup";` at the top of EditorPane
 /// and InlineSandbox is enough — those files are evaluated when their
 /// module graphs load, which happens before React renders them.
 import * as monaco from "monaco-editor";
@@ -120,7 +120,7 @@ import { zigLang, zigConf } from "./zig";
 import { moveLang, moveConf } from "./move";
 import { cairoLang, cairoConf } from "./cairo";
 import { swayLang, swayConf } from "./sway";
-import { registerMonacoThemes } from "../../theme/monaco-themes";
+import { registerMonacoThemes } from "@/theme/monaco-themes/index";
 
 /// Tell Monaco how to spawn a worker for a given language label. The
 /// `workerId` argument is unused — Monaco only cares which worker

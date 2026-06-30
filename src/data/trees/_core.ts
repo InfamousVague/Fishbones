@@ -26,7 +26,7 @@
 ///      algorithm assigns each node a `depth = max(prereq.depth) + 1`
 ///      so multi-rooted trees just get parallel columns at depth 0.
 
-import type { Course } from "../types";
+import type { Course } from "@/data/types";
 
 export interface SkillMatch {
   /// Course id (in-zip id, matches what storage.loadCourse returns).

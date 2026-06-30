@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { LogLine, RunResult } from "./types";
 
 /// SvelteKit runtime — dispatches to the Rust `start_sveltekit`

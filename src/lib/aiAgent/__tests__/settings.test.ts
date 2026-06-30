@@ -6,7 +6,7 @@ import {
   loadSettings,
   mergeSettings,
   saveSettings,
-} from "../settings";
+} from "@/lib/aiAgent/settings";
 
 beforeEach(() => {
   // localStorage is jsdom-backed; clear between tests.

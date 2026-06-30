@@ -12,8 +12,8 @@
 /// content via `bundled-packs` extracted by Rust on first launch, so
 /// this module isn't called in that path.
 
-import { metaGet, metaSet, storage } from "../lib/storage";
-import { isWeb } from "../lib/platform";
+import { metaGet, metaSet, storage } from "@/lib/storage";
+import { isWeb } from "@/lib/platform";
 import type { Course } from "./types";
 
 interface ManifestEntry {

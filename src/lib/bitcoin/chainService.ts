@@ -18,13 +18,13 @@
 /// builds; lazy-import from React callers as we do for the EVM
 /// service.
 
-import { buildBitcoinChain } from "../../runtimes/bitcoin/buildChain";
+import { buildBitcoinChain } from "@/runtimes/bitcoin/buildChain";
 import type {
   BitcoinChainHarness,
   BitcoinChainSnapshot,
   BitcoinTxSnapshot,
   BitcoinBlockSnapshot,
-} from "../../runtimes/bitcoin/types";
+} from "@/runtimes/bitcoin/types";
 
 export type {
   BitcoinAccount,
@@ -33,7 +33,7 @@ export type {
   BitcoinTxSnapshot,
   BitcoinBlockSnapshot,
   BitcoinUtxo,
-} from "../../runtimes/bitcoin/types";
+} from "@/runtimes/bitcoin/types";
 
 export interface BitcoinChainServiceListener {
   (snap: BitcoinChainSnapshot): void;

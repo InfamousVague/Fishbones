@@ -18,10 +18,10 @@ const { invokeMock } = vi.hoisted(() => ({
 }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: invokeMock }));
 
-import { buildToolRegistry } from "../tools";
-import type { ToolContext } from "../tools";
-import type { ToolDef } from "../types";
-import { EMPTY_SCOPE } from "../scope";
+import { buildToolRegistry } from "@/lib/aiTools/tools";
+import type { ToolContext } from "@/lib/aiTools/tools";
+import type { ToolDef } from "@/lib/aiTools/types";
+import { EMPTY_SCOPE } from "@/lib/aiTools/scope";
 
 function makeCtx(over: Partial<ToolContext> = {}): ToolContext {
   return {

@@ -1,4 +1,4 @@
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { RunResult, LogLine, TestResult } from "./types";
 
 /// Solidity runtime — loads the official `solc-js` compiler from

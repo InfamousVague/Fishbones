@@ -9,14 +9,14 @@
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { AgentTransport, AgentTurnResponse } from "../types";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
 
 const transportRef: { current: AgentTransport | null } = { current: null };
-vi.mock("../transport", () => ({
+vi.mock("@/lib/aiAgent/transport", () => ({
   createTauriTransport: () => transportRef.current,
 }));
 
-import { useAiAgent } from "../../../hooks/useAiAgent";
+import { useAiAgent } from "@/hooks/useAiAgent";
 
 function scripted(turns: AgentTurnResponse[]): AgentTransport {
   let i = 0;

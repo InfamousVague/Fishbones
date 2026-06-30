@@ -19,8 +19,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useMemo } from "react";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import type { AgentTransport, AgentTurnResponse } from "../types";
-import type { AiAgentSettings } from "../settings";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
+import type { AiAgentSettings } from "@/lib/aiAgent/settings";
 
 // ── Mocks ──────────────────────────────────────────────────────
 
@@ -92,18 +92,18 @@ const invokeMock = async (
 // Mock the transport so the hook's loop driver uses our scripted
 // version instead of the Tauri one.
 const transportRef: { current: AgentTransport | null } = { current: null };
-vi.mock("../transport", () => ({
+vi.mock("@/lib/aiAgent/transport", () => ({
   createTauriTransport: () => transportRef.current,
 }));
 
 // Minimal i18n mock so panel labels don't crash the test.
-vi.mock("../../../i18n/i18n", () => ({
+vi.mock("@/i18n/i18n", () => ({
   useT: () => (k: string) => k,
 }));
 
 // Minimal markdown renderer — real markdown-it pulls in shiki +
 // other heavy formatters we don't need to exercise here.
-vi.mock("../../../components/Lesson/markdown", () => ({
+vi.mock("@/components/templates/Lesson/markdown", () => ({
   renderMarkdown: async (input: string) => {
     const fenceRe = /```([^\n]*)\n([\s\S]*?)```/g;
     return input.replace(fenceRe, (_full, info, body) => {
@@ -118,7 +118,7 @@ function escape(s: string) {
 }
 
 // Mock the scope hook so the panel's scope chip doesn't crash.
-vi.mock("../../aiTools/scope", () => ({
+vi.mock("@/lib/aiTools/scope", () => ({
   enforceProject: () => null,
   enforceWrite: () => null,
 }));
@@ -132,7 +132,7 @@ const runFilesCalls: Array<{ language: string; files: unknown }> = [];
 let runFilesOverride:
   | null
   | ((args: { language: string; files: unknown }) => unknown) = null;
-vi.mock("../../../runtimes", () => ({
+vi.mock("@/runtimes/index", () => ({
   runFiles: async (
     language: string,
     files: unknown,
@@ -187,10 +187,10 @@ function startEventCapture() {
 // ── Harness component ────────────────────────────────────────
 
 // Late-imports so the mocks above register first.
-import AiAgentPanel from "../../../components/AiAssistant/AiAgentPanel";
-import { useAiAgent } from "../../../hooks/useAiAgent";
-import { useSandboxStreamWriter } from "../../../components/TrayPanel/useSandboxStreamWriter";
-import { buildToolRegistry } from "../../aiTools/tools";
+import AiAgentPanel from "@/components/organisms/AiAssistant/AiAgentPanel";
+import { useAiAgent } from "@/hooks/useAiAgent";
+import { useSandboxStreamWriter } from "@/components/organisms/TrayPanel/useSandboxStreamWriter";
+import { buildToolRegistry } from "@/lib/aiTools/tools";
 
 /// Seed localStorage with the requested settings BEFORE rendering
 /// the Harness. The hook's `useState(() => loadSettings())`

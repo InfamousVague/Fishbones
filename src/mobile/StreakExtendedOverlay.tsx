@@ -14,7 +14,7 @@ import { useEffect, useMemo } from "react";
 import { Icon } from "@base/primitives/icon";
 import { flame } from "@base/primitives/icon/icons/flame";
 import "@base/primitives/icon/icon.css";
-import type { Completion } from "../hooks/useProgress";
+import type { Completion } from "@/hooks/useProgress";
 import "./StreakExtendedOverlay.css";
 
 interface Props {

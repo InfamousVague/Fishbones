@@ -17,7 +17,7 @@
 
 import type { LessonVerifyResult } from "./course";
 import { tally } from "./course";
-import type { ExerciseLesson, MixedLesson, WorkbenchFile } from "../../data/types";
+import type { ExerciseLesson, MixedLesson, WorkbenchFile } from "@/data/types";
 
 export interface ExportOptions {
   /// Human-readable label for the report header. Usually the

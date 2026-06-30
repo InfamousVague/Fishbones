@@ -19,7 +19,7 @@
 /// needed yet — closing the popout via the OS window-close button is
 /// detected via the absence of further messages, not an explicit
 /// "I'm gone" event.
-import type { LogLine } from "../runtimes/types";
+import type { LogLine } from "@/runtimes/types";
 
 /// Discriminated union of every message type that flows over the
 /// phone-preview bus. Most messages are MAIN → POPOUT:

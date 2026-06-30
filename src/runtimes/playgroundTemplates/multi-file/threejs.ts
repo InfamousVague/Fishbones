@@ -3,7 +3,7 @@
 /// splitter. Each multi-file template gets its own file; single-file
 /// templates live together in `../single-file.ts`.
 
-import type { WorkbenchFile } from "../../../data/types";
+import type { WorkbenchFile } from "@/data/types";
 
 /// Three.js starter — importmap points at a CDN build, a rotating cube
 /// sits on a transparent canvas so it pops against the Libre dark

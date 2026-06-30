@@ -26,7 +26,7 @@
 /// `import_course` backend equivalent yet.
 
 import { useEffect, useRef, useState } from "react";
-import { isWeb } from "../lib/platform";
+import { isWeb } from "@/lib/platform";
 
 /// Course-archive extensions, in priority order. `.academy` is the
 /// canonical extension after the Libre → Libre rebrand;

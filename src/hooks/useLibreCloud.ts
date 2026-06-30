@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { track } from "../lib/track";
-import { profileKey } from "../lib/profileStore";
-import { isWeb } from "../lib/platform";
+import { track } from "@/lib/track";
+import { profileKey } from "@/lib/profileStore";
+import { isWeb } from "@/lib/platform";
 
 /// Optional cloud-sync hook for the Libre relay.
 ///

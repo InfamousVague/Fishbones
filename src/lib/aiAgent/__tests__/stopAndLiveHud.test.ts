@@ -5,12 +5,12 @@
 /// chunks arrive.
 
 import { describe, expect, it } from "vitest";
-import { runAgentLoop } from "../loop";
-import type { AgentTransport, AgentTurnResponse } from "../types";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
 import {
   estimateTokens,
   parseStreamingConfidence,
-} from "../confidence";
+} from "@/lib/aiAgent/confidence";
 
 function tool(name: string) {
   return {

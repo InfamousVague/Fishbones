@@ -19,7 +19,7 @@ import type {
   Difficulty,
   LanguageId,
   WorkbenchFile,
-} from "../data/types";
+} from "@/data/types";
 import type { IngestEvent, PipelineStats } from "./pipeline";
 
 export interface GenerateChallengePackOptions {

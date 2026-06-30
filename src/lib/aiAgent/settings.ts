@@ -9,7 +9,7 @@
 /// confidence prompts elevated, no auto-approve. Power users flip
 /// the toggles on once they trust the agent.
 
-import { DEFAULT_MODEL_ID } from "../ai/models";
+import { DEFAULT_MODEL_ID } from "@/lib/ai/models";
 import {
   clampPairMode,
   DEFAULT_PAIR_MODE,

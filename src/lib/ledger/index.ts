@@ -17,7 +17,7 @@
 /// they can construct one directly via `DesktopLedgerTransport` or
 /// `WebLedgerTransport`.
 
-import { isWeb } from "../platform";
+import { isWeb } from "@/lib/platform";
 import { DesktopLedgerTransport } from "./desktop";
 import { WebLedgerTransport, isWebHidSupported } from "./web";
 import type { LedgerTransport, LedgerStatusListener } from "./types";

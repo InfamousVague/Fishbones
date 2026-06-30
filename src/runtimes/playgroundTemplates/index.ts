@@ -8,13 +8,13 @@
 /// This index re-assembles `PLAYGROUND_TEMPLATES` so downstream
 /// code can keep importing from `../playgroundTemplates`.
 
-import type { LanguageId, WorkbenchFile } from "../../data/types";
+import type { LanguageId, WorkbenchFile } from "@/data/types";
 import { templateFiles as templateFilesImpl, type Template } from "./_core";
 import { SINGLE_FILE_TEMPLATES } from "./single-file";
-import { WEB_TEMPLATE_FILES } from "./multi-file/web";
-import { REACT_NATIVE_TEMPLATE_FILES } from "./multi-file/react-native";
-import { THREEJS_TEMPLATE_FILES } from "./multi-file/threejs";
-import { REACT_TEMPLATE_FILES } from "./multi-file/react";
+import { WEB_TEMPLATE_FILES } from "@/runtimes/playgroundTemplates/multi-file/web";
+import { REACT_NATIVE_TEMPLATE_FILES } from "@/runtimes/playgroundTemplates/multi-file/react-native";
+import { THREEJS_TEMPLATE_FILES } from "@/runtimes/playgroundTemplates/multi-file/threejs";
+import { REACT_TEMPLATE_FILES } from "@/runtimes/playgroundTemplates/multi-file/react";
 
 export type { Template };
 

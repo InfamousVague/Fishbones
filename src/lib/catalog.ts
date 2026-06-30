@@ -33,7 +33,7 @@
 /// and let `useCourses` merge entries that aren't in the user's
 /// installed set as `placeholder: true` Course objects.
 
-import type { Course, LanguageId } from "../data/types";
+import type { Course, LanguageId } from "@/data/types";
 import { isHiddenCourse } from "./hiddenCourses";
 
 export interface CatalogEntry {

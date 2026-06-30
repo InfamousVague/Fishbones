@@ -1,5 +1,5 @@
-import { runCode, isPassing } from "../../runtimes";
-import type { ExerciseLesson, Lesson, ReadingLesson } from "../../data/types";
+import { runCode, isPassing } from "@/runtimes/index";
+import type { ExerciseLesson, Lesson, ReadingLesson } from "@/data/types";
 import type { IngestEvent, PipelineOptions, PipelineStats } from "./types";
 import { cacheWrite } from "./cache";
 import { parseJson, slug, pad } from "./helpers";

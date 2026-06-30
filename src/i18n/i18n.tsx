@@ -27,9 +27,9 @@
 /// it's obvious during dev which value didn't make it through.
 
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
-import { useLocale as useLocaleHook } from "../hooks/useLocale";
-import { type Locale } from "../data/locales";
-import enLocale from "./locales/en.json";
+import { useLocale as useLocaleHook } from "@/hooks/useLocale";
+import { type Locale } from "@/data/locales";
+import enLocale from "@/i18n/locales/en.json";
 
 type Dict = Record<string, unknown>;
 
@@ -186,6 +186,6 @@ export function useLocale(): {
 /// language → add it to `data/locales.ts` + drop a `<code>.json`
 /// next to this file's locales — the dynamic `ensureLocaleLoaded`
 /// import picks it up by filename, no registration needed.
-export { SUPPORTED_LOCALES as LOCALES } from "../data/locales";
-export { LOCALE_NAMES, LOCALE_FLAGS } from "../data/locales";
+export { SUPPORTED_LOCALES as LOCALES } from "@/data/locales";
+export { LOCALE_NAMES, LOCALE_FLAGS } from "@/data/locales";
 export type { Locale };

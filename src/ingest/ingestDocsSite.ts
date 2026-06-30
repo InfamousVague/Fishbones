@@ -24,7 +24,7 @@ import type {
   Course,
   LanguageId,
   Lesson,
-} from "../data/types";
+} from "@/data/types";
 import type { IngestEvent, PipelineStats } from "./pipeline";
 
 /// Per-page payload from the Rust crawler. Field names match the Rust

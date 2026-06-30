@@ -17,7 +17,7 @@
 /// what makes the test suite work without spinning the app.
 
 import type { ToolCall, ToolDef } from "./types";
-import { validateFilePath } from "../aiTools/sandboxValidation";
+import { validateFilePath } from "@/lib/aiTools/sandboxValidation";
 
 /// Walk `content` extracting every balanced top-level `{...}`
 /// span. Top-level meaning: we skip OVER matched objects rather

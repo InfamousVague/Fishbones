@@ -29,14 +29,14 @@ import {
 } from "./streaming";
 import { parseConfidence, isLowConfidence } from "./confidence";
 import { accumulateUsage, EMPTY_RUN_USAGE, type RunUsage } from "./usage";
-import { compactWireMessages } from "../ai/compaction";
+import { compactWireMessages } from "@/lib/ai/compaction";
 import {
   analyzeBuildState,
   buildContinuationNudge,
   looksLikeBuildRequest,
-} from "../ai/buildState";
-import { resolveToolNative } from "../ai/toolCapability";
-import { emulatedBuildTier } from "../ai/models";
+} from "@/lib/ai/buildState";
+import { resolveToolNative } from "@/lib/ai/toolCapability";
+import { emulatedBuildTier } from "@/lib/ai/models";
 import { findOrphans } from "./importGraph";
 import type {
   AgentMessage,

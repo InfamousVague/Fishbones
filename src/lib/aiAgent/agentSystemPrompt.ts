@@ -6,9 +6,9 @@
 /// behaviour.
 
 import { pairModeSection, type PairMode } from "./pairMode";
-import { buildContextBlock } from "../ai/context";
-import { buildMemoryBlock } from "../ai/memory";
-import type { Lesson, Course } from "../../data/types";
+import { buildContextBlock } from "@/lib/ai/context";
+import { buildMemoryBlock } from "@/lib/ai/memory";
+import type { Lesson, Course } from "@/data/types";
 
 /// System prompt for AGENT mode. Different shape from the chat-mode
 /// prompt because the agent has tools — we explicitly tell it to USE

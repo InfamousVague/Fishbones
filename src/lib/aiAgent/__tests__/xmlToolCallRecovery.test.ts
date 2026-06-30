@@ -9,10 +9,10 @@
 /// Each test pins one model output shape we've observed in the wild.
 
 import { describe, expect, it } from "vitest";
-import { extractXmlToolCalls } from "../streaming";
-import { runAgentLoop } from "../loop";
-import type { AgentTransport, AgentTurnResponse } from "../types";
-import type { ToolDef } from "../../aiTools/types";
+import { extractXmlToolCalls } from "@/lib/aiAgent/streaming";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
+import type { ToolDef } from "@/lib/aiTools/types";
 
 const tools: ToolDef[] = [
   {

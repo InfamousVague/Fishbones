@@ -1,4 +1,4 @@
-import type { Course, Lesson } from "./data/types";
+import type { Course, Lesson } from "@/data/types";
 
 export interface Neighbors {
   prev: { id: string; title: string } | null;

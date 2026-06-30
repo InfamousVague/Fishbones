@@ -3,7 +3,7 @@ import {
   comboMatches,
   getBinding,
   parseKeyEvent,
-} from "../lib/keybindings/registry";
+} from "@/lib/keybindings/registry";
 
 /// Subscribe to a global `keydown` event and fire `callback` when
 /// the user presses the combo currently bound to `actionId`.

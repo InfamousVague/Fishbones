@@ -1,9 +1,9 @@
 /// Build Journal tests — the deterministic worked-example spine.
 
 import { describe, expect, it } from "vitest";
-import { buildBuildJournal } from "../buildJournal";
-import type { ToolResult } from "../../aiTools/types";
-import type { Course } from "../../../data/types";
+import { buildBuildJournal } from "@/lib/ai/buildJournal";
+import type { ToolResult } from "@/lib/aiTools/types";
+import type { Course } from "@/data/types";
 
 function tr(name: string, ok: boolean, payload: Record<string, unknown>): ToolResult {
   return {

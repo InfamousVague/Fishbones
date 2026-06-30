@@ -6,7 +6,7 @@
 /// can't silently dead-end the "Download & switch" button.
 
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { probeInstalledModels, pullModel } from "../ollamaInstall";
+import { probeInstalledModels, pullModel } from "@/lib/ai/ollamaInstall";
 
 // Default test target is "desktop" (LIBRE_TARGET unset → isDesktop),
 // so these exercise the Tauri-command branch.

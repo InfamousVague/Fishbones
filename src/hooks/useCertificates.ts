@@ -7,7 +7,7 @@
 /// is the only writer; this hook is purely a read-side reactor.
 
 import { useCallback, useEffect, useState } from "react";
-import { listCertificates, type Certificate } from "../data/certificates";
+import { listCertificates, type Certificate } from "@/data/certificates";
 
 export const CERTIFICATES_CHANGED_EVENT = "libre:certificates-changed";
 

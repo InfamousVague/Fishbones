@@ -22,7 +22,7 @@
 /// Lesson linking imports the retrieval engine (also pure) so a
 /// caller gets `{ concept, lessons }` in one call.
 
-import type { Course } from "../../data/types";
+import type { Course } from "@/data/types";
 import { searchCourseContent, type RetrievalHit } from "./retrieval";
 
 export type ConceptLang =

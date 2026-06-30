@@ -14,7 +14,7 @@
 /// that throws a structured error on web (caller catches → falls
 /// back to localStorage) and returns the parsed payload on desktop.
 
-import type { LanguageId, WorkbenchFile } from "../data/types";
+import type { LanguageId, WorkbenchFile } from "@/data/types";
 import { isDesktop } from "./platform";
 
 export interface DiskProjectMeta {

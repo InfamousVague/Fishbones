@@ -29,9 +29,9 @@
 ///   3. The first step is the on-ramp — it's the node the "Start
 ///      track" button drops the learner into.
 
-import type { SkillNode, SkillTree } from "../trees";
-import { isSkillComplete, resolveSkillMatch } from "../trees";
-import type { Course } from "../types";
+import type { SkillNode, SkillTree } from "@/data/trees/index";
+import { isSkillComplete, resolveSkillMatch } from "@/data/trees/index";
+import type { Course } from "@/data/types";
 
 export interface TrackStep {
   /// Which tree the underlying skill lives in. Cross-tree tracks

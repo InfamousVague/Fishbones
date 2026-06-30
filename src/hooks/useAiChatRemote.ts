@@ -14,9 +14,9 @@
 /// — the UI doesn't care which transport delivered the tokens.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { aiHostUrl, readAiHost } from "../lib/aiHost";
-import { DEFAULT_MODEL_ID, isModelInstalled } from "../lib/ai/models";
-import { resolveEffortParams, type AiAgentSettings } from "../lib/aiAgent/settings";
+import { aiHostUrl, readAiHost } from "@/lib/aiHost";
+import { DEFAULT_MODEL_ID, isModelInstalled } from "@/lib/ai/models";
+import { resolveEffortParams, type AiAgentSettings } from "@/lib/aiAgent/settings";
 import type {
   ChatMessage,
   InstallResult,

@@ -1,4 +1,4 @@
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { RunResult, LogLine } from "./types";
 
 /// Vyper runtime — three implementation strategies, in order of

@@ -6,7 +6,7 @@ import {
   EMPTY_RUN_USAGE,
   formatDuration,
   formatTokens,
-} from "../usage";
+} from "@/lib/aiAgent/usage";
 
 describe("accumulateUsage", () => {
   it("starts from EMPTY_RUN_USAGE", () => {

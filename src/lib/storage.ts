@@ -20,7 +20,7 @@
 
 import { isWeb } from "./platform";
 import { profileDbName } from "./profileStore";
-import type { Course } from "../data/types";
+import type { Course } from "@/data/types";
 
 export interface Completion {
   course_id: string;

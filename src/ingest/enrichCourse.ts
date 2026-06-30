@@ -21,8 +21,8 @@ import type {
   LessonEnrichment,
   GlossaryEntry,
   SymbolEntry,
-} from "../data/types";
-import { isExerciseKind } from "../data/types";
+} from "@/data/types";
+import { isExerciseKind } from "@/data/types";
 import type { IngestEvent, PipelineStats } from "./pipeline";
 
 export interface EnrichCourseOptions {

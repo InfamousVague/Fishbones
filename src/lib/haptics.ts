@@ -41,7 +41,7 @@ import { isDesktop, isMobile } from "./platform";
 import {
   evaluatePolicy,
   recordFireForTelemetry,
-} from "./haptics/context";
+} from "@/lib/haptics/context";
 
 // ─── Intents ──────────────────────────────────────────────────
 
@@ -461,8 +461,8 @@ export function fireHapticSequence(
 /// Defaults to "completion" — the category most curated patterns
 /// belong to.
 export async function firePattern(
-  pattern: import("./haptics/patterns").Pattern,
-  category: import("./haptics/context").HapticCategory = "completion",
+  pattern: import("@/lib/haptics/patterns").Pattern,
+  category: import("@/lib/haptics/context").HapticCategory = "completion",
 ): Promise<void> {
   if (isDesktop && !isMobile) return;
   const settings = readHapticSettings();

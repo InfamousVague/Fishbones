@@ -1,5 +1,5 @@
 import type { RunResult, LogLine, TestResult } from "./types";
-import { isDesktop } from "../lib/platform";
+import { isDesktop } from "@/lib/platform";
 
 /// Rust via local `rustc` (fast path) with a play.rust-lang.org
 /// fallback.

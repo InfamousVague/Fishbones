@@ -1,11 +1,11 @@
 /// Link guard + untrusted-content delimiting + loop integration.
 
 import { describe, expect, it } from "vitest";
-import { buildLinkGuard } from "../linkGuard";
-import { buildContextBlock } from "../context";
-import { runAgentLoop } from "../../aiAgent/loop";
-import type { AgentTransport } from "../../aiAgent/types";
-import type { Course } from "../../../data/types";
+import { buildLinkGuard } from "@/lib/ai/linkGuard";
+import { buildContextBlock } from "@/lib/ai/context";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import type { AgentTransport } from "@/lib/aiAgent/types";
+import type { Course } from "@/data/types";
 
 const COURSES = [
   {

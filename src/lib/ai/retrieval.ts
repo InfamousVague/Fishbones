@@ -26,7 +26,7 @@
 /// few hundred lessons. An embedding index can slot in behind the
 /// same signature if the corpus ever outgrows this.
 
-import type { Course } from "../../data/types";
+import type { Course } from "@/data/types";
 
 export interface RetrievalHit {
   courseId: string;

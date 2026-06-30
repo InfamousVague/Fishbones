@@ -10,7 +10,7 @@ import {
   ensureToolCapability,
   hasProbed,
   resolveToolNative,
-} from "../toolCapability";
+} from "@/lib/ai/toolCapability";
 
 // Default test target is "desktop" → the Tauri-command branch.
 async function setInvoke(impl: (cmd: string, args?: unknown) => unknown) {

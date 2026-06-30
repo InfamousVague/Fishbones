@@ -16,8 +16,8 @@
 /// ```
 
 import { useCallback, useEffect, useState } from "react";
-import { ledger } from "../lib/ledger";
-import type { LedgerDeviceInfo } from "../lib/ledger";
+import { ledger } from "@/lib/ledger/index";
+import type { LedgerDeviceInfo } from "@/lib/ledger/index";
 
 /// Module-level flag so auto-connect runs ONCE per app session, not
 /// once per `useLedger()` call. Without this, every `LedgerStatusPill`

@@ -9,16 +9,16 @@
 /// recovery is broken, the test fails.
 
 import { describe, expect, it } from "vitest";
-import { runAgentLoop } from "../loop";
-import type { AgentTransport, AgentTurnResponse } from "../types";
-import type { ToolDef } from "../../aiTools/types";
+import { runAgentLoop } from "@/lib/aiAgent/loop";
+import type { AgentTransport, AgentTurnResponse } from "@/lib/aiAgent/types";
+import type { ToolDef } from "@/lib/aiTools/types";
 import {
   extractInlineToolCalls,
   parseFencedBlocks,
   stripInlineToolCallJson,
   looseJsonParse,
-} from "../streaming";
-import { parseConfidence } from "../confidence";
+} from "@/lib/aiAgent/streaming";
+import { parseConfidence } from "@/lib/aiAgent/confidence";
 
 const tools: ToolDef[] = [
   {

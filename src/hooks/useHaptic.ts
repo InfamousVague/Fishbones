@@ -24,7 +24,7 @@
 /// need to guard.
 
 import { useCallback, useEffect, useRef } from "react";
-import { fireHaptic, type HapticIntent } from "../lib/haptics";
+import { fireHaptic, type HapticIntent } from "@/lib/haptics";
 
 // ─── useHaptic ────────────────────────────────────────────────
 

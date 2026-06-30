@@ -8,7 +8,7 @@ import {
   deriveConfidenceFromTool,
   isLowConfidence,
   parseConfidence,
-} from "../confidence";
+} from "@/lib/aiAgent/confidence";
 
 describe("parseConfidence", () => {
   it("returns null when no tag is present", () => {

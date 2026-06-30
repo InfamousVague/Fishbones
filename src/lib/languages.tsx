@@ -22,7 +22,7 @@
 /// offline (Libre runs locally).
 
 import type { ComponentType, SVGProps } from "react";
-import type { LanguageId } from "../data/types";
+import type { LanguageId } from "@/data/types";
 
 export interface LanguageMeta {
   label: string;

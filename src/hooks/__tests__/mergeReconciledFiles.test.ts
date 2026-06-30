@@ -3,8 +3,8 @@
 /// disk and fires a refresh, while still surfacing the agent's writes.
 
 import { describe, expect, it } from "vitest";
-import { mergeReconciledFiles } from "../useSandboxProjects";
-import type { WorkbenchFile } from "../../data/types";
+import { mergeReconciledFiles } from "@/hooks/useSandboxProjects";
+import type { WorkbenchFile } from "@/data/types";
 
 function f(name: string, content: string): WorkbenchFile {
   return { name, content, language: "javascript" as WorkbenchFile["language"] };

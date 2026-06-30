@@ -1,6 +1,6 @@
-import type { LanguageId, WorkbenchAsset, WorkbenchFile } from "../data/types";
-import { assembleRunnable } from "../lib/workbenchFiles";
-import { canRun, isWeb } from "../lib/platform";
+import type { LanguageId, WorkbenchAsset, WorkbenchFile } from "@/data/types";
+import { assembleRunnable } from "@/lib/workbenchFiles";
+import { canRun, isWeb } from "@/lib/platform";
 import { runJavaScript, runTypeScript } from "./javascript";
 import { runPython } from "./python";
 import { runRust } from "./rust";

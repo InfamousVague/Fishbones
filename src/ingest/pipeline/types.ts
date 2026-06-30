@@ -1,4 +1,4 @@
-import type { LanguageId } from "../../data/types";
+import type { LanguageId } from "@/data/types";
 
 // Local shape for stage-1 input (per-chapter blob). Distinct from pdfParser's
 // RawChapter which carries section-level metadata we flatten down.

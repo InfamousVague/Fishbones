@@ -4,7 +4,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
   resolveEffortParams,
   type AiAgentSettings,
-} from "../lib/aiAgent/settings";
+} from "@/lib/aiAgent/settings";
 
 /// Chat-with-local-LLM hook. Talks to the Rust `ai_chat_stream` command
 /// which in turn streams from the user's Ollama daemon. The hook owns
@@ -398,7 +398,7 @@ export function useAiChatLocal(
 // the dead branch, but importing at the top is what creates the
 // initial load — we want zero Tauri code in dist-web's main chunk).
 import { useAiChatRemote } from "./useAiChatRemote";
-import { isMobile, isWeb } from "../lib/platform";
+import { isMobile, isWeb } from "@/lib/platform";
 
 const pickedHook: typeof useAiChatLocal = (isMobile || isWeb)
   ? useAiChatRemote

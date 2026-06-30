@@ -11,11 +11,11 @@
 /// Triggered from the bottom-tab bar's "Settings" button.
 
 import { useState } from "react";
-import type { UseLibreCloud } from "../hooks/useLibreCloud";
-import type { RealtimeSyncHandle } from "../hooks/useRealtimeSync";
-import type { Completion } from "../hooks/useProgress";
-import type { Course } from "../data/types";
-import SyncDebugPanel from "../components/dialogs/SettingsDialog/SyncDebugPanel";
+import type { UseLibreCloud } from "@/hooks/useLibreCloud";
+import type { RealtimeSyncHandle } from "@/hooks/useRealtimeSync";
+import type { Completion } from "@/hooks/useProgress";
+import type { Course } from "@/data/types";
+import SyncDebugPanel from "@/components/organisms/dialogs/SettingsDialog/SyncDebugPanel";
 import {
   applyTheme,
   loadTheme,
@@ -28,8 +28,8 @@ import {
   loadScale,
   applyScale,
   resetScales,
-} from "../theme/themes";
-import LanguageDropdown from "../components/LanguageDropdown/LanguageDropdown";
+} from "@/theme/themes";
+import LanguageDropdown from "@/components/molecules/LanguageDropdown/LanguageDropdown";
 import "./MobileSettings.css";
 
 /// Appearance scale knobs (same set as the desktop ThemePane). Plain

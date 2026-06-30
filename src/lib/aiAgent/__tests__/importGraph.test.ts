@@ -3,7 +3,7 @@
 /// so the loop's auto-prune can't delete a live file.
 
 import { describe, expect, it } from "vitest";
-import { detectEntry, findOrphans, reachableFrom } from "../importGraph";
+import { detectEntry, findOrphans, reachableFrom } from "@/lib/aiAgent/importGraph";
 
 describe("detectEntry", () => {
   it("prefers index.html, then src/main, then src/App", () => {

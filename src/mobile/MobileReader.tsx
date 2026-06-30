@@ -5,11 +5,11 @@
 /// over richness on a 6" screen.
 
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { renderMarkdown } from "../components/Lesson/markdown";
-import TTSButton from "../components/Lesson/TTSButton";
-import { estimateReadingMinutes } from "../components/Lesson/readingTime";
-import { stopLessonAudio, useLessonAudio } from "../hooks/useLessonAudio";
-import { useLessonReadCursor } from "../hooks/useLessonReadCursor";
+import { renderMarkdown } from "@/components/templates/Lesson/markdown";
+import TTSButton from "@/components/templates/Lesson/TTSButton";
+import { estimateReadingMinutes } from "@/components/templates/Lesson/readingTime";
+import { stopLessonAudio, useLessonAudio } from "@/hooks/useLessonAudio";
+import { useLessonReadCursor } from "@/hooks/useLessonReadCursor";
 import "./MobileReader.css";
 
 interface Props {

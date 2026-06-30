@@ -16,7 +16,7 @@
 /// certificates — the printed PNG always reflects who the learner
 /// was at the time they crossed the finish line.
 
-import { profileKey } from "../lib/profileStore";
+import { profileKey } from "@/lib/profileStore";
 
 // Profile-scoped: certificates are earned per profile/account.
 const STORAGE_KEY = profileKey("libre:certificates:v1");

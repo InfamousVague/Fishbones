@@ -32,10 +32,10 @@ import * as kit from "@solana/kit";
 import * as splSystem from "@solana-program/system";
 import type { Address, KeyPairSigner } from "@solana/kit";
 
-import type { WorkbenchFile } from "../data/types";
+import type { WorkbenchFile } from "@/data/types";
 import type { LogLine, RunResult, TestResult } from "./types";
-import { stringify } from "./evm/helpers";
-import { expect } from "./evm/expect";
+import { stringify } from "@/runtimes/evm/helpers";
+import { expect } from "@/runtimes/evm/expect";
 import {
   ensureInitialised,
   getSnapshot,
@@ -55,7 +55,7 @@ import {
   type SvmSendTxResult,
   type SvmToolchainStatus,
   type TxSnapshot,
-} from "../lib/svm/chainService";
+} from "@/lib/svm/chainService";
 
 const LAMPORTS_PER_SOL = 1_000_000_000n;
 

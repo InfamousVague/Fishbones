@@ -5,8 +5,8 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import { installMockTauri, type MockTauriHandle } from "../../test/mockTauri";
-import { useAiChatLocal } from "../useAiChat";
+import { installMockTauri, type MockTauriHandle } from "@/test/mockTauri";
+import { useAiChatLocal } from "@/hooks/useAiChat";
 
 let tauri: MockTauriHandle;
 
