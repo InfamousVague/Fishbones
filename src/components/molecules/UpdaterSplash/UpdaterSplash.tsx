@@ -185,5 +185,5 @@ export default function UpdaterSplash() {
     };
   }, []);
 
-  return <LoadingScreen status={status} progress={progress} progressOnly />;
+  return <LoadingScreen status={status} progress={progress} />;
 }
