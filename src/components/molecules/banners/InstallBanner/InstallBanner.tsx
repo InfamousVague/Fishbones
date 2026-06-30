@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import { isWeb } from "@/lib/platform";
 import DownloadButton from "@/components/atoms/DownloadButton/DownloadButton";
+import { useTimeout } from "@/hooks/useTimeout";
 import { useT } from "@/i18n/i18n";
 import "./InstallBanner.css";
 
@@ -30,30 +31,42 @@ const RESHOW_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 /// render and the user's eye to settle.
 const SHOW_AFTER_MS = 2200;
 
+/// Whether the upsell should arm its reveal timer at all — false on the
+/// desktop build and while a recent dismissal is still inside its re-show
+/// window. Computed once at mount (lazy state init) so the localStorage
+/// read doesn't run on every render.
+function shouldArm(): boolean {
+  if (!isWeb) return false;
+  // Honour a recent dismissal — but only for the configured window.
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const dismissedAt = parseInt(raw, 10);
+      if (
+        Number.isFinite(dismissedAt) &&
+        Date.now() - dismissedAt < RESHOW_AFTER_MS
+      ) {
+        return false;
+      }
+    }
+  } catch {
+    // localStorage may throw in private mode; just show the banner.
+  }
+  return true;
+}
+
 export function InstallBanner() {
   const t = useT();
   const [visible, setVisible] = useState(false);
+  const [armed] = useState(shouldArm);
 
-  useEffect(() => {
-    if (!isWeb) return;
-    // Honour a recent dismissal — but only for the configured window.
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const dismissedAt = parseInt(raw, 10);
-        if (
-          Number.isFinite(dismissedAt) &&
-          Date.now() - dismissedAt < RESHOW_AFTER_MS
-        ) {
-          return;
-        }
-      }
-    } catch {
-      // localStorage may throw in private mode; just show the banner.
-    }
-    const t = window.setTimeout(() => setVisible(true), SHOW_AFTER_MS);
-    return () => window.clearTimeout(t);
-  }, []);
+  // Defer the reveal by SHOW_AFTER_MS once armed; `null` keeps the timer
+  // disarmed on desktop or inside the post-dismissal window. Once visible,
+  // stop re-arming.
+  useTimeout(
+    () => setVisible(true),
+    armed && !visible ? SHOW_AFTER_MS : null,
+  );
 
   if (!isWeb || !visible) return null;
 

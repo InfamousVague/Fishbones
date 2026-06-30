@@ -23,11 +23,12 @@
 ///   menu-bar popover hides itself on blur, so it doesn't need
 ///   the affordance; the in-app slide-in panel does.
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import type { ProbeResult } from "@/hooks/useAiChat";
 import ModelPicker from "@/components/organisms/AiAssistant/ModelPicker";
 import { compactModelLabel } from "@/lib/ai/models";
 import { EFFORT_OPTIONS, type AiAgentSettings } from "@/lib/aiAgent/settings";
+import { useDismiss } from "@/hooks/useDismiss";
 import type { TraySession } from "./useTraySessions";
 
 interface Props {
@@ -71,21 +72,11 @@ export default function TrayHeader({
   // Click-outside dismissal for the sessions menu. Captures on
   // pointerdown so a synchronous click that opens the menu can't
   // immediately re-close it via the same event firing on the
-  // document.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onPointer = (e: PointerEvent) => {
-      const target = e.target as Node | null;
-      if (!target) {
-        setMenuOpen(false);
-        return;
-      }
-      if (menuRef.current?.contains(target)) return;
-      setMenuOpen(false);
-    };
-    window.addEventListener("pointerdown", onPointer);
-    return () => window.removeEventListener("pointerdown", onPointer);
-  }, [menuOpen]);
+  // document. No Escape handling here (matches the original).
+  useDismiss(menuRef, () => setMenuOpen(false), {
+    enabled: menuOpen,
+    escape: false,
+  });
 
   const status = computeStatus(probe);
 
@@ -283,23 +274,8 @@ function HeaderDropdown({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: PointerEvent) => {
-      const t = e.target as Node | null;
-      if (t && ref.current?.contains(t)) return;
-      setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("pointerdown", onPointer);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("pointerdown", onPointer);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  // Click-outside + Escape dismissal for the popover panel.
+  useDismiss(ref, () => setOpen(false), { enabled: open });
 
   return (
     <div className="libre-tray-dd" ref={ref}>

@@ -17,6 +17,8 @@ import GearSpinner from "@/components/atoms/GearSpinner/GearSpinner";
 import MissingToolchainBanner from "@/components/molecules/banners/MissingToolchain/MissingToolchainBanner";
 import { DesktopUpsellBanner } from "@/components/molecules/banners/DesktopUpsell/DesktopUpsellBanner";
 import { useToolchainStatus } from "@/hooks/useToolchainStatus";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { useInterval } from "@/hooks/useInterval";
 import { useT } from "@/i18n/i18n";
 import "./OutputPane.css";
 
@@ -162,18 +164,18 @@ export default function OutputPane({
   // interpreted ones skip straight to "running…" once the runtime has
   // warmed up.
   const [elapsedMs, setElapsedMs] = useState(0);
+  // Start timestamp for the running run, captured the moment `running`
+  // flips true (and reset to 0 the moment it flips false). The tick
+  // below reads it to compute elapsed time.
+  const runStartRef = useRef(0);
   useEffect(() => {
-    if (!running) {
-      setElapsedMs(0);
-      return;
-    }
-    const start = Date.now();
     setElapsedMs(0);
-    const id = window.setInterval(() => {
-      setElapsedMs(Date.now() - start);
-    }, 250);
-    return () => window.clearInterval(id);
+    if (running) runStartRef.current = Date.now();
   }, [running]);
+  useInterval(
+    () => setElapsedMs(Date.now() - runStartRef.current),
+    running ? 250 : null,
+  );
   const currentPhase = (() => {
     const phases = progressPhases(language, testsExpected);
     let chosen = phases[0];
@@ -183,10 +185,10 @@ export default function OutputPane({
     return chosen;
   })();
 
-  // Small copy-to-clipboard affordance on the URL card. We track the
-  // "just copied" flash in local state so the button can briefly swap
-  // to a check mark without needing a toast system.
-  const [copied, setCopied] = useState(false);
+  // Small copy-to-clipboard affordance on the URL card. The hook tracks
+  // the "just copied" flash so the button can briefly swap to a check
+  // mark without needing a toast system.
+  const { copied, copy } = useCopyToClipboard();
   // Cache-busting key for the iframe: incremented each time a new
   // previewUrl result arrives so the iframe reloads even though the
   // URL is stable (the server swaps the HTML under the same URL).
@@ -368,15 +370,9 @@ export default function OutputPane({
     });
   };
 
-  const copyLink = async () => {
+  const copyLink = () => {
     if (!previewUrl) return;
-    try {
-      await navigator.clipboard.writeText(previewUrl);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      /* clipboard write may fail without user-gesture permission — silent */
-    }
+    void copy(previewUrl);
   };
 
   return (

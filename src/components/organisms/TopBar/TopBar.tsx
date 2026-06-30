@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
 import { panelLeftClose } from "@base/primitives/icon/icons/panel-left-close";
@@ -15,6 +15,7 @@ import TopBarSearch from "@/components/molecules/TopBarSearch/TopBarSearch";
 import StatsChip from "./StatsChip";
 import { isWeb } from "@/lib/platform";
 import { openExternal } from "@/lib/openExternal";
+import { useDismiss } from "@/hooks/useDismiss";
 import { useT } from "@/i18n/i18n";
 import "./TopBar.css";
 
@@ -307,21 +308,16 @@ export default function TopBar({
     x: number;
     y: number;
   } | null>(null);
-  useEffect(() => {
-    if (!tabMenu) return;
-    const close = () => setTabMenu(null);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    // `click` (not `mousedown`) so the click that opens a menu item
-    // still hits the item's onClick before the dismiss fires.
-    window.addEventListener("click", close);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("click", close);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [tabMenu]);
+  // Ref on the portaled menu so the dismiss excludes clicks inside it
+  // (replaces the menu's own `stopPropagation`). `event: "click"` keeps
+  // the original semantics — the click that opens a menu item still
+  // hits the item's onClick before the outside-dismiss fires.
+  const tabMenuRef = useRef<HTMLDivElement>(null);
+  const closeTabMenu = useCallback(() => setTabMenu(null), []);
+  useDismiss(tabMenuRef, closeTabMenu, {
+    enabled: !!tabMenu,
+    event: "click",
+  });
   function openTabMenu(tabIndex: number, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -528,9 +524,9 @@ export default function TopBar({
         const otherGroups = groups.filter((g) => g.id !== tab.groupId);
         return createPortal(
           <div
+            ref={tabMenuRef}
             className="libre__tab-menu"
             style={{ left: tabMenu.x, top: tabMenu.y }}
-            onClick={(e) => e.stopPropagation()}
             role="menu"
             aria-label={t("topBar.tabActions")}
           >

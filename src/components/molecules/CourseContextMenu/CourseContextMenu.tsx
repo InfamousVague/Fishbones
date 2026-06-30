@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
+import { useDismiss } from "@/hooks/useDismiss";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import { arrowDownToLine } from "@base/primitives/icon/icons/arrow-down-to-line";
@@ -42,22 +43,12 @@ export default function CourseContextMenu({
   onUpdate,
   onDelete,
 }: Props) {
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
   /// Dismiss on outside click, Escape. Matches the sidebar's original
   /// behavior. `click` (not `mousedown`) so the click that activates a
   /// menu item still hits the item's onClick before the dismiss fires.
-  useEffect(() => {
-    if (!menu) return;
-    const close = () => onDismiss();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    window.addEventListener("click", close);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("click", close);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [menu, onDismiss]);
+  useDismiss(menuRef, onDismiss, { event: "click", enabled: !!menu });
 
   if (!menu) return null;
   if (!onSettings && !onExport && !onUpdate && !onDelete) return null;
@@ -68,6 +59,7 @@ export default function CourseContextMenu({
   // ancestor's `overflow: hidden`.
   return createPortal(
     <div
+      ref={menuRef}
       className="libre__context-menu"
       style={{ left: menu.x, top: menu.y, position: "fixed", zIndex: 1000 }}
       onClick={(e) => e.stopPropagation()}

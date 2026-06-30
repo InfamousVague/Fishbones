@@ -17,6 +17,7 @@
 // `isDesktop`.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useInterval } from "@/hooks/useInterval";
 import { Icon } from "@base/primitives/icon";
 import { downloadCloud } from "@base/primitives/icon/icons/download-cloud";
 import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
@@ -82,47 +83,46 @@ export function UpdateBanner({
   // dynamically imports the plugin so the web build can omit it
   // entirely (Vite tree-shakes the import out when isDesktop is
   // statically false at build time).
-  useEffect(() => {
-    let cancelled = false;
-    const runCheck = async () => {
-      try {
-        const { check } = await import("@tauri-apps/plugin-updater");
-        const update = await check();
-        if (cancelled) return;
-        if (!update) {
-          setState({ kind: "idle" });
-          return;
-        }
-        if (dismissedFor.current === update.version) {
-          // User already said "not now" for this version. Stay
-          // hidden until the next version ships.
-          return;
-        }
-        setState({
-          kind: "available",
-          version: update.version,
-          notes: update.body ?? "",
-        });
-      } catch (e) {
-        // Network blip, GitHub 503, manifest temporarily missing.
-        // Quietly swallow — we'll retry on the next interval.
-        // Log so the maintainer can debug from devtools.
-        // eslint-disable-next-line no-console
-        console.warn("[updater] check failed:", e);
+  const cancelledRef = useRef(false);
+  const runCheck = useCallback(async () => {
+    try {
+      const { check } = await import("@tauri-apps/plugin-updater");
+      const update = await check();
+      if (cancelledRef.current) return;
+      if (!update) {
+        setState({ kind: "idle" });
+        return;
       }
-    };
-    void runCheck();
-    if (RECHECK_INTERVAL_MS > 0) {
-      const id = window.setInterval(runCheck, RECHECK_INTERVAL_MS);
-      return () => {
-        cancelled = true;
-        window.clearInterval(id);
-      };
+      if (dismissedFor.current === update.version) {
+        // User already said "not now" for this version. Stay
+        // hidden until the next version ships.
+        return;
+      }
+      setState({
+        kind: "available",
+        version: update.version,
+        notes: update.body ?? "",
+      });
+    } catch (e) {
+      // Network blip, GitHub 503, manifest temporarily missing.
+      // Quietly swallow — we'll retry on the next interval.
+      // Log so the maintainer can debug from devtools.
+      // eslint-disable-next-line no-console
+      console.warn("[updater] check failed:", e);
     }
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    void runCheck();
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [runCheck]);
+
+  // Recurring re-check — `null` disables polling when the interval is
+  // configured to 0.
+  useInterval(runCheck, RECHECK_INTERVAL_MS > 0 ? RECHECK_INTERVAL_MS : null);
 
   const onDownload = useCallback(async () => {
     if (state.kind !== "available") return;

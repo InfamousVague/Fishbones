@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
+import { useDismiss } from "@/hooks/useDismiss";
 import { useHapticOnChange } from "@/hooks/useHaptic";
 import { useSoundOnChange } from "@/hooks/useSoundOnChange";
 import { flame } from "@base/primitives/icon/icons/flame";
@@ -70,22 +71,7 @@ export default function StatsChip({
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   // Click-outside + escape dismissal.
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (e: MouseEvent) => {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("mousedown", onClick);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onClick);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  useDismiss(wrapRef, () => setOpen(false), { event: "mousedown", enabled: open });
 
   const levelProgress =
     stats.xpForLevel > 0 ? stats.xpIntoLevel / stats.xpForLevel : 0;

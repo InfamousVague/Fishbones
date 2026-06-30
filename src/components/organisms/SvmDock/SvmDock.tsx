@@ -17,6 +17,7 @@
 /// path catches Solana lessons before this component ever mounts.
 
 import { useEffect, useState, useCallback } from "react";
+import { useInterval } from "@/hooks/useInterval";
 import {
   subscribe,
   getSnapshot,
@@ -57,10 +58,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
 
   useEffect(() => subscribe(setSnap), []);
 
-  useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
+  useInterval(() => setTick((t) => t + 1), 1000);
 
   const onAirdrop = useCallback(async (address: Address) => {
     setPendingAirdrop((prev) => {

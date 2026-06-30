@@ -9,13 +9,14 @@
 /// floating InstallBanner, and any future marketing-side copy
 /// that consumes this repo's components.
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import "@base/primitives/icon/icon.css";
 import { downloadUrl } from "@/lib/platform";
 import { track } from "@/lib/track";
+import { useDismiss } from "@/hooks/useDismiss";
 import "./DownloadButton.css";
 
 interface Props {
@@ -35,28 +36,12 @@ export default function DownloadButton({ className, primaryLabel }: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const { primary, all } = downloadUrl();
 
-  // Click-outside dismiss. Listening at the window level avoids
-  // weaving refs through every conceivable child of whatever this
-  // sits inside.
-  useEffect(() => {
-    if (!open) return;
-    const onDocClick = (e: MouseEvent) => {
-      if (!wrapperRef.current) return;
-      if (e.target instanceof Node && wrapperRef.current.contains(e.target)) {
-        return;
-      }
-      setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("mousedown", onDocClick);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onDocClick);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  // Click-outside (+ Escape) dismiss. Avoids weaving refs through every
+  // conceivable child of whatever this sits inside.
+  useDismiss(wrapperRef, () => setOpen(false), {
+    enabled: open,
+    event: "mousedown",
+  });
 
   const labelFor = (os: "macos" | "windows" | "linux") =>
     os === "macos" ? "macOS" : os === "windows" ? "Windows" : "Linux";

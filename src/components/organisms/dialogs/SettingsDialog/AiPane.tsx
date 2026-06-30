@@ -15,6 +15,8 @@ import {
 import { isMobile } from "@/lib/platform";
 import QrScanner from "@/components/molecules/QrScanner/QrScanner";
 import { useT } from "@/i18n/i18n";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { useTimeout } from "@/hooks/useTimeout";
 
 const MODEL_OPTIONS: Array<{ id: string; labelKey: string; hintKey: string }> = [
   {
@@ -78,24 +80,13 @@ export default function AiPane({
   const effortIndex = EFFORT_STEPS.indexOf(currentEffort);
   // Per-field "just copied" flash. Keyed so the Anthropic + OpenAI
   // copy buttons each get their own check-mark moment without
-  // stomping each other.
-  const [copiedKey, setCopiedKey] = useState<null | "anthropic" | "openai">(
-    null,
-  );
+  // stomping each other — one hook instance per field.
+  const anthropicCopy = useCopyToClipboard();
+  const openaiCopy = useCopyToClipboard();
 
-  const copy = async (which: "anthropic" | "openai", value: string) => {
+  const copy = (which: "anthropic" | "openai", value: string) => {
     if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopiedKey(which);
-      window.setTimeout(() => {
-        setCopiedKey((cur) => (cur === which ? null : cur));
-      }, 1400);
-    } catch {
-      // Clipboard write may fail without user-gesture permission
-      // (Tauri WebKit on macOS sometimes rejects). Silent — the
-      // user can still select+copy from the input field manually.
-    }
+    void (which === "anthropic" ? anthropicCopy : openaiCopy).copy(value);
   };
 
   return (
@@ -119,23 +110,23 @@ export default function AiPane({
           <button
             type="button"
             className="libre-settings-input-copy"
-            onClick={() => void copy("anthropic", apiKey)}
+            onClick={() => copy("anthropic", apiKey)}
             disabled={!apiKey}
             aria-label={
-              copiedKey === "anthropic"
+              anthropicCopy.copied
                 ? t("settings.copiedLabel")
                 : t("settings.copyAnthropic")
             }
             title={
               apiKey
-                ? copiedKey === "anthropic"
+                ? anthropicCopy.copied
                   ? t("settings.copiedExclaim")
                   : t("settings.copyClipboard")
                 : t("settings.addKeyFirst")
             }
           >
             <Icon
-              icon={copiedKey === "anthropic" ? checkIcon : copyIcon}
+              icon={anthropicCopy.copied ? checkIcon : copyIcon}
               size="xs"
               color="currentColor"
             />
@@ -231,23 +222,23 @@ export default function AiPane({
           <button
             type="button"
             className="libre-settings-input-copy"
-            onClick={() => void copy("openai", openaiKey)}
+            onClick={() => copy("openai", openaiKey)}
             disabled={!openaiKey}
             aria-label={
-              copiedKey === "openai"
+              openaiCopy.copied
                 ? t("settings.copiedLabel")
                 : t("settings.copyOpenai")
             }
             title={
               openaiKey
-                ? copiedKey === "openai"
+                ? openaiCopy.copied
                   ? t("settings.copiedExclaim")
                   : t("settings.copyClipboard")
                 : t("settings.addKeyFirst")
             }
           >
             <Icon
-              icon={copiedKey === "openai" ? checkIcon : copyIcon}
+              icon={openaiCopy.copied ? checkIcon : copyIcon}
               size="xs"
               color="currentColor"
             />
@@ -304,11 +295,7 @@ function AssistantHostField() {
   // button doesn't gate this field because the assistant host is a
   // single-key localStorage write, not part of the settings.json
   // bundle.
-  useEffect(() => {
-    if (!savedFlash) return;
-    const t = window.setTimeout(() => setSavedFlash(false), 1400);
-    return () => window.clearTimeout(t);
-  }, [savedFlash]);
+  useTimeout(() => setSavedFlash(false), savedFlash ? 1400 : null);
 
   const commit = (next?: string) => {
     const val = (next ?? host).trim();

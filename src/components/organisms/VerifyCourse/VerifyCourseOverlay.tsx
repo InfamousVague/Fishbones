@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTimeout } from "@/hooks/useTimeout";
 import { Icon } from "@base/primitives/icon";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import { circleCheck } from "@base/primitives/icon/icons/circle-check";
@@ -57,7 +58,7 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   /// Short-lived "Copied!" / "Saved!" feedback shown next to the
   /// export buttons. Keyed by button id so two buttons don't trip
-  /// each other's flash. Cleared after ~1.5s by setTimeout.
+  /// each other's flash. Cleared after ~1.5s (see the useTimeout below).
   const [flash, setFlash] = useState<{ key: string; label: string } | null>(
     null,
   );
@@ -69,11 +70,12 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
 
   const showFeedback = (key: string, label: string) => {
     setFlash({ key, label });
-    setTimeout(
-      () => setFlash((f) => (f && f.key === key ? null : f)),
-      1500,
-    );
   };
+
+  // Clear the export-button flash ~1.5s after it appears. Keyed on the
+  // current flash so each new flash restarts the timer, and the prior
+  // timer is torn down before it can clear a newer flash.
+  useTimeout(() => setFlash(null), flash ? 1500 : null);
 
   const copyAsPrompt = async () => {
     const md = formatFixPrompt(session.results, exportOpts);

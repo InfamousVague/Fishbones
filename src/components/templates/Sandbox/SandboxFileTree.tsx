@@ -25,7 +25,13 @@
 /// in turn debounces a write to disk (Tauri) + localStorage so the
 /// changes are durable.
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { Icon } from "@base/primitives/icon";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
@@ -40,6 +46,7 @@ import type { WorkbenchFile, FileLanguage } from "@/data/types";
 import Hologram from "@/components/atoms/Hologram/Hologram";
 import { buildTree, type TreeNode } from "./fileTreeData";
 import { fileIcon } from "./sandboxIcons";
+import { useDismiss } from "@/hooks/useDismiss";
 import { useT } from "@/i18n/i18n";
 import "./SandboxFileTree.css";
 
@@ -269,22 +276,14 @@ export default function SandboxFileTree({
     setMenu(null);
   }
 
-  // Dismiss context menu on any click that ISN'T on the menu itself
-  // (the menu stops propagation on its own onClick). Listening on
-  // capture so the dismiss fires before any potential row click.
-  useEffect(() => {
-    if (!menu) return;
-    const close = () => setMenu(null);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenu(null);
-    };
-    window.addEventListener("click", close);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("click", close);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [menu]);
+  // Dismiss context menu on any click outside it (+ Escape). The
+  // capture-phase outside check via `menuRef` replaces the menu's old
+  // `stopPropagation` self-exclusion. `event: "click"` preserves the
+  // original semantics — a click on a menu item still runs the item's
+  // own onClick before the outside-dismiss fires.
+  const menuRef = useRef<HTMLDivElement>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  useDismiss(menuRef, closeMenu, { enabled: !!menu, event: "click" });
 
   return (
     <nav className="libre-sbft" aria-label={t("sandbox.ariaSandboxFiles")}>
@@ -376,6 +375,7 @@ export default function SandboxFileTree({
 
       {menu && (
         <ContextMenu
+          menuRef={menuRef}
           target={menu}
           onClose={() => setMenu(null)}
           onNewFile={(parentPath) =>
@@ -836,6 +836,7 @@ function CreateInputRow({
 // ── ContextMenu ──────────────────────────────────────────────────
 
 interface ContextMenuProps {
+  menuRef: React.RefObject<HTMLDivElement | null>;
   target: NonNullable<MenuTarget>;
   onClose: () => void;
   onNewFile: (parentPath: string) => void;
@@ -849,6 +850,7 @@ interface ContextMenuProps {
 /// matches the course context menu without re-implementing the
 /// chrome here.
 function ContextMenu({
+  menuRef,
   target,
   onClose,
   onNewFile,
@@ -859,6 +861,7 @@ function ContextMenu({
   const t = useT();
   return (
     <div
+      ref={menuRef}
       className="libre__context-menu"
       style={{
         left: target.x,
@@ -866,7 +869,6 @@ function ContextMenu({
         position: "fixed",
         zIndex: 1000,
       }}
-      onClick={(e) => e.stopPropagation()}
     >
       <div className="libre__context-menu-label">{target.path}</div>
       {target.kind === "folder" && (
