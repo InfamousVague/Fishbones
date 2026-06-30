@@ -91,6 +91,23 @@ courses, same progress.
 
 **Languages (V1):** JavaScript/TypeScript · Python · Rust · Swift.
 
+## 🎨 Design system
+
+The UI sits on **[`@mattmattmattmatt/base`](../../Libs/base)** — a homegrown,
+monochrome **glass** kit. Base owns the primitives / *atoms* (icon, card,
+segmented control, tooltip, chat); the app composes them up the
+**atomic-design** ladder — `atoms → molecules → organisms → templates`
+(see [Layout](#-layout)).
+
+Every distinct design value is a single generated **`--libre-*` token** in
+[`src/theme/scale-tokens.css`](src/theme/scale-tokens.css) — one per value, so
+nothing drifts. Type · spacing · radius · border · motion · blur are wired to
+**scale multipliers**, so the in-app **Appearance** settings reshape the whole
+UI proportionally, live. Glass surfaces read from **theme-aware**
+`--color-glass-*` tokens (translucent + backdrop-blur on dark themes, solid on
+light); per-theme overrides live in `themes.css`. Imports resolve through a
+`@/ → src/` alias.
+
 ## 🚀 Run
 
 ```bash
@@ -105,7 +122,8 @@ npm run test          # vitest
 ```
 libre/
 ├── src/                 # React frontend
-│   ├── components/      # Sidebar · TabBar · Lesson · Editor · Output
+│   ├── components/      # atoms · molecules · organisms · templates
+│   ├── theme/           # --libre-* design tokens + per-theme overrides
 │   ├── data/            # types + seed courses
 │   └── App.tsx
 ├── src-tauri/           # Rust Tauri backend
