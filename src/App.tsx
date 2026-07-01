@@ -105,6 +105,7 @@ const ThemePickerFirstLaunch = lazy(() =>
   })),
 );
 const SignInDialog = lazy(() => import("@/components/organisms/dialogs/SignInDialog/SignInDialog"));
+const FeedbackDialog = lazy(() => import("@/components/organisms/dialogs/Feedback/FeedbackDialog"));
 import { useCourses } from "@/hooks/useCourses";
 import { useRecentCourses } from "@/hooks/useRecentCourses";
 import { useStreakAndXp } from "@/hooks/useStreakAndXp";
@@ -327,6 +328,7 @@ export default function App() {
   // its own one-time-show gate) so signed-out users can re-open it
   // from the dropdown whenever they want.
   const [signInOpen, setSignInOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   // Pending delete request queued by the library / sidebar context menu.
   // Kept in state rather than firing window.confirm() directly so we can
   // render an app-styled modal with Escape + backdrop-click dismissal.
@@ -2503,6 +2505,7 @@ export default function App() {
         onSignOut={() => {
           void cloud.signOut();
         }}
+        onOpenFeedback={() => setFeedbackOpen(true)}
         // Search trigger sits left of the stats chip; clicking it pops
         // the same CommandPalette that Cmd/Ctrl+K already binds.
         onOpenSearch={() => setPaletteOpen(true)}
@@ -3187,6 +3190,17 @@ export default function App() {
         <SignInDialog
           cloud={cloud}
           onClose={() => setSignInOpen(false)}
+        />
+      )}
+
+      {/* In-app feedback / bug reports / feature requests. Posts to the
+          relay's /feedback endpoint, which forwards to Notion with a
+          server-side token. Takes only the relay URL off the cloud hook,
+          so it works signed-in or not. */}
+      {feedbackOpen && (
+        <FeedbackDialog
+          relayUrl={cloud.relayUrl}
+          onClose={() => setFeedbackOpen(false)}
         />
       )}
 

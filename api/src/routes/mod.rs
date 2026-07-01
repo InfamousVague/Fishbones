@@ -35,6 +35,7 @@
 //!   POST   /courses                        — upload .libre
 //!   GET    /courses                        — own courses
 //!   GET    /courses/public                 — public feed
+//!   POST   /feedback                        — in-app feedback → Notion
 //!   GET    /courses/:id                    — download archive
 //!   DELETE /courses/:id                    — delete
 //!   GET    /health                         — liveness
@@ -42,6 +43,7 @@
 
 mod auth;
 mod courses;
+mod feedback;
 mod middleware;
 mod oauth;
 mod oauth_flow;
@@ -128,6 +130,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
                 post(oauth_flow::apple_callback_post).get(oauth_flow::apple_callback_get),
             )
             .route("/courses/public", get(courses::list_public))
+            // In-app feedback / bug reports / feature requests. Public
+            // and unauthenticated (we want anonymous reports too); the
+            // handler relays each submission to Notion with a
+            // server-side token. See routes/feedback.rs.
+            .route("/feedback", post(feedback::submit))
             // Real-time sync WebSocket. Auth lives in the `?token=…`
             // query param (browsers can't set headers on a WS upgrade)
             // so this route stays in the public group; the handler

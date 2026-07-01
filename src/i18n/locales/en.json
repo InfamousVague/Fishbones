@@ -199,6 +199,8 @@
   },
   "topBar": {
     "support": "Support",
+    "feedback": "Feedback",
+    "feedbackTitle": "Send feedback or report a bug",
     "joinDiscord": "Join the Libre Discord",
     "joinDiscordShort": "Join",
     "searchPlaceholder": "Search lessons…",
@@ -215,6 +217,28 @@
     "moveToGroup": "Move to group",
     "groupTitle": "Group: {name}",
     "groupNamePrompt": "Group name"
+  },
+  "feedback": {
+    "title": "Send feedback",
+    "blurb": "Found a bug, want a feature, or just have thoughts? Tell us — it goes straight to the team.",
+    "typeLabel": "Feedback type",
+    "typeBug": "Bug",
+    "typeFeature": "Feature",
+    "typeFeedback": "Feedback",
+    "messageLabel": "Your message",
+    "placeholderBug": "What happened, and what did you expect instead?",
+    "placeholderFeature": "What would you like Libre to do?",
+    "placeholderFeedback": "Tell us what's on your mind…",
+    "emailLabel": "Email (optional)",
+    "emailPlaceholder": "you@example.com",
+    "emailHint": "Only if you'd like a reply — we won't use it for anything else.",
+    "send": "Send feedback",
+    "sending": "Sending…",
+    "sentTitle": "Thank you!",
+    "sentBody": "Your feedback is in — we read every submission.",
+    "emptyError": "Please write a message first.",
+    "errorGeneric": "Couldn't send right now. Please check your connection and try again.",
+    "close": "Close"
   },
   "commandPalette": {
     "ariaLabel": "Command palette",

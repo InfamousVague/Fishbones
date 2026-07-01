@@ -48,9 +48,24 @@ if ! command -v sshpass &>/dev/null; then
 fi
 
 export SSHPASS="$VPS_PASSWORD"
-SSH="sshpass -e ssh -o StrictHostKeyChecking=accept-new -p $VPS_PORT $VPS_USER@$VPS_HOST"
-SCP="sshpass -e scp -o StrictHostKeyChecking=accept-new -P $VPS_PORT"
-RSYNC_SSH="sshpass -e ssh -o StrictHostKeyChecking=accept-new -p $VPS_PORT"
+# A deploy opens a dozen-plus SSH connections. That burst trips the VPS's
+# fail2ban / connection rate limits and bans the deploy host MID-RUN
+# (symptom: "Permission denied (publickey,password)" partway through, even
+# though the password is correct) — and because the service is stopped
+# before the build and only restarted at the very end, a mid-run ban
+# leaves libre-api DOWN. Two mitigations, in order of importance:
+#   1. ControlMaster — multiplex EVERY step (ssh/scp/rsync) over ONE
+#      connection, so the whole deploy is a single authentication + single
+#      TCP session. No burst → no ban. ControlPersist keeps it warm across
+#      the run and it self-closes when idle. This is the real fix.
+#   2. Password-only + one prompt — no publickey pre-attempts and no 3×
+#      password retries, so each auth is a single clean "Accepted password"
+#      line. Belt-and-suspenders against fail2ban.
+CM_SOCK="/tmp/libre-deploy-cm-%C"
+SSH_OPTS="-o StrictHostKeyChecking=accept-new -o PubkeyAuthentication=no -o PreferredAuthentications=password -o NumberOfPasswordPrompts=1 -o ControlMaster=auto -o ControlPath=$CM_SOCK -o ControlPersist=120"
+SSH="sshpass -e ssh $SSH_OPTS -p $VPS_PORT $VPS_USER@$VPS_HOST"
+SCP="sshpass -e scp $SSH_OPTS -P $VPS_PORT"
+RSYNC_SSH="sshpass -e ssh $SSH_OPTS -p $VPS_PORT"
 
 echo "── Deploying libre-api to $VPS_HOST..."
 
@@ -166,6 +181,15 @@ SMTP_STARTTLS=${SMTP_STARTTLS:-true}
 RESEND_API_KEY=${RESEND_API_KEY:-}
 RESEND_FROM=${RESEND_FROM:-}
 RESEND_FROM_NAME=${RESEND_FROM_NAME:-}
+
+# ── Feedback → Notion ────────────────────────────────────────
+# POST /feedback relays the in-app feedback modal to a Notion
+# database. NOTION_TOKEN is a secret — set it in your local
+# api/.env (this script sources it) so each deploy re-writes it
+# here; setting it only on the VPS would be wiped next deploy. The
+# database id is not a secret.
+NOTION_TOKEN=${NOTION_TOKEN:-}
+NOTION_DATABASE_ID=${NOTION_DATABASE_ID:-b19f429c29af4384b2dd8696a8a1404f}
 EOF
 
 # ── systemd unit ──────────────────────────────────────────────────

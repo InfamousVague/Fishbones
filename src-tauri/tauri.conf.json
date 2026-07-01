@@ -14,8 +14,8 @@
     "windows": [
       {
         "title": "Libre",
-        "width": 1400,
-        "height": 920,
+        "width": 1200,
+        "height": 900,
         "resizable": true,
         "center": true,
         "minWidth": 900,

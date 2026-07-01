@@ -447,6 +447,7 @@ export default function TipDropdown({
         aria-expanded={open}
         aria-haspopup="dialog"
         title={t("tooltips.support")}
+        aria-label={t("topBar.support")}
       >
         {/* Heart inherits the button's `currentColor` (the Icon's
             `color="currentColor"` fill picks it up) so it lights up
@@ -457,7 +458,6 @@ export default function TipDropdown({
         <span className="libre__tip-trigger-heart" aria-hidden>
           <Icon icon={heart} size="xs" color="currentColor" />
         </span>
-        <span className="libre__tip-trigger-label">{t("topBar.support")}</span>
       </button>
 
       {open && (

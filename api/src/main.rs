@@ -75,6 +75,20 @@ async fn main() -> anyhow::Result<()> {
     let public_url = read_env("PUBLIC_URL");
     let apple_domain_association_file = read_env("APPLE_DOMAIN_ASSOCIATION_FILE");
 
+    // ── Feedback → Notion ───────────────────────────────────────
+    // `POST /feedback` relays in-app feedback to a Notion database. The
+    // token is a server-side secret; both must be set for the route to
+    // work (it returns 503 otherwise).
+    let notion_token = read_env("NOTION_TOKEN");
+    let notion_database_id = read_env("NOTION_DATABASE_ID");
+    if notion_token.is_some() && notion_database_id.is_some() {
+        tracing::info!("Feedback → Notion enabled");
+    } else {
+        tracing::info!(
+            "Feedback → Notion disabled (NOTION_TOKEN / NOTION_DATABASE_ID unset)"
+        );
+    }
+
     // ── Mailer (SMTP + Resend, log fallback) ────────────────────
     // Both backends are optional and tried in order: SMTP first
     // (self-hosted Postfix or any third-party submission server),
@@ -151,6 +165,8 @@ async fn main() -> anyhow::Result<()> {
         apple_private_key_pem,
         public_url,
         apple_domain_association_file,
+        notion_token,
+        notion_database_id,
     });
 
     // ── Router ──────────────────────────────────────────────────
