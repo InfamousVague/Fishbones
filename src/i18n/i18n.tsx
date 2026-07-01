@@ -28,7 +28,7 @@
 
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { useLocale as useLocaleHook } from "@/hooks/useLocale";
-import { type Locale } from "@/data/locales";
+import { type Locale, isRtlLocale } from "@/data/locales";
 import enLocale from "@/i18n/locales/en.json";
 
 type Dict = Record<string, unknown>;
@@ -133,6 +133,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale] = useLocaleHook();
   useEffect(() => {
     ensureLocaleLoaded(locale);
+    // Mirror the whole UI for RTL locales (Arabic / Urdu / Dari). The
+    // app's CSS uses logical properties (margin-inline / inset-inline)
+    // so most of the layout flips for free; `lang` also helps the
+    // browser pick correct fonts + shaping for non-Latin scripts.
+    if (typeof document !== "undefined") {
+      const root = document.documentElement;
+      root.dir = isRtlLocale(locale) ? "rtl" : "ltr";
+      root.lang = locale;
+    }
   }, [locale]);
   return <>{children}</>;
 }
@@ -147,6 +156,16 @@ export function useT(): TFunction {
   // re-resolve their strings) the moment a lazily-loaded locale
   // lands. For English / already-loaded locales this never fires.
   useSyncExternalStore(subscribeDicts, getDictsVersion, getDictsVersion);
+  // Ensure the active locale's dictionary is (being) loaded. The
+  // I18nProvider at the root already kicks this off on mount + on
+  // switch, but doing it here too makes any `t()` consumer
+  // self-sufficient: when the user picks a new language, every mounted
+  // `useT` re-renders (the shared locale store notified them), and this
+  // guarantees the target dictionary's dynamic import is in flight so
+  // the real strings replace the English fallback as soon as it lands.
+  useEffect(() => {
+    ensureLocaleLoaded(locale);
+  }, [locale]);
   return (key, params) => {
     // While a non-English dictionary is still in flight this resolves
     // undefined and the English fallback below carries the frame.

@@ -1,4 +1,11 @@
 {
+  "changelog": {
+    "eyebrow": "Updated",
+    "title": "What's new in Libre {version}",
+    "generic": "Libre has been updated to {version}. See the full release notes on GitHub.",
+    "viewOnGitHub": "Release notes",
+    "gotIt": "Got it"
+  },
   "common": {
     "cancel": "Cancel",
     "create": "Create",
@@ -368,6 +375,10 @@
     "ariaOpenAccount": "Open account: {name}",
     "signedIn": "Signed in",
     "generalDescription": "About this build, and where to grab the next one.",
+    "languageCard": "Language",
+    "languageSearch": "Search languages",
+    "languageSearchPlaceholder": "Search by name or code…",
+    "languageNoResults": "No languages match “{query}”.",
     "learningCard": "Learning",
     "autoAdvanceLabel": "Auto-advance after a pass",
     "autoAdvanceSub": "When you pass the tests on a code exercise, jump straight to the next lesson.",
@@ -492,7 +503,7 @@
     "resetToDefault": "Reset to default ({combo})",
     "bindingAlreadyDefault": "This binding is already at its default",
     "resetActionAria": "Reset {action} to default",
-    "appearanceDescription": "Pick a language for both the app interface and the lesson content, then a theme for the surrounding chrome. Both choices persist locally and sync to your other devices when you're signed in.",
+    "appearanceDescription": "Pick a theme for the surrounding chrome, then fine-tune the accent, layout, and scale. Your choices persist locally and sync to your other devices when you're signed in.",
     "themeCard": "Theme",
     "accentHueCard": "Accent hue",
     "accentHue": "Primary colour",

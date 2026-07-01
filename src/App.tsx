@@ -81,6 +81,8 @@ import { InstallBanner } from "@/components/molecules/banners/InstallBanner/Inst
 import { UpdateBanner } from "@/components/molecules/banners/UpdateBanner/UpdateBanner";
 import { EarlyReleaseBanner } from "@/components/molecules/banners/EarlyReleaseBanner/EarlyReleaseBanner";
 import { AnalyticsNotice } from "@/components/molecules/banners/AnalyticsNotice/AnalyticsNotice";
+import ChangelogModal from "@/components/organisms/dialogs/ChangelogModal/ChangelogModal";
+import { useChangelogGate } from "@/hooks/useChangelogGate";
 import { track } from "@/lib/track";
 const CommandPalette = lazy(() => import("@/components/organisms/CommandPalette/CommandPalette"));
 import type { VerifySessionView } from "@/components/organisms/VerifyCourse/index";
@@ -163,6 +165,9 @@ export default function App() {
   if (isMobile) {
     return null;
   }
+
+  // Post-update "what's new" modal — desktop-only, shows once per new version.
+  const changelog = useChangelogGate();
 
   const {
     courses: coursesAll,
@@ -2563,6 +2568,9 @@ export default function App() {
 
       <EarlyReleaseBanner />
       <AnalyticsNotice />
+      {changelog.entry ? (
+        <ChangelogModal entry={changelog.entry} onDismiss={changelog.dismiss} />
+      ) : null}
 
       <div className="libre__body">
         <NavigationRail
