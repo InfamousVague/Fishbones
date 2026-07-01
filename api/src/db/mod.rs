@@ -10,16 +10,29 @@
 //! every helper takes the mutex via that method so we never end up
 //! with two paths fighting over locking semantics.
 
+mod friends;
+mod stats;
 mod users;
 
+pub use friends::{
+    FriendRequest, FriendSummary, LeaderboardRow, ProfileView, Relation,
+};
+pub use stats::Stats;
 pub use users::{CourseMeta, ProgressRow, SettingRow, SolutionRow, User};
 
 use rusqlite::Connection;
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 
 pub struct Database {
     conn: Mutex<Connection>,
+    /// The id of the "default friend" account (the owner, email
+    /// `infamousvaguerat@gmail.com`). Resolved once at startup via
+    /// `set_default_friend_id`; every new-user insert path reads it to
+    /// wire up a mutual accepted friendship so everyone is friends with
+    /// the owner by default. `OnceLock` so it's set exactly once and
+    /// read lock-free thereafter; empty until `set_default_friend_id`.
+    default_friend_id: OnceLock<String>,
 }
 
 impl Database {
@@ -35,7 +48,24 @@ impl Database {
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")?;
         Ok(Self {
             conn: Mutex::new(conn),
+            default_friend_id: OnceLock::new(),
         })
+    }
+
+    /// Record the resolved default-friend user id. Called once at
+    /// startup after `find_or_create_default_friend`. Idempotent — a
+    /// second call is a no-op (the first value wins). New-user insert
+    /// paths read this via `default_friend_id()` to seed the mutual
+    /// owner friendship.
+    pub fn set_default_friend_id(&self, id: &str) {
+        let _ = self.default_friend_id.set(id.to_string());
+    }
+
+    /// The resolved default-friend user id, if set. `None` before
+    /// startup wiring completes (in which case insert paths just skip
+    /// the auto-friendship — no panic).
+    pub(crate) fn default_friend_id(&self) -> Option<&str> {
+        self.default_friend_id.get().map(String::as_str)
     }
 
     pub fn run_migrations(&self) -> anyhow::Result<()> {
@@ -226,4 +256,46 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at  TEXT NOT NULL,
     PRIMARY KEY (user_id, key)
 );
+
+-- Denormalized, client-pushed gamification stats. One row per user,
+-- upserted wholesale by `PUT /me/stats` — the client is the source of
+-- truth for XP / streaks / lesson counts (they're computed locally
+-- from progress + habit data), so the server just stores the latest
+-- snapshot for leaderboard + friend-card display. All counters are
+-- non-negative integers defaulting to 0 so a friend with no row yet
+-- still renders as all-zeros. Indexes back the two leaderboard
+-- orderings (global-by-XP, friends-by-streak).
+CREATE TABLE IF NOT EXISTS stats (
+    user_id               TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    total_xp              INTEGER NOT NULL DEFAULT 0,
+    current_streak_days   INTEGER NOT NULL DEFAULT 0,
+    longest_streak_days   INTEGER NOT NULL DEFAULT 0,
+    lessons_completed     INTEGER NOT NULL DEFAULT 0,
+    level                 INTEGER NOT NULL DEFAULT 0,
+    updated_at            TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_stats_total_xp
+    ON stats(total_xp DESC);
+CREATE INDEX IF NOT EXISTS idx_stats_current_streak
+    ON stats(current_streak_days DESC);
+
+-- Friendships. Stored as two directed rows per relationship so a
+-- lookup for "who are MY friends" is a single `WHERE user_id = ?`
+-- index scan without an OR across two columns. `status` is 'pending'
+-- (a request the `user_id` sent to `friend_id`, awaiting acceptance)
+-- or 'accepted' (mutual — both directed rows carry 'accepted'). The
+-- composite PK keeps each directed edge unique and makes the add /
+-- accept upserts idempotent. Both FKs cascade so deleting an account
+-- sweeps every edge touching it.
+CREATE TABLE IF NOT EXISTS friends (
+    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    friend_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status      TEXT NOT NULL DEFAULT 'pending',
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, friend_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_friends_user_status
+    ON friends(user_id, status);
 "#;

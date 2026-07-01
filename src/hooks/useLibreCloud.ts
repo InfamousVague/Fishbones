@@ -123,6 +123,80 @@ export type SyncEvent =
   | { type: "solutions"; rows: SolutionRow[] }
   | { type: "settings"; rows: SettingRow[] };
 
+/// Aggregate learner stats — the shape the relay stores per user and
+/// ranks the leaderboard by. Every field is an integer. Mirrors the
+/// totals `useStreakAndXp` computes; `pushStats` uploads them after a
+/// progress sync so friends + leaderboards stay current.
+export interface CloudStats {
+  total_xp: number;
+  current_streak_days: number;
+  longest_streak_days: number;
+  lessons_completed: number;
+  level: number;
+}
+
+/// A confirmed friend, as returned by `GET /friends`. `stats` is the
+/// friend's latest uploaded `CloudStats` (all-zero until they've pushed
+/// once).
+export interface FriendInfo {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+  stats: CloudStats;
+}
+
+/// One row of a friends- or global-leaderboard response. The stats are
+/// flattened (not nested under `stats`) so the table can render a row
+/// without a second lookup; `rank` is 1-based and assigned server-side
+/// for the requested `metric`.
+export interface LeaderboardEntry {
+  rank: number;
+  user_id: string;
+  display_name: string | null;
+  total_xp: number;
+  current_streak_days: number;
+  longest_streak_days: number;
+  lessons_completed: number;
+  level: number;
+}
+
+/// A public profile card, as returned by `GET /users/:id/profile`.
+/// `is_friend` / `friend_request_pending` drive the CTA the viewer sees
+/// (Add friend / Remove friend / Accept request).
+export interface PublicProfile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  /// ISO 8601 timestamp of account creation — powers "member since".
+  created_at: string;
+  stats: CloudStats;
+  is_friend: boolean;
+  /// True when there's an outstanding friend request between the two
+  /// users (either direction — the relay collapses both into this flag).
+  friend_request_pending: boolean;
+}
+
+/// An incoming friend request awaiting the signed-in user's decision,
+/// as returned by `GET /friends/requests`.
+export interface FriendRequest {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+}
+
+/// The metric a friends-leaderboard is ranked by. Maps 1:1 to the
+/// relay's `?metric=` query param.
+export type LeaderboardMetric = "xp" | "streak" | "lessons";
+
+/// Outcome of `addFriend`. The relay distinguishes:
+///   - `sent`      — request created (201)
+///   - `not_found` — no account with that email (404)
+///   - `duplicate` — already friends OR a request already exists (409)
+///   - `invalid`   — malformed email / self-add (400)
+/// The caller maps each to a friendly, non-throwing message so a typo
+/// doesn't blow up with a raw status.
+export type AddFriendResult = "sent" | "not_found" | "duplicate" | "invalid";
+
 export interface CourseMeta {
   id: string;
   course_slug: string;
@@ -254,6 +328,41 @@ export interface UseLibreCloud {
   /// Returns the raw archive bytes for `.libre` import.
   downloadCourse: (courseId: string) => Promise<ArrayBuffer>;
   deleteCourse: (courseId: string) => Promise<void>;
+
+  /// Upload the signed-in user's aggregate stats (idempotent PUT). The
+  /// relay stores the latest snapshot and ranks leaderboards off it.
+  /// No-op (resolves immediately) when signed out. Best-effort: a
+  /// failed push is swallowed with a warning — stale leaderboard rows
+  /// are preferable to a thrown error interrupting a progress sync.
+  pushStats: (stats: CloudStats) => Promise<void>;
+  /// List the signed-in user's confirmed friends with their latest
+  /// stats. Empty array when they have none.
+  listFriends: () => Promise<FriendInfo[]>;
+  /// Send a friend request by email. Returns a discriminated result
+  /// (`sent` / `not_found` / `duplicate` / `invalid`) instead of
+  /// throwing on the expected 4xx cases, so the UI can render a
+  /// friendly inline message. Only a network / unexpected-status
+  /// failure rejects.
+  addFriend: (email: string) => Promise<AddFriendResult>;
+  /// Incoming friend requests awaiting the user's accept/reject.
+  listFriendRequests: () => Promise<FriendRequest[]>;
+  /// Accept an incoming friend request (the requester's user id).
+  acceptFriendRequest: (userId: string) => Promise<void>;
+  /// Remove a friend OR reject/cancel a pending request — the relay
+  /// treats both as "sever the edge to this user id".
+  removeFriend: (userId: string) => Promise<void>;
+  /// Friends-scoped leaderboard, ranked by the given metric.
+  getFriendsLeaderboard: (
+    metric: LeaderboardMetric,
+  ) => Promise<LeaderboardEntry[]>;
+  /// Global leaderboard (ranked by XP), paginated. `limit`/`offset`
+  /// default to a sensible first page when omitted.
+  getGlobalLeaderboard: (
+    limit?: number,
+    offset?: number,
+  ) => Promise<LeaderboardEntry[]>;
+  /// Fetch another user's public profile card + relationship flags.
+  getProfile: (userId: string) => Promise<PublicProfile>;
 }
 
 function readToken(): string | null {
@@ -990,6 +1099,124 @@ export function useLibreCloud(): UseLibreCloud {
     [authFetch],
   );
 
+  // ── Friends + leaderboard + profiles ─────────────────────────────
+  // All authenticated via the same bearer token the rest of the hook
+  // uses (`authFetch` throws "Not signed in" without a token). Reads
+  // return typed arrays / objects; writes tolerate 204 the same way
+  // the progress/settings pushers do.
+
+  const pushStats = useCallback(
+    async (stats: CloudStats) => {
+      // Best-effort: leaderboard freshness must never break a sync.
+      if (!token) return;
+      try {
+        const res = await authFetch("/me/stats", {
+          method: "PUT",
+          body: JSON.stringify(stats),
+        });
+        if (!res.ok && res.status !== 204) {
+          throw new Error(`push-stats failed (${res.status})`);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("[cloud] pushStats failed (non-fatal):", e);
+      }
+    },
+    [token, authFetch],
+  );
+
+  const listFriends = useCallback(async (): Promise<FriendInfo[]> => {
+    const res = await authFetch("/friends");
+    if (!res.ok) throw new Error(`list-friends failed (${res.status})`);
+    return (await res.json()) as FriendInfo[];
+  }, [authFetch]);
+
+  const addFriend = useCallback(
+    async (email: string): Promise<AddFriendResult> => {
+      const res = await authFetch("/friends/add", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      // Map the documented status codes to a discriminated result so
+      // the modal can render a friendly line without a try/catch around
+      // the common cases (typo'd email, already-friends).
+      if (res.ok || res.status === 201) return "sent";
+      if (res.status === 404) return "not_found";
+      if (res.status === 409) return "duplicate";
+      if (res.status === 400) return "invalid";
+      throw new Error(`add-friend failed (${res.status})`);
+    },
+    [authFetch],
+  );
+
+  const listFriendRequests = useCallback(async (): Promise<FriendRequest[]> => {
+    const res = await authFetch("/friends/requests");
+    if (!res.ok) throw new Error(`list-requests failed (${res.status})`);
+    return (await res.json()) as FriendRequest[];
+  }, [authFetch]);
+
+  const acceptFriendRequest = useCallback(
+    async (userId: string) => {
+      const res = await authFetch(
+        `/friends/${encodeURIComponent(userId)}/accept`,
+        { method: "POST" },
+      );
+      if (!res.ok && res.status !== 204) {
+        throw new Error(`accept-friend failed (${res.status})`);
+      }
+    },
+    [authFetch],
+  );
+
+  const removeFriend = useCallback(
+    async (userId: string) => {
+      const res = await authFetch(`/friends/${encodeURIComponent(userId)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok && res.status !== 204) {
+        throw new Error(`remove-friend failed (${res.status})`);
+      }
+    },
+    [authFetch],
+  );
+
+  const getFriendsLeaderboard = useCallback(
+    async (metric: LeaderboardMetric): Promise<LeaderboardEntry[]> => {
+      const res = await authFetch(
+        `/leaderboard/friends?metric=${encodeURIComponent(metric)}`,
+      );
+      if (!res.ok) {
+        throw new Error(`friends-leaderboard failed (${res.status})`);
+      }
+      return (await res.json()) as LeaderboardEntry[];
+    },
+    [authFetch],
+  );
+
+  const getGlobalLeaderboard = useCallback(
+    async (limit = 50, offset = 0): Promise<LeaderboardEntry[]> => {
+      const res = await authFetch(
+        `/leaderboard/global?limit=${limit}&offset=${offset}`,
+      );
+      if (!res.ok) {
+        throw new Error(`global-leaderboard failed (${res.status})`);
+      }
+      return (await res.json()) as LeaderboardEntry[];
+    },
+    [authFetch],
+  );
+
+  const getProfile = useCallback(
+    async (userId: string): Promise<PublicProfile> => {
+      const res = await authFetch(
+        `/users/${encodeURIComponent(userId)}/profile`,
+      );
+      if (!res.ok) throw new Error(`get-profile failed (${res.status})`);
+      return (await res.json()) as PublicProfile;
+    },
+    [authFetch],
+  );
+
   // Memoise the return shape so the *object identity* is stable
   // unless something on it actually changed. Without this, every
   // render of the consumer (App.tsx) creates a new `cloud` reference,
@@ -1035,6 +1262,15 @@ export function useLibreCloud(): UseLibreCloud {
       listPublicCourses,
       downloadCourse,
       deleteCourse,
+      pushStats,
+      listFriends,
+      addFriend,
+      listFriendRequests,
+      acceptFriendRequest,
+      removeFriend,
+      getFriendsLeaderboard,
+      getGlobalLeaderboard,
+      getProfile,
     }),
     [
       relayUrl,
@@ -1066,6 +1302,15 @@ export function useLibreCloud(): UseLibreCloud {
       listPublicCourses,
       downloadCourse,
       deleteCourse,
+      pushStats,
+      listFriends,
+      addFriend,
+      listFriendRequests,
+      acceptFriendRequest,
+      removeFriend,
+      getFriendsLeaderboard,
+      getGlobalLeaderboard,
+      getProfile,
     ],
   );
 }

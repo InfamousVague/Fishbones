@@ -1,0 +1,171 @@
+/* Public-profile overlay card. Rendered inside <ModalBackdrop>, sits
+   above the FriendsModal / LeaderboardView (zIndex 210). All values
+   are --libre-* / --color-* design tokens. */
+
+.libre-profile-card-overlay {
+  position: relative;
+  width: min(var(--libre-size-420), 92vw);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
+  border-radius: var(--libre-radius-lg);
+  padding: var(--libre-space-20);
+  animation: libre-profile-card-enter var(--libre-dur-160) var(--libre-ease-ease-out);
+}
+
+@keyframes libre-profile-card-enter {
+  from { opacity: var(--libre-opacity-0); transform: translateY(var(--libre-size-6)) scale(0.98); }
+  to   { opacity: var(--libre-opacity-1); transform: translateY(0) scale(1); }
+}
+
+.libre-profile-card-close {
+  position: absolute;
+  top: var(--libre-space-10);
+  inset-inline-end: var(--libre-space-10);
+  display: grid;
+  place-items: center;
+  width: var(--libre-size-28, 28px);
+  height: var(--libre-size-28, 28px);
+  background: transparent;
+  border: none;
+  border-radius: var(--libre-radius-7);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
+}
+.libre-profile-card-close:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.libre-profile-card-empty {
+  margin: 0;
+  padding: var(--libre-space-16) 0;
+  text-align: center;
+  font-size: var(--libre-fs-12-5);
+  color: var(--color-text-secondary);
+}
+.libre-profile-card-empty--error {
+  color: var(--libre-c-ef6f6f);
+}
+
+.libre-profile-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-14);
+  margin-bottom: var(--libre-space-18);
+  padding-inline-end: var(--libre-space-24); /* clear the close button */
+}
+
+.libre-profile-card-head-text {
+  min-width: 0;
+}
+
+.libre-profile-card-name {
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libre-profile-card-since {
+  margin-top: var(--libre-space-2);
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary);
+}
+
+.libre-profile-card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--libre-space-8);
+  margin-bottom: var(--libre-space-16);
+}
+
+.libre-profile-card-stat {
+  --stat-tone: var(--color-text-primary);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: var(--libre-space-2) var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-12);
+  background: var(--color-bg-primary);
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
+  border-radius: var(--libre-radius-8);
+}
+
+.libre-profile-card-stat--streak  { --stat-tone: var(--libre-c-f59e3b); }
+.libre-profile-card-stat--longest { --stat-tone: var(--libre-c-c79bff); }
+.libre-profile-card-stat--lessons { --stat-tone: var(--libre-c-7cd9d3); }
+.libre-profile-card-stat--xp      { --stat-tone: var(--libre-c-fcd34d); }
+
+.libre-profile-card-stat-icon {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  color: var(--stat-tone);
+}
+
+.libre-profile-card-stat-value {
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-text-primary);
+  line-height: var(--libre-lh-1-1, 1.1);
+}
+
+.libre-profile-card-stat-label {
+  grid-column: 2;
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.libre-profile-card-error {
+  margin: 0 0 var(--libre-space-12);
+  font-size: var(--libre-fs-12-5);
+  color: var(--libre-c-ef6f6f);
+}
+
+.libre-profile-card-cta {
+  display: flex;
+}
+
+.libre-profile-card-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-10) var(--libre-space-14);
+  border-radius: var(--libre-radius-8);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  font-family: inherit;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  cursor: pointer;
+  transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), opacity var(--libre-motion-snappy);
+}
+.libre-profile-card-btn:disabled {
+  opacity: var(--libre-opacity-0-6);
+  cursor: default;
+}
+
+.libre-profile-card-btn--primary {
+  background: var(--gg-fill-white);
+  color: var(--color-bg-primary);
+  border-color: var(--gg-fill-white);
+}
+.libre-profile-card-btn--primary:not(:disabled):hover {
+  opacity: var(--libre-opacity-0-9);
+}
+
+.libre-profile-card-btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.libre-profile-card-btn--ghost:not(:disabled):hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}

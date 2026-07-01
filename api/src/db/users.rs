@@ -156,6 +156,12 @@ impl Database {
             "INSERT INTO users (id, email, apple_user_id, display_name) VALUES (?1, ?2, ?3, ?4)",
             params![id, email, apple_user_id, display_name],
         )?;
+        // Drop the connection lock before seeding the owner friendship —
+        // `seed_default_friendship` re-acquires `conn_lock()`, and the
+        // plain `std::sync::Mutex` isn't reentrant, so holding it here
+        // would deadlock.
+        drop(conn);
+        self.seed_default_friendship(&id)?;
         Ok(id)
     }
 
@@ -249,6 +255,10 @@ impl Database {
             "INSERT INTO users (id, email, google_user_id, display_name) VALUES (?1, ?2, ?3, ?4)",
             params![id, email, google_user_id, display_name],
         )?;
+        // See the Apple path: drop the lock before seeding so the
+        // non-reentrant connection mutex doesn't deadlock.
+        drop(conn);
+        self.seed_default_friendship(&id)?;
         Ok(id)
     }
 
@@ -268,6 +278,10 @@ impl Database {
             "INSERT INTO users (id, email, password_hash, display_name, email_verified) VALUES (?1, ?2, ?3, ?4, 0)",
             params![id, email, password_hash, display_name],
         )?;
+        // See the Apple path: drop the lock before seeding so the
+        // non-reentrant connection mutex doesn't deadlock.
+        drop(conn);
+        self.seed_default_friendship(&id)?;
         Ok(id)
     }
 

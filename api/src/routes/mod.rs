@@ -31,6 +31,16 @@
 //!   PUT    /solutions                      — bulk upsert (LWW)
 //!   GET    /settings                       — full dump
 //!   PUT    /settings                       — bulk upsert (LWW)
+//!   GET    /me/stats                        — read own stats snapshot
+//!   PUT    /me/stats                        — upsert stats snapshot
+//!   GET    /friends                         — accepted friends + stats
+//!   POST   /friends/add                     — send a friend request
+//!   GET    /friends/requests                — incoming pending requests
+//!   POST   /friends/:id/accept              — accept a request
+//!   DELETE /friends/:id                     — remove / reject friend
+//!   GET    /leaderboard/friends?metric=…    — friends ranking
+//!   GET    /leaderboard/global?limit&offset — global ranking
+//!   GET    /users/:id/profile               — viewer-relative profile
 //!   GET    /sync/ws?token=…                — realtime fan-out
 //!   POST   /courses                        — upload .libre
 //!   GET    /courses                        — own courses
@@ -44,6 +54,8 @@
 mod auth;
 mod courses;
 mod feedback;
+mod friends;
+mod leaderboard;
 mod middleware;
 mod oauth;
 mod oauth_flow;
@@ -174,6 +186,25 @@ pub fn build_router(state: Arc<AppState>) -> Router {
                 "/courses/:id",
                 get(courses::download).delete(courses::delete_course),
             )
+            // ── Friends / stats / leaderboard ───────────────────────
+            // Denormalized client-pushed stats snapshot (XP, streaks,
+            // lesson count, level) that the friend cards + leaderboards
+            // read from.
+            .route(
+                "/me/stats",
+                get(friends::get_my_stats).put(friends::put_stats),
+            )
+            .route("/friends", get(friends::list_friends))
+            .route("/friends/add", post(friends::add_friend))
+            .route("/friends/requests", get(friends::list_requests))
+            .route("/friends/:id/accept", post(friends::accept_friend))
+            .route("/friends/:id", delete(friends::remove_friend))
+            .route(
+                "/leaderboard/friends",
+                get(leaderboard::friends),
+            )
+            .route("/leaderboard/global", get(leaderboard::global))
+            .route("/users/:id/profile", get(friends::get_profile))
             .route_layer(axum_middleware::from_fn_with_state(
                 state.clone(),
                 auth_middleware,

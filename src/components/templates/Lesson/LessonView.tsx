@@ -8,7 +8,9 @@ import {
   isQuiz,
 } from "@/data/types";
 import { localizedLesson } from "@/data/localize";
+import type { Locale } from "@/data/locales";
 import { useLocale } from "@/hooks/useLocale";
+import { useBookLocale } from "@/hooks/useBookLocale";
 import { useKeybinding } from "@/hooks/useKeybinding";
 import { setRunStatus } from "@/hooks/useRunStatus";
 import { fireHaptic } from "@/lib/haptics";
@@ -72,6 +74,7 @@ export default function LessonView({
   courseId,
   courseLanguage,
   courseRequiresDevice,
+  availableLocales = [],
   isChallenge = false,
   lesson: rawLesson,
   neighbors,
@@ -94,6 +97,11 @@ export default function LessonView({
   /// through to LessonReader so it can mount the Ledger status pill
   /// next to the time-to-read chip on hardware-wallet courses.
   courseRequiresDevice?: Course["requiresDevice"];
+  /// Languages this book is available in (`availableLocalesFor`, EN-first).
+  /// More than one entry surfaces the per-book language picker in the
+  /// reader; a single entry (or omitted → `[]`) keeps the reader
+  /// single-language. Optional so non-App callers (tests) can skip it.
+  availableLocales?: readonly Locale[];
   /// True when the parent course's `packType === "challenges"`.
   /// Drives a `--challenge` modifier class on the lesson layout —
   /// challenge prose is a one-paragraph problem statement, so the
@@ -125,9 +133,21 @@ export default function LessonView({
   // checks downstream still skip re-renders.
   const t = useT();
   const [locale] = useLocale();
+  // Per-book reading language. Independent of the app-wide `locale`: a
+  // multi-language book can be read in a language the chrome isn't in.
+  // Resolution order — the learner's explicit per-book pick, else the app
+  // locale when the book is actually translated into it, else English
+  // (the authoring source, which `localizedLesson` returns unchanged).
+  const [bookLocaleSel, setBookLocale] = useBookLocale(courseId);
+  const readingLocale: Locale =
+    bookLocaleSel && availableLocales.includes(bookLocaleSel)
+      ? bookLocaleSel
+      : availableLocales.includes(locale)
+        ? locale
+        : "en";
   const lesson = useMemo(
-    () => localizedLesson(rawLesson, locale),
-    [rawLesson, locale],
+    () => localizedLesson(rawLesson, readingLocale),
+    [rawLesson, readingLocale],
   );
   const hasExercise = isExerciseKind(lesson);
   /// Lessons that opt into the Trade harness use the API tester
@@ -776,7 +796,14 @@ export default function LessonView({
     return (
       <div className="libre__lesson libre__lesson--column">
         <div className="libre__lesson-scroll">
-          <LessonReader courseId={courseId} lesson={lesson} requiresDevice={courseRequiresDevice} />
+          <LessonReader
+            courseId={courseId}
+            lesson={lesson}
+            requiresDevice={courseRequiresDevice}
+            availableLocales={availableLocales}
+            readingLocale={readingLocale}
+            onChangeReadingLocale={setBookLocale}
+          />
           <QuizView lesson={lesson} onComplete={onComplete} />
           <div className="libre__lesson-nav-wrap">{nav}</div>
         </div>
@@ -796,6 +823,9 @@ export default function LessonView({
         footer={nav}
         onRetryLesson={onRetryLesson}
         requiresDevice={courseRequiresDevice}
+        availableLocales={availableLocales}
+        readingLocale={readingLocale}
+        onChangeReadingLocale={setBookLocale}
       />
       {/* First-time "compile Rust locally for instant runs" nudge.
           Self-gating: no-ops unless this is a Rust exercise on

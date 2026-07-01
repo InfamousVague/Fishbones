@@ -56,6 +56,9 @@ const ConfirmDialog = lazy(() => import("@/components/organisms/dialogs/ConfirmD
 const CourseSettingsModal = lazy(() => import("@/components/organisms/dialogs/CourseSettings/CourseSettingsModal"));
 const FloatingIngestPanel = lazy(() => import("@/components/organisms/IngestPanel/FloatingIngestPanel"));
 const ProfileView = lazy(() => import("@/components/templates/Profile/ProfileView"));
+const LeaderboardView = lazy(() => import("@/components/templates/Leaderboard/LeaderboardView"));
+const FriendsModal = lazy(() => import("@/components/organisms/FriendsModal/FriendsModal"));
+const ProfileCard = lazy(() => import("@/components/molecules/ProfileCard/ProfileCard"));
 const SandboxView = lazy(() => import("@/components/templates/Sandbox/SandboxView"));
 import SandboxSidebar from "@/components/templates/Sandbox/SandboxSidebar";
 import { useSandboxProjects } from "@/hooks/useSandboxProjects";
@@ -63,6 +66,7 @@ import SectionCompleteSummary from "@/components/organisms/Achievements/SectionC
 const CertificatesPage = lazy(() => import("@/components/organisms/Certificates/CertificatesPage"));
 const PathsPage = lazy(() => import("@/components/templates/Paths/PathsPage"));
 import { mintCertificate } from "@/data/certificates";
+import { availableLocalesFor } from "@/data/localize";
 import { notifyCertificatesChanged } from "@/hooks/useCertificates";
 import { playSound, unlockAudioContext } from "@/lib/sfx";
 import { isWeb, isMobile } from "@/lib/platform";
@@ -99,7 +103,7 @@ import {
 } from "@/lib/verify/bus";
 import { useProgress } from "@/hooks/useProgress";
 import { useChainActivity } from "@/hooks/useChainActivity";
-import { useLibreCloud } from "@/hooks/useLibreCloud";
+import { useLibreCloud, type CloudStats } from "@/hooks/useLibreCloud";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 const FirstLaunchPrompt = lazy(() => import("@/components/organisms/dialogs/SignInDialog/FirstLaunchPrompt"));
 const SetupWizard = lazy(() => import("@/components/organisms/dialogs/SetupWizard/SetupWizard"));
@@ -925,6 +929,47 @@ export default function App() {
   // fires on every load (reads as an "increase" from the placeholder).
   const statsReady = coursesLoaded && progressLoaded;
 
+  // ── Push aggregate stats to the relay for friends + leaderboards ──
+  // The computed `stats` (XP/streak/lessons/level) feed the leaderboard,
+  // so whenever they change AND the learner is signed in we upload a
+  // fresh snapshot. Guards:
+  //   - only when signedIn + statsReady (never push the 0 → real
+  //     hydration placeholder, which would briefly zero out a real
+  //     learner's leaderboard row),
+  //   - only when the serialized values actually changed vs. the last
+  //     push (a re-render with identical stats is a no-op),
+  //   - debounced ~1.5s so finishing several lessons in a burst folds
+  //     into one PUT instead of hammering the endpoint per completion.
+  // `pushStats` itself is best-effort (swallows failures), so this
+  // effect never needs its own error handling.
+  const lastPushedStatsRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!cloud.signedIn || !statsReady) return;
+    const snapshot: CloudStats = {
+      total_xp: stats.xp,
+      current_streak_days: stats.streakDays,
+      longest_streak_days: stats.longestStreakDays,
+      lessons_completed: stats.lessonsCompleted,
+      level: stats.level,
+    };
+    const serialized = JSON.stringify(snapshot);
+    if (serialized === lastPushedStatsRef.current) return;
+    const timer = window.setTimeout(() => {
+      lastPushedStatsRef.current = serialized;
+      void cloud.pushStats(snapshot);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [
+    cloud,
+    cloud.signedIn,
+    statsReady,
+    stats.xp,
+    stats.streakDays,
+    stats.longestStreakDays,
+    stats.lessonsCompleted,
+    stats.level,
+  ]);
+
   /// Track section / book completion transitions. We compare the
   /// previous completed Set to the new one whenever it changes;
   /// when the count of completed lessons in a chapter / course
@@ -1152,6 +1197,7 @@ export default function App() {
   const [view, setViewRaw] = useState<
     | "courses"
     | "profile"
+    | "leaderboard"
     | "sandbox"
     | "library"
     | "discover"
@@ -1161,6 +1207,16 @@ export default function App() {
     | "paths"
     | "certificates"
   >("library");
+
+  // Friends modal + profile-card overlay. Both are cloud-gated
+  // surfaces reachable from the stats dropdown / leaderboard rows.
+  // `profileCardUserId` holds the user whose public profile card is
+  // open (null = closed); it stacks over the friends modal + the
+  // leaderboard view alike via the shared ModalBackdrop.
+  const [friendsOpen, setFriendsOpen] = useState(false);
+  const [profileCardUserId, setProfileCardUserId] = useState<string | null>(
+    null,
+  );
 
   // Deep-link target for the Paths page — set when a collection's
   // "Learning path" card routes there, consumed as PathsPage's
@@ -1752,6 +1808,15 @@ export default function App() {
   const activeCourse =
     coursesAll.find((c) => c.id === activeTab?.courseId) ?? null;
   const activeLesson = findLesson(activeCourse, activeTab?.lessonId);
+
+  // Languages this book is available in (EN + any translated overlays) —
+  // feeds the reader's per-book language picker. Memoized on course
+  // identity so the whole-tree scan in `availableLocalesFor` runs once
+  // per course rather than on every App render.
+  const activeCourseLocales = useMemo(
+    () => (activeCourse ? availableLocalesFor(activeCourse) : []),
+    [activeCourse],
+  );
 
   // Language-aware tint: while reading a course (view "courses") OR coding in
   // the Playground (view "sandbox"), point the GhostWire accent hue at that
@@ -2519,6 +2584,16 @@ export default function App() {
         history={history}
         shields={shields}
         onOpenProfile={() => setView("profile")}
+        // Friends + Leaderboard entry points in the stats dropdown.
+        // Only exposed to signed-in learners — the relay needs a bearer
+        // token for every friends/leaderboard call, and the modals /
+        // view would just render an empty "sign in" shell otherwise.
+        // The stats dropdown already carries the Sign-in CTA for the
+        // signed-out case.
+        onOpenFriends={cloud.signedIn ? () => setFriendsOpen(true) : undefined}
+        onOpenLeaderboard={
+          cloud.signedIn ? () => setView("leaderboard") : undefined
+        }
         // The brand wordmark was removed from the top bar (Library
         // already renders it as a hero band, and the rail's Library
         // entry is the canonical "home" affordance). The
@@ -2574,7 +2649,17 @@ export default function App() {
 
       <div className="libre__body">
         <NavigationRail
-          activeView={view === "monkeyspaw" ? "practice" : view}
+          activeView={
+            view === "monkeyspaw"
+              ? "practice"
+              : // The leaderboard isn't a rail destination (it opens from
+                // the stats dropdown); map it onto "profile" so the rail's
+                // active highlight lands on the closest stats-family entry
+                // instead of type-erroring on the narrower rail union.
+                view === "leaderboard"
+                ? "profile"
+                : view
+          }
           onLibrary={() => setView("library")}
           // Resume chip — drops the learner back into their most-
           // recently-focused course at the first uncompleted lesson.
@@ -2658,6 +2743,17 @@ export default function App() {
               history={history}
               stats={stats}
               onOpenLesson={selectLesson}
+            />
+          ) : view === "leaderboard" ? (
+            <LeaderboardView
+              getFriendsLeaderboard={cloud.getFriendsLeaderboard}
+              getGlobalLeaderboard={cloud.getGlobalLeaderboard}
+              onOpenProfile={(userId) => setProfileCardUserId(userId)}
+              currentUserId={
+                typeof cloud.user === "object" && cloud.user
+                  ? cloud.user.id
+                  : null
+              }
             />
           ) : view === "sandbox" ? (
             <SandboxView projects={sandboxProjects} />
@@ -2911,6 +3007,7 @@ export default function App() {
               courseId={activeCourse.id}
               courseLanguage={activeCourse.language}
               courseRequiresDevice={activeCourse.requiresDevice}
+              availableLocales={activeCourseLocales}
               isChallenge={activeCourse.packType === "challenges"}
               lesson={activeLesson}
               neighbors={findNeighbors(activeCourse, activeLesson.id)}
@@ -3244,6 +3341,37 @@ export default function App() {
         <SignInDialog
           cloud={cloud}
           onClose={() => setSignInOpen(false)}
+        />
+      )}
+
+      {/* Friends management modal. Cloud-gated: only opened when signed
+          in (the stats dropdown withholds the entry point otherwise).
+          Rows open a profile card that stacks above this modal. */}
+      {friendsOpen && (
+        <FriendsModal
+          listFriends={cloud.listFriends}
+          addFriend={cloud.addFriend}
+          listFriendRequests={cloud.listFriendRequests}
+          acceptFriendRequest={cloud.acceptFriendRequest}
+          removeFriend={cloud.removeFriend}
+          onOpenProfile={(userId) => setProfileCardUserId(userId)}
+          onClose={() => setFriendsOpen(false)}
+        />
+      )}
+
+      {/* Public profile card overlay. Reachable from friend rows AND
+          leaderboard rows; its Add / Remove / Accept CTA reuses the same
+          cloud methods and refetches on success. */}
+      {profileCardUserId && (
+        <ProfileCard
+          userId={profileCardUserId}
+          getProfile={cloud.getProfile}
+          onAddFriend={async (email) => {
+            await cloud.addFriend(email);
+          }}
+          onRemoveFriend={cloud.removeFriend}
+          onAcceptRequest={cloud.acceptFriendRequest}
+          onClose={() => setProfileCardUserId(null)}
         />
       )}
 

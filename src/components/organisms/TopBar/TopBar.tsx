@@ -125,6 +125,12 @@ interface Props {
   /// Called when the "View Profile" button at the bottom of the stats
   /// dropdown is clicked. Routes the main pane to the Profile view.
   onOpenProfile?: () => void;
+  /// Opens the Friends modal from the stats dropdown. Forwarded to
+  /// StatsChip; omit to hide the row.
+  onOpenFriends?: () => void;
+  /// Routes to the Leaderboard view from the stats dropdown. Forwarded
+  /// to StatsChip; omit to hide the row.
+  onOpenLeaderboard?: () => void;
   /// Whether the sidebar is currently collapsed. Drives the toggle
   /// button's icon so it always shows the *action* the click will
   /// perform (show panel when collapsed, hide panel when expanded).
@@ -196,6 +202,8 @@ export default function TopBar({
   history,
   shields,
   onOpenProfile,
+  onOpenFriends,
+  onOpenLeaderboard,
   sidebarCollapsed = false,
   onToggleSidebar,
   signedIn,
@@ -721,6 +729,8 @@ export default function TopBar({
             history={history}
             shields={shields}
             onOpenProfile={onOpenProfile}
+            onOpenFriends={onOpenFriends}
+            onOpenLeaderboard={onOpenLeaderboard}
             signedIn={signedIn}
             userDisplayName={userDisplayName}
             userEmail={userEmail}

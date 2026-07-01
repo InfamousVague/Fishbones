@@ -21,6 +21,8 @@ import LessonPopover, { type PopoverContent } from "./LessonPopover";
 import AskAiSelectionPopover from "./AskAiSelectionPopover";
 import InlineSandbox from "./InlineSandbox";
 import TTSButton from "./TTSButton";
+import LanguageDropdown from "@/components/molecules/LanguageDropdown/LanguageDropdown";
+import type { Locale } from "@/data/locales";
 import { estimateReadingMinutes } from "./readingTime";
 import { stopLessonAudio, useLessonAudio } from "@/hooks/useLessonAudio";
 import { useLessonReadCursor } from "@/hooks/useLessonReadCursor";
@@ -49,6 +51,19 @@ interface Props {
   /// can connect / see the device state without scrolling. Currently
   /// only "ledger" is supported; other values render nothing.
   requiresDevice?: "ledger";
+  /// The languages THIS book is available in (`availableLocalesFor`,
+  /// EN-first). When it has more than one entry a compact language
+  /// picker mounts next to the narration pill so the learner can switch
+  /// the reading language for this book. Undefined / single-entry →
+  /// no picker (the common single-language case).
+  availableLocales?: readonly Locale[];
+  /// The language the book is currently being read in (the resolved
+  /// per-book selection, falling back to the app locale). Drives the
+  /// picker's active row.
+  readingLocale?: Locale;
+  /// Fires when the learner picks a different reading language from the
+  /// picker. Parent stores it per-book and re-localizes the lesson.
+  onChangeReadingLocale?: (next: Locale) => void;
 }
 
 /// Regex that detects the italic demotion note the ingest pipeline
@@ -72,6 +87,9 @@ export default function LessonReader({
   footer,
   onRetryLesson,
   requiresDevice,
+  availableLocales,
+  readingLocale,
+  onChangeReadingLocale,
 }: Props) {
   const t = useT();
   const [html, setHtml] = useState<string>("");
@@ -672,33 +690,55 @@ export default function LessonReader({
               live in the same row so the eye catches the meta info
               without eating much vertical space. */}
           <div className="libre-reader-meta">
-            {/* Combined narration + reading-time pill. When pre-
-                generated audio exists for this lesson it shows
-                play/pause + a circular progress ring + remaining
-                audio time. When no audio is available it falls back
-                to a static "X min read" chip so the meta row still
-                has one element instead of empty space. The audio
-                survives across LessonReader mount cycles via the
-                singleton player in `useLessonAudio`; the unmount
-                effect below stops it when the lesson changes.
-                See scripts/generate-lesson-audio.mjs for the pipeline
-                that fills the manifest. */}
-            <TTSButton
-              courseId={courseId}
-              lessonId={lesson.id}
-              estimatedReadMinutes={
-                progress < 0.05
-                  ? readingMinutes
-                  : minutesRemaining > 0
-                    ? minutesRemaining
-                    : 0
-              }
-            />
-            {/* Hardware-wallet chip — only mounts when the parent
-                course is flagged `requiresDevice`. Sits inline with
-                the time-to-read chip so a learner can see + act on
-                connection status without leaving the lesson scroll. */}
-            {requiresDevice === "ledger" && <LedgerStatusPill />}
+            {/* Lead cluster: everything that hangs off the narration
+                pill sits left, so the language picker reads as an
+                extension of the speaker control rather than drifting
+                to the row's far side under `justify-content: space-
+                between`. */}
+            <div className="libre-reader-meta-lead">
+              {/* Combined narration + reading-time pill. When pre-
+                  generated audio exists for this lesson it shows
+                  play/pause + a circular progress ring + remaining
+                  audio time. When no audio is available it falls back
+                  to a static "X min read" chip so the meta row still
+                  has one element instead of empty space. The audio
+                  survives across LessonReader mount cycles via the
+                  singleton player in `useLessonAudio`; the unmount
+                  effect below stops it when the lesson changes.
+                  See scripts/generate-lesson-audio.mjs for the pipeline
+                  that fills the manifest. */}
+              <TTSButton
+                courseId={courseId}
+                lessonId={lesson.id}
+                estimatedReadMinutes={
+                  progress < 0.05
+                    ? readingMinutes
+                    : minutesRemaining > 0
+                      ? minutesRemaining
+                      : 0
+                }
+              />
+              {/* Per-book language picker. Only mounts when this book
+                  ships in more than one language; picking a language
+                  re-localizes the lesson prose without touching the
+                  app-wide UI language. Sits right of the speaker pill. */}
+              {availableLocales &&
+                availableLocales.length > 1 &&
+                onChangeReadingLocale && (
+                  <LanguageDropdown
+                    variant="compact"
+                    className="libre-reader-meta-langpicker"
+                    locales={availableLocales}
+                    value={readingLocale}
+                    onChange={onChangeReadingLocale}
+                  />
+                )}
+              {/* Hardware-wallet chip — only mounts when the parent
+                  course is flagged `requiresDevice`. Sits inline with
+                  the time-to-read chip so a learner can see + act on
+                  connection status without leaving the lesson scroll. */}
+              {requiresDevice === "ledger" && <LedgerStatusPill />}
+            </div>
             {hasGlossary && (
               <button
                 type="button"

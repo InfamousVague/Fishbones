@@ -65,6 +65,16 @@
   margin-bottom: var(--libre-space-20);
 }
 
+/* Left cluster of the meta row: narration pill + language picker +
+   hardware-wallet chip travel together, so the glossary toggle stays
+   pinned to the right via the parent's space-between. */
+.libre-reader-meta-lead {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-10);
+  min-width: 0;
+}
+
 .libre-reader-meta-time {
   font-size: var(--libre-fs-10-5);
   font-weight: var(--libre-fw-600);

@@ -828,6 +828,38 @@
   opacity: var(--libre-opacity-1);
 }
 
+/* Social entry-point row — Friends + Leaderboard. A two-button split
+   that sits above the account block; each half is an outline button
+   matching the secondary View-profile treatment so it reads as
+   navigation, not a primary CTA. */
+.libre__topbar-stats-social {
+  display: flex;
+  gap: var(--libre-space-8);
+  margin-top: var(--libre-space-12);
+}
+
+.libre__topbar-stats-social-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-7) var(--libre-space-12);
+  background: transparent;
+  color: var(--color-text-primary);
+  border: var(--libre-bw-1) solid var(--color-border, var(--libre-c-rgba-127-127-127-0-3));
+  border-radius: var(--libre-radius-7);
+  font-family: inherit;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  line-height: var(--libre-lh-1-2);
+  cursor: pointer;
+  transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
+}
+.libre__topbar-stats-social-btn:hover {
+  background: var(--color-bg-hover, var(--libre-c-rgba-127-127-127-0-08));
+}
+
 /* Account row at the bottom of the dropdown. Holds the identity blurb
    and the two-button row (Sign-in + View-profile, or View-profile +
    Sign-out). Visually separated from the stat grid by margin only —

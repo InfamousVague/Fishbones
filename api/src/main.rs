@@ -151,6 +151,30 @@ async fn main() -> anyhow::Result<()> {
     db.run_migrations()?;
     tracing::info!("Database initialized at {}", database_path.display());
 
+    // ── Default friend (owner) ──────────────────────────────────
+    // Everyone is auto-friended to the owner account so a brand-new
+    // learner's leaderboard is never empty and they can always see the
+    // owner's streak. Resolve (or create) that account by email, stash
+    // its id on the DB handle so the new-user insert paths can seed a
+    // mutual friendship, then run a one-time idempotent backfill wiring
+    // up every pre-existing user. Email/name are overridable via env for
+    // non-prod deploys; defaults match the production owner.
+    let default_friend_email = read_env("DEFAULT_FRIEND_EMAIL")
+        .unwrap_or_else(|| "infamousvaguerat@gmail.com".to_string())
+        .trim()
+        .to_lowercase();
+    let default_friend_name =
+        read_env("DEFAULT_FRIEND_NAME").unwrap_or_else(|| "Libre".to_string());
+    let default_friend_id =
+        db.find_or_create_default_friend(&default_friend_email, &default_friend_name)?;
+    db.set_default_friend_id(&default_friend_id);
+    match db.backfill_default_friendships(&default_friend_id) {
+        Ok(n) => tracing::info!(
+            "Default friend ({default_friend_email}) resolved; backfilled friendships for {n} existing user(s)"
+        ),
+        Err(e) => tracing::warn!("Default-friend backfill failed: {e}"),
+    }
+
     // ── App state ───────────────────────────────────────────────
     let state = Arc::new(AppState {
         db,

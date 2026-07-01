@@ -8,6 +8,7 @@ import { check } from "@base/primitives/icon/icons/check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import { trophy } from "@base/primitives/icon/icons/trophy";
 import { snowflake } from "@base/primitives/icon/icons/snowflake";
+import { users } from "@base/primitives/icon/icons/users";
 import "@base/primitives/icon/icon.css";
 import type { StreakAndXp } from "@/hooks/useStreakAndXp";
 import type { Completion } from "@/hooks/useProgress";
@@ -40,6 +41,8 @@ export default function StatsChip({
   history,
   shields,
   onOpenProfile,
+  onOpenFriends,
+  onOpenLeaderboard,
   signedIn,
   userDisplayName,
   userEmail,
@@ -60,6 +63,12 @@ export default function StatsChip({
   /// frozen). Omit on embeds that don't ship the shield hook.
   shields?: StreakShieldsState;
   onOpenProfile?: () => void;
+  /// Opens the Friends modal. Omit to hide the "Friends" dropdown row
+  /// (e.g. web embeds without a cloud relay).
+  onOpenFriends?: () => void;
+  /// Routes the main pane to the Leaderboard view. Omit to hide the
+  /// "Leaderboard" dropdown row.
+  onOpenLeaderboard?: () => void;
   signedIn?: boolean;
   userDisplayName?: string | null;
   userEmail?: string | null;
@@ -493,6 +502,43 @@ export default function StatsChip({
                 >
                   <Icon icon={snowflake} size="xs" color="currentColor" weight="bold" />
                   <span>{t("stats.freezeYesterday")}</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Social entry points — Friends modal + Leaderboard view.
+              Rendered as a two-button nav row above the account block
+              so the social surfaces are reachable from the same place
+              the learner already checks their streak. Each row hides
+              itself when its handler isn't wired (embeds without a
+              relay). */}
+          {(onOpenFriends || onOpenLeaderboard) && (
+            <div className="libre__topbar-stats-social">
+              {onOpenFriends && (
+                <button
+                  type="button"
+                  className="libre__topbar-stats-social-btn"
+                  onClick={() => {
+                    setOpen(false);
+                    onOpenFriends();
+                  }}
+                >
+                  <Icon icon={users} size="xs" color="currentColor" weight="bold" />
+                  <span>{t("stats.friends")}</span>
+                </button>
+              )}
+              {onOpenLeaderboard && (
+                <button
+                  type="button"
+                  className="libre__topbar-stats-social-btn"
+                  onClick={() => {
+                    setOpen(false);
+                    onOpenLeaderboard();
+                  }}
+                >
+                  <Icon icon={trophy} size="xs" color="currentColor" weight="bold" />
+                  <span>{t("stats.leaderboard")}</span>
                 </button>
               )}
             </div>

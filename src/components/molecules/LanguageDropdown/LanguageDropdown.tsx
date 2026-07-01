@@ -57,13 +57,32 @@ export interface LanguageDropdownProps {
   /// Optional class to layer extra positioning / theming. Applied to
   /// the wrapper, not the popover (the popover is portaled to body).
   className?: string;
+  /// Restrict the menu to a subset of locales — e.g. the languages a
+  /// specific book is available in. Defaults to every SUPPORTED_LOCALE
+  /// (the app-wide picker). Values not in `SUPPORTED_LOCALES` are the
+  /// caller's responsibility to keep valid.
+  locales?: readonly Locale[];
+  /// Controlled value + change handler. Provide BOTH to drive the picker
+  /// from external state (e.g. a per-book reading locale) instead of the
+  /// app-wide `useLocale` hook; omit both to fall back to the app locale.
+  value?: Locale;
+  onChange?: (next: Locale) => void;
 }
 
 export default function LanguageDropdown({
   variant = "field",
   className,
+  locales,
+  value,
+  onChange,
 }: LanguageDropdownProps) {
-  const [locale, setLocale] = useLocale();
+  // App-locale hook is always called (hooks can't be conditional); the
+  // controlled `value`/`onChange` override it when supplied so the same
+  // component serves both the global picker and the per-book one.
+  const [appLocale, setAppLocale] = useLocale();
+  const locale = value ?? appLocale;
+  const setLocale = onChange ?? setAppLocale;
+  const options = locales ?? SUPPORTED_LOCALES;
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -220,7 +239,7 @@ export default function LanguageDropdown({
               minWidth: `${menuPos.minWidth}px`,
             }}
           >
-            {SUPPORTED_LOCALES.map((l) => {
+            {options.map((l) => {
               const active = l === locale;
               return (
                 <li key={l}>
