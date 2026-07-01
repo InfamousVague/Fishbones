@@ -4,7 +4,6 @@ import { Icon } from "@base/primitives/icon";
 import { panelLeftClose } from "@base/primitives/icon/icons/panel-left-close";
 import { panelLeftOpen } from "@base/primitives/icon/icons/panel-left-open";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
-import { messageCircleMore } from "@base/primitives/icon/icons/message-circle-more";
 import "@base/primitives/icon/icon.css";
 import type { StreakAndXp } from "@/hooks/useStreakAndXp";
 import type { Completion } from "@/hooks/useProgress";
@@ -154,10 +153,6 @@ interface Props {
   /// to the signed-out state.
   onSignOut?: () => void;
 
-  /// Opens the feedback / bug-report / feature-request modal. Omit to
-  /// hide the feedback button (e.g. embeds without a relay).
-  onOpenFeedback?: () => void;
-
   /// Opens the full CommandPalette modal (the surface that Cmd/Ctrl+K
   /// also binds to). Wired to the trailing ⌘K kbd hint inside the
   /// inline search input — visitors who need actions like "Open
@@ -211,7 +206,6 @@ export default function TopBar({
   userEmail,
   onSignIn,
   onSignOut,
-  onOpenFeedback,
   onOpenSearch,
   courses,
   onOpenLesson,
@@ -694,21 +688,8 @@ export default function TopBar({
           <DiscordMark size={17} />
         </button>
 
-        {/* Feedback — opens the in-app feedback / bug-report / feature-
-            request modal (App.tsx owns the open state; the modal posts
-            to the relay's /feedback → Notion). Sits next to the Discord
-            pill so the "talk to us" affordances cluster together. */}
-        {onOpenFeedback && (
-          <button
-            type="button"
-            className="libre__topbar-icon-btn"
-            onClick={onOpenFeedback}
-            aria-label={t("topBar.feedback")}
-            title={t("topBar.feedbackTitle")}
-          >
-            <Icon icon={messageCircleMore} size="base" color="currentColor" />
-          </button>
-        )}
+        {/* Feedback moved to the navigation rail's bottom cluster
+            (bullhorn icon) — see NavigationRail's `onFeedback`. */}
 
         {/* Inline search — real <input> with a dropdown of ranked
             course/lesson hits. The trailing ⌘K hint inside the input

@@ -18,6 +18,7 @@ import {
   useState,
 } from "react";
 import { useCourses } from "@/hooks/useCourses";
+import { useCatalog } from "@/hooks/useCatalog";
 import { useProgress } from "@/hooks/useProgress";
 import { useLibreCloud } from "@/hooks/useLibreCloud";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
@@ -25,17 +26,22 @@ import { useStreakAndXp } from "@/hooks/useStreakAndXp";
 import { useWidgetSnapshot } from "./useWidgetSnapshot";
 import {
   LIBRARY_INSTALLED_IDS_KEY,
+  LIBRARY_MARKER_LESSON_ID,
   isLibraryMarkerRow,
   parseLibraryAllowlist,
   reconcilePerception,
   serializeLibraryAllowlist,
 } from "@/lib/librarySync";
+import { installCatalogEntryWeb } from "./installCatalogEntry";
+import { track } from "@/lib/track";
+import type { CatalogEntry } from "@/lib/catalog";
 import { isHiddenCourse } from "@/lib/hiddenCourses";
 import { unlockAudioContext } from "@/lib/sfx";
 import { haptics } from "@/lib/haptics";
 import type { Course, Lesson } from "@/data/types";
 import { isoToUnixSeconds } from "@/lib/timestamps";
-import MobileLibrary from "./MobileLibrary";
+import MobileLibrary, { type LibraryPane } from "./MobileLibrary";
+import MobileDiscover from "./MobileDiscover";
 import MobileLesson from "./MobileLesson";
 import MobilePlayground from "./MobilePlayground";
 import MobileProfile from "./MobileProfile";
@@ -64,7 +70,9 @@ interface ActiveLesson {
 }
 
 export default function MobileApp() {
-  const { courses: coursesAll, loaded, hydrateCourse } = useCourses();
+  const { courses: coursesAll, loaded, hydrateCourse, refresh: refreshCourses } =
+    useCourses();
+  const { catalog, loaded: catalogLoaded } = useCatalog();
   const {
     completed,
     history,
@@ -420,6 +428,112 @@ export default function MobileApp() {
       updated_at: new Date().toISOString(),
     });
   }, [coursesAll, loaded, cloud.signedIn, libraryAllowlist, realtime]);
+
+  /// Which pane the Library tab shows — the installed library (default)
+  /// or the Discover catalog. Lives here (not inside MobileLibrary) so
+  /// both MobileLibrary and MobileDiscover share the same toggle state
+  /// and the install handler below can flip back to "library" after a
+  /// course lands.
+  const [libraryPane, setLibraryPane] = useState<LibraryPane>("library");
+  /// Catalog ids with a download in flight. Drives the per-tile
+  /// spinner in Discover; cleared in the install handler's `finally`.
+  const [installingIds, setInstallingIds] = useState<Set<string>>(new Set());
+
+  /// Install a catalog course on mobile.
+  ///
+  /// Flow (mirrors desktop's `handleInstallCatalogEntry` + adds the
+  /// mobile-only library-set bookkeeping the desktop gets from its
+  /// bundled-packs seed):
+  ///
+  ///   1. Fetch + persist the course JSON via `installCatalogEntryWeb`
+  ///      (which stamps `coverFetchedAt` so the web cover renders).
+  ///   2. `refreshCourses()` so `coursesAll` picks up the new record
+  ///      and the Library shelf re-derives.
+  ///   3. Add the id to BOTH library sets so it survives MobileApp's
+  ///      visibility filter immediately AND rides sync to desktop:
+  ///        - `syncedLibraryIds` (+ `libre.library.markers.v1` +
+  ///          a `pushProgress` marker row) — AUTHORITATIVE in the
+  ///          filter when non-empty, so this is what makes the course
+  ///          appear right now on a signed-in device whose desktop
+  ///          markers already populated the set.
+  ///        - `libraryAllowlist` (+ `LIBRARY_INSTALLED_IDS_KEY` +
+  ///          a `pushSetting`) — the backstop path, and the value the
+  ///          settings-based sync round-trips.
+  ///      Updating both keeps every branch of the filter (and both
+  ///      relay transports) consistent regardless of which sync
+  ///      signals have landed on this device.
+  ///
+  /// The background push effect above would eventually extend the
+  /// allowlist on its own (it watches `coursesAll`), but only when a
+  /// cloud baseline already exists; doing it explicitly here also
+  /// covers the null-baseline case and the authoritative marker set,
+  /// so a freshly-installed course is never briefly hidden.
+  const installEntry = useCallback(
+    async (entry: CatalogEntry) => {
+      if (installingIds.has(entry.id)) return;
+      setInstallingIds((prev) => new Set(prev).add(entry.id));
+      try {
+        await installCatalogEntryWeb(entry);
+        await refreshCourses();
+        await hydrateCourse(entry.id);
+
+        // ── Marker set (authoritative in the visibility filter) ──
+        setSyncedLibraryIds((prev) => {
+          const next = new Set(prev ?? []);
+          next.add(entry.id);
+          try {
+            localStorage.setItem(
+              SYNCED_LIBRARY_KEY,
+              JSON.stringify(Array.from(next).sort()),
+            );
+          } catch {
+            /* swallow */
+          }
+          return next;
+        });
+        // Ride the always-available /progress transport to desktop.
+        realtime.pushProgress({
+          course_id: entry.id,
+          lesson_id: LIBRARY_MARKER_LESSON_ID,
+          completed_at: new Date().toISOString(),
+        });
+
+        // ── Allowlist set (backstop path + settings transport) ──
+        setLibraryAllowlist((prev) => {
+          const next = new Set(prev ?? []);
+          next.add(entry.id);
+          const serialized = serializeLibraryAllowlist(next);
+          try {
+            localStorage.setItem(LIBRARY_INSTALLED_IDS_KEY, serialized);
+          } catch {
+            /* swallow */
+          }
+          realtime.pushSetting({
+            key: LIBRARY_INSTALLED_IDS_KEY,
+            value: serialized,
+            updated_at: new Date().toISOString(),
+          });
+          return next;
+        });
+
+        track.courseInstall({ courseId: entry.id, source: "discover" });
+        void haptics.success();
+      } catch (e) {
+        console.error("[libre] mobile install failed:", e);
+        alert(
+          `Couldn't install ${entry.title}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      } finally {
+        setInstallingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(entry.id);
+          return next;
+        });
+      }
+    },
+    [installingIds, refreshCourses, hydrateCourse, realtime],
+  );
+
   const [view, setView] = useState<View>("library");
   const [active, setActive] = useState<ActiveLesson | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
@@ -477,6 +591,32 @@ export default function MobileApp() {
     const hydrated = await hydrateCourse(course.id);
     setActive({ course: hydrated ?? course, chapterIndex, lessonIndex });
     setView("lesson");
+  };
+
+  /// Open an installed course by id at its first incomplete lesson.
+  /// Used by Discover's "Installed" tiles so tapping a course the
+  /// learner already has jumps straight into it (rather than a no-op).
+  /// Resolves against `courses` — the visibility-filtered list — which
+  /// includes the course as soon as it's installed. Bails quietly if
+  /// the course somehow isn't found or has no lessons.
+  const openCourseById = async (courseId: string) => {
+    const course = coursesAll.find((c) => c.id === courseId);
+    if (!course) return;
+    const key = (lessonId: string) => `${course.id}:${lessonId}`;
+    for (let ci = 0; ci < course.chapters.length; ci++) {
+      const ch = course.chapters[ci];
+      for (let li = 0; li < ch.lessons.length; li++) {
+        if (!completed.has(key(ch.lessons[li].id))) {
+          await openLesson(course, ci, li);
+          return;
+        }
+      }
+    }
+    // Every lesson complete (or no completions store hit) — open the
+    // very first lesson so the tap still does something.
+    if (course.chapters[0]?.lessons[0]) {
+      await openLesson(course, 0, 0);
+    }
   };
 
   const goNext = () => {
@@ -572,7 +712,7 @@ export default function MobileApp() {
       )}
 
       <main className="m-app__main">
-        {view === "library" && (
+        {view === "library" && libraryPane === "library" && (
           <MobileLibrary
             courses={courses}
             completed={completed}
@@ -585,6 +725,8 @@ export default function MobileApp() {
             // would tie. With history we can pick the freshest
             // completion's timestamp.
             history={history}
+            pane={libraryPane}
+            onPaneChange={setLibraryPane}
             onOpenLesson={openLesson}
             onOpenSearch={() => setSearchOpen(true)}
             // Pull-to-refresh → realtime resync. Pulls progress
@@ -592,6 +734,24 @@ export default function MobileApp() {
             // earliest-wins merge so the visible library + streak
             // / level converge with desktop.
             onRefresh={() => realtime.resync()}
+          />
+        )}
+        {view === "library" && libraryPane === "discover" && (
+          <MobileDiscover
+            catalog={catalog}
+            // Pass the full unfiltered local set (coursesAll), not the
+            // visibility-filtered `courses`: Discover's "Installed"
+            // state must reflect what's actually in IndexedDB, even
+            // for a course that a stale marker set would hide on the
+            // Library shelf. (In practice the install handler adds new
+            // ids to the marker set immediately, so the two agree.)
+            installed={coursesAll}
+            loaded={catalogLoaded}
+            installingIds={installingIds}
+            pane={libraryPane}
+            onPaneChange={setLibraryPane}
+            onInstall={(entry) => void installEntry(entry)}
+            onOpen={(courseId) => void openCourseById(courseId)}
           />
         )}
         {view === "lesson" && active && lesson && (

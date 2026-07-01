@@ -36,6 +36,8 @@
     "certificates": "Certificates",
     "challenges": "Challenges",
     "monkeysPaw": "Monkey's Paw",
+    "social": "Social",
+    "feedback": "Feedback",
     "settings": "Settings",
     "takeTour": "Take the tour",
     "showSidebar": "Show sidebar",
@@ -879,7 +881,7 @@
     "earlyAria": "Early release notice",
     "earlyTag": "Early release",
     "earlyWarn": "Libre is in early release — some art, audio, and lesson content is placeholder or AI-generated for now.",
-    "earlySupport": "Supporting us helps us grow to where we can hire artists, narrators, teachers, and more.",
+    "earlySupport": "Supporting us helps us grow to where we can pay artists, narrators, teachers, and more.",
     "earlyCta": "Support us",
     "earlyDismiss": "Dismiss",
     "installAria": "Get the Libre desktop app",
@@ -973,6 +975,12 @@
     "profileLoadError": "Couldn't load this profile.",
     "actionError": "Something went wrong. Try again.",
     "memberSince": "Member since {date}"
+  },
+  "social": {
+    "title": "Social",
+    "subtitle": "Add friends by email and see how you stack up.",
+    "friendsTab": "Friends",
+    "leaderboardTab": "Leaderboard"
   },
   "leaderboard": {
     "title": "Leaderboard",

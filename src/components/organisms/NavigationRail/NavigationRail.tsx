@@ -29,6 +29,8 @@ import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
 import { award } from "@base/primitives/icon/icons/award";
 import { route } from "@base/primitives/icon/icons/route";
 import { terminal as terminalIcon } from "@base/primitives/icon/icons/terminal";
+import { users as usersIcon } from "@base/primitives/icon/icons/users";
+import { megaphone } from "@base/primitives/icon/icons/megaphone";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { circleHelp } from "@base/primitives/icon/icons/circle-help";
 import { play as playIcon } from "@base/primitives/icon/icons/play";
@@ -55,7 +57,8 @@ export interface NavigationRailProps {
     | "monkeyspaw"
     | "practice"
     | "paths"
-    | "certificates";
+    | "certificates"
+    | "social";
   onLibrary: () => void;
   /// Resume-most-recent affordance. When present, surfaces a play
   /// chip at the very top of the rail (above Library) that drops
@@ -111,6 +114,17 @@ export interface NavigationRailProps {
   /// roadmap). Optional so embeddings that don't ship the sandbox
   /// can just hide the chip.
   onSandbox?: () => void;
+  /// Social route — the consolidated Friends + Leaderboard page. Lives
+  /// in the bottom cluster (with Feedback + Settings) rather than the
+  /// primary top stack: it's a "people" surface, not a learning
+  /// destination, so it sits with the other infrastructure controls.
+  /// Optional — embeddings without a relay (no accounts) just hide it.
+  onSocial?: () => void;
+  /// Opens the in-app feedback / bug-report / feature-request dialog.
+  /// Docked at the bottom of the rail (moved out of the top bar) so the
+  /// "tell us" affordance sits with Settings in the stable corner.
+  /// Optional — embeddings without a relay hide it.
+  onFeedback?: () => void;
   onSettings: () => void;
   /// Re-trigger the guided tour (auto-runs on first launch; this
   /// puts a permanent affordance in the rail so a learner who
@@ -132,6 +146,11 @@ interface RailItemProps {
   label: string;
   onClick: () => void;
   active?: boolean;
+  /// Draw the active state as a self-contained filled pill instead of
+  /// riding the top cluster's shared sliding indicator. Used by the
+  /// bottom-cluster Social item, which lives outside the pill's
+  /// measured container.
+  activeStandalone?: boolean;
   /// The active-state ring is drawn via a `--active` modifier class;
   /// the title attribute carries the visible label since the rail
   /// itself is icon-only. Same vocabulary the MobileTabBar uses.
@@ -155,6 +174,7 @@ function RailItem({
   label,
   onClick,
   active,
+  activeStandalone,
   pressed,
   badge,
   comingSoon,
@@ -168,7 +188,11 @@ function RailItem({
         type="button"
         className={
           "libre-nav-rail__item" +
-          (active ? " libre-nav-rail__item--active" : "") +
+          (active
+            ? activeStandalone
+              ? " libre-nav-rail__item--active-standalone"
+              : " libre-nav-rail__item--active"
+            : "") +
           (comingSoon ? " libre-nav-rail__item--coming-soon" : "")
         }
         onClick={comingSoon ? undefined : onClick}
@@ -212,6 +236,8 @@ export default function NavigationRail({
   onPaths,
   onCertificates,
   onSandbox,
+  onSocial,
+  onFeedback,
   onSettings,
   onStartTour,
   // `onToggleSidebar` / `sidebarCollapsed` are still declared on
@@ -376,10 +402,28 @@ export default function NavigationRail({
         )}
       </div>
       <div className="libre-nav-rail__bottom">
-        {/* Bottom cluster, top → bottom: help, settings. Settings is at
-            the very bottom (conventional Mac-app spot) with help docked
-            one row up so the "I need a hint" affordance sits beside
-            the knob it usually nudges the user toward. */}
+        {/* Bottom cluster, top → bottom: Social, Feedback, help,
+            Settings. Settings is at the very bottom (conventional
+            Mac-app spot); above it sit the "people + infrastructure"
+            affordances that aren't learning destinations —
+            Social (Friends + Leaderboard), Feedback (bug reports /
+            feature requests), and the guided-tour re-trigger. */}
+        {onSocial && (
+          <RailItem
+            icon={usersIcon}
+            label={t("nav.social")}
+            onClick={onSocial}
+            active={activeView === "social"}
+            activeStandalone
+          />
+        )}
+        {onFeedback && (
+          <RailItem
+            icon={megaphone}
+            label={t("nav.feedback")}
+            onClick={onFeedback}
+          />
+        )}
         {/* The sidebar toggle that used to live here was moved to a
             fixed-position chip just to the right of the macOS
             traffic lights (see `<SidebarToggle />` in App.tsx).

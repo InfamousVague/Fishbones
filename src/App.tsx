@@ -56,8 +56,7 @@ const ConfirmDialog = lazy(() => import("@/components/organisms/dialogs/ConfirmD
 const CourseSettingsModal = lazy(() => import("@/components/organisms/dialogs/CourseSettings/CourseSettingsModal"));
 const FloatingIngestPanel = lazy(() => import("@/components/organisms/IngestPanel/FloatingIngestPanel"));
 const ProfileView = lazy(() => import("@/components/templates/Profile/ProfileView"));
-const LeaderboardView = lazy(() => import("@/components/templates/Leaderboard/LeaderboardView"));
-const FriendsModal = lazy(() => import("@/components/organisms/FriendsModal/FriendsModal"));
+const SocialView = lazy(() => import("@/components/templates/Social/SocialView"));
 const ProfileCard = lazy(() => import("@/components/molecules/ProfileCard/ProfileCard"));
 const SandboxView = lazy(() => import("@/components/templates/Sandbox/SandboxView"));
 import SandboxSidebar from "@/components/templates/Sandbox/SandboxSidebar";
@@ -1197,7 +1196,7 @@ export default function App() {
   const [view, setViewRaw] = useState<
     | "courses"
     | "profile"
-    | "leaderboard"
+    | "social"
     | "sandbox"
     | "library"
     | "discover"
@@ -1208,12 +1207,11 @@ export default function App() {
     | "certificates"
   >("library");
 
-  // Friends modal + profile-card overlay. Both are cloud-gated
-  // surfaces reachable from the stats dropdown / leaderboard rows.
+  // Public profile-card overlay. Cloud-gated surface reachable from
+  // friend rows AND leaderboard rows inside the Social view.
   // `profileCardUserId` holds the user whose public profile card is
-  // open (null = closed); it stacks over the friends modal + the
-  // leaderboard view alike via the shared ModalBackdrop.
-  const [friendsOpen, setFriendsOpen] = useState(false);
+  // open (null = closed); it stacks over the Social view via the
+  // shared ModalBackdrop.
   const [profileCardUserId, setProfileCardUserId] = useState<string | null>(
     null,
   );
@@ -2584,15 +2582,17 @@ export default function App() {
         history={history}
         shields={shields}
         onOpenProfile={() => setView("profile")}
-        // Friends + Leaderboard entry points in the stats dropdown.
-        // Only exposed to signed-in learners — the relay needs a bearer
-        // token for every friends/leaderboard call, and the modals /
-        // view would just render an empty "sign in" shell otherwise.
-        // The stats dropdown already carries the Sign-in CTA for the
-        // signed-out case.
-        onOpenFriends={cloud.signedIn ? () => setFriendsOpen(true) : undefined}
+        // Friends + Leaderboard entry points in the stats dropdown both
+        // route to the consolidated Social view (Friends + Leaderboard
+        // tabs). Only exposed to signed-in learners — the relay needs a
+        // bearer token for every friends/leaderboard call, and the view
+        // would just render an empty "sign in" shell otherwise. The
+        // stats dropdown already carries the Sign-in CTA for the
+        // signed-out case. The Social view also has a permanent home in
+        // the navigation rail's bottom cluster.
+        onOpenFriends={cloud.signedIn ? () => setView("social") : undefined}
         onOpenLeaderboard={
-          cloud.signedIn ? () => setView("leaderboard") : undefined
+          cloud.signedIn ? () => setView("social") : undefined
         }
         // The brand wordmark was removed from the top bar (Library
         // already renders it as a hero band, and the rail's Library
@@ -2630,7 +2630,9 @@ export default function App() {
         onSignOut={() => {
           void cloud.signOut();
         }}
-        onOpenFeedback={() => setFeedbackOpen(true)}
+        // Feedback moved out of the top bar and into the navigation
+        // rail's bottom cluster (bullhorn icon) — see NavigationRail's
+        // `onFeedback`. Omitting the prop hides the old top-bar button.
         // Search trigger sits left of the stats chip; clicking it pops
         // the same CommandPalette that Cmd/Ctrl+K already binds.
         onOpenSearch={() => setPaletteOpen(true)}
@@ -2649,17 +2651,7 @@ export default function App() {
 
       <div className="libre__body">
         <NavigationRail
-          activeView={
-            view === "monkeyspaw"
-              ? "practice"
-              : // The leaderboard isn't a rail destination (it opens from
-                // the stats dropdown); map it onto "profile" so the rail's
-                // active highlight lands on the closest stats-family entry
-                // instead of type-erroring on the narrower rail union.
-                view === "leaderboard"
-                ? "profile"
-                : view
-          }
+          activeView={view === "monkeyspaw" ? "practice" : view}
           onLibrary={() => setView("library")}
           // Resume chip — drops the learner back into their most-
           // recently-focused course at the first uncompleted lesson.
@@ -2678,6 +2670,15 @@ export default function App() {
           onPaths={() => { setPendingPathId(null); setView("paths"); }}
           onCertificates={() => setView("certificates")}
           onSandbox={() => setView("sandbox")}
+          // Social (Friends + Leaderboard) — cloud-gated: only wired
+          // when signed in, since every friends/leaderboard call needs
+          // a bearer token. Signed-out learners see the Sign-in CTA in
+          // the stats dropdown instead. Lives in the rail's bottom
+          // cluster with Feedback + Settings.
+          onSocial={cloud.signedIn ? () => setView("social") : undefined}
+          // Feedback — relocated here from the top bar. Works signed-in
+          // or not (posts to the relay's /feedback → Notion).
+          onFeedback={() => setFeedbackOpen(true)}
           onSettings={() => setSettingsOpen(true)}
           onStartTour={handleTourStart}
           onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
@@ -2744,8 +2745,13 @@ export default function App() {
               stats={stats}
               onOpenLesson={selectLesson}
             />
-          ) : view === "leaderboard" ? (
-            <LeaderboardView
+          ) : view === "social" ? (
+            <SocialView
+              listFriends={cloud.listFriends}
+              addFriend={cloud.addFriend}
+              listFriendRequests={cloud.listFriendRequests}
+              acceptFriendRequest={cloud.acceptFriendRequest}
+              removeFriend={cloud.removeFriend}
               getFriendsLeaderboard={cloud.getFriendsLeaderboard}
               getGlobalLeaderboard={cloud.getGlobalLeaderboard}
               onOpenProfile={(userId) => setProfileCardUserId(userId)}
@@ -3344,24 +3350,10 @@ export default function App() {
         />
       )}
 
-      {/* Friends management modal. Cloud-gated: only opened when signed
-          in (the stats dropdown withholds the entry point otherwise).
-          Rows open a profile card that stacks above this modal. */}
-      {friendsOpen && (
-        <FriendsModal
-          listFriends={cloud.listFriends}
-          addFriend={cloud.addFriend}
-          listFriendRequests={cloud.listFriendRequests}
-          acceptFriendRequest={cloud.acceptFriendRequest}
-          removeFriend={cloud.removeFriend}
-          onOpenProfile={(userId) => setProfileCardUserId(userId)}
-          onClose={() => setFriendsOpen(false)}
-        />
-      )}
-
       {/* Public profile card overlay. Reachable from friend rows AND
-          leaderboard rows; its Add / Remove / Accept CTA reuses the same
-          cloud methods and refetches on success. */}
+          leaderboard rows inside the Social view; its Add / Remove /
+          Accept CTA reuses the same cloud methods and refetches on
+          success. */}
       {profileCardUserId && (
         <ProfileCard
           userId={profileCardUserId}

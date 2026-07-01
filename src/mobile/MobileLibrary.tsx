@@ -39,9 +39,20 @@ import "./MobileLibrary.css";
 type ViewMode = "grid" | "covers";
 const VIEW_MODE_KEY = "libre.mobile.libraryViewMode";
 
+/// Which pane the Library tab is showing. "library" = the learner's
+/// installed courses (the original mobile behaviour); "discover" = the
+/// catalog browser. Owned by MobileApp so the segmented toggle in the
+/// header can flip between the two while both keep sharing this tab.
+export type LibraryPane = "library" | "discover";
+
 interface Props {
   courses: Course[];
   completed: Set<string>;
+  /// Current pane + setter for the [My Library | Discover] segmented
+  /// toggle. Optional so any embedding that hasn't wired Discover yet
+  /// still type-checks and simply hides the toggle.
+  pane?: LibraryPane;
+  onPaneChange?: (pane: LibraryPane) => void;
   /// Full completion history — every (course, lesson, completed_at)
   /// tuple the learner has logged. Drives the "most-recent activity"
   /// sort: each course's position is its freshest completion
@@ -117,6 +128,8 @@ export default function MobileLibrary({
   courses,
   completed,
   history,
+  pane,
+  onPaneChange,
   onOpenLesson,
   onOpenSearch,
   onRefresh,
@@ -294,6 +307,34 @@ export default function MobileLibrary({
           className="m-lib__brand-img"
         />
       </div>
+      {pane && onPaneChange && (
+        <div className="m-lib__segmented" role="tablist" aria-label="Library or Discover">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={pane === "library"}
+            className={`m-lib__seg${pane === "library" ? " m-lib__seg--active" : ""}`}
+            onClick={() => {
+              void haptics.selection();
+              onPaneChange("library");
+            }}
+          >
+            My Library
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={pane === "discover"}
+            className={`m-lib__seg${pane === "discover" ? " m-lib__seg--active" : ""}`}
+            onClick={() => {
+              void haptics.selection();
+              onPaneChange("discover");
+            }}
+          >
+            Discover
+          </button>
+        </div>
+      )}
       <header className="m-lib__head">
         <div className="m-lib__head-text">
           <h1 className="m-lib__title">Library</h1>

@@ -36,6 +36,90 @@
   -webkit-user-drag: none;
 }
 
+/* Segmented [My Library | Discover] toggle. Full-width pill sitting
+   between the brand wordmark and the page header — the primary way a
+   learner flips between their installed library and the catalog. Two
+   equal-width segments; the active one gets the solid white fill the
+   language filter pills use for their active state, so the selection
+   reads unambiguously on the dark surface. */
+.m-lib__segmented {
+  display: flex;
+  gap: var(--libre-space-2);
+  padding: var(--libre-space-3);
+  margin-bottom: var(--libre-space-16);
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-08));
+  border-radius: var(--libre-radius-pill);
+}
+
+.m-lib__seg {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--libre-space-8) var(--libre-space-12);
+  background: transparent;
+  border: 0;
+  border-radius: var(--libre-radius-pill);
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--libre-motion-quick), color var(--libre-motion-quick);
+}
+
+.m-lib__seg--active {
+  background: var(--gg-fill-white);
+  color: var(--color-bg-primary);
+}
+
+.m-lib__seg:active:not(.m-lib__seg--active) {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+/* Discover empty / error copy — shown when the catalog loaded but
+   came back empty (offline first-launch, staging gap). Muted, centred
+   so it doesn't masquerade as a section. */
+.m-lib__empty {
+  margin: var(--libre-space-24) var(--libre-space-8);
+  text-align: center;
+  font-size: var(--libre-fs-14);
+  line-height: var(--libre-lh-1-45);
+  color: var(--color-text-tertiary);
+}
+
+/* Discover: wrap an installed tile so the "Installed" ribbon can pin
+   to its corner without disturbing the BookCover's own layout. */
+.m-disc__tilewrap {
+  position: relative;
+  display: block;
+}
+
+/* "Installed" ribbon on Discover tiles the learner already has. Pinned
+   bottom-left (the install-affordance slot on placeholder tiles is
+   bottom-right, so these never collide visually across the grid).
+   Frosted-dark chip matching the language / status badge treatment. */
+.m-disc__installed {
+  position: absolute;
+  left: var(--libre-space-6);
+  bottom: var(--libre-space-6);
+  z-index: 2;
+  padding: var(--libre-space-2) var(--libre-space-7);
+  border-radius: var(--libre-radius-pill);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  color: var(--color-text-primary, var(--libre-c-f5f5f7));
+  background: var(--libre-c-rgba-0-0-0-0-6);
+  backdrop-filter: blur(var(--libre-blur-6));
+  -webkit-backdrop-filter: blur(var(--libre-blur-6));
+  pointer-events: none;
+}
+
 /* Header layout: title block on the left, search-trigger button on
    the far right. Flex with `space-between` so the button keeps
    right-aligned regardless of title-block width. */

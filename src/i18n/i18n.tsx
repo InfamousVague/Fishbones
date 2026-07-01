@@ -26,7 +26,12 @@
 /// matching `params` entry; unmatched placeholders stay literal so
 /// it's obvious during dev which value didn't make it through.
 
-import { useEffect, useSyncExternalStore, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { useLocale as useLocaleHook } from "@/hooks/useLocale";
 import { type Locale, isRtlLocale } from "@/data/locales";
 import enLocale from "@/i18n/locales/en.json";
@@ -155,7 +160,15 @@ export function useT(): TFunction {
   // Subscribe to dictionary arrivals so components re-render (and
   // re-resolve their strings) the moment a lazily-loaded locale
   // lands. For English / already-loaded locales this never fires.
-  useSyncExternalStore(subscribeDicts, getDictsVersion, getDictsVersion);
+  // The version also feeds the `useCallback` deps below so the
+  // returned `t` gets a fresh identity when a lazily-loaded
+  // dictionary arrives — a consumer that memoises on `t` then
+  // re-resolves against the new strings.
+  const dictsVersion = useSyncExternalStore(
+    subscribeDicts,
+    getDictsVersion,
+    getDictsVersion,
+  );
   // Ensure the active locale's dictionary is (being) loaded. The
   // I18nProvider at the root already kicks this off on mount + on
   // switch, but doing it here too makes any `t()` consumer
@@ -166,23 +179,35 @@ export function useT(): TFunction {
   useEffect(() => {
     ensureLocaleLoaded(locale);
   }, [locale]);
-  return (key, params) => {
-    // While a non-English dictionary is still in flight this resolves
-    // undefined and the English fallback below carries the frame.
-    const dict = loadedDicts[locale];
-    const primary = dict ? lookup(dict, key) : undefined;
-    if (primary !== undefined) return interpolate(primary, params);
-    // Fall back to English when a key is missing from the current
-    // locale — better to show readable English than a raw key path
-    // while translations catch up.
-    if (locale !== "en") {
-      const fallback = lookup(loadedDicts.en as Dict, key);
-      if (fallback !== undefined) return interpolate(fallback, params);
-    }
-    // Last resort: return the key itself so it's obvious in dev
-    // which key needs adding.
-    return key;
-  };
+  // Memoised so the returned identity is stable per `(locale,
+  // dictsVersion)` — the docstring above promises this, and several
+  // consumers pass `t` straight into `useEffect` / `useCallback`
+  // deps. Without the memo the closure was rebuilt every render,
+  // and any effect that listed `t` re-fired on every render → a
+  // fetch/re-render loop that flashed the surface (the friends /
+  // leaderboard / profile-card surfaces hit exactly this). The deps
+  // are the only two things the closure reads that can change:
+  // the active locale, and the dictionary-load version.
+  return useCallback(
+    (key, params) => {
+      // While a non-English dictionary is still in flight this resolves
+      // undefined and the English fallback below carries the frame.
+      const dict = loadedDicts[locale];
+      const primary = dict ? lookup(dict, key) : undefined;
+      if (primary !== undefined) return interpolate(primary, params);
+      // Fall back to English when a key is missing from the current
+      // locale — better to show readable English than a raw key path
+      // while translations catch up.
+      if (locale !== "en") {
+        const fallback = lookup(loadedDicts.en as Dict, key);
+        if (fallback !== undefined) return interpolate(fallback, params);
+      }
+      // Last resort: return the key itself so it's obvious in dev
+      // which key needs adding.
+      return key;
+    },
+    [locale, dictsVersion],
+  );
 }
 
 /// Direct locale-state hook. Re-exports `useLocale` from the

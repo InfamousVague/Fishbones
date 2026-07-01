@@ -238,6 +238,20 @@
   color: var(--color-bg-primary);
 }
 
+/* Bottom-cluster active state. The sliding pill only lives in the top
+   cluster, so a bottom item (Social) that maps to the active route
+   can't ride it. This modifier draws its own filled pill so the active
+   Social route reads the same as an active top item — inverted glyph on
+   a solid accent — without the shared sliding indicator. */
+.libre-nav-rail__item--active-standalone {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+.libre-nav-rail__item--active-standalone:hover {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
 /* The Base UI Tooltip wraps each rail button in a `.tooltip-trigger`
    span (its own `position: relative`). Make the wrapper a flex
    centre so the icon button it contains stays vertically aligned
