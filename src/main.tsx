@@ -101,11 +101,10 @@ void import("@/lib/installLinkInterceptor").then((m) =>
 );
 bootLog("link interceptor installed");
 
-// Analytics — web-only, no-op everywhere else. Imported lazily so
-// the desktop / mobile bundles don't even include the module (Vite
-// + the `isWeb` guard inside the module elide the script-injection
-// path at build time). Auto-skips popout / dock surfaces so they
-// don't double-count as independent pageviews.
+// Product analytics (web + desktop). Imported lazily and opt-out-gated
+// inside the module: `init()` no-ops when the user has opted out, in
+// tests, or in popout / dock / tray surfaces. Web injects Plausible's
+// hosted script; desktop POSTs events directly with an offline queue.
 void import("@/lib/analytics").then((m) => m.init());
 
 const params = new URLSearchParams(window.location.search);

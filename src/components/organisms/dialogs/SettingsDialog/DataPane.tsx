@@ -19,11 +19,14 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
+import { barChart2 } from "@base/primitives/icon/icons/bar-chart-2";
 
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
+import SettingsToggle from "./SettingsToggle";
 import DiagnosticsPanel from "./DiagnosticsPanel";
 import SyncDebugPanel from "./SyncDebugPanel";
+import { useAnalyticsSetting } from "@/hooks/useAnalyticsSetting";
 import type { UseLibreCloud } from "@/hooks/useLibreCloud";
 import type { RealtimeSyncHandle } from "@/hooks/useRealtimeSync";
 import type { Completion } from "@/hooks/useProgress";
@@ -44,6 +47,7 @@ export default function DataPane({
   courses,
 }: Props) {
   const t = useT();
+  const analytics = useAnalyticsSetting();
   // Sync-courses state — moved here from the inline JSX that used
   // to live in SettingsDialog under `section === "data"`. The Rust
   // `refresh_bundled_courses` command re-runs the seed routine in
@@ -102,6 +106,21 @@ export default function DataPane({
       title={t("settings.dataAndStorage")}
       description={t("settings.dataDescription")}
     >
+      <SettingsCard title={t("settings.privacyCard")}>
+        <SettingsRow
+          icon={barChart2}
+          label={t("settings.analyticsLabel")}
+          sub={t("settings.analyticsBody")}
+          control={
+            <SettingsToggle
+              checked={analytics.enabled}
+              onChange={analytics.setEnabled}
+              label={t("settings.analyticsLabel")}
+            />
+          }
+        />
+      </SettingsCard>
+
       <SettingsCard title={t("settings.syncCard")}>
         <SettingsRow
           icon={rotateCcw}

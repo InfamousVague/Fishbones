@@ -25,6 +25,7 @@ import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
 import { useT } from "@/i18n/i18n";
+import { track } from "@/lib/track";
 
 export default function SoundPane() {
   const t = useT();
@@ -52,6 +53,7 @@ export default function SoundPane() {
 
   const onToggleEnabled = (next: boolean) => {
     setEnabled(next);
+    track.settingChange({ key: "sound", value: next });
     setSfxSettings({ enabled: next });
     if (next) {
       // Warm the audio context the moment the toggle lights so

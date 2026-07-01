@@ -16,6 +16,7 @@ import "@base/primitives/icon/icon.css";
 import { SegmentedControl } from "@base/primitives/segmented-control";
 import "@base/primitives/segmented-control/segmented-control.css";
 import type { LanguageId } from "@/data/types";
+import { track } from "@/lib/track";
 import {
   CATEGORY_PILLS,
   CHAIN_PILLS,
@@ -85,6 +86,42 @@ export default function LibraryControls(p: LibraryControlsProps): ReactElement {
   const t = useT();
   const [filterOpen, setFilterOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  // Facet-applied analytics. Each wrapper fires `library.filter` with
+  // the FACET NAME (never a course-specific id) when a real value is
+  // picked, then delegates to the host's setter. Clearing a facet
+  // (selecting "all") is not an "apply" — we don't fire for it, so the
+  // metric counts filter usage rather than filter churn. Wired here (not
+  // in the parent) so both the active-chip strip and the popover route
+  // through one instrumented path.
+  const setCategory = (c: "all" | CourseCategory) => {
+    if (c !== "all") track.libraryFilter("category");
+    p.onSetCategory(c);
+  };
+  const setChain = (c: "all" | CryptoChain) => {
+    if (c !== "all") track.libraryFilter("chain");
+    p.onSetChain(c);
+  };
+  const setLang = (l: "all" | LanguageId) => {
+    if (l !== "all") track.libraryFilter("language");
+    p.onSetLang(l);
+  };
+  const setKind = (k: "all" | "books" | "tracks") => {
+    if (k !== "all") track.libraryFilter("kind");
+    p.onSetKind(k);
+  };
+
+  // Library-search analytics. Fire ONCE per search session — on the
+  // transition from empty → non-empty query — so we record that
+  // search is in use without logging the (private) query text or
+  // firing on every keystroke. Typing again after clearing the box
+  // starts a fresh session and re-fires.
+  const handleQueryChange = (next: string) => {
+    if (p.query.trim() === "" && next.trim() !== "") {
+      track.librarySearch();
+    }
+    p.onSetQuery(next);
+  };
 
   // Click-outside / Escape closes the popover. Only registers the
   // listeners while open so we don't leak them per render.
@@ -163,7 +200,7 @@ export default function LibraryControls(p: LibraryControlsProps): ReactElement {
           className="libre-library-search"
           placeholder={t("library.searchPlaceholder")}
           value={p.query}
-          onChange={(e) => p.onSetQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
         />
         {p.query && (
           <button
@@ -219,10 +256,10 @@ export default function LibraryControls(p: LibraryControlsProps): ReactElement {
               countByLang={p.countByLang}
               kindCounts={p.kindCounts}
               totalCourses={p.totalCourses}
-              onSetCategory={p.onSetCategory}
-              onSetChain={p.onSetChain}
-              onSetLang={p.onSetLang}
-              onSetKind={p.onSetKind}
+              onSetCategory={setCategory}
+              onSetChain={setChain}
+              onSetLang={setLang}
+              onSetKind={setKind}
             />
           )}
         </div>

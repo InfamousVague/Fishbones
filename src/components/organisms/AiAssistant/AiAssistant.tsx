@@ -622,13 +622,39 @@ export default function AiAssistant({
   // already populated; no post-stream `libre:apply-code` dispatch
   // needed. We still clear the pendingGenerateRef so subsequent
   // generate-code requests start from a clean slate.
+  // Live ref to the agent's error state so the streaming→done
+  // transition effect below can read the freshest value to derive
+  // `ok` WITHOUT re-firing the effect every time `error` changes
+  // mid-run (which would mis-count a single run as multiple results).
+  const agentErrorRef = useRef(agent.error);
+  agentErrorRef.current = agent.error;
   const wasStreamingRef = useRef(false);
   useEffect(() => {
     const wasStreaming = wasStreamingRef.current;
     wasStreamingRef.current = agent.streaming;
     if (!wasStreaming || agent.streaming) return;
     pendingGenerateRef.current = null;
+    // Agent run just finished streaming — record the outcome.
+    // `ok=false` when the run surfaced an error (thrown transport
+    // error / max-turns). User-initiated stops that don't set an
+    // error read as ok=true.
+    track.aiResult({ mode: "agent", ok: agentErrorRef.current == null });
   }, [agent.streaming]);
+
+  // Chat-hook counterpart: fire `ai.result` on the chat stream's
+  // streaming→done transition. `ok=false` when the send set an
+  // error (transport failure / Ollama unreachable / mid-stream
+  // error event). Same ref pattern so `chat.error` changes don't
+  // themselves re-trigger the effect.
+  const chatErrorRef = useRef(chat.error);
+  chatErrorRef.current = chat.error;
+  const wasChatStreamingRef = useRef(false);
+  useEffect(() => {
+    const wasStreaming = wasChatStreamingRef.current;
+    wasChatStreamingRef.current = chat.streaming;
+    if (!wasStreaming || chat.streaming) return;
+    track.aiResult({ mode: "chat", ok: chatErrorRef.current == null });
+  }, [chat.streaming]);
 
   // Red dot on the character when Ollama isn't reachable OR the
   // default model isn't pulled. Hidden once the probe succeeds so

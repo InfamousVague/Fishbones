@@ -401,6 +401,16 @@ export default function CourseLibrary({
   // like nothing was happening.
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
+  // Open a course from the library. Wraps the host's `onOpen` so the
+  // course-open analytics event fires from the single place every card
+  // (shelf BookCover, grid CourseCard, tracks CourseCard) routes
+  // through — no per-card duplication, no chance a new card variant
+  // misses the event.
+  const handleOpen = (courseId: string) => {
+    track.courseOpen(courseId);
+    onOpen(courseId);
+  };
+
   const handleUpdateClick = async (courseId: string) => {
     if (!onUpdateCourse) return;
     if (updatingIds.has(courseId)) return; // re-entry guard
@@ -1368,7 +1378,7 @@ export default function CourseLibrary({
                           total={e.total}
                           done={e.done}
                           pct={e.pct}
-                          onOpen={() => onOpen(e.course.id)}
+                          onOpen={() => handleOpen(e.course.id)}
                           onContextMenu={
                             onExport || onDelete || onSettings || onUpdateCourse
                               ? (ev) =>
@@ -1407,7 +1417,7 @@ export default function CourseLibrary({
                           course={e.course}
                           progress={e.pct}
                           loading={hydrating?.has(e.course.id)}
-                          onOpen={() => onOpen(e.course.id)}
+                          onOpen={() => handleOpen(e.course.id)}
                           onContextMenu={
                             // Placeholders have no installed-course
                             // context menu (Export / Delete / Settings
@@ -1486,7 +1496,7 @@ export default function CourseLibrary({
                           total={e.total}
                           done={e.done}
                           pct={e.pct}
-                          onOpen={() => onOpen(e.course.id)}
+                          onOpen={() => handleOpen(e.course.id)}
                           onContextMenu={
                             // Right-click surfaces the same context
                             // menu the BookCover view uses — Reinstall /

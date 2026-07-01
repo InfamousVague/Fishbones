@@ -73,6 +73,7 @@ import {
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
+import { track } from "@/lib/track";
 
 interface IntentMeta {
   intent: HapticIntent;
@@ -116,6 +117,7 @@ export default function HapticsPane() {
 
   const onToggleEnabled = (next: boolean) => {
     setEnabled(next);
+    track.settingChange({ key: "haptics", value: next });
     writeHapticSettings({ enabled: next });
     if (next) void fireHaptic("tap");
   };

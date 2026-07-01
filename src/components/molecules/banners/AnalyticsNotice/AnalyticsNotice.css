@@ -1,0 +1,109 @@
+/* First-run analytics disclosure strip. Mounted by App.tsx as a
+   flex-column sibling under the TopBar (a `flex-shrink: 0` row inside
+   .libre, so it pushes the body down rather than overlapping it).
+   Deliberately quieter than the EarlyReleaseBanner: neutral surface,
+   no accent wash, so it reads as an unobtrusive system disclosure that
+   the learner can acknowledge and move past. All values use stable,
+   long-lived tokens (--color-*, --libre-radius-*, --libre-motion-*)
+   with literal fallbacks so the strip renders correctly regardless of
+   the design-token migration state. */
+.libre-analytics-notice {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 14px 7px 16px;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.libre-analytics-notice__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+}
+.libre-analytics-notice__icon svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.libre-analytics-notice__text {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.libre-analytics-notice__actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* "Got it" — subtle bordered button that fills slightly on hover. Kept
+   neutral (no accent) so acknowledging the disclosure feels calm rather
+   than like a call-to-action. */
+.libre-analytics-notice__dismiss {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill, 999px);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--libre-motion-snappy, 0.15s ease),
+    border-color var(--libre-motion-snappy, 0.15s ease),
+    transform var(--libre-motion-snappy, 0.15s ease);
+}
+.libre-analytics-notice__dismiss:hover,
+.libre-analytics-notice__dismiss:focus-visible {
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-text-primary) 24%, transparent);
+  outline: none;
+}
+.libre-analytics-notice__dismiss:active {
+  transform: translateY(1px);
+}
+
+/* Narrow windows: let the message wrap onto its own line while the icon
+   + actions stay on the top row. */
+@media (max-width: 720px) {
+  .libre-analytics-notice {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 8px 12px;
+  }
+  .libre-analytics-notice__actions {
+    margin-left: auto;
+  }
+  .libre-analytics-notice__text {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
+
+/* Respect reduced-motion: kill the press nudge + transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .libre-analytics-notice__dismiss {
+    transition: none;
+  }
+  .libre-analytics-notice__dismiss:active {
+    transform: none;
+  }
+}

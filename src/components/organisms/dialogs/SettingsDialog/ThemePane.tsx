@@ -20,6 +20,7 @@ import SettingsCard, { SettingsPage } from "./SettingsCard";
 import { VARIANTS, type VariantId } from "@/components/organisms/Sidebar/variants/registry";
 import { useSidebarVariant } from "@/components/organisms/Sidebar/variants/useSidebarVariant";
 import { useT } from "@/i18n/i18n";
+import { track } from "@/lib/track";
 
 interface ThemePaneProps {
   theme: ThemeName;
@@ -129,7 +130,10 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
                 name="libre-theme"
                 value={t.id}
                 checked={theme === t.id}
-                onChange={() => onThemeChange(t.id)}
+                onChange={() => {
+                  track.themeChange(t.id);
+                  onThemeChange(t.id);
+                }}
               />
               {/* Cover-art squircle — the source sci-fi cover the theme is
                   painted from. The classic default-dark has no art, so it

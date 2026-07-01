@@ -1,64 +1,72 @@
-/// Lightweight, privacy-friendly analytics — WEB BUILD ONLY.
+/// Lightweight, privacy-friendly product analytics — web AND desktop.
 ///
-/// The Tauri desktop / iOS shells never load this module's side
-/// effects because the public `init()` short-circuits when `isWeb`
-/// is false. The bundler inlines the `isWeb` check at build time
-/// (Vite `define`) so the desktop bundle drops the analytics
-/// integration entirely — no script tag, no fetch, no overhead.
+/// Two transports, picked at build time by `platform.ts`:
 ///
-/// Wire format: Plausible's `/api/event` endpoint, which accepts
-/// `{ name, url, domain, props? }` as JSON. Plausible's hosted
-/// script (`plausible.io/js/script.outbound-links.js`) installs
-/// `window.plausible(name, { props })` for custom events; we use
-/// that when the script is loaded and fall back to a direct fetch
-/// if it isn't (or for environments that block third-party JS).
+///   • WEB (`libre.academy/learn`): inject Plausible's hosted script.
+///     It reads `window.location`, auto-fires the initial pageview,
+///     tracks outbound-link clicks, and installs `window.plausible(...)`
+///     for custom events. Same behaviour this module always had.
 ///
-/// Privacy: Plausible doesn't set cookies, doesn't fingerprint,
-/// and is GDPR-compliant out of the box. No consent banner needed.
-/// If we ever switch to a self-hosted endpoint (Umami / Pirsch /
-/// home-built), the `ANALYTICS_HOST` constant + the `plausible`
-/// global fallback are the only spots to update.
+///   • DESKTOP (the Tauri shell): the hosted script is useless here —
+///     the WKWebView origin is `tauri://localhost`, so the script would
+///     record garbage URLs and Plausible would reject the domain
+///     mismatch. Instead we POST directly to Plausible's `/api/event`
+///     endpoint with a SYNTHETIC url under `libre.academy/app/*`, so
+///     desktop sessions land on their own clean `/app/…` paths in the
+///     dashboard, cleanly separable from the marketing site (`/…`) and
+///     the web app (`/learn/…`). Every desktop event also carries
+///     `platform` + `app_version` props for granular breakdowns.
 ///
-/// What we track:
-///   - Pageviews on view-state changes (App's `view` flips between
-///     library, lesson, sandbox, profile, etc.) — wired by
-///     `App.tsx` via `trackPageview()`.
-///   - Custom click events on CTAs the product cares about
-///     (install, course-open, AI-orb-click, lesson-complete, etc.)
-///     — call `trackEvent("name", { props })` from the click
-///     handler. Props stay small to fit Plausible's 30-key cap.
+/// Offline-first: the desktop app is designed to work with no network,
+/// so a failed/offline send is BUFFERED in localStorage and flushed on
+/// reconnect (and on next launch). Nothing blocks the UI; nothing is
+/// lost to a flaky connection. (Plausible timestamps on receipt, so
+/// events sent from the queue are counted at flush time, not their
+/// original moment — fine for funnels/counts, approximate for
+/// time-of-day.)
+///
+/// Consent: OPT-OUT (see `analyticsSettings.ts`). Everything here
+/// short-circuits when the user has opted out, in tests, or in
+/// auxiliary windows (tray / dock / popout) which are fragments of a
+/// session rather than independent surfaces.
 
-import { isWeb } from "./platform";
+import { isWeb, detectOS } from "./platform";
+import { readAnalyticsEnabled, ANALYTICS_CHANGED_EVENT } from "./analyticsSettings";
 
-/// Plausible site id — must match the `data-domain` attribute the
-/// Plausible dashboard uses to identify this site. Self-hosted
-/// Plausible at `stats.libre.academy` records every event under
-/// this key; if we ever move to a multi-site dashboard, this is
-/// the only constant that needs to change to route events to a
-/// different bucket.
+/// Plausible site id — matches the `data-domain` the dashboard uses.
 const ANALYTICS_DOMAIN = "libre.academy";
 
-/// Self-hosted Plausible script. Lives on the `stats.libre.academy`
-/// subdomain (see `infra/plausible/` for the docker-compose +
-/// Caddyfile that stands the service up). Using
-/// `script.outbound-links.js` enables Plausible's built-in
-/// outbound-link auto-tracking — useful for measuring clicks on
-/// the GitHub release page + the upsell CTAs that link off-site.
-/// Keeping the script on our own subdomain means no third-party
-/// cookies, no ad-blocker false-positives, and the script + the
-/// event endpoint share the same origin so corporate firewalls
-/// can whitelist one host instead of two.
+/// Self-hosted Plausible script (web transport). Lives on the
+/// `stats.libre.academy` subdomain (see `infra/plausible/`).
 const ANALYTICS_SCRIPT =
   "https://stats.libre.academy/js/script.outbound-links.js";
 
-/// Direct-POST fallback endpoint for environments where the hosted
-/// script can't load (CSP blocks third-party JS, ad-blocker eats
-/// the request, the user's network blocks `stats.libre.academy`,
-/// etc.). The hosted script is preferred when available because
-/// it handles URL parsing for SPAs + auto-fires the initial
-/// pageview; the direct POST is the resilient fallback so we
-/// don't lose visibility entirely when the script is blocked.
+/// Plausible event endpoint (desktop transport + web fallback).
 const ANALYTICS_HOST = "https://stats.libre.academy/api/event";
+
+/// Synthetic origin + path prefix for desktop pageviews/events so the
+/// dashboard shows clean `/app/…` routes and never a `tauri://` URL.
+const DESKTOP_ORIGIN = "https://libre.academy";
+const DESKTOP_PATH_PREFIX = "/app";
+
+/// Offline queue. Versioned key so a future schema change can't collide
+/// with stale buffered events. Capped so a permanently-offline machine
+/// can't grow localStorage without bound; oldest events drop first.
+const QUEUE_KEY = "libre.analytics.queue.v1";
+const QUEUE_MAX = 500;
+/// Drop buffered events older than this on flush — Plausible records at
+/// receipt time anyway, so ancient events add noise without value.
+const QUEUE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+type Props = Record<string, string | number | boolean>;
+interface Payload {
+  name: string;
+  url: string;
+  domain: string;
+  props?: Props;
+  /// Internal only — used for staleness pruning; stripped before send.
+  ts?: number;
+}
 
 declare global {
   interface Window {
@@ -70,60 +78,167 @@ declare global {
 }
 
 let initialised = false;
+/// Resolved lazily on desktop via Tauri's `getVersion()`; "" until then
+/// (the first event or two may omit `app_version`, which is fine).
+let appVersion = "";
+/// The current synthetic desktop path, updated on every `trackPageview`
+/// so custom events can attach the `url` of the surface they fired on.
+let currentPath = DESKTOP_PATH_PREFIX;
+let flushing = false;
 
-/// Initialise analytics. No-op on non-web builds, no-op if already
-/// initialised, no-op when running under `vite preview` / unit
-/// tests (we sniff `import.meta.env.MODE === "test"` to skip).
-///
-/// Call once from `main.tsx` AFTER the page picker — by then we
-/// know whether this is the main app, a popout / dock surface
-/// (which shouldn't track on their own), or a test runner.
-export function init(): void {
-  if (initialised) return;
-  if (!isWeb) return;
-  if (typeof window === "undefined") return;
-  if (typeof document === "undefined") return;
-  // Skip in popout / dock / tray surfaces — they're fragments of
-  // the same session, not independent pageviews. Tray + popout
-  // detection mirrors the route-picker in `main.tsx`.
+/// Is this an auxiliary window (tray / dock / popout / phone preview)?
+/// These are fragments of the main session, not independent surfaces,
+/// so they must never load the script or fire their own pageviews.
+function isAuxSurface(): boolean {
   try {
-    const params = new URLSearchParams(window.location.search);
-    if (
-      params.get("phone") === "1" ||
-      params.get("tray") === "1" ||
-      params.get("popped") === "1" ||
-      params.get("evmDock") === "1" ||
-      params.get("btcDock") === "1" ||
-      params.get("svmDock") === "1"
-    ) {
-      return;
-    }
+    const p = new URLSearchParams(window.location.search);
+    return (
+      p.get("phone") === "1" ||
+      p.get("tray") === "1" ||
+      p.get("popped") === "1" ||
+      p.get("evmDock") === "1" ||
+      p.get("btcDock") === "1" ||
+      p.get("svmDock") === "1"
+    );
   } catch {
-    /* URL parsing failed — fall through and load anyway */
+    return false;
   }
-  initialised = true;
+}
 
-  // Inject the Plausible script. `defer` keeps it off the critical
-  // boot path; the script self-installs `window.plausible` and
-  // auto-fires the initial pageview.
+/// Master gate. False in tests, without a DOM, or when the user has
+/// opted out. Read on every call so a mid-session opt-out takes effect
+/// immediately.
+function analyticsActive(): boolean {
+  if (import.meta.env.MODE === "test") return false;
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return false;
+  }
+  return readAnalyticsEnabled();
+}
+
+/// `platform` prop value — "web" or "desktop-<os>" so the dashboard can
+/// split usage by build + OS.
+function platformTag(): string {
+  return isWeb ? "web" : `desktop-${detectOS()}`;
+}
+
+/// Props attached to every event (both transports): what built it, on
+/// which OS, at which version, in which locale.
+function commonProps(): Props {
+  const base: Props = { platform: platformTag() };
+  if (appVersion) base.app_version = appVersion;
+  try {
+    if (navigator.language) base.locale = navigator.language;
+  } catch {
+    /* ignore */
+  }
+  return base;
+}
+
+// ─── offline queue ───────────────────────────────────────────────────
+function readQueue(): Payload[] {
+  try {
+    const raw = localStorage.getItem(QUEUE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function writeQueue(q: Payload[]): void {
+  try {
+    // Keep only the newest QUEUE_MAX so a long offline stretch can't
+    // blow the localStorage quota.
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-QUEUE_MAX)));
+  } catch {
+    /* quota / blocked — drop silently, analytics never breaks the app */
+  }
+}
+function clearQueue(): void {
+  try {
+    localStorage.removeItem(QUEUE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+function enqueue(p: Payload): void {
+  const q = readQueue();
+  q.push({ ...p, ts: Date.now() });
+  writeQueue(q);
+}
+
+/// POST a payload now, or buffer it if offline / on failure.
+function postOrQueue(p: Payload): void {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    enqueue(p);
+    return;
+  }
+  send(p).then((ok) => {
+    if (!ok) enqueue(p);
+  });
+}
+
+/// Low-level POST. Resolves `true` on a 2xx, `false` otherwise — never
+/// rejects, so callers can decide to queue without a try/catch.
+function send(p: Payload): Promise<boolean> {
+  const body = JSON.stringify({
+    name: p.name,
+    url: p.url,
+    domain: p.domain,
+    ...(p.props ? { props: p.props } : {}),
+  });
+  return fetch(ANALYTICS_HOST, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  })
+    .then((r) => r.ok)
+    .catch(() => false);
+}
+
+/// Flush buffered events. Guarded against re-entrancy and no-ops when
+/// offline or opted-out. Failures are re-buffered; stale events are
+/// pruned.
+function flushQueue(): void {
+  if (flushing || !analyticsActive()) return;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+  const q = readQueue();
+  if (!q.length) return;
+  flushing = true;
+  const now = Date.now();
+  const fresh = q.filter((p) => !p.ts || now - p.ts < QUEUE_MAX_AGE_MS);
+  // Optimistically clear; any that fail (or events enqueued mid-flush)
+  // are merged back below.
+  clearQueue();
+  const failed: Payload[] = [];
+  Promise.allSettled(
+    fresh.map((p) => send(p).then((ok) => (ok ? undefined : failed.push(p)))),
+  ).finally(() => {
+    if (failed.length) writeQueue([...readQueue(), ...failed]);
+    flushing = false;
+  });
+}
+
+/// Opt-out flips clear the buffer; opt-ins resume flushing.
+function onSettingChange(): void {
+  if (!readAnalyticsEnabled()) clearQueue();
+  else flushQueue();
+}
+
+// ─── web transport (hosted script) ───────────────────────────────────
+function injectScript(): void {
   const script = document.createElement("script");
   script.defer = true;
   script.src = ANALYTICS_SCRIPT;
   script.setAttribute("data-domain", ANALYTICS_DOMAIN);
   document.head.appendChild(script);
 
-  // Queue stub: callers that fire events before the script
-  // finishes loading would otherwise no-op silently. Plausible's
-  // documented pattern is `window.plausible = window.plausible ||
-  // function(){(window.plausible.q = window.plausible.q || []).push(arguments)}`;
-  // we replicate it so early events buffer + flush once the real
-  // function lands.
+  // Queue stub so events fired before the script lands still flush once
+  // the real `window.plausible` installs (Plausible's documented pattern).
   if (!window.plausible) {
     interface PlausibleStub {
-      (
-        event: string,
-        options?: { props?: Record<string, string | number | boolean> },
-      ): void;
+      (event: string, options?: { props?: Props }): void;
       q?: unknown[];
     }
     const stub: PlausibleStub = (...args) => {
@@ -134,55 +249,129 @@ export function init(): void {
   }
 }
 
-/// Track a manual pageview. The hosted Plausible script auto-fires
-/// the initial pageview, but SPA route changes need an explicit
-/// nudge — Plausible's recommended pattern is to call
-/// `plausible("pageview")` after each route change so the URL is
-/// captured under its new value.
-///
-/// Call from anywhere the route-equivalent flips (App's `view`
-/// state, sub-route mounting). No-op when not initialised.
-export function trackPageview(): void {
-  if (!isWeb || !initialised) return;
+// ─── desktop transport (direct POST) ─────────────────────────────────
+function resolveAppVersion(): void {
+  void import("@tauri-apps/api/app")
+    .then((m) => m.getVersion())
+    .then((v) => {
+      if (v) appVersion = v;
+    })
+    .catch(() => {
+      /* leave "" — events just omit app_version */
+    });
+}
+
+/// Normalise a caller-supplied view descriptor into a `/app/…` path.
+/// Accepts either a bare view name ("library") or an already-prefixed
+/// path ("/app/lesson"); always returns a clean, prefixed path.
+function normalisePath(descriptor?: string): string {
+  if (!descriptor) return DESKTOP_PATH_PREFIX;
+  let d = descriptor.trim();
+  if (!d.startsWith("/")) d = `/${d}`;
+  if (!d.startsWith(DESKTOP_PATH_PREFIX)) d = `${DESKTOP_PATH_PREFIX}${d}`;
+  // Collapse accidental double slashes.
+  return d.replace(/\/{2,}/g, "/");
+}
+
+// ─── public API ──────────────────────────────────────────────────────
+
+/// Initialise analytics once, from `main.tsx` after the page picker.
+/// No-op when opted out, in tests, or in auxiliary windows. Picks the
+/// web (script) or desktop (direct POST) transport by build target, then
+/// wires the offline-flush + settings-change listeners.
+export function init(): void {
+  if (initialised) return;
+  if (!analyticsActive()) {
+    // Still listen for an opt-IN later so we can start without a reload.
+    try {
+      window.addEventListener(ANALYTICS_CHANGED_EVENT, onOptInBoot);
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
+  if (isAuxSurface()) return;
+  initialised = true;
+
+  if (isWeb) {
+    injectScript();
+  } else {
+    resolveAppVersion();
+  }
+
+  // Reconnect + settings listeners. Flush anything buffered from a
+  // previous offline session on boot.
   try {
-    window.plausible?.("pageview");
+    window.addEventListener("online", flushQueue);
+    window.addEventListener(ANALYTICS_CHANGED_EVENT, onSettingChange);
   } catch {
-    /* swallow — analytics never fails the host app */
+    /* ignore */
+  }
+  flushQueue();
+}
+
+/// If the user opts IN after boot (analytics were off at launch), run
+/// the real init now. One-shot — `init()` re-guards on `initialised`.
+function onOptInBoot(): void {
+  if (readAnalyticsEnabled()) {
+    try {
+      window.removeEventListener(ANALYTICS_CHANGED_EVENT, onOptInBoot);
+    } catch {
+      /* ignore */
+    }
+    init();
   }
 }
 
-/// Track a custom event. `name` is the event identifier in your
-/// Plausible dashboard ("Goals" → "+ Add custom event goal"); the
-/// props bag carries the structured payload (e.g.
-/// `{ course: "a-to-ts", lessonKind: "exercise" }`). Keep props
-/// to ~10 keys and short string values — Plausible's free tier
-/// caps custom-event props at 30/event.
-///
-/// Falls back to a direct POST when `window.plausible` isn't
-/// available (script blocked / not yet loaded).
-export function trackEvent(
-  name: string,
-  props?: Record<string, string | number | boolean>,
-): void {
-  if (!isWeb || !initialised) return;
+/// Track a pageview. On web the hosted script reads `location`; pass
+/// nothing. On desktop pass the current view descriptor (e.g. "library",
+/// "lesson", "sandbox") — it becomes the `/app/…` path AND the base URL
+/// that subsequent custom events attach to.
+export function trackPageview(view?: string): void {
+  if (!initialised || !analyticsActive()) return;
   try {
-    if (window.plausible) {
-      window.plausible(name, props ? { props } : undefined);
+    if (isWeb) {
+      window.plausible?.("pageview");
       return;
     }
-    // Fallback direct POST. Mirrors the wire format Plausible's
-    // own script uses. Best-effort — failures are silent.
-    void fetch(ANALYTICS_HOST, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    currentPath = normalisePath(view);
+    postOrQueue({
+      name: "pageview",
+      url: DESKTOP_ORIGIN + currentPath,
+      domain: ANALYTICS_DOMAIN,
+      props: commonProps(),
+    });
+  } catch {
+    /* analytics never fails the host app */
+  }
+}
+
+/// Track a custom event. `props` carries the structured payload; keep it
+/// small (Plausible caps custom-event props at 30/event). Common props
+/// (`platform`, `app_version`, `locale`) are merged in automatically.
+export function trackEvent(name: string, props?: Props): void {
+  if (!initialised || !analyticsActive()) return;
+  try {
+    const merged: Props = { ...commonProps(), ...(props ?? {}) };
+    if (isWeb) {
+      if (window.plausible) {
+        window.plausible(name, { props: merged });
+        return;
+      }
+      postOrQueue({
         name,
         url: window.location.href,
         domain: ANALYTICS_DOMAIN,
-        props,
-      }),
-      keepalive: true,
-    }).catch(() => undefined);
+        props: merged,
+      });
+      return;
+    }
+    postOrQueue({
+      name,
+      url: DESKTOP_ORIGIN + currentPath,
+      domain: ANALYTICS_DOMAIN,
+      props: merged,
+    });
   } catch {
     /* swallow */
   }

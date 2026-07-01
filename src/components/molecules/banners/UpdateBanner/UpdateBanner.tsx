@@ -25,6 +25,7 @@ import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import { isDesktop } from "@/lib/platform";
 import { useT } from "@/i18n/i18n";
+import { track } from "@/lib/track";
 import "./UpdateBanner.css";
 
 /// Size of the polling interval for "check again" — once an hour is
@@ -87,6 +88,7 @@ export function UpdateBanner({
   const runCheck = useCallback(async () => {
     try {
       const { check } = await import("@tauri-apps/plugin-updater");
+      track.update("check");
       const update = await check();
       if (cancelledRef.current) return;
       if (!update) {
@@ -98,6 +100,7 @@ export function UpdateBanner({
         // hidden until the next version ships.
         return;
       }
+      track.update("available");
       setState({
         kind: "available",
         version: update.version,
@@ -126,6 +129,7 @@ export function UpdateBanner({
 
   const onDownload = useCallback(async () => {
     if (state.kind !== "available") return;
+    track.update("download");
     setState({
       kind: "downloading",
       version: state.version,
@@ -186,6 +190,10 @@ export function UpdateBanner({
     // restart button only renders in ITS own update-check "ready"
     // state (which a banner-driven install never sets) — a
     // dead-end. A button that says "Restart now" must restart.
+    // The download already staged the new bundle; the restart is the
+    // moment it's actually applied. Fire before the relaunch invoke —
+    // that call exits the process on success, so nothing after it runs.
+    track.update("install");
     try {
       // Prefer the Rust `relaunch_for_update` command: on macOS the
       // plugin's plain `relaunch()` re-execs before the dying process
