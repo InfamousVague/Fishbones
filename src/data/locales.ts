@@ -46,23 +46,26 @@ export type Locale =
   | "sw";
 
 export const SUPPORTED_LOCALES: readonly Locale[] = [
+  // Sorted by our user base (largest country cohorts first): India (hi),
+  // Arabic-speaking countries, Pakistan (ur), Turkey, Philippines,
+  // Bangladesh, then the rest. English is the source + largest cohort.
   "en",
-  "ru",
-  "es",
-  "fr",
-  "kr",
-  "jp",
   "hi",
   "ar",
   "ur",
   "tr",
-  "bn",
   "tl",
+  "bn",
+  "fr",
   "fa",
   "ne",
   "vi",
-  "id",
   "sw",
+  "es",
+  "id",
+  "jp",
+  "ru",
+  "kr",
 ] as const;
 
 /// Right-to-left locales. When one of these is active the app sets
