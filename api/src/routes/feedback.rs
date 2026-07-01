@@ -19,10 +19,13 @@
 //! Notion rejects/errors (so the UI can show "try again"), and `400`
 //! for an empty body. A hidden honeypot field drops obvious bots.
 
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{extract::State, http::HeaderMap, http::StatusCode, Json};
+use dashmap::DashMap;
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use crate::state::AppState;
 
@@ -37,6 +40,65 @@ const MAX_MESSAGE_CHARS: usize = 5000;
 /// Pinned Notion API version. `parent: { database_id }` is valid here;
 /// newer versions move to data-source parents.
 const NOTION_VERSION: &str = "2022-06-28";
+
+/// Per-IP rate limit for this public, unauthenticated endpoint. Each
+/// accepted request drives an authenticated write to a real Notion
+/// database, so without a cap a script could flood the board and burn
+/// the integration's API quota. A fixed window: at most
+/// `FEEDBACK_RL_MAX` requests per `FEEDBACK_RL_WINDOW` from one client
+/// IP. Not a hard boundary (IPs are spoofable / shared), but it turns
+/// "unlimited" into "a handful per window". Same in-memory `DashMap`
+/// shape the OAuth state cache uses.
+const FEEDBACK_RL_WINDOW: Duration = Duration::from_secs(300);
+const FEEDBACK_RL_MAX: u32 = 5;
+/// How long the Notion HTTP call may hang before we give up. Without it
+/// a slow/hung api.notion.com would pin the handler task indefinitely;
+/// combined with the rate limit above this bounds resource use under a
+/// burst. Mirrors the 10s timeout the mailer uses.
+const NOTION_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// (count, window-start) keyed by client IP. Process-global; swept
+/// lazily on each call so it can't grow without bound.
+static FEEDBACK_RL: Lazy<DashMap<String, (u32, Instant)>> = Lazy::new(DashMap::new);
+
+/// Client IP for rate-limit keying. The relay sits behind Caddy (the
+/// only proxy — no CDN in front; Caddy terminates TLS directly for
+/// api.libre.academy), so the TCP peer is always loopback and we read
+/// the real client from `X-Forwarded-For`.
+///
+/// We take the LAST hop, not the first. Caddy's reverse_proxy APPENDS
+/// the immediate peer's IP to the right of any client-supplied
+/// `X-Forwarded-For`, so the leftmost entries are attacker-controlled
+/// (a client can pre-set `X-Forwarded-For: fake` to rotate the key and
+/// bypass the limit) while the rightmost is the value Caddy itself
+/// added and can be trusted. Missing header → one shared "unknown"
+/// bucket (fail toward limiting, not toward unlimited).
+fn feedback_client_key(headers: &HeaderMap) -> String {
+    headers
+        .get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.split(',').next_back())
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .unwrap_or("unknown")
+        .to_string()
+}
+
+/// True when this IP has exceeded its window budget. `retain` fully
+/// completes (and releases its shard locks) before we take the per-key
+/// `entry`, so the sweep can't self-deadlock against the entry lock.
+fn feedback_rate_limited(key: &str) -> bool {
+    let now = Instant::now();
+    FEEDBACK_RL.retain(|_, (_, start)| now.duration_since(*start) < FEEDBACK_RL_WINDOW);
+    let mut entry = FEEDBACK_RL.entry(key.to_string()).or_insert((0, now));
+    if now.duration_since(entry.1) >= FEEDBACK_RL_WINDOW {
+        *entry = (1, now);
+        false
+    } else {
+        entry.0 += 1;
+        entry.0 > FEEDBACK_RL_MAX
+    }
+}
 
 #[derive(Deserialize)]
 pub struct FeedbackRequest {
@@ -110,8 +172,20 @@ fn summarize(message: &str, fallback: &str) -> String {
 
 pub async fn submit(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(body): Json<FeedbackRequest>,
 ) -> Result<StatusCode, StatusCode> {
+    // Per-IP rate limit FIRST — before any work — so a scripted flood is
+    // rejected cheaply and can't drive Notion writes. Counts every
+    // request (honeypot + invalid included), which is what we want for
+    // flood protection; the window is generous enough that normal use
+    // (a submission or two) never trips it.
+    let rl_key = feedback_client_key(&headers);
+    if feedback_rate_limited(&rl_key) {
+        tracing::warn!("Feedback rate limit exceeded for {rl_key}");
+        return Err(StatusCode::TOO_MANY_REQUESTS);
+    }
+
     // Config gate — both env vars required, else this deploy can't reach
     // Notion. 503 mirrors the OAuth routes' "not configured" behaviour.
     let (token, database_id) = match (&state.notion_token, &state.notion_database_id) {
@@ -185,6 +259,7 @@ pub async fn submit(
         .bearer_auth(token)
         .header("Notion-Version", NOTION_VERSION)
         .json(&payload)
+        .timeout(NOTION_TIMEOUT)
         .send()
         .await;
 
