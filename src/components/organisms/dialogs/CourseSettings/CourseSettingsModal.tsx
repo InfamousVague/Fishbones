@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Icon } from "@base/primitives/icon";
@@ -129,13 +130,10 @@ export default function CourseSettingsModal({
   // archive" flow. The URL is intentionally extension-agnostic — the
   // server resolves to `.academy` (or legacy `.libre`) by id.
   const shareUrl = `https://libre.academy/install?course=${encodeURIComponent(course.id)}`;
-  const [shareCopied, setShareCopied] = useState(false);
+  const { copied: shareCopied, copy: copyShare } = useCopyToClipboard();
   async function copyShareLink() {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setShareCopied(true);
-      window.setTimeout(() => setShareCopied(false), 2200);
-    } catch {
+    const ok = await copyShare(shareUrl);
+    if (!ok) {
       // Clipboard API can fail in non-HTTPS contexts or when the
       // tab isn't focused. Fall back to a manual prompt so the user
       // can still grab the URL.

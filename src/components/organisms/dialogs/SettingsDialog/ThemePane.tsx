@@ -15,11 +15,11 @@ import {
 } from "@/theme/themes";
 import { themeThumb } from "@/components/organisms/dialogs/ThemePicker/themeThumbs";
 import { THEME_PREVIEW } from "@/theme/themePreviews";
-import LanguageDropdown from "@/components/molecules/LanguageDropdown/LanguageDropdown";
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import { VARIANTS, type VariantId } from "@/components/organisms/Sidebar/variants/registry";
 import { useSidebarVariant } from "@/components/organisms/Sidebar/variants/useSidebarVariant";
 import { useT } from "@/i18n/i18n";
+import { track } from "@/lib/track";
 
 interface ThemePaneProps {
   theme: ThemeName;
@@ -82,31 +82,9 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
       title={t("settings.appearance")}
       description={t("settings.appearanceDescription")}
     >
-      {/* Language — single setting that drives BOTH the i18n runtime
-          (every UI string in the chrome — nav, dialogs, sandbox,
-          library, etc.) and the lesson-content overlay (Libre-
-          authored courses re-render in the picked locale). Two
-          separate settings here was a UX trap: 95% of users want
-          their app + their courses in the same language. Edge cases
-          (Spanish-speaker drilling a Russian course) can still
-          read the source language directly in the lesson — the
-          locale setting only affects translated content. */}
-      <SettingsCard title={t("settings.language")}>
-        <div className="libre-settings-row libre-settings-row--no-icon">
-          <div className="libre-settings-row__body">
-            <span className="libre-settings-row__label">
-              {t("settings.language")}
-            </span>
-            <span className="libre-settings-row__sub">
-              {t("settings.languageDescription")}
-            </span>
-          </div>
-          <div className="libre-settings-row__control">
-            <LanguageDropdown variant="compact" />
-          </div>
-        </div>
-      </SettingsCard>
-
+      {/* Language selection now lives in Settings → General (see
+          GeneralPane's Language card). The single locale setting drives
+          both the i18n runtime and the lesson-content overlay. */}
       <SettingsCard title={t("settings.themeCard")}>
         <div
           className="libre-settings-model-group libre-settings-model-group--scroll"
@@ -129,7 +107,10 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
                 name="libre-theme"
                 value={t.id}
                 checked={theme === t.id}
-                onChange={() => onThemeChange(t.id)}
+                onChange={() => {
+                  track.themeChange(t.id);
+                  onThemeChange(t.id);
+                }}
               />
               {/* Cover-art squircle — the source sci-fi cover the theme is
                   painted from. The classic default-dark has no art, so it

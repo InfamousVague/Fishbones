@@ -9,8 +9,10 @@ import "@base/primitives/icon/icon.css";
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
+import LanguageSelect from "./LanguageSelect";
 import { useT } from "@/i18n/i18n";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
+import { track } from "@/lib/track";
 import {
   AUTO_ADVANCE_DEFAULT,
   AUTO_ADVANCE_STORAGE_KEY,
@@ -94,11 +96,13 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
     setState({ kind: "checking" });
     try {
       const { check } = await import("@tauri-apps/plugin-updater");
+      track.update("check");
       const update = await check();
       if (!update) {
         setState({ kind: "uptodate", checkedAt: Date.now() });
         return;
       }
+      track.update("available");
       setState({
         kind: "available",
         version: update.version,
@@ -129,6 +133,7 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
 
   const downloadAndInstall = useCallback(async () => {
     if (!isTauri()) return;
+    track.update("download");
     setState({ kind: "downloading", progress: 0, total: null });
     try {
       const { check } = await import("@tauri-apps/plugin-updater");
@@ -188,6 +193,27 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
       title={t("settings.general")}
       description={t("settings.generalDescription")}
     >
+      {/* Language — a single setting that drives BOTH the i18n runtime
+          (every UI string in the chrome) and the lesson-content overlay
+          (Libre-authored courses re-render in the picked locale). Lives
+          here in General (rather than Appearance) so it sits alongside
+          the app's other top-level preferences. The searchable +
+          scrollable picker copes with the 17 registered locales without
+          running off-screen. */}
+      <SettingsCard title={t("settings.languageCard")}>
+        <div className="libre-settings-row libre-settings-row--no-icon">
+          <div className="libre-settings-row__body">
+            <span className="libre-settings-row__label">
+              {t("settings.language")}
+            </span>
+            <span className="libre-settings-row__sub">
+              {t("settings.languageDescription")}
+            </span>
+          </div>
+        </div>
+        <LanguageSelect />
+      </SettingsCard>
+
       <SettingsCard title={t("settings.learningCard")}>
         <SettingsRow
           icon={arrowRight}
@@ -209,6 +235,7 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
                 // useEffect-based persistence.
                 setAutoAdvanceState(next);
                 setAutoAdvanceEnabled(next);
+                track.settingChange({ key: "autoAdvance", value: next });
               }}
               label={t("settings.autoAdvanceLabel")}
             />
@@ -324,6 +351,9 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
             <button
               className="libre-settings-primary"
               onClick={async () => {
+                // The staged bundle is applied on relaunch; fire before
+                // the invoke, which exits the process on success.
+                track.update("install");
                 try {
                   // Robust macOS-safe relaunch (see relaunch_for_update
                   // in lib.rs): fully exits and reopens the updated

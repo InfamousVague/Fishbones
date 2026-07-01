@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import type { IngestRunState } from "@/hooks/useIngestRun";
+import { useInterval } from "@/hooks/useInterval";
 import StatsBar from "@/components/organisms/dialogs/ImportDialog/StatsBar";
 import "./FloatingIngestPanel.css";
 
@@ -33,11 +34,7 @@ export default function FloatingIngestPanel({
   const [verbose, setVerbose] = useState(false);
   // Tick every second so elapsed time + "waiting" counter stay fresh.
   const [, tick] = useState(0);
-  useEffect(() => {
-    if (run.status !== "running") return;
-    const id = setInterval(() => tick((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, [run.status]);
+  useInterval(() => tick((n) => n + 1), run.status === "running" ? 1000 : null);
 
   const lastEventAt =
     run.events.length > 0 ? run.events[run.events.length - 1].timestamp : null;

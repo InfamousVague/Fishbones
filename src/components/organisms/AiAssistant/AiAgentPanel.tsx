@@ -61,6 +61,7 @@ import {
   saveMemory,
 } from "@/lib/ai/memory";
 import { conceptForDiagnosis } from "@/lib/ai/concepts";
+import { track } from "@/lib/track";
 import { useT } from "@/i18n/i18n";
 import "./AiChatPanel.css";
 import "./AiAgentHud.css";
@@ -717,7 +718,12 @@ export default function AiAgentPanel({
           <PendingToolChip
             key={p.call.id}
             pending={p}
-            onApprove={() => onApprove(p.call.id)}
+            onApprove={() => {
+              // User accepted the agent's proposed action/diff —
+              // this is the moment the suggestion gets applied.
+              track.aiApply("agent");
+              onApprove(p.call.id);
+            }}
             onDeny={() => onDeny(p.call.id)}
           />
         ))}

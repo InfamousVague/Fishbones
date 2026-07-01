@@ -28,6 +28,7 @@ import {
 import Workbench from "@/components/organisms/Workbench/Workbench";
 import MissingToolchainBanner from "@/components/molecules/banners/MissingToolchain/MissingToolchainBanner";
 import { useT } from "@/i18n/i18n";
+import { track } from "@/lib/track";
 import "./SandboxView.css";
 import { validateFilePath } from "@/lib/aiTools/sandboxValidation";
 
@@ -329,6 +330,17 @@ export default function SandboxView({ projects }: SandboxViewProps) {
   const setLanguage = setActiveLanguage;
   const [result, setResult] = useState<RunResult | null>(null);
   const [running, setRunning] = useState(false);
+
+  // Analytics: the free-play sandbox was opened. Fires once per mount
+  // with the active project's language (mirrors how LessonView fires
+  // `lesson.start` on mount), so the dashboard can see sandbox usage
+  // and which languages people reach for. Language switches WITHIN a
+  // session are captured by `setting.change`-style flows elsewhere,
+  // not re-reported here, to keep this an "opened" signal.
+  useEffect(() => {
+    track.sandboxOpen(language);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   /// Watch the in-process chains. The dock banners self-mount above
   /// the sandbox header whenever either chain has txs / blocks
   /// past genesis. Lets a learner experiment with `runFiles({...})`
@@ -606,12 +618,19 @@ export default function SandboxView({ projects }: SandboxViewProps) {
           error: msg,
           durationMs: 0,
         });
+        // Analytics: a sandbox run that couldn't resolve a runtime is
+        // still a run the user attempted — record it as a failure.
+        track.sandboxRun({ language, ok: false });
         if (PHONE_VIEW_LANGUAGES.has(language)) {
           phoneBus?.emit({ type: "console", logs: [], error: msg });
         }
         return;
       }
       setResult(r);
+      // Analytics: one `sandbox.run` per completed run. `ok` reflects
+      // whether the runtime returned without an error (the sandbox has
+      // no tests, so there's no pass/fail beyond "did it run cleanly").
+      track.sandboxRun({ language, ok: !r.error });
       // Push the run outcome to the popped phone simulator. RN's
       // self-hosted preview URL drives an iframe in the popout;
       // Swift (and any RN run that didn't yield a previewUrl)
@@ -637,6 +656,8 @@ export default function SandboxView({ projects }: SandboxViewProps) {
         error: errMsg,
         durationMs: 0,
       });
+      // Analytics: a thrown error from the runtime chain is a failed run.
+      track.sandboxRun({ language, ok: false });
       if (PHONE_VIEW_LANGUAGES.has(language)) {
         phoneBus?.emit({ type: "console", logs: [], error: errMsg });
       }

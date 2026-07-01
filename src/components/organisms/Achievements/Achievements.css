@@ -948,3 +948,145 @@
     transition: none !important;
   }
 }
+
+/* ─── Section / book complete BANNER ─────────────────────────────
+   Replaces the old full-screen summary modal (the `.libre-ach-summary*`
+   + `.libre-ach-modal-backdrop` rules above are now dead — pending removal):
+   a transient accent-glass strip that slides down from under the top bar and
+   auto-dismisses. Same visual language as the early-release banner. */
+.libre-ach-banner {
+  position: fixed;
+  top: calc(var(--libre-size-52) + var(--libre-space-12));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--libre-z-200, 200);
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  max-width: min(620px, calc(100vw - 32px));
+  padding: var(--libre-space-10) var(--libre-space-12) var(--libre-space-10) var(--libre-space-14);
+  border-radius: var(--libre-radius-14, 14px);
+  color: var(--color-text-primary);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--gg-accent, #e88f68) 16%, var(--color-bg-secondary)),
+    color-mix(in srgb, var(--gg-accent, #e88f68) 10%, var(--color-bg-secondary))
+  );
+  border: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--gg-accent, #e88f68) 34%, var(--color-border-default));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(var(--libre-blur-28, 28px)) saturate(150%);
+  backdrop-filter: blur(var(--libre-blur-28, 28px)) saturate(150%);
+  animation: libre-ach-banner-in var(--libre-dur-320, 0.32s)
+    var(--libre-ease-cb-2, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+@keyframes libre-ach-banner-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.libre-ach-banner__sigil {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--libre-radius-circle, 999px);
+  color: var(--gg-accent-deep, var(--gg-accent, #df7649));
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 20%, transparent);
+}
+.libre-ach-banner__cover {
+  flex-shrink: 0;
+  width: 34px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--libre-radius-sm, 6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.libre-ach-banner__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.libre-ach-banner__eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gg-accent-deep, var(--gg-accent, #df7649));
+}
+.libre-ach-banner__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.libre-ach-banner__sub {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.libre-ach-banner__stats {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--libre-space-6);
+}
+.libre-ach-banner__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--libre-space-4);
+  padding: var(--libre-space-3) var(--libre-space-8);
+  border-radius: var(--libre-radius-pill);
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 14%, transparent);
+  white-space: nowrap;
+}
+.libre-ach-banner__stat strong {
+  color: var(--color-text-primary);
+}
+.libre-ach-banner__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--libre-radius-sm, 6px);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--libre-motion-snappy, 0.15s ease),
+    background var(--libre-motion-snappy, 0.15s ease);
+}
+.libre-ach-banner__close:hover {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .libre-ach-banner {
+    animation: none;
+  }
+}
+@media (max-width: 560px) {
+  .libre-ach-banner {
+    max-width: calc(100vw - 16px);
+  }
+  .libre-ach-banner__stats {
+    display: none;
+  }
+}

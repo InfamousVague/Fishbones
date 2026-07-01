@@ -1,0 +1,124 @@
+/* Post-update "What's new" modal card. Rendered inside ModalBackdrop's
+   centered panel, so this only styles the card itself. */
+
+.libre-changelog {
+  width: min(440px, calc(100vw - var(--libre-space-32, 32px)));
+  max-height: min(80vh, 640px);
+  overflow-y: auto;
+  padding: var(--libre-space-28, 28px) var(--libre-space-28, 28px)
+    var(--libre-space-20, 20px);
+  background: var(--color-bg-primary, #18181b);
+  border: var(--libre-bw-1, 1px) solid
+    var(--color-border-default, rgba(255, 255, 255, 0.1));
+  border-radius: var(--libre-radius-16, 16px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.libre-changelog__head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--libre-space-4, 4px);
+  margin-bottom: var(--libre-space-16, 16px);
+}
+
+.libre-changelog__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--libre-space-8, 8px);
+  border-radius: var(--libre-radius-circle, 999px);
+  color: var(--gg-accent-deep, var(--gg-accent, #df7649));
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 18%, transparent);
+}
+
+.libre-changelog__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gg-accent-deep, var(--gg-accent, #df7649));
+}
+
+.libre-changelog__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text-primary, #fafafa);
+}
+
+.libre-changelog__list {
+  margin: 0 0 var(--libre-space-20, 20px);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-10, 10px);
+}
+
+.libre-changelog__item {
+  position: relative;
+  padding-inline-start: var(--libre-space-20, 20px);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #d4d4d8);
+}
+
+.libre-changelog__item::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--libre-radius-circle, 999px);
+  background: var(--gg-accent, #e88f68);
+}
+
+.libre-changelog__generic {
+  margin: 0 0 var(--libre-space-20, 20px);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #d4d4d8);
+}
+
+.libre-changelog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--libre-space-12, 12px);
+}
+
+.libre-changelog__link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text-tertiary, #a1a1aa);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.libre-changelog__link:hover {
+  color: var(--color-text-secondary, #d4d4d8);
+}
+
+.libre-changelog__cta {
+  padding: var(--libre-space-10, 10px) var(--libre-space-20, 20px);
+  border: 0;
+  border-radius: var(--libre-radius-pill, 999px);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gg-on-accent, #fff);
+  background: var(--gg-accent, #e88f68);
+  cursor: pointer;
+  transition: background var(--libre-motion-snappy, 0.15s ease);
+}
+
+.libre-changelog__cta:hover {
+  background: var(--gg-accent-deep, #df7649);
+}

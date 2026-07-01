@@ -26,7 +26,24 @@
 /// rest are translation overlays. Adding a locale here without also
 /// running the translation pipeline just shows the language in the
 /// dropdown and falls back to English everywhere — graceful degradation.
-export type Locale = "en" | "ru" | "es" | "fr" | "kr" | "jp";
+export type Locale =
+  | "en"
+  | "ru"
+  | "es"
+  | "fr"
+  | "kr"
+  | "jp"
+  | "hi"
+  | "ar"
+  | "ur"
+  | "tr"
+  | "bn"
+  | "tl"
+  | "fa"
+  | "ne"
+  | "vi"
+  | "id"
+  | "sw";
 
 export const SUPPORTED_LOCALES: readonly Locale[] = [
   "en",
@@ -35,7 +52,28 @@ export const SUPPORTED_LOCALES: readonly Locale[] = [
   "fr",
   "kr",
   "jp",
+  "hi",
+  "ar",
+  "ur",
+  "tr",
+  "bn",
+  "tl",
+  "fa",
+  "ne",
+  "vi",
+  "id",
+  "sw",
 ] as const;
+
+/// Right-to-left locales. When one of these is active the app sets
+/// `dir="rtl"` on <html> (see I18nProvider) so the whole UI mirrors —
+/// CSS in the app uses logical properties (margin-inline / inset-inline)
+/// so most of the layout flips for free.
+export const RTL_LOCALES: readonly Locale[] = ["ar", "ur", "fa"] as const;
+
+export function isRtlLocale(locale: Locale): boolean {
+  return (RTL_LOCALES as readonly string[]).includes(locale);
+}
 
 /// Human-facing labels for each locale, in the locale's own language
 /// ("Русский" not "Russian"). Picking the endonym means a Russian
@@ -48,6 +86,17 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   fr: "Français",
   kr: "한국어",
   jp: "日本語",
+  hi: "हिन्दी",
+  ar: "العربية",
+  ur: "اردو",
+  tr: "Türkçe",
+  bn: "বাংলা",
+  tl: "Filipino",
+  fa: "دری",
+  ne: "नेपाली",
+  vi: "Tiếng Việt",
+  id: "Bahasa Indonesia",
+  sw: "Kiswahili",
 };
 
 /// Country-flag emoji per locale. Region flags are single-codepoint
@@ -64,6 +113,17 @@ export const LOCALE_FLAGS: Record<Locale, string> = {
   fr: "🇫🇷",
   kr: "🇰🇷",
   jp: "🇯🇵",
+  hi: "🇮🇳",
+  ar: "🇸🇦",
+  ur: "🇵🇰",
+  tr: "🇹🇷",
+  bn: "🇧🇩",
+  tl: "🇵🇭",
+  fa: "🇦🇫",
+  ne: "🇳🇵",
+  vi: "🇻🇳",
+  id: "🇮🇩",
+  sw: "🇰🇪",
 };
 
 /// Used by the script + the runtime to send "translate INTO X" prompts.
@@ -76,6 +136,17 @@ export const LOCALE_ENGLISH_NAMES: Record<Locale, string> = {
   fr: "French",
   kr: "Korean",
   jp: "Japanese",
+  hi: "Hindi",
+  ar: "Arabic",
+  ur: "Urdu",
+  tr: "Turkish",
+  bn: "Bengali",
+  tl: "Filipino (Tagalog)",
+  fa: "Dari (Persian)",
+  ne: "Nepali",
+  vi: "Vietnamese",
+  id: "Indonesian",
+  sw: "Swahili",
 };
 
 /// Shape of the per-locale translation overlay attached to a Course.
@@ -144,6 +215,31 @@ export function detectLocale(): Locale {
       return "kr";
     case "ja":
       return "jp";
+    case "hi":
+      return "hi";
+    case "ar":
+      return "ar";
+    case "ur":
+      return "ur";
+    case "tr":
+      return "tr";
+    case "bn":
+      return "bn";
+    case "tl":
+    case "fil":
+      return "tl";
+    case "fa":
+    case "prs": // Dari (Afghan Persian)
+      return "fa";
+    case "ne":
+      return "ne";
+    case "vi":
+      return "vi";
+    case "id":
+    case "in": // legacy Indonesian code
+      return "id";
+    case "sw":
+      return "sw";
     default:
       return "en";
   }

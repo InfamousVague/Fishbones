@@ -69,4 +69,13 @@ pub struct AppState {
     /// be the exact value registered with Google + Apple, otherwise
     /// they'll reject the auth request.
     pub public_url: Option<String>,
+
+    // ── Feedback → Notion ───────────────────────────────────────
+    /// Notion integration secret used by `POST /feedback` to write a
+    /// page per submission. Server-side only — never shipped to the
+    /// client. `None` makes the feedback route return 503.
+    pub notion_token: Option<String>,
+    /// Notion database id the feedback pages are created under. Not a
+    /// secret (it's in the page URL); paired with `notion_token`.
+    pub notion_database_id: Option<String>,
 }

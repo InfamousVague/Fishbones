@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
 import { panelLeftClose } from "@base/primitives/icon/icons/panel-left-close";
 import { panelLeftOpen } from "@base/primitives/icon/icons/panel-left-open";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
+import { messageCircleMore } from "@base/primitives/icon/icons/message-circle-more";
 import "@base/primitives/icon/icon.css";
 import type { StreakAndXp } from "@/hooks/useStreakAndXp";
 import type { Completion } from "@/hooks/useProgress";
@@ -15,6 +16,7 @@ import TopBarSearch from "@/components/molecules/TopBarSearch/TopBarSearch";
 import StatsChip from "./StatsChip";
 import { isWeb } from "@/lib/platform";
 import { openExternal } from "@/lib/openExternal";
+import { useDismiss } from "@/hooks/useDismiss";
 import { useT } from "@/i18n/i18n";
 import "./TopBar.css";
 
@@ -146,6 +148,10 @@ interface Props {
   /// to the signed-out state.
   onSignOut?: () => void;
 
+  /// Opens the feedback / bug-report / feature-request modal. Omit to
+  /// hide the feedback button (e.g. embeds without a relay).
+  onOpenFeedback?: () => void;
+
   /// Opens the full CommandPalette modal (the surface that Cmd/Ctrl+K
   /// also binds to). Wired to the trailing ⌘K kbd hint inside the
   /// inline search input — visitors who need actions like "Open
@@ -197,6 +203,7 @@ export default function TopBar({
   userEmail,
   onSignIn,
   onSignOut,
+  onOpenFeedback,
   onOpenSearch,
   courses,
   onOpenLesson,
@@ -307,21 +314,16 @@ export default function TopBar({
     x: number;
     y: number;
   } | null>(null);
-  useEffect(() => {
-    if (!tabMenu) return;
-    const close = () => setTabMenu(null);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    // `click` (not `mousedown`) so the click that opens a menu item
-    // still hits the item's onClick before the dismiss fires.
-    window.addEventListener("click", close);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("click", close);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [tabMenu]);
+  // Ref on the portaled menu so the dismiss excludes clicks inside it
+  // (replaces the menu's own `stopPropagation`). `event: "click"` keeps
+  // the original semantics — the click that opens a menu item still
+  // hits the item's onClick before the outside-dismiss fires.
+  const tabMenuRef = useRef<HTMLDivElement>(null);
+  const closeTabMenu = useCallback(() => setTabMenu(null), []);
+  useDismiss(tabMenuRef, closeTabMenu, {
+    enabled: !!tabMenu,
+    event: "click",
+  });
   function openTabMenu(tabIndex: number, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -528,9 +530,9 @@ export default function TopBar({
         const otherGroups = groups.filter((g) => g.id !== tab.groupId);
         return createPortal(
           <div
+            ref={tabMenuRef}
             className="libre__tab-menu"
             style={{ left: tabMenu.x, top: tabMenu.y }}
-            onClick={(e) => e.stopPropagation()}
             role="menu"
             aria-label={t("topBar.tabActions")}
           >
@@ -676,16 +678,29 @@ export default function TopBar({
             get trapped on discord.com inside the app shell). */}
         <button
           type="button"
-          className="libre__topbar-icon-btn libre__topbar-icon-btn--labeled libre__topbar-icon-btn--discord"
+          className="libre__topbar-icon-btn libre__topbar-icon-btn--discord"
           onClick={() => void openExternal(DISCORD_INVITE)}
           aria-label={t("topBar.joinDiscord")}
           title={t("topBar.joinDiscord")}
         >
           <DiscordMark size={17} />
-          <span className="libre__topbar-icon-btn-label">
-            {t("topBar.joinDiscordShort")}
-          </span>
         </button>
+
+        {/* Feedback — opens the in-app feedback / bug-report / feature-
+            request modal (App.tsx owns the open state; the modal posts
+            to the relay's /feedback → Notion). Sits next to the Discord
+            pill so the "talk to us" affordances cluster together. */}
+        {onOpenFeedback && (
+          <button
+            type="button"
+            className="libre__topbar-icon-btn"
+            onClick={onOpenFeedback}
+            aria-label={t("topBar.feedback")}
+            title={t("topBar.feedbackTitle")}
+          >
+            <Icon icon={messageCircleMore} size="base" color="currentColor" />
+          </button>
+        )}
 
         {/* Inline search — real <input> with a dropdown of ranked
             course/lesson hits. The trailing ⌘K hint inside the input

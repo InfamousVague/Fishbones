@@ -14,9 +14,10 @@
 .libre__tip-trigger {
   display: inline-flex;
   align-items: center;
-  gap: var(--libre-space-7);
+  justify-content: center;
+  width: var(--libre-size-36);
   height: var(--libre-size-36);
-  padding: var(--libre-space-0) var(--libre-space-14);
+  padding: var(--libre-space-0);
   background: var(--color-bg-tertiary);
   border: var(--libre-bw-1) solid var(--color-border-default);
   border-radius: var(--libre-radius-pill);

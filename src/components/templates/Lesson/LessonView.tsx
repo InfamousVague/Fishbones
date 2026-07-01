@@ -160,6 +160,15 @@ export default function LessonView({
   // the main-window editor gets hidden in favor of a "currently popped out"
   // placeholder. Reset on lesson change via the parent's keyed remount.
   const [popped, setPopped] = useState(false);
+  // Mirror `isCompleted` into a ref so the popped-workbench bus
+  // listener (which intentionally omits `isCompleted` from its deps
+  // to avoid re-registering on every completion flip) can read the
+  // current value without a stale closure when it fires
+  // `lesson.complete` on a popped-window pass.
+  const isCompletedRef = useRef(isCompleted);
+  useEffect(() => {
+    isCompletedRef.current = isCompleted;
+  }, [isCompleted]);
 
   // Exercise render mode. Blocks (assemble code from chips instead of
   // typing) is MOBILE-ONLY: on a phone, typing is the friction blocks
@@ -410,6 +419,18 @@ export default function LessonView({
         // Desktop's only run-pass feedback (no haptics there) — the
         // green test result lands with the silver-unlock cue.
         playSound("success");
+        // Analytics: `lesson.complete` fires ONLY on the first-time
+        // pass (guarded by `!isCompleted`, which is still false at the
+        // moment of the first passing run) so re-running a solved
+        // lesson doesn't inflate the completion count. Pairs with
+        // `lesson.start` for completion-rate per course.
+        if (!isCompleted) {
+          track.lessonComplete({
+            courseId,
+            lessonId: lesson.id,
+            language: effectiveLanguage,
+          });
+        }
         onComplete();
       } else {
         void fireHaptic("notification-error");
@@ -473,6 +494,7 @@ export default function LessonView({
   function handleReset() {
     resetToStarter();
     setActiveFileIdx(0);
+    track.lessonReset({ courseId, lessonId: lesson.id });
   }
 
   /// Reveal solution swaps the entire file set to the reference solution.
@@ -483,6 +505,7 @@ export default function LessonView({
       setFiles(deriveSolutionFiles(lesson));
       setActiveFileIdx(0);
       setResult(null);
+      track.lessonSolution({ courseId, lessonId: lesson.id });
     }
   }
 
@@ -515,7 +538,21 @@ export default function LessonView({
         setResult(msg.result);
         setRunning(false);
       }
-      if (msg.type === "complete") onComplete();
+      if (msg.type === "complete") {
+        // A pass in the popped-out workbench routes completion back
+        // through the same `onComplete`. Fire `lesson.complete` here
+        // too (first-time only via the ref, which dodges this
+        // listener's stale-closure on `isCompleted`) so popped runs
+        // count in the funnel just like inline runs.
+        if (!isCompletedRef.current) {
+          track.lessonComplete({
+            courseId,
+            lessonId: lesson.id,
+            language: courseLanguage,
+          });
+        }
+        onComplete();
+      }
       // The popped window fires `hello` once it mounts so we can push it
       // our current files (otherwise it'd load with starter text even if
       // the user had edited here).
@@ -581,15 +618,27 @@ export default function LessonView({
   function handleNext() {
     if (!neighbors.next) return;
     if (isReadingOnly && !isCompleted) {
+      // Reading-only lessons have no Run gate — clicking Next IS the
+      // completion. Fire `lesson.complete` here (first time only, via
+      // the `!isCompleted` guard above) so reader lessons count in the
+      // completion funnel just like passed exercises. Reading lessons
+      // carry no `language`, so report the parent course's language.
+      track.lessonComplete({
+        courseId,
+        lessonId: lesson.id,
+        language: courseLanguage,
+      });
       onComplete();
     }
     // Page-turn foley on lesson navigation — the app is a book.
     playSound("page-turn", { volume: 0.3 });
+    track.lessonNav("next");
     onNavigate(neighbors.next.id);
   }
   function handlePrev() {
     if (!neighbors.prev) return;
     playSound("page-turn", { volume: 0.3 });
+    track.lessonNav("prev");
     onNavigate(neighbors.prev.id);
   }
 

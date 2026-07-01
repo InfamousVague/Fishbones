@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { textToCourse } from "@/ingest/pdfParser";
+import { track } from "@/lib/track";
 import type { Course, LanguageId } from "@/data/types";
 import type { StartIngestOpts } from "@/hooks/useIngestRun";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
@@ -236,6 +237,13 @@ export default function ImportDialog({
 
     // Deterministic-only path: runs synchronously right here. It's quick
     // (no LLM calls) so blocking is fine.
+    //
+    // `kind` is the source format (pdf vs epub) — the picker only
+    // accepts those two extensions. The AI path above hands off to a
+    // detached ingest that resolves elsewhere, so this synchronous
+    // branch is the only ingest that actually resolves in-dialog; it
+    // fires `course.import` with the real success/failure outcome.
+    const kind: "pdf" | "epub" = /\.epub$/i.test(pdfPath) ? "epub" : "pdf";
     setRunning(true);
     try {
       const res = await invoke<{ text: string; error: string | null }>(
@@ -253,9 +261,11 @@ export default function ImportDialog({
       // that extract_pdf_cover is (or will be) writing alongside.
       course.coverFetchedAt = Date.now();
       await invoke("save_course", { courseId: finalId, body: course });
+      track.courseImport({ kind, ok: true });
       onSavedCourse(finalId);
       onDismiss();
     } catch (e) {
+      track.courseImport({ kind, ok: false });
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setRunning(false);

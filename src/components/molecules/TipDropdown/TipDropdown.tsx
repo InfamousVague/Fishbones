@@ -25,6 +25,8 @@ import { copy as copyIcon } from "@base/primitives/icon/icons/copy";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
 import { useT } from "@/i18n/i18n";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { useDismiss } from "@/hooks/useDismiss";
 import "./TipDropdown.css";
 
 // ─────────────────────────── Types ───────────────────────────
@@ -237,35 +239,9 @@ interface TipCardProps {
 }
 
 function TipCard({ method, depth, isActive, onSelect }: TipCardProps) {
-  const [copied, setCopied] = useState(false);
-  const timer = useRef<number | null>(null);
+  const { copied, copy: copyToClipboard } = useCopyToClipboard();
 
-  useEffect(() => {
-    return () => {
-      if (timer.current !== null) window.clearTimeout(timer.current);
-    };
-  }, []);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(method.address);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = method.address;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-      } finally {
-        document.body.removeChild(ta);
-      }
-    }
-    setCopied(true);
-    if (timer.current !== null) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setCopied(false), 1500);
-  }
+  const copy = () => copyToClipboard(method.address);
 
   const inactive = !isActive;
   const cardStyle = {
@@ -379,15 +355,22 @@ export default function TipDropdown({
     setActiveIdx((i) => (i + dir + methods.length) % methods.length);
   };
 
-  // Outside-click + Escape + arrow-key navigation. With the close X
-  // removed (per request), outside-click is the *only* dismiss path,
-  // so we listen on `mousedown` to catch the click before any focus
-  // change inside the panel can shift target into the wrapRef.
+  // Outside-click + Escape dismissal. With the close X removed (per
+  // request), outside-click is the *only* dismiss path, so we listen on
+  // `mousedown` to catch the click before any focus change inside the
+  // panel can shift target into the wrapRef. The trigger button itself
+  // is inside wrapRef so toggling it still works (its own onClick
+  // handles the open/close flip).
+  useDismiss(wrapRef, () => setOpen(false), {
+    enabled: open,
+    event: "mousedown",
+  });
+
+  // Arrow-key deck navigation while the panel is open.
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-      else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
         e.preventDefault();
         advance(1);
       } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
@@ -395,20 +378,9 @@ export default function TipDropdown({
         advance(-1);
       }
     }
-    function onMouseDown(e: MouseEvent) {
-      const t = e.target as Node | null;
-      if (!t) return;
-      // Click anywhere outside the dropdown wrapper closes the panel.
-      // The trigger button itself is inside wrapRef so toggling it
-      // still works (its own onClick handles the open/close flip).
-      if (wrapRef.current?.contains(t)) return;
-      setOpen(false);
-    }
     window.addEventListener("keydown", onKey);
-    window.addEventListener("mousedown", onMouseDown);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("mousedown", onMouseDown);
     };
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- methods.length is stable post-mount
 
@@ -475,6 +447,7 @@ export default function TipDropdown({
         aria-expanded={open}
         aria-haspopup="dialog"
         title={t("tooltips.support")}
+        aria-label={t("topBar.support")}
       >
         {/* Heart inherits the button's `currentColor` (the Icon's
             `color="currentColor"` fill picks it up) so it lights up
@@ -485,7 +458,6 @@ export default function TipDropdown({
         <span className="libre__tip-trigger-heart" aria-hidden>
           <Icon icon={heart} size="xs" color="currentColor" />
         </span>
-        <span className="libre__tip-trigger-label">{t("topBar.support")}</span>
       </button>
 
       {open && (

@@ -7,6 +7,7 @@ import { decodeFiles, makeBus } from "@/lib/workbenchSync";
 import { deriveSolutionFiles, deriveStarterFiles } from "@/lib/workbenchFiles";
 import { useKeybinding } from "@/hooks/useKeybinding";
 import { setRunStatus } from "@/hooks/useRunStatus";
+import { track } from "@/lib/track";
 import EditorPane from "@/components/organisms/Editor/EditorPane";
 import OutputPane from "@/components/organisms/Output/OutputPane";
 import Workbench from "./Workbench";
@@ -194,11 +195,13 @@ export default function PoppedWorkbench() {
             onReset={() => {
               setFiles(deriveStarterFiles(lesson));
               setActiveIdx(0);
+              track.lessonReset({ courseId, lessonId });
             }}
             onRevealSolution={() => {
               setFiles(deriveSolutionFiles(lesson));
               setActiveIdx(0);
               setResult(null);
+              track.lessonSolution({ courseId, lessonId });
             }}
           />
         }

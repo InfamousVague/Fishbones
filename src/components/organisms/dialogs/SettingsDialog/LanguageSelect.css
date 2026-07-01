@@ -1,0 +1,163 @@
+/* Searchable, scrollable language picker for Settings → General.
+   Lives inside a SettingsCard; the search box sits at the top and the
+   option list is a bounded, scrollable box below it so 17+ locales
+   never run off-screen. Colours/spacing come from the app's design
+   tokens (--color-* / --libre-*) to match the surrounding settings
+   chrome. */
+
+.libre-langselect {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-14) var(--libre-space-16);
+}
+
+/* ─── Search box ────────────────────────────────────────── */
+
+.libre-langselect__search {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-8) var(--libre-space-12);
+  background: var(--color-bg-tertiary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  transition: border-color
+    var(--libre-motion-snappy, var(--libre-dur-150) var(--libre-ease-ease));
+}
+
+.libre-langselect__search:focus-within {
+  border-color: var(--color-border-strong, var(--color-border-default));
+}
+
+.libre-langselect__search-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  opacity: var(--libre-opacity-0-8);
+}
+
+.libre-langselect__search-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.libre-langselect__search-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: var(--libre-opacity-0-7);
+}
+
+/* ─── Option list ───────────────────────────────────────── */
+
+.libre-langselect__list {
+  list-style: none;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-4);
+  /* Bounded height + scroll so the list never overflows the dialog,
+     no matter how many locales are registered. ~5.5 rows tall so the
+     scrollability is obvious (a half-row peeks at the bottom). */
+  max-height: var(--libre-size-320, 20rem);
+  overflow-y: auto;
+  background: var(--color-bg-tertiary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-2);
+}
+
+.libre-langselect__option {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  width: 100%;
+  padding: var(--libre-space-8) var(--libre-space-10);
+  font: inherit;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--libre-radius-sm, var(--libre-radius-6));
+  cursor: pointer;
+  text-align: start;
+  transition: background
+    var(--libre-motion-snappy, var(--libre-dur-150) var(--libre-ease-ease));
+}
+
+/* Keyboard-focused (↑/↓) OR hovered row — same visual so mouse and
+   keyboard navigation read identically. */
+.libre-langselect__option:hover,
+.libre-langselect__option--focused,
+.libre-langselect__option:focus-visible {
+  background: var(--color-bg-secondary);
+  outline: none;
+}
+
+.libre-langselect__option--active {
+  background: color-mix(
+    in srgb,
+    var(--color-accent-warm, var(--libre-c-e8954a)) 14%,
+    transparent
+  );
+}
+
+.libre-langselect__option--active.libre-langselect__option--focused,
+.libre-langselect__option--active:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-accent-warm, var(--libre-c-e8954a)) 22%,
+    transparent
+  );
+}
+
+.libre-langselect__flag {
+  /* Emoji flags sit slightly high against Latin/CJK glyphs — nudge
+     down 1px, matching the LanguageDropdown treatment. */
+  display: inline-block;
+  line-height: var(--libre-lh-1);
+  transform: translateY(var(--libre-size-1));
+  font-size: var(--libre-fs-18, var(--libre-fs-16));
+}
+
+.libre-langselect__names {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-1);
+  min-width: 0;
+  flex: 1;
+}
+
+.libre-langselect__endonym {
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-neg-0-005em);
+  line-height: var(--libre-lh-tight, var(--libre-lh-1));
+}
+
+.libre-langselect__english {
+  font-size: var(--libre-fs-12);
+  color: var(--color-text-secondary);
+  line-height: var(--libre-lh-tight, var(--libre-lh-1));
+}
+
+.libre-langselect__check {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-accent-warm, var(--libre-c-e8954a));
+}
+
+/* ─── Empty state ───────────────────────────────────────── */
+
+.libre-langselect__empty {
+  padding: var(--libre-space-16);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--libre-fs-13);
+  background: var(--color-bg-tertiary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md, var(--libre-radius-8));
+}

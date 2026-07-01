@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PipelineStats } from "@/ingest/pipeline";
+import { useInterval } from "@/hooks/useInterval";
 import "./StatsBar.css";
 
 interface Props {
@@ -16,11 +17,7 @@ export default function StatsBar({ stats }: Props) {
   // keeps the elapsed cell moving while the rest of the numbers wait on
   // the next API return.
   const [, force] = useState(0);
-  useEffect(() => {
-    if (!stats) return;
-    const id = setInterval(() => force((n) => n + 1), 500);
-    return () => clearInterval(id);
-  }, [stats?.startedAt]);
+  useInterval(() => force((n) => n + 1), stats ? 500 : null);
 
   const elapsedMs = stats ? Date.now() - stats.startedAt : 0;
   const tokens = stats ? stats.inputTokens + stats.outputTokens : 0;

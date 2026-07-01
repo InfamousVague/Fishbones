@@ -80,6 +80,10 @@ import { loadAllRecords, summariseStats } from "@/components/templates/Practice/
 import { InstallBanner } from "@/components/molecules/banners/InstallBanner/InstallBanner";
 import { UpdateBanner } from "@/components/molecules/banners/UpdateBanner/UpdateBanner";
 import { EarlyReleaseBanner } from "@/components/molecules/banners/EarlyReleaseBanner/EarlyReleaseBanner";
+import { AnalyticsNotice } from "@/components/molecules/banners/AnalyticsNotice/AnalyticsNotice";
+import ChangelogModal from "@/components/organisms/dialogs/ChangelogModal/ChangelogModal";
+import { useChangelogGate } from "@/hooks/useChangelogGate";
+import { track } from "@/lib/track";
 const CommandPalette = lazy(() => import("@/components/organisms/CommandPalette/CommandPalette"));
 import type { VerifySessionView } from "@/components/organisms/VerifyCourse/index";
 const VerifyCourseOverlay = lazy(() => import("@/components/organisms/VerifyCourse/VerifyCourseOverlay"));
@@ -105,6 +109,7 @@ const ThemePickerFirstLaunch = lazy(() =>
   })),
 );
 const SignInDialog = lazy(() => import("@/components/organisms/dialogs/SignInDialog/SignInDialog"));
+const FeedbackDialog = lazy(() => import("@/components/organisms/dialogs/Feedback/FeedbackDialog"));
 import { useCourses } from "@/hooks/useCourses";
 import { useRecentCourses } from "@/hooks/useRecentCourses";
 import { useStreakAndXp } from "@/hooks/useStreakAndXp";
@@ -160,6 +165,9 @@ export default function App() {
   if (isMobile) {
     return null;
   }
+
+  // Post-update "what's new" modal — desktop-only, shows once per new version.
+  const changelog = useChangelogGate();
 
   const {
     courses: coursesAll,
@@ -327,6 +335,7 @@ export default function App() {
   // its own one-time-show gate) so signed-out users can re-open it
   // from the dropdown whenever they want.
   const [signInOpen, setSignInOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   // Pending delete request queued by the library / sidebar context menu.
   // Kept in state rather than firing window.confirm() directly so we can
   // render an app-styled modal with Escape + backdrop-click dismissal.
@@ -975,6 +984,9 @@ export default function App() {
           courseId,
           xpEarned: lastLessonXpRef.current,
         });
+        // Analytics: this completion just closed out a whole book.
+        // Coarse "chapter" vs "book" split only — no ids.
+        track.sectionComplete("book");
         // Mint a course-completion certificate alongside the
         // celebration card. Idempotent — `mintCertificate` no-ops
         // when the courseId already has a cert (so re-completing
@@ -1036,10 +1048,46 @@ export default function App() {
           chapterIdx,
           xpEarned: lastLessonXpRef.current,
         });
+        // Analytics: this completion closed out a chapter (but not the
+        // whole book). Coarse kind only — no ids.
+        track.sectionComplete("chapter");
       }
       break;
     }
   }, [completed, coursesAll, cloud.user, history]);
+
+  // Analytics: count one session per launch. App reaching this render
+  // is our "interactive state" signal — the desktop chrome (TopBar,
+  // rail, body) is mounting. Guarded by a ref so React StrictMode's
+  // dev double-invoke (and any future App re-mount inside the same
+  // window) fires the coarse sessions counter exactly once per launch.
+  const sessionStartedRef = useRef(false);
+  useEffect(() => {
+    if (sessionStartedRef.current) return;
+    sessionStartedRef.current = true;
+    track.sessionStart();
+  }, []);
+
+  // Analytics: streak-extension reward. Mirror the mobile detection
+  // (MobileApp's `lastSeenStreakRef`) — fire only on a STRICT increase
+  // of the live streak count, never on the initial hydrate (0 → real on
+  // launch would otherwise report a phantom extension on every open).
+  // `null` = "no stats observed yet": the first run just seeds the ref.
+  const lastSeenStreakRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!statsReady) return;
+    if (lastSeenStreakRef.current === null) {
+      lastSeenStreakRef.current = stats.streakDays;
+      return;
+    }
+    if (
+      stats.streakDays > lastSeenStreakRef.current &&
+      stats.streakDays > 0
+    ) {
+      track.streakExtend(stats.streakDays);
+    }
+    lastSeenStreakRef.current = stats.streakDays;
+  }, [stats.streakDays, statsReady]);
 
   // First user gesture: warm the AudioContext so the very first
   // sound cue plays without the iOS-Safari silent-first-play wart.
@@ -1842,6 +1890,7 @@ export default function App() {
       });
       if (!destination) return; // user cancelled
       await invoke("export_course", { courseId, destination });
+      track.courseExport(courseId);
     } catch (e) {
       // Keep this simple — surface via alert for now. A toast would be nicer
       // but there's no toast system yet; the happy path just succeeds silently.
@@ -1872,6 +1921,7 @@ export default function App() {
         const destination = `${destDir}/${filename}`;
         try {
           await invoke("export_course", { courseId: c.id, destination });
+          track.courseExport(c.id);
         } catch (e) {
           failures.push({
             title: c.title,
@@ -2053,12 +2103,13 @@ export default function App() {
     return () => window.removeEventListener("libre:sandbox-focus", onFocus);
   }, [view, setView]);
 
-  /// Web-only analytics: fire a pageview + a coarse `view`
-  /// custom event whenever the top-level `view` flips between
-  /// library / lesson / sandbox / etc. The analytics module
-  /// short-circuits to a no-op on the desktop / iOS builds (and
-  /// inside popout / tray / dock surfaces) so this useEffect
-  /// only does real work on the libre.academy web build. Custom
+  /// Product analytics (web AND desktop): fire a pageview + a
+  /// coarse `view` custom event whenever the top-level `view`
+  /// flips between library / lesson / sandbox / etc. On desktop
+  /// the `view` becomes the synthetic `/app/<view>` path; on web
+  /// the hosted script reads `location`. The analytics module
+  /// short-circuits to a no-op when the user has opted out, in
+  /// tests, and inside popout / tray / dock surfaces. Custom
   /// click events live next to their handlers (`trackEvent` from
   /// `lib/analytics.ts`); the dashboard can also break out
   /// per-view traffic via this coarse one.
@@ -2066,7 +2117,7 @@ export default function App() {
     let cancelled = false;
     void import("@/lib/analytics").then(({ trackPageview, trackEvent }) => {
       if (cancelled) return;
-      trackPageview();
+      trackPageview(view);
       trackEvent("view", { view });
     });
     return () => {
@@ -2120,6 +2171,7 @@ export default function App() {
   async function performDelete(courseId: string) {
     try {
       await invoke("delete_course", { courseId });
+      track.courseUninstall(courseId);
       await invoke("cache_clear", { bookId: courseId }).catch((e) => {
         console.warn("[libre] cache_clear after delete failed:", e);
       });
@@ -2391,10 +2443,6 @@ export default function App() {
         <LoadingScreen
           status={updateStatus ?? "loading Libre…"}
           progress={updateProgress}
-          // On platforms without a separate splash window (Windows/Linux) the
-          // update downloads here — show just the progress bar, no spinner.
-          // Normal boot (no update progress) keeps the spinner.
-          progressOnly={updateProgress !== null}
         />
       </div>
 
@@ -2507,6 +2555,7 @@ export default function App() {
         onSignOut={() => {
           void cloud.signOut();
         }}
+        onOpenFeedback={() => setFeedbackOpen(true)}
         // Search trigger sits left of the stats chip; clicking it pops
         // the same CommandPalette that Cmd/Ctrl+K already binds.
         onOpenSearch={() => setPaletteOpen(true)}
@@ -2518,6 +2567,10 @@ export default function App() {
       />
 
       <EarlyReleaseBanner />
+      <AnalyticsNotice />
+      {changelog.entry ? (
+        <ChangelogModal entry={changelog.entry} onDismiss={changelog.dismiss} />
+      ) : null}
 
       <div className="libre__body">
         <NavigationRail
@@ -3191,6 +3244,17 @@ export default function App() {
         <SignInDialog
           cloud={cloud}
           onClose={() => setSignInOpen(false)}
+        />
+      )}
+
+      {/* In-app feedback / bug reports / feature requests. Posts to the
+          relay's /feedback endpoint, which forwards to Notion with a
+          server-side token. Takes only the relay URL off the cloud hook,
+          so it works signed-in or not. */}
+      {feedbackOpen && (
+        <FeedbackDialog
+          relayUrl={cloud.relayUrl}
+          onClose={() => setFeedbackOpen(false)}
         />
       )}
 

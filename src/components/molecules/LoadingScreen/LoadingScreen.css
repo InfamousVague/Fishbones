@@ -85,27 +85,14 @@ html.libre-splash-mode .libre-loadscreen {
   animation: libre-loadscreen-spin var(--libre-dur-900) var(--libre-ease-linear) infinite;
 }
 
-/* Slim progress track — determinate fill or an indeterminate sweep. */
-.libre-loadscreen-bar {
-  position: relative;
-  width: var(--libre-size-240);
-  height: var(--libre-size-4);
-  border-radius: var(--libre-radius-pill);
-  background: var(--libre-c-rgba-255-255-255-0-09);
-  overflow: hidden;
-}
-.libre-loadscreen-bar-fill {
-  position: absolute;
-  inset: var(--libre-space-0) auto var(--libre-space-0) var(--libre-space-0);
-  width: 0;
-  border-radius: var(--libre-radius-pill);
-  background: var(--gg-grad, linear-gradient(90deg, var(--libre-c-white), var(--libre-c-f3a361)));
-  transition: width var(--libre-dur-220) var(--libre-ease-ease);
-}
-.libre-loadscreen-bar.is-indeterminate .libre-loadscreen-bar-fill {
-  width: 40%;
-  transition: none;
-  animation: libre-loadscreen-sweep var(--libre-dur-1150) var(--libre-ease-cb-10) infinite;
+/* Update-download progress ring — wraps the ProgressRing atom with the same
+   accent halo as the spinning mark, so the determinate ring reads as the same
+   brand surface. */
+.libre-loadscreen-ring {
+  filter: drop-shadow(
+    0 0 var(--libre-size-10)
+      color-mix(in srgb, var(--gg-accent, var(--libre-c-f3a361)) 28%, transparent)
+  );
 }
 
 .libre-loadscreen-status {
@@ -119,14 +106,6 @@ html.libre-splash-mode .libre-loadscreen {
 @keyframes libre-loadscreen-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-@keyframes libre-loadscreen-sweep {
-  0% {
-    left: -42%;
-  }
-  100% {
-    left: 100%;
   }
 }
 @keyframes libre-loadscreen-breathe {
@@ -143,8 +122,7 @@ html.libre-splash-mode .libre-loadscreen {
 
 @media (prefers-reduced-motion: reduce) {
   .libre-loadscreen-glow,
-  .libre-loadscreen-mark,
-  .libre-loadscreen-bar.is-indeterminate .libre-loadscreen-bar-fill {
+  .libre-loadscreen-mark {
     animation: none;
   }
 }

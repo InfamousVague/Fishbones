@@ -1,0 +1,177 @@
+/* In-app feedback modal. Mirrors the SignInDialog panel language
+   (centered card, ghost close button, accent primary) but trimmed to a
+   single short form. Tokens with literal fallbacks so it renders even
+   where a given --libre-* knob isn't defined for the active theme. */
+
+.libre-feedback-panel {
+  position: relative;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-12, 12px);
+  padding: var(--libre-space-24, 24px);
+  background: var(--color-bg-primary, #18181b);
+  border: var(--libre-bw-1, 1px) solid
+    var(--color-border-default, rgba(255, 255, 255, 0.08));
+  border-radius: var(--libre-radius-16, 16px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  color: var(--color-text-primary, #fafafa);
+}
+
+.libre-feedback-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--libre-radius-circle, 999px);
+  background: transparent;
+  color: var(--color-text-tertiary, #71717a);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.libre-feedback-close:hover {
+  color: var(--color-text-primary, #fafafa);
+  background: color-mix(in srgb, var(--color-text-primary, #fff) 10%, transparent);
+}
+
+.libre-feedback-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.libre-feedback-blurb {
+  margin: 0 0 2px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #a1a1aa);
+}
+
+.libre-feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-12, 12px);
+}
+
+/* Type toggle — Base <SegmentedControl> (`.seg`). It's inline-flex with
+   flex:1 options by default; stretch it full-width so the three options
+   divide the form row evenly. */
+.libre-feedback-kinds {
+  width: 100%;
+}
+
+.libre-feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+}
+.libre-feedback-field > span {
+  font-weight: 600;
+  color: var(--color-text-secondary, #a1a1aa);
+}
+.libre-feedback-field textarea,
+.libre-feedback-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: var(--libre-bw-1, 1px) solid
+    var(--color-border-default, rgba(255, 255, 255, 0.1));
+  border-radius: var(--libre-radius-10, 10px);
+  background: var(--color-bg-secondary, #27272a);
+  color: var(--color-text-primary, #fafafa);
+  font: inherit;
+  font-size: 14px;
+}
+.libre-feedback-field textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.5;
+}
+.libre-feedback-field textarea:focus,
+.libre-feedback-field input:focus {
+  outline: none;
+  border-color: var(--color-accent, var(--gg-accent, #e88f68));
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-accent, #e88f68) 18%, transparent);
+}
+
+.libre-feedback-hint {
+  color: var(--color-text-tertiary, #71717a);
+  font-size: 11.5px;
+}
+
+.libre-feedback-error {
+  margin: 0;
+  color: var(--color-danger, #f87171);
+  font-size: 12.5px;
+}
+
+.libre-feedback-primary {
+  margin-top: 2px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: var(--libre-radius-10, 10px);
+  background: var(--color-accent, var(--gg-accent, #e88f68));
+  color: var(--color-on-accent, #18120e);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+.libre-feedback-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.libre-feedback-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Honeypot — kept in the DOM (so bots find it) but out of sight and
+   out of the tab order. */
+.libre-feedback-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.libre-feedback-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 14px 8px 4px;
+}
+.libre-feedback-done__mark {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--libre-radius-circle, 999px);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-on-accent, #18120e);
+  background: var(--color-accent, var(--gg-accent, #e88f68));
+}
+
+@media (max-width: 520px) {
+  .libre-feedback-panel {
+    width: calc(100vw - 24px);
+    padding: 20px;
+  }
+}
