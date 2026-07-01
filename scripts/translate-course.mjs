@@ -64,6 +64,17 @@ const LOCALE_ENGLISH_NAMES = {
   fr: "French",
   kr: "Korean",
   jp: "Japanese",
+  hi: "Hindi",
+  ar: "Arabic",
+  ur: "Urdu",
+  tr: "Turkish",
+  bn: "Bengali",
+  tl: "Filipino (Tagalog)",
+  fa: "Dari (Afghan Persian)",
+  ne: "Nepali",
+  vi: "Vietnamese",
+  id: "Indonesian",
+  sw: "Swahili",
 };
 const ALL_NON_EN = Object.keys(LOCALE_ENGLISH_NAMES);
 
@@ -75,6 +86,8 @@ if (args.length === 0 || args[0] === "--help") {
 Options:
   --locales <list>   Comma-separated: ru,es,fr,kr,jp (default: all)
   --limit <n>        Cap lessons translated per locale this run
+  --concurrency <n>  Lessons translated in flight at once (default 6,
+                     or TRANSLATE_CONCURRENCY env)
   --force-relock     Re-translate even already-translated lessons
   --dry-run          Don't call the API, don't write files
 `);
@@ -84,6 +97,7 @@ Options:
 const courseRef = args[0];
 const optLocales = parseFlag(args, "--locales") || ALL_NON_EN.join(",");
 const optLimit = parseFlag(args, "--limit");
+const optConcurrency = parseFlag(args, "--concurrency");
 const optForce = args.includes("--force-relock");
 const optDry = args.includes("--dry-run");
 
@@ -101,6 +115,15 @@ for (const l of targetLocales) {
 
 const limit = optLimit ? Number(optLimit) : Infinity;
 const delayMs = Number(process.env.FB_TRANSLATE_DELAY_MS || 200);
+// Bounded internal concurrency: translate up to N lessons in flight at once
+// within THIS single process/event loop. Because the API latency (~20s/call)
+// dominates, overlapping several in-flight `await`s is a large speedup while
+// staying safe — there is still only one course object and one serialised
+// writer. `--concurrency` beats TRANSLATE_CONCURRENCY beats the default of 6.
+const concurrency = Math.max(
+  1,
+  Number(optConcurrency || process.env.TRANSLATE_CONCURRENCY || 6),
+);
 
 // ─── Resolve the course file ────────────────────────────────────
 function resolveCourseFile(ref) {
@@ -117,6 +140,7 @@ function resolveCourseFile(ref) {
 const courseFile = resolveCourseFile(courseRef);
 console.log(`📖 Course: ${path.relative(REPO_ROOT, courseFile)}`);
 console.log(`🌍 Locales: ${targetLocales.join(", ")}`);
+console.log(`⚙️  Concurrency: ${concurrency} lesson(s) in flight`);
 if (optDry) console.log(`(dry run — no API calls, no writes)`);
 
 // ─── Anthropic client (raw fetch, no SDK dep) ───────────────────
@@ -134,7 +158,7 @@ if (!optDry) {
   }
 }
 
-const MODEL = "claude-sonnet-4-8";
+const MODEL = "claude-sonnet-5";
 const SYSTEM_PROMPT = (locale) => `You translate technical educational content from English into ${LOCALE_ENGLISH_NAMES[locale]}.
 
 Strict rules:
@@ -150,11 +174,35 @@ Strict rules:
 
 If the input is short (a title, a single phrase, a list item), return ONLY the translated phrase with no extra punctuation or context.`;
 
+// Inline base64 images (`data:image/…;base64,<blob>`) must NEVER be sent to
+// the model: a single hero image is tens of thousands of tokens, so the body
+// blows past `max_tokens` and the response is truncated mid-lesson — silently
+// dropping every code block and paragraph after the first image. We swap each
+// data-URI for a short sentinel before translating and swap the originals back
+// after, so the model only ever sees (and has to reproduce) the prose + code.
+const IMG_DATAURI_RE = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi;
+const IMG_TOKEN_RE = /LIBRE_IMG_PLACEHOLDER_(\d+)/g;
+function maskImages(text) {
+  const imgs = [];
+  const masked = text.replace(IMG_DATAURI_RE, (m) => {
+    const token = `LIBRE_IMG_PLACEHOLDER_${imgs.length}`;
+    imgs.push(m);
+    return token;
+  });
+  return { masked, imgs };
+}
+function restoreImages(text, imgs) {
+  return text.replace(IMG_TOKEN_RE, (whole, i) => imgs[Number(i)] ?? whole);
+}
+
 let apiCallCount = 0;
 async function translateOne(text, locale) {
   if (!text || !text.trim()) return text;
   apiCallCount += 1;
   if (optDry) return `[${locale}] ${text}`;
+  // Strip heavy base64 images out of the payload; restore them verbatim on the
+  // way back so the translated markdown is byte-identical around each image.
+  const { masked, imgs } = maskImages(text);
   await new Promise((r) => setTimeout(r, delayMs));
   // Retry on transient 429/5xx with capped exponential backoff.
   let lastErr = null;
@@ -170,7 +218,7 @@ async function translateOne(text, locale) {
         model: MODEL,
         max_tokens: 8192,
         system: SYSTEM_PROMPT(locale),
-        messages: [{ role: "user", content: text }],
+        messages: [{ role: "user", content: masked }],
       }),
     });
     if (resp.status === 429 || resp.status >= 500) {
@@ -184,8 +232,16 @@ async function translateOne(text, locale) {
       throw new Error(`HTTP ${resp.status}: ${body.slice(0, 200)}`);
     }
     const json = await resp.json();
+    if (json.stop_reason === "max_tokens") {
+      // Never persist a truncated translation — fail loudly so the lesson is
+      // retried (and, if it recurs, flagged as needing chunking) rather than
+      // silently losing every block past the cutoff.
+      throw new Error(
+        `response truncated at max_tokens (${masked.length} input chars) — too long for one call`,
+      );
+    }
     const block = (json.content || []).find((b) => b.type === "text");
-    return block ? block.text.trim() : "";
+    return restoreImages(block ? block.text.trim() : "", imgs);
   }
   throw lastErr || new Error("translation failed");
 }
@@ -245,6 +301,96 @@ function isLessonFullyTranslated(lesson, locale) {
   return true;
 }
 
+// ─── Serialised, debounced checkpoint writer ────────────────────
+// Under concurrency, many lessons finish close together, so we must NOT
+// let two writeFile calls race (that would interleave two serialisations
+// of the same object onto disk and corrupt it). This writer guarantees:
+//   • at most ONE writeFile in flight at any moment (single-in-flight guard),
+//   • at most one checkpoint every WRITE_DEBOUNCE_MS while work is ongoing
+//     (so we're not re-serialising a 10 MB file after every single lesson),
+//   • a coalesced trailing write if requests arrived while one was in flight,
+//   • a guaranteed final flush via flushWrites() at the very end.
+// Every completed lesson is captured by whichever checkpoint lands after it,
+// so a kill mid-run still leaves a valid file that `isLessonFullyTranslated`
+// resumes from on the next invocation.
+const WRITE_DEBOUNCE_MS = Number(process.env.FB_TRANSLATE_WRITE_MS || 3000);
+let writing = false; // a writeFile is currently in flight
+let pendingWrite = false; // a checkpoint was requested while writing
+let lastWriteAt = 0;
+let scheduledTimer = null;
+
+async function doWrite() {
+  if (writing) {
+    pendingWrite = true;
+    return;
+  }
+  writing = true;
+  do {
+    pendingWrite = false;
+    lastWriteAt = Date.now();
+    // Snapshot synchronously — JSON.stringify cannot be interrupted by
+    // another async task, so the serialised string is a consistent view.
+    const snapshot = JSON.stringify(course, null, 2);
+    await writeFile(courseFile, snapshot);
+  } while (pendingWrite); // coalesce anything requested mid-write
+  writing = false;
+}
+
+// Request a checkpoint. Debounced: if we wrote recently, schedule one for
+// later instead of writing now. Returns immediately (fire-and-forget).
+function requestCheckpoint() {
+  if (optDry) return;
+  const since = Date.now() - lastWriteAt;
+  if (!writing && since >= WRITE_DEBOUNCE_MS) {
+    void doWrite();
+    return;
+  }
+  if (scheduledTimer) return; // one is already queued
+  const wait = Math.max(0, WRITE_DEBOUNCE_MS - since);
+  scheduledTimer = setTimeout(() => {
+    scheduledTimer = null;
+    void doWrite();
+  }, wait);
+  // Don't let a pending checkpoint keep the process alive on its own.
+  if (typeof scheduledTimer.unref === "function") scheduledTimer.unref();
+}
+
+// Guaranteed final write — clears any pending debounce and waits for the
+// in-flight write (plus any coalesced trailing write) to fully settle.
+async function flushWrites() {
+  if (optDry) return;
+  if (scheduledTimer) {
+    clearTimeout(scheduledTimer);
+    scheduledTimer = null;
+  }
+  await doWrite(); // write current state
+  while (writing) await new Promise((r) => setTimeout(r, 25));
+}
+
+// ─── Bounded-concurrency worker pool ────────────────────────────
+// Runs the async `worker` over `items` with at most `poolSize` in flight.
+// A small `stagger` between launches spreads the initial burst so we don't
+// fire N requests on the exact same tick (keeps us gentle on rate limits;
+// steady-state pacing is still handled by FB_TRANSLATE_DELAY_MS per call).
+async function runPool(items, poolSize, worker, stagger = 0) {
+  let next = 0;
+  async function runner() {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      if (stagger && i < poolSize && i > 0) {
+        await new Promise((r) => setTimeout(r, stagger * i));
+      }
+      await worker(items[i], i);
+    }
+  }
+  const runners = [];
+  for (let k = 0; k < Math.min(poolSize, items.length); k++) {
+    runners.push(runner());
+  }
+  await Promise.all(runners);
+}
+
 // ─── Walk the course ────────────────────────────────────────────
 const course = JSON.parse(await readFile(courseFile, "utf8"));
 const lessonCount = course.chapters.reduce(
@@ -277,7 +423,7 @@ for (const locale of targetLocales) {
     }
   }
 
-  // Walk chapters + lessons.
+  // Chapter titles (small, translated inline in document order).
   for (const chapter of course.chapters) {
     chapter.translations ??= {};
     chapter.translations[locale] ??= {};
@@ -288,33 +434,58 @@ for (const locale of targetLocales) {
           locale,
         );
     }
+  }
+
+  // Collect the lessons that still need work, in document order. `--limit`
+  // caps the number of lessons translated per locale this run (unchanged
+  // semantics) — apply it here, after the idempotent skip, so we dispatch
+  // exactly that many to the pool.
+  const pending = [];
+  for (const chapter of course.chapters) {
     for (const lesson of chapter.lessons) {
-      if (translatedThisLocale >= limit) break;
       lesson.translations ??= {};
       if (!optForce && isLessonFullyTranslated(lesson, locale)) continue;
-      const tag = `${chapter.id}/${lesson.id}`;
-      process.stdout.write(`  ${tag} → ${locale} ... `);
-      try {
-        lesson.translations[locale] = await translateLessonFields(lesson, locale);
-        translatedThisLocale += 1;
-        writeCount += 1;
-        process.stdout.write("ok\n");
-        // Persist after each lesson so a crash mid-run doesn't lose
-        // already-translated work — the next invocation picks up where
-        // we left off thanks to the `isLessonFullyTranslated` guard.
-        if (!optDry)
-          await writeFile(courseFile, JSON.stringify(course, null, 2));
-      } catch (err) {
-        process.stdout.write(`FAIL: ${err.message}\n`);
-      }
-    }
-    if (translatedThisLocale >= limit) {
-      console.log(`  (limit reached for ${locale})`);
-      break;
+      pending.push({ chapter, lesson });
     }
   }
+  const work = Number.isFinite(limit) ? pending.slice(0, limit) : pending;
+  if (Number.isFinite(limit) && pending.length > limit) {
+    console.log(`  (limit ${limit} of ${pending.length} pending)`);
+  }
+
+  // Translate up to `concurrency` lessons in flight. Each finished lesson
+  // requests a debounced checkpoint; the serialised writer guarantees no
+  // two writeFile calls ever overlap. A small launch stagger spreads the
+  // initial burst across workers.
+  await runPool(
+    work,
+    concurrency,
+    async ({ chapter, lesson }) => {
+      const tag = `${chapter.id}/${lesson.id}`;
+      try {
+        const t = await translateLessonFields(lesson, locale);
+        lesson.translations[locale] = t;
+        translatedThisLocale += 1;
+        writeCount += 1;
+        process.stdout.write(
+          `  [${writeCount}] ${tag} → ${locale} ok\n`,
+        );
+        requestCheckpoint();
+      } catch (err) {
+        process.stdout.write(`  ${tag} → ${locale} FAIL: ${err.message}\n`);
+      }
+    },
+    delayMs,
+  );
+
+  // Flush this locale's work to disk before moving to the next one, so a
+  // kill between locales leaves a fully-persisted checkpoint.
+  await flushWrites();
   console.log(`  ${translatedThisLocale} lesson(s) translated for ${locale}`);
 }
+
+// Guaranteed final write (covers any trailing debounced checkpoint).
+await flushWrites();
 
 const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
 console.log(

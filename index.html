@@ -216,6 +216,15 @@
         isolation: isolate;
       }
       body.is-booted #preloader {
+        /* Hide INSTANTLY (no 0.25s fade) the moment React's
+           `.libre__bootloader` is committed — `is-booted` flips in App's
+           useLayoutEffect on first commit, so the React loader is already
+           painted underneath. The old opacity fade left the inline
+           preloader and the React loader both on screen for ~0.25s, which
+           now reads as two different spinners since the loader artwork
+           diverged. `display:none` guarantees a clean single-loader swap. */
+        display: none;
+        transition: none;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;

@@ -154,6 +154,11 @@ export default defineConfig(async () => ({
     port: 1420,
     strictPort: true,
     host: host || false,
+    // Permit Cloudflare quick-tunnel hosts (dev-only convenience for testing
+    // the web/mobile build on a phone over a public HTTPS URL). Vite blocks
+    // unknown Host headers by default; `.trycloudflare.com` allows any tunnel
+    // subdomain without opening it to every host.
+    allowedHosts: [".trycloudflare.com"],
     // Allow Vite to serve files from the base library (linked via file:).
     fs: {
       allow: [

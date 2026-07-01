@@ -32,10 +32,28 @@
   touch-action: manipulation;
 }
 
+/* Constrain every image / media element inside the mobile tree to its
+   container. Prose + markdown images (lesson content), covers, avatars
+   and badges render at intrinsic size otherwise and blow past their
+   frames — which pushed the whole viewport wider and caused horizontal
+   scrolling. `max-width:100%` preserves aspect ratio (height stays auto)
+   and doesn't disturb elements with explicit sizing (e.g. BookCover's
+   object-fit:cover tiles). */
+.m-app img,
+.m-app svg,
+.m-app video,
+.m-app canvas {
+  max-width: 100%;
+}
+
 .m-app__main {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Never scroll horizontally. The max-width rule above fixes the cause
+     (oversized images); this is the belt-and-brace guard so no stray wide
+     element can push a horizontal scrollbar. */
+  overflow-x: hidden;
   /* Scroll content runs all the way to the bottom edge of the
      screen — the floating pill nav overlays on top via fixed
      positioning, so the last content row can scroll up under it.
