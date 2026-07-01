@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { flame } from "@base/primitives/icon/icons/flame";
 import { zap } from "@base/primitives/icon/icons/zap";
@@ -8,8 +8,27 @@ import { globe } from "@base/primitives/icon/icons/globe";
 import { userPlus } from "@base/primitives/icon/icons/user-plus";
 import { bookOpenCheck } from "@base/primitives/icon/icons/book-open-check";
 import { check } from "@base/primitives/icon/icons/check";
+import { frown } from "@base/primitives/icon/icons/frown";
+import { logIn } from "@base/primitives/icon/icons/log-in";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
+import { SegmentedControl } from "@base/primitives/segmented-control";
+import { Avatar } from "@base/primitives/avatar";
+import { Badge } from "@base/primitives/badge";
+import { Button } from "@base/primitives/button";
+import { Chip } from "@base/primitives/chip";
+import { Skeleton } from "@base/primitives/skeleton";
 import "@base/primitives/icon/icon.css";
+import "@base/primitives/segmented-control/segmented-control.css";
+import "@base/primitives/avatar/avatar.css";
+import "@base/primitives/badge/badge.css";
+import "@base/primitives/button/button.css";
+import "@base/primitives/chip/chip.css";
+import "@base/primitives/skeleton/skeleton.css";
+import "@base/primitives/spinner/spinner.css";
+import ProfileCard, {
+  initialsOf,
+} from "@/components/molecules/ProfileCard/ProfileCard";
+import { ProgressRing } from "@/components/atoms/ProgressRing/ProgressRing";
 import { useT } from "@/i18n/i18n";
 import type {
   AddFriendResult,
@@ -17,11 +36,12 @@ import type {
   FriendRequest,
   LeaderboardEntry,
   LeaderboardMetric,
+  PublicProfile,
 } from "@/hooks/useLibreCloud";
 import "./SocialView.css";
 
 /// Which of the two social surfaces is showing. Kept as top-level page
-/// state so the Friends ↔ Leaderboard switch is a segmented-control
+/// state so the Friends ↔ Leaderboard switch is a kit SegmentedControl
 /// toggle rather than two separate routes — the surfaces share the
 /// same audience ("people I compare progress with") so they read as
 /// one page with two tabs, mirroring the Profile page's card grid.
@@ -45,24 +65,34 @@ interface Props {
     limit?: number,
     offset?: number,
   ) => Promise<LeaderboardEntry[]>;
+  /// Fetches a public profile — used for the signed-in learner's own
+  /// hero card at the top of the Friends tab (embedded ProfileCard).
+  getProfile: (userId: string) => Promise<PublicProfile>;
   /// Open a full profile card for a friend / requester / leaderboard row.
   onOpenProfile: (userId: string) => void;
-  /// The signed-in user's own id, so their leaderboard row highlights.
+  /// The signed-in user's own id — drives the hero card and the
+  /// leaderboard "You" highlight. Null/undefined = signed out, which
+  /// renders the sign-in empty state instead of the tabs.
   currentUserId?: string | null;
+  /// Opens the sign-in dialog. Optional — embeds without an auth
+  /// affordance just show the explanation copy.
+  onSignIn?: () => void;
 }
 
 /// Social page — the consolidated home for the two people-facing
-/// surfaces. A single segmented control switches between:
-///   - Friends     — add-by-email, incoming requests, confirmed friends.
+/// surfaces. A kit SegmentedControl switches between:
+///   - Friends     — own-profile hero, add-by-email, incoming
+///                   requests, confirmed friends.
 ///   - Leaderboard — Friends / Global scope + XP / Streak / Lessons.
 ///
 /// Rendered as a full main-pane view (not a modal) so it sits in the
-/// same slot as Profile / Leaderboard and reuses that shell's scroll +
-/// centered-column chrome. Rows open the shared ProfileCard overlay.
+/// same slot as Profile and reuses that shell's scroll + centered-
+/// column chrome. Rows open the shared ProfileCard overlay.
 ///
-/// Loading is handled per-surface with a "load once, then swap in
-/// place" pattern: the list holds the last-good data while a refetch
-/// runs, so switching tabs / scopes never flashes an empty frame.
+/// BOTH panels stay mounted (the inactive one is `hidden`) so tab
+/// switches never refetch or flash — each panel keeps its last-good
+/// data + scroll state for the whole page visit. Initial loads show
+/// kit Skeleton rows; refetches after mutations swap data in place.
 export default function SocialView({
   listFriends,
   addFriend,
@@ -71,11 +101,23 @@ export default function SocialView({
   removeFriend,
   getFriendsLeaderboard,
   getGlobalLeaderboard,
+  getProfile,
   onOpenProfile,
   currentUserId,
+  onSignIn,
 }: Props) {
   const t = useT();
   const [tab, setTab] = useState<Tab>("friends");
+  /// Owned here (not in FriendsPanel) so the leaderboard's "Add
+  /// friends" empty-state CTA can hop tabs AND focus the email input.
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
+
+  const goAddFriends = useCallback(() => {
+    setTab("friends");
+    // The friends panel is already mounted (just hidden), so the input
+    // exists — focus lands after the tab flip paints.
+    requestAnimationFrame(() => emailInputRef.current?.focus());
+  }, []);
 
   return (
     <div className="libre-social">
@@ -88,54 +130,82 @@ export default function SocialView({
             </div>
           </header>
 
-          {/* Friends | Leaderboard segmented control. Same vocabulary
-              as the leaderboard's scope tabs so the whole page reads
-              as one consistent surface. */}
-          <div className="libre-social-tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "friends"}
-              className={
-                "libre-social-tab" +
-                (tab === "friends" ? " libre-social-tab--active" : "")
+          {!currentUserId ? (
+            /* Signed out — the cloud methods all require a session, so
+               explain instead of showing two broken tabs. */
+            <EmptyState
+              icon={logIn}
+              title={t("social.signedOutTitle")}
+              body={t("social.signedOutBody")}
+              action={
+                onSignIn && (
+                  <Button variant="primary" icon={logIn} onClick={onSignIn}>
+                    {t("auth.signIn")}
+                  </Button>
+                )
               }
-              onClick={() => setTab("friends")}
-            >
-              <Icon icon={users} size="xs" color="currentColor" />
-              <span>{t("social.friendsTab")}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "leaderboard"}
-              className={
-                "libre-social-tab" +
-                (tab === "leaderboard" ? " libre-social-tab--active" : "")
-              }
-              onClick={() => setTab("leaderboard")}
-            >
-              <Icon icon={trophy} size="xs" color="currentColor" />
-              <span>{t("social.leaderboardTab")}</span>
-            </button>
-          </div>
-
-          {tab === "friends" ? (
-            <FriendsPanel
-              listFriends={listFriends}
-              addFriend={addFriend}
-              listFriendRequests={listFriendRequests}
-              acceptFriendRequest={acceptFriendRequest}
-              removeFriend={removeFriend}
-              onOpenProfile={onOpenProfile}
             />
           ) : (
-            <LeaderboardPanel
-              getFriendsLeaderboard={getFriendsLeaderboard}
-              getGlobalLeaderboard={getGlobalLeaderboard}
-              onOpenProfile={onOpenProfile}
-              currentUserId={currentUserId}
-            />
+            <>
+              <SegmentedControl
+                className="libre-social-seg"
+                size="md"
+                ariaLabel={t("social.title")}
+                value={tab}
+                onChange={(v) => setTab(v as Tab)}
+                options={[
+                  {
+                    value: "friends",
+                    title: t("social.friendsTab"),
+                    label: (
+                      <>
+                        <Icon icon={users} size="xs" color="currentColor" />
+                        <span>{t("social.friendsTab")}</span>
+                      </>
+                    ),
+                  },
+                  {
+                    value: "leaderboard",
+                    title: t("social.leaderboardTab"),
+                    label: (
+                      <>
+                        <Icon icon={trophy} size="xs" color="currentColor" />
+                        <span>{t("social.leaderboardTab")}</span>
+                      </>
+                    ),
+                  },
+                ]}
+              />
+
+              <div
+                className="libre-social-tabpanel"
+                hidden={tab !== "friends"}
+              >
+                <FriendsPanel
+                  listFriends={listFriends}
+                  addFriend={addFriend}
+                  listFriendRequests={listFriendRequests}
+                  acceptFriendRequest={acceptFriendRequest}
+                  removeFriend={removeFriend}
+                  getProfile={getProfile}
+                  onOpenProfile={onOpenProfile}
+                  currentUserId={currentUserId}
+                  emailInputRef={emailInputRef}
+                />
+              </div>
+              <div
+                className="libre-social-tabpanel"
+                hidden={tab !== "leaderboard"}
+              >
+                <LeaderboardPanel
+                  getFriendsLeaderboard={getFriendsLeaderboard}
+                  getGlobalLeaderboard={getGlobalLeaderboard}
+                  onOpenProfile={onOpenProfile}
+                  currentUserId={currentUserId}
+                  onGoAddFriends={goAddFriends}
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -144,32 +214,39 @@ export default function SocialView({
 }
 
 /// ── Friends panel ─────────────────────────────────────────────────
-/// Add-by-email form (with friendly 404 / 409 / 400 handling), incoming
-/// requests with Accept / Reject, and confirmed friends with level /
-/// streak / XP. Every list re-fetches after a mutation so the UI
-/// reflects the server. Uses `initialLoad` (not a plain `loading` flag)
-/// so a refetch after a mutation swaps data in place instead of
-/// flashing the empty / spinner state.
+/// Own-profile hero (embedded ProfileCard), add-by-email form (kit
+/// Button with its loading state; friendly 404 / 409 / 400 feedback
+/// inline under the input), incoming requests with Accept / Reject,
+/// and confirmed friends with level / streak / XP chips. Every list
+/// re-fetches after a mutation so the UI reflects the server. Uses
+/// `initialLoad` (not a plain `loading` flag) so a refetch after a
+/// mutation swaps data in place instead of flashing back to skeletons.
 function FriendsPanel({
   listFriends,
   addFriend,
   listFriendRequests,
   acceptFriendRequest,
   removeFriend,
+  getProfile,
   onOpenProfile,
+  currentUserId,
+  emailInputRef,
 }: {
   listFriends: () => Promise<FriendInfo[]>;
   addFriend: (email: string) => Promise<AddFriendResult>;
   listFriendRequests: () => Promise<FriendRequest[]>;
   acceptFriendRequest: (userId: string) => Promise<void>;
   removeFriend: (userId: string) => Promise<void>;
+  getProfile: (userId: string) => Promise<PublicProfile>;
   onOpenProfile: (userId: string) => void;
+  currentUserId: string;
+  emailInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const t = useT();
   const [friends, setFriends] = useState<FriendInfo[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   // First-load flag only. Mutations refetch silently (see `refresh`),
-  // so we never toggle back to a spinner once we've shown real data.
+  // so we never toggle back to skeletons once we've shown real data.
   const [initialLoad, setInitialLoad] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -259,6 +336,9 @@ function FriendsPanel({
 
   return (
     <div className="libre-social-panel">
+      {/* Own profile hero — same embedded card the overlay uses. */}
+      <ProfileCard embedded userId={currentUserId} getProfile={getProfile} />
+
       {/* Add-by-email */}
       <form className="libre-social-add" onSubmit={submitAdd}>
         <label className="libre-social-add-label" htmlFor="libre-social-email">
@@ -267,6 +347,7 @@ function FriendsPanel({
         <div className="libre-social-add-row">
           <input
             id="libre-social-email"
+            ref={emailInputRef}
             className="libre-social-add-input"
             type="email"
             inputMode="email"
@@ -275,34 +356,52 @@ function FriendsPanel({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <button
+          <Button
             type="submit"
-            className="libre-social-add-btn"
-            disabled={adding || email.trim().length === 0}
+            variant="primary"
+            icon={userPlus}
+            loading={adding}
+            disabled={email.trim().length === 0}
           >
-            <Icon icon={userPlus} size="xs" color="currentColor" />
-            <span>{t("friends.sendRequest")}</span>
-          </button>
+            {t("friends.sendRequest")}
+          </Button>
         </div>
         {addFeedback && (
           <p
             className={`libre-social-add-feedback libre-social-add-feedback--${addFeedback.kind}`}
             role="status"
           >
-            {addFeedback.text}
+            <Icon
+              icon={addFeedback.kind === "ok" ? check : xIcon}
+              size="xs"
+              color="currentColor"
+              weight="bold"
+            />
+            <span>{addFeedback.text}</span>
           </p>
         )}
       </form>
 
       {loadError && (
-        <p className="libre-social-error">{t("friends.loadError")}</p>
+        <EmptyState
+          icon={frown}
+          body={t("friends.loadError")}
+          action={
+            <Button variant="secondary" size="sm" onClick={() => refresh()}>
+              {t("common.retry")}
+            </Button>
+          }
+        />
       )}
 
       {/* Incoming requests */}
       {requests.length > 0 && (
         <section className="libre-social-section">
           <h2 className="libre-social-section-title">
-            {t("friends.requestsTitle", { n: requests.length })}
+            {t("friends.requestsHeading")}
+            <Badge color="accent" variant="solid" size="sm">
+              {requests.length}
+            </Badge>
           </h2>
           <ul className="libre-social-list" role="list">
             {requests.map((r) => (
@@ -312,9 +411,11 @@ function FriendsPanel({
                   className="libre-social-row-main"
                   onClick={() => onOpenProfile(r.id)}
                 >
-                  <span className="libre-social-avatar" aria-hidden>
-                    {initial(r.display_name, r.email)}
-                  </span>
+                  <Avatar
+                    size="sm"
+                    initials={initialsOf(r.display_name, r.email)}
+                    alt=""
+                  />
                   <span className="libre-social-identity">
                     <span className="libre-social-name">
                       {r.display_name?.trim() ||
@@ -327,34 +428,26 @@ function FriendsPanel({
                   </span>
                 </button>
                 <div className="libre-social-row-actions">
-                  <button
-                    type="button"
-                    className="libre-social-icon-btn libre-social-icon-btn--accept"
+                  <Button
+                    size="sm"
+                    iconOnly
+                    icon={check}
+                    intent="success"
+                    appearance="subtle"
                     onClick={() => handleAccept(r.id)}
                     aria-label={t("friends.accept")}
                     title={t("friends.accept")}
-                  >
-                    <Icon
-                      icon={check}
-                      size="xs"
-                      color="currentColor"
-                      weight="bold"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    className="libre-social-icon-btn libre-social-icon-btn--reject"
+                  />
+                  <Button
+                    size="sm"
+                    iconOnly
+                    icon={xIcon}
+                    intent="error"
+                    appearance="subtle"
                     onClick={() => handleReject(r.id)}
                     aria-label={t("friends.reject")}
                     title={t("friends.reject")}
-                  >
-                    <Icon
-                      icon={xIcon}
-                      size="xs"
-                      color="currentColor"
-                      weight="bold"
-                    />
-                  </button>
+                  />
                 </div>
               </li>
             ))}
@@ -365,12 +458,36 @@ function FriendsPanel({
       {/* Confirmed friends */}
       <section className="libre-social-section">
         <h2 className="libre-social-section-title">
-          {t("friends.friendsTitle", { n: friends.length })}
+          {t("friends.friendsHeading")}
+          {!initialLoad && (
+            <Badge color="neutral" variant="outline" size="sm">
+              {friends.length}
+            </Badge>
+          )}
         </h2>
         {initialLoad ? (
-          <p className="libre-social-empty">{t("friends.loading")}</p>
+          <div className="libre-social-list" aria-busy="true">
+            <FriendRowSkeleton />
+            <FriendRowSkeleton />
+            <FriendRowSkeleton />
+          </div>
         ) : friends.length === 0 ? (
-          <p className="libre-social-empty">{t("friends.noFriends")}</p>
+          !loadError && (
+            <EmptyState
+              icon={users}
+              title={t("friends.emptyTitle")}
+              body={t("friends.emptyBody")}
+              action={
+                <Button
+                  variant="secondary"
+                  icon={userPlus}
+                  onClick={() => emailInputRef.current?.focus()}
+                >
+                  {t("friends.addFirst")}
+                </Button>
+              }
+            />
+          )
         ) : (
           <ul className="libre-social-list" role="list">
             {friends.map((f) => (
@@ -380,9 +497,11 @@ function FriendsPanel({
                   className="libre-social-row-main"
                   onClick={() => onOpenProfile(f.id)}
                 >
-                  <span className="libre-social-avatar" aria-hidden>
-                    {initial(f.display_name, f.email)}
-                  </span>
+                  <Avatar
+                    size="sm"
+                    initials={initialsOf(f.display_name, f.email)}
+                    alt=""
+                  />
                   <span className="libre-social-identity">
                     <span className="libre-social-name">
                       {f.display_name?.trim() ||
@@ -394,34 +513,34 @@ function FriendsPanel({
                     )}
                   </span>
                   <span className="libre-social-metrics">
-                    <span className="libre-social-level">
+                    <Badge color="neutral" variant="outline" size="sm">
                       {t("friends.levelShort", { level: f.stats.level })}
-                    </span>
-                    <span
-                      className="libre-social-metric libre-social-metric--streak"
-                      title={t("friends.streak")}
+                    </Badge>
+                    <Chip
+                      size="sm"
+                      icon={flame}
+                      className="libre-social-chip--streak"
                     >
-                      <Icon icon={flame} size="xs" color="currentColor" />
                       {f.stats.current_streak_days}
-                    </span>
-                    <span
-                      className="libre-social-metric libre-social-metric--xp"
-                      title={t("friends.xp")}
+                    </Chip>
+                    <Chip
+                      size="sm"
+                      icon={zap}
+                      className="libre-social-chip--xp"
                     >
-                      <Icon icon={zap} size="xs" color="currentColor" />
                       {f.stats.total_xp}
-                    </span>
+                    </Chip>
                   </span>
                 </button>
-                <button
-                  type="button"
-                  className="libre-social-icon-btn libre-social-icon-btn--remove"
+                <Button
+                  size="sm"
+                  iconOnly
+                  icon={xIcon}
+                  variant="ghost"
                   onClick={() => handleRemove(f.id)}
                   aria-label={t("friends.remove")}
                   title={t("friends.remove")}
-                >
-                  <Icon icon={xIcon} size="xs" color="currentColor" />
-                </button>
+                />
               </li>
             ))}
           </ul>
@@ -432,17 +551,19 @@ function FriendsPanel({
 }
 
 /// ── Leaderboard panel ─────────────────────────────────────────────
-/// Friends | Global scope tabs, an XP / Streak / Lessons metric toggle,
-/// and ranked rows (rank, level, name, streak, metric). Rows are
-/// clickable → profile card. The global board ranks by XP server-side
-/// but still reflects the toggle's highlighted column so the two scopes
-/// feel consistent. `initialLoad` keeps the last-good rows painted
-/// during a scope/metric refetch instead of flashing the spinner.
+/// Friends | Global scope + XP / Streak / Lessons metric — both kit
+/// SegmentedControls — above ranked rows (medal-weighted rank, kit
+/// Avatar, level ring, streak/metric chips). Rows are clickable →
+/// profile card. The global board ranks by XP server-side but still
+/// reflects the toggle's highlighted column so the two scopes feel
+/// consistent. `initialLoad` keeps the last-good rows painted during
+/// a scope/metric refetch instead of flashing skeletons.
 function LeaderboardPanel({
   getFriendsLeaderboard,
   getGlobalLeaderboard,
   onOpenProfile,
   currentUserId,
+  onGoAddFriends,
 }: {
   getFriendsLeaderboard: (
     metric: LeaderboardMetric,
@@ -453,6 +574,9 @@ function LeaderboardPanel({
   ) => Promise<LeaderboardEntry[]>;
   onOpenProfile: (userId: string) => void;
   currentUserId?: string | null;
+  /// Hop to the Friends tab and focus the add-by-email input — the
+  /// friends-scope empty state's CTA.
+  onGoAddFriends: () => void;
 }) {
   const t = useT();
   const [scope, setScope] = useState<Scope>("friends");
@@ -487,77 +611,120 @@ function LeaderboardPanel({
     return r.total_xp;
   };
 
+  const metricIcon =
+    metric === "lessons" ? bookOpenCheck : metric === "streak" ? trophy : zap;
+
   return (
     <div className="libre-social-panel">
-      {/* Scope tabs */}
-      <div className="libre-social-subtabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={scope === "friends"}
-          className={
-            "libre-social-subtab" +
-            (scope === "friends" ? " libre-social-subtab--active" : "")
-          }
-          onClick={() => setScope("friends")}
-        >
-          <Icon icon={users} size="xs" color="currentColor" />
-          <span>{t("leaderboard.friends")}</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={scope === "global"}
-          className={
-            "libre-social-subtab" +
-            (scope === "global" ? " libre-social-subtab--active" : "")
-          }
-          onClick={() => setScope("global")}
-        >
-          <Icon icon={globe} size="xs" color="currentColor" />
-          <span>{t("leaderboard.global")}</span>
-        </button>
-      </div>
-
-      {/* Metric toggle */}
-      <div
-        className="libre-social-metrics-toggle"
-        role="group"
-        aria-label={t("leaderboard.metricLabel")}
-      >
-        <MetricButton
-          icon={zap}
-          label={t("leaderboard.metricXp")}
-          active={metric === "xp"}
-          onClick={() => setMetric("xp")}
+      {/* Scope + metric controls, one row. */}
+      <div className="libre-social-lb-controls">
+        <SegmentedControl
+          className="libre-social-seg libre-social-seg--scope"
+          size="md"
+          ariaLabel={t("leaderboard.title")}
+          value={scope}
+          onChange={(v) => setScope(v as Scope)}
+          options={[
+            {
+              value: "friends",
+              title: t("leaderboard.friends"),
+              label: (
+                <>
+                  <Icon icon={users} size="xs" color="currentColor" />
+                  <span>{t("leaderboard.friends")}</span>
+                </>
+              ),
+            },
+            {
+              value: "global",
+              title: t("leaderboard.global"),
+              label: (
+                <>
+                  <Icon icon={globe} size="xs" color="currentColor" />
+                  <span>{t("leaderboard.global")}</span>
+                </>
+              ),
+            },
+          ]}
         />
-        <MetricButton
-          icon={flame}
-          label={t("leaderboard.metricStreak")}
-          active={metric === "streak"}
-          onClick={() => setMetric("streak")}
-        />
-        <MetricButton
-          icon={bookOpenCheck}
-          label={t("leaderboard.metricLessons")}
-          active={metric === "lessons"}
-          onClick={() => setMetric("lessons")}
+        <SegmentedControl
+          size="md"
+          ariaLabel={t("leaderboard.metricLabel")}
+          value={metric}
+          onChange={(v) => setMetric(v as LeaderboardMetric)}
+          options={[
+            {
+              value: "xp",
+              title: t("leaderboard.metricXp"),
+              label: (
+                <>
+                  <Icon icon={zap} size="xs" color="currentColor" />
+                  <span>{t("leaderboard.metricXp")}</span>
+                </>
+              ),
+            },
+            {
+              value: "streak",
+              title: t("leaderboard.metricStreak"),
+              label: (
+                <>
+                  <Icon icon={flame} size="xs" color="currentColor" />
+                  <span>{t("leaderboard.metricStreak")}</span>
+                </>
+              ),
+            },
+            {
+              value: "lessons",
+              title: t("leaderboard.metricLessons"),
+              label: (
+                <>
+                  <Icon icon={bookOpenCheck} size="xs" color="currentColor" />
+                  <span>{t("leaderboard.metricLessons")}</span>
+                </>
+              ),
+            },
+          ]}
         />
       </div>
 
       {/* Body */}
       {initialLoad ? (
-        <p className="libre-social-empty">{t("leaderboard.loading")}</p>
+        <div className="libre-social-rank-list" aria-busy="true">
+          <RankRowSkeleton />
+          <RankRowSkeleton />
+          <RankRowSkeleton />
+          <RankRowSkeleton />
+          <RankRowSkeleton />
+        </div>
       ) : error ? (
-        <p className="libre-social-empty libre-social-empty--error">
-          {t("leaderboard.loadError")}
-        </p>
+        <EmptyState
+          icon={frown}
+          body={t("leaderboard.loadError")}
+          action={
+            <Button variant="secondary" size="sm" onClick={() => load()}>
+              {t("common.retry")}
+            </Button>
+          }
+        />
       ) : rows.length === 0 ? (
-        <p className="libre-social-empty">
-          {scope === "friends"
-            ? t("leaderboard.emptyFriends")
-            : t("leaderboard.emptyGlobal")}
-        </p>
+        scope === "friends" ? (
+          <EmptyState
+            icon={trophy}
+            title={t("leaderboard.emptyFriendsTitle")}
+            body={t("leaderboard.emptyFriends")}
+            action={
+              <Button
+                variant="secondary"
+                icon={userPlus}
+                onClick={onGoAddFriends}
+              >
+                {t("leaderboard.addFriendsCta")}
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState icon={globe} body={t("leaderboard.emptyGlobal")} />
+        )
       ) : (
         <ol className="libre-social-rank-list">
           {rows.map((r) => {
@@ -572,6 +739,10 @@ function LeaderboardPanel({
                   }
                   onClick={() => onOpenProfile(r.user_id)}
                 >
+                  {/* Medal treatment: monochrome weight/ring emphasis
+                      — #1 gets a solid disc + accent avatar ring, #2–3
+                      outlined discs. No podium colors; this is a
+                      monochrome system. */}
                   <span
                     className={`libre-social-rank libre-social-rank--${
                       r.rank <= 3 ? r.rank : "n"
@@ -579,45 +750,53 @@ function LeaderboardPanel({
                   >
                     {r.rank}
                   </span>
+                  <Avatar
+                    size="sm"
+                    initials={initialsOf(r.display_name, null)}
+                    ring={r.rank === 1 ? "accent" : "none"}
+                    alt=""
+                  />
                   <span className="libre-social-rank-level" aria-hidden>
-                    {r.level}
+                    <ProgressRing
+                      progress={1}
+                      size={28}
+                      stroke={2.5}
+                      label={String(r.level)}
+                      hideCheckOnComplete
+                    />
                   </span>
                   <span className="libre-social-rank-name">
-                    {r.display_name?.trim() || t("friends.anonymous")}
+                    <span className="libre-social-rank-name-text">
+                      {r.display_name?.trim() || t("friends.anonymous")}
+                    </span>
                     {isMe && (
-                      <span className="libre-social-you">
+                      <Badge color="accent" variant="solid" size="sm">
                         {t("leaderboard.you")}
-                      </span>
+                      </Badge>
                     )}
                   </span>
-                  <span
-                    className={
-                      "libre-social-cell libre-social-cell--streak" +
-                      (metric === "streak" ? " libre-social-cell--hl" : "")
-                    }
-                    title={t("friends.streak")}
-                  >
-                    <Icon icon={flame} size="xs" color="currentColor" />
-                    {r.current_streak_days}
-                  </span>
-                  <span
-                    className={
-                      "libre-social-cell libre-social-cell--metric" +
-                      (metric !== "streak" ? " libre-social-cell--hl" : "")
-                    }
-                  >
-                    {metric === "lessons" ? (
-                      <Icon
-                        icon={bookOpenCheck}
-                        size="xs"
-                        color="currentColor"
-                      />
-                    ) : metric === "streak" ? (
-                      <Icon icon={trophy} size="xs" color="currentColor" />
-                    ) : (
-                      <Icon icon={zap} size="xs" color="currentColor" />
-                    )}
-                    {metric === "streak" ? r.total_xp : metricValue(r)}
+                  <span className="libre-social-rank-cells">
+                    <Chip
+                      size="sm"
+                      icon={flame}
+                      variant={metric === "streak" ? "filled" : "outlined"}
+                      className={
+                        "libre-social-chip--streak" +
+                        (metric === "streak" ? "" : " libre-social-chip--dim")
+                      }
+                    >
+                      {r.current_streak_days}
+                    </Chip>
+                    <Chip
+                      size="sm"
+                      icon={metricIcon}
+                      variant={metric === "streak" ? "outlined" : "filled"}
+                      className={
+                        metric === "streak" ? "libre-social-chip--dim" : ""
+                      }
+                    >
+                      {metric === "streak" ? r.total_xp : metricValue(r)}
+                    </Chip>
                   </span>
                 </button>
               </li>
@@ -629,36 +808,56 @@ function LeaderboardPanel({
   );
 }
 
-function MetricButton({
+/// Friendly icon + copy + optional CTA — replaces the old bare
+/// one-line empties. Also doubles as the load-error surface (frown
+/// icon + Retry) and the signed-out explainer.
+function EmptyState({
   icon,
-  label,
-  active,
-  onClick,
+  title,
+  body,
+  action,
 }: {
   icon: string;
-  label: string;
-  active: boolean;
-  onClick: () => void;
+  title?: string;
+  body: string;
+  action?: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      className={
-        "libre-social-metric-btn" +
-        (active ? " libre-social-metric-btn--active" : "")
-      }
-      aria-pressed={active}
-      onClick={onClick}
-    >
-      <Icon icon={icon} size="xs" color="currentColor" />
-      <span>{label}</span>
-    </button>
+    <div className="libre-social-empty-state">
+      <span className="libre-social-empty-state-icon" aria-hidden>
+        <Icon icon={icon} size="lg" color="currentColor" />
+      </span>
+      {title && <h3 className="libre-social-empty-state-title">{title}</h3>}
+      <p className="libre-social-empty-state-body">{body}</p>
+      {action && <div className="libre-social-empty-state-action">{action}</div>}
+    </div>
   );
 }
 
-/// First letter for the avatar chip — display name wins, then email,
-/// then a bullet placeholder for fully-anonymous rows.
-function initial(name: string | null, email: string | null): string {
-  const src = name?.trim() || email || "";
-  return src ? src[0].toUpperCase() : "•";
+/// Kit-Skeleton placeholder mirroring a friend row's geometry so the
+/// initial load doesn't flash empty, then reflow.
+function FriendRowSkeleton() {
+  return (
+    <div className="libre-social-row libre-social-row--skeleton">
+      <Avatar skeleton size="sm" />
+      <span className="libre-social-identity">
+        <Skeleton size="text-sm" width="38%" />
+      </span>
+      <Skeleton size="xs" shape="pill" width={96} />
+    </div>
+  );
+}
+
+/// Same, for a leaderboard row (rank dot + avatar + name + chips).
+function RankRowSkeleton() {
+  return (
+    <div className="libre-social-rank-row libre-social-rank-row--skeleton">
+      <Skeleton shape="circle" width={22} height={22} />
+      <Avatar skeleton size="sm" />
+      <span className="libre-social-rank-name">
+        <Skeleton size="text-sm" width="42%" />
+      </span>
+      <Skeleton size="xs" shape="pill" width={110} />
+    </div>
+  );
 }

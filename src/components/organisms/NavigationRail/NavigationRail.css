@@ -264,6 +264,39 @@
   justify-content: center;
 }
 
+/* ── Rail tooltip re-skin ───────────────────────────────────────
+   The Base Tooltip's stock bubble is the kit's inverted "bone" chip
+   (light bg, dark text). Floating against the rail's dark frosted
+   glass it reads as a foreign OS artifact — and on the BOTTOM
+   cluster (Social / Feedback / Settings) it straddles the rail's
+   rounded glass border, which is what made the Social hover look
+   broken. Re-skin it to the app's dark chrome, scoped to the rail
+   so other kit-tooltip consumers keep the stock look:
+     - solid token surface, NOT a nested backdrop-filter — WKWebView
+       flattens/blank-paints nested backdrop filters (same class of
+       bug as the Hologram foil fix), and the rail is already a
+       backdrop-filter context;
+     - pushed out past the glass seam so the bubble never overlaps
+       the rail's border/corner radius;
+     - arrow nub dropped: the rotated-square ::after can't wear the
+       border cleanly and was the piece sitting on the seam. */
+.libre-nav-rail .tooltip {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  box-shadow: var(--libre-shadow-38);
+  font-size: var(--libre-fs-12);
+  font-weight: 500;
+  padding: var(--libre-space-4) var(--libre-space-8);
+  border-radius: var(--libre-radius-6);
+}
+.libre-nav-rail .tooltip--right {
+  margin-left: var(--libre-space-12);
+}
+.libre-nav-rail .tooltip::after {
+  display: none;
+}
+
 /* ── Light-theme active-pill override ───────────────────────────
    The pill's default `background: var(--color-text-primary)` was
    chosen back when light themes set `text-primary` to a near-black

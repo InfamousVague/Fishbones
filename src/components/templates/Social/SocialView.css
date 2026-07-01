@@ -1,8 +1,9 @@
 /* Social page. Consolidates the Friends + Leaderboard surfaces into one
-   full main-pane view. Mirrors the ProfileView / LeaderboardView shell
-   (full-bleed scroll surface + centered inner column) so it sits
-   naturally in the same slot. All values are --libre-* / --color-*
-   design tokens. */
+   full main-pane view. Mirrors the ProfileView shell (full-bleed scroll
+   surface + centered inner column) so it sits naturally in the same
+   slot. Tabs / buttons / avatars / chips / badges / skeletons are Base
+   kit primitives — this file only lays them out. All values are
+   --libre-* / --color-* design tokens. */
 
 .libre-social {
   width: 100%;
@@ -51,42 +52,19 @@
   color: var(--color-text-secondary);
 }
 
-/* ── Top-level tabs (Friends | Leaderboard) ─────────────────────── */
-.libre-social-tabs {
+/* ── Kit SegmentedControls ──────────────────────────────────────── */
+/* The top-level Friends | Leaderboard toggle stretches the full
+   column; the kit's flex:1 options split it evenly. */
+.libre-social-seg {
   display: flex;
-  gap: var(--libre-space-4);
-  padding: var(--libre-space-4);
-  background: var(--color-bg-secondary);
-  border: var(--libre-bw-1) solid
-    var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
-  border-radius: var(--libre-radius-10);
+  width: 100%;
 }
 
-.libre-social-tab {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--libre-space-6);
-  padding: var(--libre-space-8) var(--libre-space-12);
-  background: transparent;
-  border: none;
-  border-radius: var(--libre-radius-7);
-  color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: var(--libre-fs-13);
-  font-weight: var(--libre-fw-500);
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy),
-    color var(--libre-motion-snappy);
-}
-.libre-social-tab:hover {
-  color: var(--color-text-primary);
-}
-.libre-social-tab--active {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-  font-weight: var(--libre-fw-600);
+/* Keep the inactive panel out of the layout — both stay mounted so a
+   tab switch never refetches or flashes. `!important`-free: the
+   attribute selector just needs to beat the panel's display:flex. */
+.libre-social-tabpanel[hidden] {
+  display: none;
 }
 
 /* ── Panel wrapper ──────────────────────────────────────────────── */
@@ -136,31 +114,11 @@
   outline-offset: var(--libre-size-2);
 }
 
-.libre-social-add-btn {
-  display: inline-flex;
+/* Inline result line under the input — icon + copy, tinted by kind. */
+.libre-social-add-feedback {
+  display: flex;
   align-items: center;
   gap: var(--libre-space-6);
-  padding: var(--libre-space-8) var(--libre-space-14);
-  background: var(--gg-fill-white);
-  border: var(--libre-bw-1) solid var(--gg-fill-white);
-  border-radius: var(--libre-radius-8);
-  color: var(--color-bg-primary);
-  font-family: inherit;
-  font-size: var(--libre-fs-12-5);
-  font-weight: var(--libre-fw-600);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity var(--libre-motion-snappy);
-}
-.libre-social-add-btn:disabled {
-  opacity: var(--libre-opacity-0-6);
-  cursor: default;
-}
-.libre-social-add-btn:not(:disabled):hover {
-  opacity: var(--libre-opacity-0-9);
-}
-
-.libre-social-add-feedback {
   margin: var(--libre-space-8) 0 0;
   font-size: var(--libre-fs-12-5);
 }
@@ -168,12 +126,6 @@
   color: var(--libre-c-7cd97c);
 }
 .libre-social-add-feedback--error {
-  color: var(--libre-c-ef6f6f);
-}
-
-.libre-social-error {
-  margin: 0;
-  font-size: var(--libre-fs-12-5);
   color: var(--libre-c-ef6f6f);
 }
 
@@ -185,23 +137,15 @@
 }
 
 .libre-social-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-8);
   margin: 0;
   font-size: var(--libre-fs-11);
   font-weight: var(--libre-fw-600);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-tertiary);
-}
-
-.libre-social-empty {
-  margin: 0;
-  padding: var(--libre-space-24) 0;
-  text-align: center;
-  font-size: var(--libre-fs-13);
-  color: var(--color-text-secondary);
-}
-.libre-social-empty--error {
-  color: var(--libre-c-ef6f6f);
 }
 
 .libre-social-list {
@@ -224,6 +168,15 @@
   border-radius: var(--libre-radius-8);
 }
 
+.libre-social-row--skeleton {
+  padding: var(--libre-space-10) var(--libre-space-12);
+  gap: var(--libre-space-10);
+  justify-content: space-between;
+}
+
+/* The whole identity block is one click target → profile card. Kept
+   bespoke (not a kit Button): it's a list row with a multi-column
+   layout, not a CTA. */
 .libre-social-row-main {
   flex: 1;
   min-width: 0;
@@ -242,19 +195,6 @@
 }
 .libre-social-row-main:hover {
   background: var(--color-bg-tertiary);
-}
-
-.libre-social-avatar {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: var(--libre-size-32);
-  height: var(--libre-size-32);
-  border-radius: var(--libre-radius-circle);
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-secondary);
-  font-size: var(--libre-fs-13);
-  font-weight: var(--libre-fw-600);
 }
 
 .libre-social-identity {
@@ -285,139 +225,80 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: var(--libre-space-8);
+  gap: var(--libre-space-6);
 }
 
-.libre-social-level {
-  padding: var(--libre-space-2) var(--libre-space-8);
-  border-radius: var(--libre-radius-pill);
-  background: var(
-    --libre-c-rgba-124-217-124-0-18,
-    var(--libre-c-rgba-255-255-255-0-08)
-  );
-  color: var(--libre-c-7cd97c);
-  font-size: var(--libre-fs-11);
-  font-weight: var(--libre-fw-600);
-}
-
-.libre-social-metric {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--libre-space-2);
-  font-size: var(--libre-fs-12-5);
-  font-weight: var(--libre-fw-500);
-  color: var(--color-text-secondary);
-  min-width: var(--libre-size-40);
-}
-.libre-social-metric--streak {
+/* Kit Chip tints — streak flame / XP bolt keep their app-wide accent
+   hues (same values StatsChip + ProfileCard use). */
+.libre-social-chip--streak {
   color: var(--libre-c-f59e3b);
 }
-.libre-social-metric--xp {
+.libre-social-chip--xp {
   color: var(--libre-c-fcd34d);
 }
+.libre-social-chip--dim {
+  color: var(--color-text-tertiary);
+}
 
-/* ── Row action buttons ─────────────────────────────────────────── */
 .libre-social-row-actions {
   display: flex;
   gap: var(--libre-space-6);
 }
 
-.libre-social-icon-btn {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: var(--libre-size-28, 28px);
-  height: var(--libre-size-28, 28px);
-  background: transparent;
-  border: var(--libre-bw-1) solid var(--color-border-default);
-  border-radius: var(--libre-radius-7);
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy),
-    color var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
-}
-.libre-social-icon-btn--remove:hover,
-.libre-social-icon-btn--reject:hover {
-  color: var(--libre-c-ef6f6f);
-  border-color: var(--libre-c-ef6f6f);
-}
-.libre-social-icon-btn--accept {
-  color: var(--libre-c-7cd97c);
-}
-.libre-social-icon-btn--accept:hover {
-  background: var(--libre-c-7cd97c);
-  border-color: var(--libre-c-7cd97c);
-  color: var(--color-bg-primary);
-}
-
-/* ── Leaderboard scope subtabs ──────────────────────────────────── */
-.libre-social-subtabs {
+/* ── Empty / error / signed-out states ──────────────────────────── */
+.libre-social-empty-state {
   display: flex;
-  gap: var(--libre-space-4);
-  padding: var(--libre-space-4);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-28) var(--libre-space-16);
+  text-align: center;
   background: var(--color-bg-secondary);
-  border: var(--libre-bw-1) solid
+  border: var(--libre-bw-1) dashed
     var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
   border-radius: var(--libre-radius-10);
 }
 
-.libre-social-subtab {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--libre-space-6);
-  padding: var(--libre-space-8) var(--libre-space-12);
-  background: transparent;
-  border: none;
-  border-radius: var(--libre-radius-7);
-  color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: var(--libre-fs-13);
-  font-weight: var(--libre-fw-500);
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy),
-    color var(--libre-motion-snappy);
-}
-.libre-social-subtab:hover {
-  color: var(--color-text-primary);
-}
-.libre-social-subtab--active {
+.libre-social-empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: var(--libre-size-48, 48px);
+  height: var(--libre-size-48, 48px);
+  border-radius: var(--libre-radius-circle);
   background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-  font-weight: var(--libre-fw-600);
-}
-
-/* ── Metric toggle ──────────────────────────────────────────────── */
-.libre-social-metrics-toggle {
-  display: flex;
-  gap: var(--libre-space-6);
-}
-
-.libre-social-metric-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--libre-space-6);
-  padding: var(--libre-space-6) var(--libre-space-12);
-  background: transparent;
-  border: var(--libre-bw-1) solid var(--color-border-default);
-  border-radius: var(--libre-radius-pill);
   color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: var(--libre-fs-12-5);
-  font-weight: var(--libre-fw-500);
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy),
-    color var(--libre-motion-snappy), border-color var(--libre-motion-snappy);
+  margin-bottom: var(--libre-space-2);
 }
-.libre-social-metric-btn:hover {
+
+.libre-social-empty-state-title {
+  margin: 0;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
 }
-.libre-social-metric-btn--active {
-  background: var(--gg-fill-white);
-  border-color: var(--gg-fill-white);
-  color: var(--color-bg-primary);
-  font-weight: var(--libre-fw-600);
+
+.libre-social-empty-state-body {
+  margin: 0;
+  max-width: var(--libre-size-420, 420px);
+  font-size: var(--libre-fs-13);
+  color: var(--color-text-secondary);
+}
+
+.libre-social-empty-state-action {
+  margin-top: var(--libre-space-8);
+}
+
+/* ── Leaderboard controls ───────────────────────────────────────── */
+.libre-social-lb-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--libre-space-8);
+}
+
+.libre-social-lb-controls .libre-social-seg--scope {
+  flex: 1;
+  min-width: var(--libre-size-220, 220px);
 }
 
 /* ── Ranked rows ────────────────────────────────────────────────── */
@@ -451,42 +332,51 @@
   background: var(--color-bg-tertiary);
 }
 .libre-social-rank-row--me {
-  border-color: var(--libre-c-7cd97c);
-  background: var(--libre-c-rgba-124-217-124-0-18, var(--color-bg-tertiary));
+  border-color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+}
+.libre-social-rank-row--skeleton {
+  cursor: default;
+  justify-content: space-between;
+}
+.libre-social-rank-row--skeleton:hover {
+  background: var(--color-bg-secondary);
 }
 
+/* Medal treatment — monochrome weight emphasis, no podium colors:
+   #1 a solid disc, #2 a bright outline, #3 a quiet outline. */
 .libre-social-rank {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: var(--libre-size-28, 28px);
-  font-size: var(--libre-fs-14);
-  font-weight: var(--libre-fw-700);
+  width: var(--libre-size-24, 24px);
+  height: var(--libre-size-24, 24px);
+  border-radius: var(--libre-radius-circle);
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-tertiary);
   font-variant-numeric: tabular-nums;
 }
 .libre-social-rank--1 {
-  color: var(--libre-c-fcd34d);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  font-weight: var(--libre-fw-700);
 }
 .libre-social-rank--2 {
-  color: var(--color-text-secondary);
+  border: var(--libre-bw-1) solid var(--color-text-secondary);
+  color: var(--color-text-primary);
+  font-weight: var(--libre-fw-700);
 }
 .libre-social-rank--3 {
-  color: var(--libre-c-f59e3b);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  font-weight: var(--libre-fw-700);
 }
 
 .libre-social-rank-level {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: var(--libre-size-28, 28px);
-  height: var(--libre-size-28, 28px);
-  border-radius: var(--libre-radius-circle);
-  border: var(--libre-bw-2) solid var(--libre-c-7cd97c);
-  color: var(--libre-c-7cd97c);
-  font-size: var(--libre-fs-12-5);
-  font-weight: var(--libre-fw-700);
-  font-variant-numeric: tabular-nums;
 }
 
 .libre-social-rank-name {
@@ -495,6 +385,9 @@
   display: flex;
   align-items: center;
   gap: var(--libre-space-8);
+}
+
+.libre-social-rank-name-text {
   font-size: var(--libre-fs-14);
   font-weight: var(--libre-fw-500);
   color: var(--color-text-primary);
@@ -503,43 +396,21 @@
   white-space: nowrap;
 }
 
-.libre-social-you {
+.libre-social-rank-cells {
   flex-shrink: 0;
-  padding: var(--libre-space-2) var(--libre-space-6);
-  border-radius: var(--libre-radius-pill);
-  background: var(--libre-c-7cd97c);
-  color: var(--color-bg-primary);
-  font-size: var(--libre-fs-11);
-  font-weight: var(--libre-fw-600);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.libre-social-cell {
-  flex-shrink: 0;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--libre-space-4);
-  min-width: var(--libre-size-56, 56px);
-  font-size: var(--libre-fs-13);
-  font-weight: var(--libre-fw-500);
-  color: var(--color-text-tertiary);
+  gap: var(--libre-space-6);
   font-variant-numeric: tabular-nums;
-}
-.libre-social-cell--streak {
-  color: var(--libre-c-f59e3b);
-}
-.libre-social-cell--hl {
-  color: var(--color-text-primary);
-  font-weight: var(--libre-fw-600);
 }
 
 @media (max-width: 520px) {
   .libre-social-scroll {
     padding: var(--libre-space-16) var(--libre-space-16) var(--libre-space-40);
   }
-  .libre-social-cell--streak {
-    display: none; /* keep the ranked column readable on narrow screens */
+  /* Keep the ranked column readable on narrow screens — drop the
+     secondary (streak) chip. */
+  .libre-social-rank-cells > .libre-social-chip--streak {
+    display: none;
   }
 }

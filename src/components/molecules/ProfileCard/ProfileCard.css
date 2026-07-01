@@ -1,15 +1,25 @@
-/* Public-profile overlay card. Rendered inside <ModalBackdrop>, sits
-   above the FriendsModal / LeaderboardView (zIndex 210). All values
+/* Public-profile card. Two variants share one body:
+     --overlay  — inside <ModalBackdrop>, above the Social view (z 210)
+     --embedded — inline hero at the top of the Social → Friends tab
+   Buttons / avatars / chips / skeletons come from the Base kit
+   primitives; only the layout shell + stat grid live here. All values
    are --libre-* / --color-* design tokens. */
 
-.libre-profile-card-overlay {
+.libre-profile-card {
   position: relative;
-  width: min(var(--libre-size-420), 92vw);
   background: var(--color-bg-secondary);
   border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
   border-radius: var(--libre-radius-lg);
   padding: var(--libre-space-20);
+}
+
+.libre-profile-card--overlay {
+  width: min(var(--libre-size-420), 92vw);
   animation: libre-profile-card-enter var(--libre-dur-160) var(--libre-ease-ease-out);
+}
+
+.libre-profile-card--embedded {
+  width: 100%;
 }
 
 @keyframes libre-profile-card-enter {
@@ -17,24 +27,11 @@
   to   { opacity: var(--libre-opacity-1); transform: translateY(0) scale(1); }
 }
 
+/* Kit ghost Button, pinned to the overlay's corner. */
 .libre-profile-card-close {
   position: absolute;
   top: var(--libre-space-10);
   inset-inline-end: var(--libre-space-10);
-  display: grid;
-  place-items: center;
-  width: var(--libre-size-28, 28px);
-  height: var(--libre-size-28, 28px);
-  background: transparent;
-  border: none;
-  border-radius: var(--libre-radius-7);
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy), color var(--libre-motion-snappy);
-}
-.libre-profile-card-close:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
 }
 
 .libre-profile-card-empty {
@@ -52,15 +49,28 @@
   display: flex;
   align-items: center;
   gap: var(--libre-space-14);
+}
+.libre-profile-card--overlay .libre-profile-card-head {
   margin-bottom: var(--libre-space-18);
   padding-inline-end: var(--libre-space-24); /* clear the close button */
 }
 
 .libre-profile-card-head-text {
+  flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-2);
 }
 
 .libre-profile-card-name {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-8);
+  min-width: 0;
+}
+
+.libre-profile-card-name-text {
   font-size: var(--libre-fs-16);
   font-weight: var(--libre-fw-600);
   color: var(--color-text-primary);
@@ -69,10 +79,25 @@
   white-space: nowrap;
 }
 
+.libre-profile-card-email {
+  font-size: var(--libre-fs-12-5);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .libre-profile-card-since {
-  margin-top: var(--libre-space-2);
   font-size: var(--libre-fs-11);
   color: var(--color-text-tertiary);
+}
+
+/* Own-profile hero — kit Chip row (streak / XP / lessons). */
+.libre-profile-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--libre-space-8);
+  margin-top: var(--libre-space-14);
 }
 
 .libre-profile-card-stats {
@@ -128,44 +153,10 @@
   color: var(--libre-c-ef6f6f);
 }
 
+/* Kit Buttons stretch to fill the CTA row. */
 .libre-profile-card-cta {
   display: flex;
 }
-
-.libre-profile-card-btn {
+.libre-profile-card-cta > .btn {
   flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--libre-space-6);
-  padding: var(--libre-space-10) var(--libre-space-14);
-  border-radius: var(--libre-radius-8);
-  border: var(--libre-bw-1) solid var(--color-border-default);
-  font-family: inherit;
-  font-size: var(--libre-fs-13);
-  font-weight: var(--libre-fw-600);
-  cursor: pointer;
-  transition: background var(--libre-motion-snappy), border-color var(--libre-motion-snappy), opacity var(--libre-motion-snappy);
-}
-.libre-profile-card-btn:disabled {
-  opacity: var(--libre-opacity-0-6);
-  cursor: default;
-}
-
-.libre-profile-card-btn--primary {
-  background: var(--gg-fill-white);
-  color: var(--color-bg-primary);
-  border-color: var(--gg-fill-white);
-}
-.libre-profile-card-btn--primary:not(:disabled):hover {
-  opacity: var(--libre-opacity-0-9);
-}
-
-.libre-profile-card-btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-}
-.libre-profile-card-btn--ghost:not(:disabled):hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
 }

@@ -2754,12 +2754,14 @@ export default function App() {
               removeFriend={cloud.removeFriend}
               getFriendsLeaderboard={cloud.getFriendsLeaderboard}
               getGlobalLeaderboard={cloud.getGlobalLeaderboard}
+              getProfile={cloud.getProfile}
               onOpenProfile={(userId) => setProfileCardUserId(userId)}
               currentUserId={
                 typeof cloud.user === "object" && cloud.user
                   ? cloud.user.id
                   : null
               }
+              onSignIn={() => setSignInOpen(true)}
             />
           ) : view === "sandbox" ? (
             <SandboxView projects={sandboxProjects} />
