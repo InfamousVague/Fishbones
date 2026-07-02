@@ -1,0 +1,141 @@
+/* PracticeDashboard — 2-row stat grid at the top of the Practice
+ * page. Inherits the color-toned tile vocabulary from the old stats
+ * strip (accent edge + tinted icon chip) so the page reads the same,
+ * just denser. Collapses to stacked 2-up cards below 480px with the
+ * goal ring + sparkline spanning full width. */
+
+.libre-practice-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--libre-space-12);
+}
+
+.libre-practice-dash-card {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  min-height: var(--libre-size-72);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-14);
+  position: relative;
+  overflow: hidden;
+  --dash-tone: var(--color-text-primary);
+}
+
+/* Accent edge, same trick as the old stat tiles / CTA card. */
+.libre-practice-dash-card::before {
+  content: "";
+  position: absolute;
+  left: var(--libre-space-0);
+  top: var(--libre-space-0);
+  bottom: var(--libre-space-0);
+  width: var(--libre-size-3);
+  background: var(--dash-tone);
+  opacity: var(--libre-opacity-0-85);
+}
+
+.libre-practice-dash-card--goal     { --dash-tone: var(--libre-c-fcd34d); }
+.libre-practice-dash-card--streak   { --dash-tone: var(--libre-c-f59e3b); }
+.libre-practice-dash-card--accuracy { --dash-tone: var(--libre-c-7cd97c); }
+.libre-practice-dash-card--activity { --dash-tone: var(--libre-c-7cd9d3); }
+.libre-practice-dash-card--due      { --dash-tone: var(--libre-c-f59e3b); }
+.libre-practice-dash-card--weak     { --dash-tone: var(--libre-c-c79bff); }
+.libre-practice-dash-card--mastered { --dash-tone: var(--libre-c-e8c46b); }
+.libre-practice-dash-card--coverage { --dash-tone: var(--libre-c-7cc1d9); }
+
+.libre-practice-dash-card-icon {
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
+  display: grid;
+  place-items: center;
+  border-radius: var(--libre-radius-9);
+  background: color-mix(in srgb, var(--dash-tone) 22%, transparent);
+  color: var(--dash-tone);
+  flex-shrink: 0;
+}
+
+.libre-practice-dash-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.libre-practice-dash-card-value {
+  font-size: var(--libre-fs-22);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-neg-0-015em);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--libre-lh-1-1);
+}
+
+.libre-practice-dash-card-value--sm {
+  font-size: var(--libre-fs-16);
+}
+
+.libre-practice-dash-card-label {
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-top: var(--libre-space-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Goal card puts the label ABOVE the "n/10 today" line. */
+.libre-practice-dash-card--goal .libre-practice-dash-card-label {
+  margin-top: var(--libre-space-0);
+  margin-bottom: var(--libre-space-3);
+}
+
+.libre-practice-dash-card-meta {
+  font-size: var(--libre-fs-10-5);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--libre-space-2);
+}
+
+/* ---- Sparkline ----------------------------------------------------- */
+
+.libre-practice-dash-spark {
+  width: 100%;
+  height: var(--libre-size-36);
+  margin-top: var(--libre-space-6);
+  display: block;
+}
+
+.libre-practice-dash-spark-bar {
+  fill: color-mix(in srgb, var(--dash-tone) 26%, transparent);
+}
+
+.libre-practice-dash-spark-bar-ok {
+  fill: var(--dash-tone);
+}
+
+/* ---- Mobile (stacked cards) ---------------------------------------- */
+
+@media (max-width: 720px) {
+  .libre-practice-dash-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .libre-practice-dash-card--goal,
+  .libre-practice-dash-card--activity {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .libre-practice-dash-card {
+    min-height: var(--libre-size-64);
+    padding: var(--libre-space-10) var(--libre-space-12);
+  }
+  .libre-practice-dash-card-value {
+    font-size: var(--libre-fs-19);
+  }
+}

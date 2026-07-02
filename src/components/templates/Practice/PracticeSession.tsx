@@ -40,6 +40,8 @@ import { fireXpBurst } from "@/components/atoms/XpBurst/XpBurst";
 import PracticeBlocks from "./PracticeBlocks";
 import PracticeParsons from "./PracticeParsons";
 import PracticeSpotBug from "./PracticeSpotBug";
+import PracticeCloze from "./PracticeCloze";
+import PracticeRebuild from "./PracticeRebuild";
 import "./PracticeSession.css";
 
 interface Props {
@@ -320,6 +322,35 @@ export default function PracticeSession({
               <PracticeParsons
                 key={current.id}
                 lines={current.parsons.lines}
+                itemId={current.id}
+                committed={cardOutcome?.status !== "open"}
+                result={
+                  cardOutcome?.status === "correct"
+                    ? "correct"
+                    : cardOutcome?.status === "wrong"
+                      ? "wrong"
+                      : undefined
+                }
+                onResult={commitOutcome}
+              />
+            ) : current.kind === "cloze" && current.cloze ? (
+              <PracticeCloze
+                key={current.id}
+                cloze={current.cloze}
+                committed={cardOutcome?.status !== "open"}
+                result={
+                  cardOutcome?.status === "correct"
+                    ? "correct"
+                    : cardOutcome?.status === "wrong"
+                      ? "wrong"
+                      : undefined
+                }
+                onResult={commitOutcome}
+              />
+            ) : current.kind === "rebuild" && current.rebuild ? (
+              <PracticeRebuild
+                key={current.id}
+                rebuild={current.rebuild}
                 itemId={current.id}
                 committed={cardOutcome?.status !== "open"}
                 result={

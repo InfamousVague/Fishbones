@@ -1,17 +1,24 @@
 /// Practice route — landing surface for the spaced-review feature.
 ///
-/// Two states owned by this component:
+/// Three states owned by this component:
 ///
-///   1. **Deck view** (default): hero with due-counter ring, single
-///      big primary CTA, four stat tiles, recent-misses revisit list,
-///      and a collapsed customize panel for tweaking mode / course /
-///      kind / length filters. Designed to feel like one tap away
-///      from a session — defaults are good, the controls only
-///      appear if the learner asks for them.
+///   1. **Deck view** (default): hero with due-counter ring, the
+///      dashboard (goal ring / streak / accuracy / activity), the
+///      practice-type tiles, a single big primary CTA, daily
+///      mini-challenges, recent-misses revisit list, and a collapsed
+///      customize panel for tweaking mode / course / kind / length
+///      filters. Designed to feel like one tap away from a session —
+///      defaults are good, the controls only appear if the learner
+///      asks for them.
 ///
 ///   2. **Session view**: full-screen runner that owns the queue
 ///      cursor and grading. Returning from the session lands back
 ///      in the deck view with refreshed stats.
+///
+///   3. **Gate**: the deck is strictly harvested from COMPLETED
+///      lessons; with fewer than five atoms the body swaps for a
+///      "practice unlocks as you learn" panel whose CTA routes to
+///      the next unfinished lesson.
 ///
 /// We deliberately keep PracticeView small. The primary tap is the
 /// "Start practice" button at the top; everything else is either
@@ -24,16 +31,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
-import { layers } from "@base/primitives/icon/icons/layers";
 import { hand } from "@base/primitives/icon/icons/hand";
 import { clock } from "@base/primitives/icon/icons/clock";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
-import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import { sliders } from "@base/primitives/icon/icons/sliders";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import { chevronUp } from "@base/primitives/icon/icons/chevron-up";
-import { history as historyIcon } from "@base/primitives/icon/icons/history";
 import { brain } from "@base/primitives/icon/icons/brain";
+import { listChecks } from "@base/primitives/icon/icons/list-checks";
+import { pencil } from "@base/primitives/icon/icons/pencil";
+import { puzzle } from "@base/primitives/icon/icons/puzzle";
+import { listOrdered } from "@base/primitives/icon/icons/list-ordered";
+import { bug } from "@base/primitives/icon/icons/bug";
+import { textCursorInput } from "@base/primitives/icon/icons/text-cursor-input";
+import { target } from "@base/primitives/icon/icons/target";
+import { flame } from "@base/primitives/icon/icons/flame";
+import { shuffle } from "@base/primitives/icon/icons/shuffle";
 import "@base/primitives/icon/icon.css";
 import type { Course } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
@@ -52,6 +65,10 @@ import { pickWarmupItems } from "./practiceLadder";
 import type { PracticeItem, PracticeRecord, PracticeStats } from "./types";
 import PracticeSession from "./PracticeSession";
 import PracticeMatch from "./PracticeMatch";
+import PracticeDashboard from "./PracticeDashboard";
+import PracticeChallenges, {
+  usePracticeChallenges,
+} from "./PracticeChallenges";
 import { grid2x2 } from "@base/primitives/icon/icons/grid-2x2";
 import { useT } from "@/i18n/i18n";
 import "./PracticeView.css";
@@ -62,8 +79,10 @@ interface Props {
   /// else for completion tracking. Drives the harvester's
   /// "courses the learner has touched" filter.
   completed: Set<string>;
-  /// Completion history — used to surface "newly learned" hints
-  /// in the empty state. Optional; works without it.
+  /// Completion history — accepted for API compatibility with the
+  /// hosts (both App and MobileApp pass it). The old empty state
+  /// used it for "newly learned" hints; the learned-material gate
+  /// derives everything it needs from `courses` + `completed`.
   history?: readonly Completion[];
   /// Forwarded to the session so card feedback can deep-link
   /// back to the originating lesson.
@@ -76,18 +95,45 @@ interface Props {
 
 const SESSION_LIMITS = [5, 10, 25] as const;
 
+/// The deck is strictly lesson-gated now — with fewer than this many
+/// harvested atoms the page shows the "keep learning" gate instead
+/// of a deck that would recycle the same two cards forever.
+const GATE_MIN_ITEMS = 5;
+
 const KIND_LABEL_KEYS: Record<PracticeItem["kind"], string> = {
   mcq: "practice.kindMcq",
   short: "practice.kindShort",
   blocks: "practice.kindBlocks",
   parsons: "practice.kindParsons",
   spotbug: "practice.kindSpotbug",
+  cloze: "practice.clozeTitle",
+  rebuild: "practice.rebuildTitle",
+};
+
+/// Icon per item kind — shown on the customize kind pills so the
+/// vocabulary matches the session cards' headers.
+const KIND_ICONS: Record<PracticeItem["kind"], string> = {
+  mcq: listChecks,
+  short: pencil,
+  blocks: puzzle,
+  parsons: listOrdered,
+  spotbug: bug,
+  cloze: textCursorInput,
+  rebuild: brain,
+};
+
+/// Icon per queue mode — shown on the customize mode pills.
+const MODE_ICONS: Record<PracticeMode, string> = {
+  smart: sparkles,
+  due: target,
+  weak: flame,
+  recent: clock,
+  random: shuffle,
 };
 
 export default function PracticeView({
   courses,
   completed,
-  history,
   onOpenLesson,
   onMonkeysPaw,
 }: Props) {
@@ -121,6 +167,37 @@ export default function PracticeView({
   );
 
   const courseGroups = useMemo(() => groupItemsByCourse(items), [items]);
+
+  // Daily mini-challenges tracker. Lives HERE (not inside the strip
+  // component) because PracticeView stays mounted while a session
+  // runs — the strip itself unmounts, and grades only happen during
+  // sessions.
+  const challenges = usePracticeChallenges(items);
+
+  // Per-kind deck counts — drive the kind pills (hidden at 0) and
+  // the first-class cloze / rebuild tiles (disabled at 0).
+  const kindCounts = useMemo(() => {
+    const counts = new Map<PracticeItem["kind"], number>();
+    for (const it of items) counts.set(it.kind, (counts.get(it.kind) ?? 0) + 1);
+    return counts;
+  }, [items]);
+
+  // First not-yet-completed lesson, in course order — the gate's
+  // "Browse courses" CTA target. Practice's only navigation
+  // affordance is `onOpenLesson`, so the CTA reuses it to drop the
+  // learner into the next thing to learn.
+  const nextLesson = useMemo(() => {
+    for (const course of courses) {
+      for (const chapter of course.chapters) {
+        for (const lesson of chapter.lessons) {
+          if (!completed.has(`${course.id}:${lesson.id}`)) {
+            return { courseId: course.id, lessonId: lesson.id };
+          }
+        }
+      }
+    }
+    return null;
+  }, [courses, completed]);
 
   // ----- Filter state (everything below the hero is "advanced"
   // and sits behind the Customize toggle by default). -----
@@ -211,6 +288,21 @@ export default function PracticeView({
     setActiveQueue(queue);
   }
 
+  /// Start a session drilled down to ONE kind — the first-class
+  /// cloze / rebuild tiles route here. No warmup: a kind drill is a
+  /// deliberate rep, not the daily review on-ramp.
+  function startKindSession(kind: PracticeItem["kind"]) {
+    const queue = buildQueue("smart", items, records, {
+      limit: sessionLength,
+      kinds: new Set([kind]),
+      seed: Date.now(),
+      now: Date.now(),
+    });
+    if (queue.length === 0) return;
+    setActiveWarmup([]);
+    setActiveQueue(queue);
+  }
+
   if (activeQueue) {
     return (
       <PracticeSession
@@ -230,10 +322,14 @@ export default function PracticeView({
   }
 
   // Practice types — the page is the umbrella for every way to drill.
-  // Built once and rendered in BOTH the main view and the empty state:
-  // the Monkey's Paw doesn't depend on having review cards, so it must
-  // stay reachable before the learner's first completion.
-  const practiceTypesSection = onMonkeysPaw ? (
+  // Built once and rendered in BOTH the main view and the gate: the
+  // Monkey's Paw doesn't depend on having review cards, so it must
+  // stay reachable before the learner's first completion. Tiles whose
+  // kind has zero harvested items render disabled (same affordance
+  // Match Pairs already used).
+  const clozeCount = kindCounts.get("cloze") ?? 0;
+  const rebuildCount = kindCounts.get("rebuild") ?? 0;
+  const practiceTypesSection = (
     <div className="libre-practice-types" role="list">
       <div
         className="libre-practice-type libre-practice-type--active"
@@ -253,28 +349,30 @@ export default function PracticeView({
           {stats.dueCount > 0 ? `${stats.dueCount} due` : "Up to date"}
         </span>
       </div>
-      <button
-        type="button"
-        className="libre-practice-type"
-        role="listitem"
-        onClick={onMonkeysPaw}
-      >
-        <span className="libre-practice-type-icon" aria-hidden>
-          <Icon icon={hand} size="lg" color="currentColor" />
-        </span>
-        <span className="libre-practice-type-text">
-          <span className="libre-practice-type-title">
-            The Monkey's Paw
+      {onMonkeysPaw && (
+        <button
+          type="button"
+          className="libre-practice-type"
+          role="listitem"
+          onClick={onMonkeysPaw}
+        >
+          <span className="libre-practice-type-icon" aria-hidden>
+            <Icon icon={hand} size="lg" color="currentColor" />
           </span>
-          <span className="libre-practice-type-desc">
-            Adversarial duels — you write only the tests, the Paw writes
-            the laziest code that passes them.
+          <span className="libre-practice-type-text">
+            <span className="libre-practice-type-title">
+              The Monkey's Paw
+            </span>
+            <span className="libre-practice-type-desc">
+              Adversarial duels — you write only the tests, the Paw writes
+              the laziest code that passes them.
+            </span>
           </span>
-        </span>
-        <span className="libre-practice-type-meta libre-practice-type-meta--go">
-          Open →
-        </span>
-      </button>
+          <span className="libre-practice-type-meta libre-practice-type-meta--go">
+            Open →
+          </span>
+        </button>
+      )}
       <button
         type="button"
         className="libre-practice-type"
@@ -296,12 +394,125 @@ export default function PracticeView({
           {mcqItems.length >= 4 ? "Play →" : "Need more cards"}
         </span>
       </button>
+      <button
+        type="button"
+        className="libre-practice-type"
+        role="listitem"
+        onClick={() => startKindSession("cloze")}
+        disabled={clozeCount === 0}
+      >
+        <span className="libre-practice-type-icon" aria-hidden>
+          <Icon icon={textCursorInput} size="lg" color="currentColor" />
+        </span>
+        <span className="libre-practice-type-text">
+          <span className="libre-practice-type-title">
+            {t("practice.clozeTitle")}
+          </span>
+          <span className="libre-practice-type-desc">
+            {t("practice.clozeDesc")}
+          </span>
+        </span>
+        <span className="libre-practice-type-meta libre-practice-type-meta--go">
+          {clozeCount > 0 ? "Play →" : "Need more cards"}
+        </span>
+      </button>
+      <button
+        type="button"
+        className="libre-practice-type"
+        role="listitem"
+        onClick={() => startKindSession("rebuild")}
+        disabled={rebuildCount === 0}
+      >
+        <span className="libre-practice-type-icon" aria-hidden>
+          <Icon icon={brain} size="lg" color="currentColor" />
+        </span>
+        <span className="libre-practice-type-text">
+          <span className="libre-practice-type-title">
+            {t("practice.rebuildTitle")}
+          </span>
+          <span className="libre-practice-type-desc">
+            {t("practice.rebuildDesc")}
+          </span>
+        </span>
+        <span className="libre-practice-type-meta libre-practice-type-meta--go">
+          {rebuildCount > 0 ? "Play →" : "Need more cards"}
+        </span>
+      </button>
     </div>
-  ) : null;
+  );
 
-  // ----- Render: empty state -----
-  if (items.length === 0) {
-    return <EmptyState history={history} extra={practiceTypesSection} />;
+  // ----- Render: learned-material gate -----
+  // The deck is strictly lesson-gated; below GATE_MIN_ITEMS the page
+  // swaps the whole deck body for a friendly "keep learning" panel.
+  // The practice-type tiles stay above it so the Monkey's Paw (which
+  // needs no cards) remains reachable from day zero.
+  if (items.length < GATE_MIN_ITEMS) {
+    const openNext = () => {
+      if (onOpenLesson && nextLesson) {
+        onOpenLesson(nextLesson.courseId, nextLesson.lessonId);
+        return;
+      }
+      // Fallback: the same global navigation event the AI panel's
+      // libre:// links use — App.tsx routes it to the course view.
+      const courseId = courses[0]?.id;
+      if (courseId) {
+        window.dispatchEvent(
+          new CustomEvent("libre:open-course", { detail: { courseId } }),
+        );
+      }
+    };
+    const canBrowse = (onOpenLesson && nextLesson != null) || courses.length > 0;
+    const gatePct = Math.round(
+      (Math.min(items.length, GATE_MIN_ITEMS) / GATE_MIN_ITEMS) * 100,
+    );
+    return (
+      <div className="libre-practice">
+        <div className="libre-practice-scroll">
+          <div className="libre-practice-inner libre-practice-inner--empty">
+            {practiceTypesSection}
+            <div className="libre-practice-empty-icon" aria-hidden>
+              <Icon icon={dumbbell} size="xl" color="currentColor" />
+            </div>
+            <h1 className="libre-practice-hero-title">
+              {t("practice.gateTitle")}
+            </h1>
+            <p className="libre-practice-empty-blurb">
+              {t("practice.gateBody")}
+            </p>
+            <div className="libre-practice-gate-progress">
+              <span
+                className="libre-practice-gate-bar"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={GATE_MIN_ITEMS}
+                aria-valuenow={Math.min(items.length, GATE_MIN_ITEMS)}
+              >
+                <span
+                  className="libre-practice-gate-bar-fill"
+                  style={{ width: `${gatePct}%` }}
+                />
+              </span>
+              <span className="libre-practice-gate-count">
+                {t("practice.gateProgress", {
+                  count: items.length,
+                  needed: GATE_MIN_ITEMS,
+                })}
+              </span>
+            </div>
+            {canBrowse && (
+              <button
+                type="button"
+                className="libre-practice-cta-button libre-practice-gate-cta"
+                onClick={openNext}
+              >
+                {t("practice.gateCta")}
+                <Icon icon={sparkles} size="sm" color="currentColor" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const heroSub =
@@ -331,6 +542,11 @@ export default function PracticeView({
               attemptsToday={stats.attemptsToday}
             />
           </section>
+
+          {/* Dashboard — daily goal ring, streak, accuracy, activity
+              sparkline + deck-shape numbers. Absorbs the old plain
+              stats strip. */}
+          <PracticeDashboard items={items} records={records} stats={stats} />
 
           {practiceTypesSection}
 
@@ -368,33 +584,14 @@ export default function PracticeView({
             </button>
           </section>
 
-          {/* Color-toned stat tiles — same vocabulary as Profile. */}
-          <div className="libre-practice-stats" role="list">
-            <StatTile
-              icon={layers}
-              tone="cards"
-              value={items.length}
-              label={t("practice.statInDeck")}
-            />
-            <StatTile
-              icon={clock}
-              tone="due"
-              value={stats.dueCount}
-              label={t("practice.statDueNow")}
-            />
-            <StatTile
-              icon={brain}
-              tone="weak"
-              value={stats.weakCount}
-              label={t("practice.statWeakSpots")}
-            />
-            <StatTile
-              icon={checkIcon}
-              tone="done"
-              value={`${stats.correctToday}/${stats.attemptsToday}`}
-              label={t("practice.statToday")}
-            />
-          </div>
+          {/* Daily mini-challenges — three rotating goals. The
+              TRACKER hook lives at the top of this component so it
+              keeps listening while a session runs; this strip is
+              display-only. */}
+          <PracticeChallenges
+            state={challenges.state}
+            picked={challenges.picked}
+          />
 
           {/* Recent misses — soft prompt to revisit lessons where
               the learner just got something wrong. Quietly absent
@@ -484,6 +681,11 @@ export default function PracticeView({
                       }
                       onClick={() => setMode(m)}
                     >
+                      <Icon
+                        icon={MODE_ICONS[m]}
+                        size="xs"
+                        color="currentColor"
+                      />
                       {MODE_LABELS[m]}
                     </button>
                   ))}
@@ -555,7 +757,7 @@ export default function PracticeView({
                   {(
                     Object.keys(KIND_LABEL_KEYS) as PracticeItem["kind"][]
                   ).map((k) => {
-                    const count = items.filter((it) => it.kind === k).length;
+                    const count = kindCounts.get(k) ?? 0;
                     if (count === 0) return null;
                     const active = selectedKinds.has(k);
                     return (
@@ -575,6 +777,11 @@ export default function PracticeView({
                           });
                         }}
                       >
+                        <Icon
+                          icon={KIND_ICONS[k]}
+                          size="xs"
+                          color="currentColor"
+                        />
                         {t(KIND_LABEL_KEYS[k])}
                         <span className="libre-practice-pill-count">
                           {count}
@@ -681,88 +888,6 @@ function DueRing({
         <span className="libre-practice-ring-label">
           {attemptsToday > 0 ? t("practice.todayPct", { pct: accuracy }) : t("practice.due")}
         </span>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// StatTile — lifted from ProfileView's design vocabulary.
-
-function StatTile({
-  icon,
-  tone,
-  value,
-  label,
-}: {
-  icon: string;
-  tone: "cards" | "due" | "weak" | "done";
-  value: number | string;
-  label: string;
-}) {
-  return (
-    <div
-      className={`libre-practice-stat libre-practice-stat--${tone}`}
-      role="listitem"
-    >
-      <span className="libre-practice-stat-icon" aria-hidden>
-        <Icon icon={icon} size="base" color="currentColor" />
-      </span>
-      <div className="libre-practice-stat-text">
-        <span className="libre-practice-stat-value">{value}</span>
-        <span className="libre-practice-stat-label">{label}</span>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// EmptyState — first-run / nothing-touched-yet message.
-
-function EmptyState({
-  history,
-  extra,
-}: {
-  history?: readonly Completion[];
-  /// Rendered above the empty-state copy — carries the practice-type
-  /// cards so the Monkey's Paw stays reachable with an empty deck.
-  extra?: React.ReactNode;
-}) {
-  const t = useT();
-  const recent = history?.length ?? 0;
-  return (
-    <div className="libre-practice">
-      <div className="libre-practice-scroll">
-        <div className="libre-practice-inner libre-practice-inner--empty">
-          {extra}
-          <div className="libre-practice-empty-icon" aria-hidden>
-            <Icon icon={dumbbell} size="xl" color="currentColor" />
-          </div>
-          <h1 className="libre-practice-hero-title">
-            {recent === 0 ? t("practice.emptyTitleSeed") : t("practice.emptyTitleNoneYet")}
-          </h1>
-          <p className="libre-practice-empty-blurb">
-            {t("practice.emptyBlurb")}
-          </p>
-          {recent === 0 ? (
-            <div className="libre-practice-empty-hint">
-              <Icon icon={sparkles} size="xs" color="currentColor" />
-              <span>
-                Pick a book from <strong>Library</strong> or browse{" "}
-                <strong>Discover</strong> to seed your deck.
-              </span>
-            </div>
-          ) : (
-            <div className="libre-practice-empty-hint">
-              <Icon icon={historyIcon} size="xs" color="currentColor" />
-              <span>
-                You have completions logged but no quiz / blocks puzzles in
-                them yet. Try a course with checkpoint quizzes or
-                code-blocks challenges.
-              </span>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

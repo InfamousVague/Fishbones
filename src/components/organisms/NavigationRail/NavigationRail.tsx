@@ -230,9 +230,9 @@ export default function NavigationRail({
   onDiscover,
   onChallenges,
   onPractice,
-  // `practiceDue` is still accepted on the props interface (callers
-  // pass it) but no longer read — the Practice route is "coming soon"
-  // and its rail item shows a lock instead of a review-count badge.
+  // Badges the Practice rail item with the count of spaced-repetition
+  // cards due right now (Practice shipped out of "coming soon" in 2.7).
+  practiceDue,
   onPaths,
   onCertificates,
   onSandbox,
@@ -388,8 +388,7 @@ export default function NavigationRail({
             label={t("nav.practice")}
             onClick={onPractice}
             active={activeView === "practice"}
-            comingSoon
-            comingSoonLabel={t("nav.comingSoon")}
+            badge={practiceDue}
           />
         )}
         {onCertificates && (

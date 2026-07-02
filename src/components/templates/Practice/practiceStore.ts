@@ -134,6 +134,78 @@ function saveToday(counter: TodayCounter): void {
   }
 }
 
+/// Rolling per-day activity log — the last `DAY_LOG_LIMIT` local days
+/// that had at least one graded attempt. Powers the dashboard's
+/// 14-day sparkline, the practice-day streak flame, and the daily
+/// mini-challenges. Separate key from TODAY_KEY so the existing
+/// single-day counter (and its reset semantics) stay untouched.
+const DAY_LOG_KEY = profileKey("libre:practice:daylog:v1");
+const DAY_LOG_LIMIT = 30;
+
+export interface PracticeDayEntry {
+  dayKey: string; // "YYYY-MM-DD" (local)
+  attempts: number;
+  correct: number;
+}
+
+export function loadDayLog(): PracticeDayEntry[] {
+  try {
+    const raw = localStorage.getItem(DAY_LOG_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (e): e is PracticeDayEntry =>
+        !!e &&
+        typeof e === "object" &&
+        typeof (e as PracticeDayEntry).dayKey === "string" &&
+        typeof (e as PracticeDayEntry).attempts === "number" &&
+        typeof (e as PracticeDayEntry).correct === "number",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function bumpDayLog(correct: boolean, now: number): void {
+  try {
+    const log = loadDayLog();
+    const key = localDayKey(now);
+    const last = log[log.length - 1];
+    if (last && last.dayKey === key) {
+      last.attempts += 1;
+      if (correct) last.correct += 1;
+    } else {
+      log.push({ dayKey: key, attempts: 1, correct: correct ? 1 : 0 });
+    }
+    localStorage.setItem(DAY_LOG_KEY, JSON.stringify(log.slice(-DAY_LOG_LIMIT)));
+  } catch {
+    /* drop */
+  }
+}
+
+/// Consecutive practice days ending TODAY (or yesterday — an unbroken
+/// run that hasn't practiced yet today still shows its length, so the
+/// flame doesn't zero out at midnight before the first session).
+export function practiceDayStreak(now: number = Date.now()): number {
+  const log = loadDayLog();
+  if (log.length === 0) return 0;
+  const have = new Set(log.map((e) => e.dayKey));
+  const DAY = 24 * 60 * 60 * 1000;
+  // Anchor on today if practiced today, else on yesterday.
+  let anchor = now;
+  if (!have.has(localDayKey(anchor))) {
+    anchor -= DAY;
+    if (!have.has(localDayKey(anchor))) return 0;
+  }
+  let streak = 0;
+  while (have.has(localDayKey(anchor))) {
+    streak += 1;
+    anchor -= DAY;
+  }
+  return streak;
+}
+
 /// Grade one attempt and persist. Returns the freshly-computed
 /// record so the caller can update its UI without re-loading the
 /// whole map. Also bumps today's counter.
@@ -158,6 +230,7 @@ export function gradeAttempt(
   today.attempts += 1;
   if (correct) today.correct += 1;
   saveToday(today);
+  bumpDayLog(correct, now);
 
   // Notify any open practice surfaces (the view header in
   // particular) to re-read stats. We use a custom DOM event
@@ -183,6 +256,7 @@ export function resetPracticeState(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(TODAY_KEY);
+    localStorage.removeItem(DAY_LOG_KEY);
     window.dispatchEvent(new CustomEvent("libre:practice-graded"));
   } catch {
     /* drop */

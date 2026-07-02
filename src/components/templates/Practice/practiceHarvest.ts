@@ -3,12 +3,11 @@
 ///
 /// Two harvesting principles:
 ///
-///   1. **Pre-filter to "touched" courses.** A learner who has
-///      never opened a course shouldn't get its content thrown
-///      into their review queue — that defeats the "review what
-///      you've learned" framing and dilutes the deck. We treat
-///      "the learner has completed at least one lesson in the
-///      course" as the inclusion threshold.
+///   1. **Strictly completed lessons only.** Practice reviews what
+///      the learner has actually LEARNED — an atom enters the deck
+///      only once its parent lesson is complete. (This was once a
+///      looser course-level gate; that surfaced questions from
+///      lessons the learner had never opened.)
 ///
 ///   2. **No deep-equality dependency on the Course tree.** Caller
 ///      `useMemo`s over `[courses, completed]`; we trust those
@@ -31,35 +30,34 @@
 import type { Course, Lesson } from "@/data/types";
 import type { PracticeItem } from "./types";
 import { isMobile } from "@/lib/platform";
-import { makeBugPuzzle, seedFromId } from "./practiceMutate";
+import {
+  makeBugPuzzle,
+  makeClozePuzzle,
+  makeRebuildPuzzle,
+  seedFromId,
+} from "./practiceMutate";
 
-/// Build the practice deck from courses the learner has touched.
+/// Build the practice deck — STRICTLY from lessons the learner has
+/// completed.
 ///
 /// `completed` is the standard `${courseId}:${lessonId}` set the
-/// rest of the app uses. We use it to:
-///   - decide which courses qualify (any completion → include)
-///   - tag each item with whether the learner has completed the
-///     lesson it lives in (caller can dim "not yet completed"
-///     items; we don't filter them here so the harvest is reused
-///     between "review only completed" and "preview everything"
-///     UI surfaces).
+/// rest of the app uses. Gating is per-LESSON, not per-course:
+/// Practice's contract is "review what you've learned", and the old
+/// course-level gate (one completion anywhere → the whole course's
+/// atoms) quizzed learners on material they'd never opened. Now an
+/// atom only enters the deck once its parent lesson is complete —
+/// content you haven't studied simply doesn't exist here, and the
+/// view shows a "come back after some lessons" gate when the deck
+/// is too thin.
 ///
-/// Returns one `PracticeItem` per atom (one quiz question or one
-/// blocks puzzle). A 10-question quiz contributes 10 items.
+/// Returns one `PracticeItem` per atom (one quiz question, blocks /
+/// parsons / spot-the-bug / fill-the-gap / rebuild puzzle). A
+/// 10-question quiz contributes 10 items.
 export function harvestPracticeItems(
   courses: readonly Course[],
   completed: ReadonlySet<string>,
 ): PracticeItem[] {
-  const out: PracticeItem[] = [];
-  for (const course of courses) {
-    if (!hasAnyCompletion(course, completed)) continue;
-    for (const chapter of course.chapters) {
-      for (const lesson of chapter.lessons) {
-        appendItemsForLesson(out, course, lesson);
-      }
-    }
-  }
-  return out;
+  return harvestCompletedItems(courses, completed);
 }
 
 /// Subset variant: harvest items only from lessons the learner
@@ -81,17 +79,6 @@ export function harvestCompletedItems(
   return out;
 }
 
-function hasAnyCompletion(
-  course: Course,
-  completed: ReadonlySet<string>,
-): boolean {
-  for (const chapter of course.chapters) {
-    for (const lesson of chapter.lessons) {
-      if (completed.has(`${course.id}:${lesson.id}`)) return true;
-    }
-  }
-  return false;
-}
 
 /// A "summary" lesson is the stripped placeholder the web build seeds
 /// the library with before a course's full body loads (see `summarise`
@@ -124,6 +111,22 @@ function appendItemsForLesson(
   // dereferencing a `questions` array the summary doesn't carry. Both
   // harvest entry points funnel through here, so both are covered.
   if (isLessonSummaryStub(lesson)) return;
+  // Authored review questions (lesson.reviewQuestions) — practice-only
+  // material generated at book-generation/backfill time; never shown in
+  // the lesson flow. Slugged `rq${i}` so ids can't collide with a quiz
+  // lesson's own `q${i}` atoms.
+  (lesson.reviewQuestions ?? []).forEach((q, i) => {
+    out.push({
+      id: `${course.id}:${lesson.id}:${q.kind}:rq${i}`,
+      kind: q.kind,
+      courseId: course.id,
+      courseTitle: course.title,
+      language: course.language,
+      lessonId: lesson.id,
+      lessonTitle: lesson.title,
+      question: q,
+    });
+  });
   if (lesson.kind === "quiz") {
     // Second line of defence: a genuinely malformed *full* quiz lesson
     // (kind "quiz", real body, but the author forgot `questions`) isn't
@@ -208,6 +211,49 @@ function appendItemsForLesson(
           difficulty: lesson.difficulty,
           topic: lesson.topic,
           spotbug: puzzle,
+        });
+      }
+    }
+    // Fill-the-Gap (cloze): blank ONE meaningful token, pick from four
+    // same-class candidates. Reaches even 2-line solutions (you only
+    // complete a token, not reorder or scan lines), tap-only on mobile.
+    if (lines.length >= 2 && lines.length <= 20) {
+      const id = `${course.id}:${lesson.id}:cloze:cloze`;
+      const puzzle = makeClozePuzzle(lines, seedFromId(id));
+      if (puzzle) {
+        out.push({
+          id,
+          kind: "cloze",
+          courseId: course.id,
+          courseTitle: course.title,
+          language: course.language,
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          difficulty: lesson.difficulty,
+          topic: lesson.topic,
+          cloze: puzzle,
+        });
+      }
+    }
+    // Memory Rebuild: peek the solution for a few seconds, then
+    // reassemble it from shuffled lines WITH mutated decoys mixed in.
+    // Kept short (3-8 lines) — the timed-memory framing collapses on
+    // long snippets.
+    if (lines.length >= 3 && lines.length <= 8) {
+      const id = `${course.id}:${lesson.id}:rebuild:rebuild`;
+      const puzzle = makeRebuildPuzzle(lines, seedFromId(id));
+      if (puzzle) {
+        out.push({
+          id,
+          kind: "rebuild",
+          courseId: course.id,
+          courseTitle: course.title,
+          language: course.language,
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          difficulty: lesson.difficulty,
+          topic: lesson.topic,
+          rebuild: puzzle,
         });
       }
     }

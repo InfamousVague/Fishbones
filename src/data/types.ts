@@ -352,6 +352,16 @@ interface LessonBase {
   translations?: import("./locales").TranslationOverlay<
     import("./locales").LessonTranslation
   >;
+  /**
+   * Review questions for the Practice deck — NOT rendered in the lesson
+   * flow. Generated at book-generation time (and backfilled by
+   * `scripts/generate-review-questions.mjs`) so every code lesson has
+   * review material even when its solution is too long/short for the
+   * deterministic puzzle generators (parsons / spot-the-bug / cloze /
+   * rebuild). Harvested into Practice once the lesson is COMPLETED,
+   * like every other practiceable atom.
+   */
+  reviewQuestions?: QuizQuestion[];
 }
 
 /**

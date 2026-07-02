@@ -36,7 +36,9 @@ export type PracticeItemKind =
   | "short"
   | "blocks"
   | "parsons"
-  | "spotbug";
+  | "spotbug"
+  | "cloze"
+  | "rebuild";
 
 /// One practiceable atom, denormalised for the session runner.
 /// Built from `harvestPracticeItems(courses, completed)` — see
@@ -85,6 +87,31 @@ export interface PracticeItem {
     bugLine: number;
     original: string;
     category: string;
+  };
+  /// Fill-the-Gap payload: the solution with ONE meaningful token
+  /// blanked out of `lines[blankLine]` (from `blankStart`, length
+  /// `blankLen` in the ORIGINAL line). The learner picks the missing
+  /// token from `options` (4 same-class candidates, deterministic
+  /// order, exactly one === `answer`). `category` labels the token
+  /// class for the reveal line.
+  cloze?: {
+    lines: string[];
+    blankLine: number;
+    blankStart: number;
+    blankLen: number;
+    answer: string;
+    options: string[];
+    category: string;
+  };
+  /// Memory-Rebuild payload: the solution is shown for `peekMs`, then
+  /// hidden; the learner reassembles `lines` (correct order) from a
+  /// shuffled pool that ALSO contains `decoys` — mutated look-alike
+  /// lines that belong to no position and must be left out. Grading:
+  /// exact order, zero decoys used.
+  rebuild?: {
+    lines: string[];
+    decoys: string[];
+    peekMs: number;
   };
 }
 

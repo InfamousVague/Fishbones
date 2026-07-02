@@ -239,78 +239,6 @@
   cursor: not-allowed;
 }
 
-/* ---- Color-toned stat tiles (matches ProfileView design) ---------- */
-
-.libre-practice-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--libre-size-170), 1fr));
-  gap: var(--libre-space-12);
-}
-
-.libre-practice-stat {
-  display: flex;
-  align-items: center;
-  gap: var(--libre-space-14);
-  padding: var(--libre-space-16) var(--libre-space-18);
-  background: var(--color-bg-secondary);
-  border: var(--libre-bw-1) solid var(--color-border-default);
-  border-radius: var(--libre-radius-14);
-  position: relative;
-  --stat-tone: var(--color-text-primary);
-  overflow: hidden;
-}
-
-.libre-practice-stat::before {
-  content: "";
-  position: absolute;
-  left: var(--libre-space-0);
-  top: var(--libre-space-0);
-  bottom: var(--libre-space-0);
-  width: var(--libre-size-3);
-  background: var(--stat-tone);
-  opacity: var(--libre-opacity-0-85);
-}
-
-.libre-practice-stat--cards { --stat-tone: var(--libre-c-7cd9d3); }
-.libre-practice-stat--due   { --stat-tone: var(--libre-c-f59e3b); }
-.libre-practice-stat--weak  { --stat-tone: var(--libre-c-c79bff); }
-.libre-practice-stat--done  { --stat-tone: var(--libre-c-7cd97c); }
-
-.libre-practice-stat-icon {
-  width: var(--libre-size-36);
-  height: var(--libre-size-36);
-  display: grid;
-  place-items: center;
-  border-radius: var(--libre-radius-9);
-  background: color-mix(in srgb, var(--stat-tone) 22%, transparent);
-  color: var(--stat-tone);
-  flex-shrink: 0;
-}
-
-.libre-practice-stat-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.libre-practice-stat-value {
-  font-size: var(--libre-fs-26);
-  font-weight: var(--libre-fw-800);
-  letter-spacing: var(--libre-ls-neg-0-015em);
-  color: var(--color-text-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: var(--libre-lh-1-1);
-}
-
-.libre-practice-stat-label {
-  font-size: var(--libre-fs-11-5);
-  font-weight: var(--libre-fw-700);
-  letter-spacing: var(--libre-ls-0-06em);
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-  margin-top: var(--libre-space-2);
-}
-
 /* ---- Section shell (matches ProfileView) -------------------------- */
 
 .libre-practice-section {
@@ -582,18 +510,46 @@
   max-width: var(--libre-size-520);
 }
 
-.libre-practice-empty-hint {
-  display: inline-flex;
+/* ---- Learned-material gate ----------------------------------------- */
+/* Shares the empty-state shell (icon circle, blurb) and adds a small
+ * "n of 5 unlocked" progress bar + the browse CTA. */
+
+.libre-practice-gate-progress {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--libre-space-8);
-  padding: var(--libre-space-10) var(--libre-space-14);
-  background: var(--color-bg-secondary);
-  border: var(--libre-bw-1) solid var(--color-border-default);
-  border-radius: var(--libre-radius-md, var(--libre-radius-10));
-  font-size: var(--libre-fs-13);
+  width: 100%;
+  max-width: var(--libre-size-320);
+}
+
+.libre-practice-gate-bar {
+  display: block;
+  width: 100%;
+  height: var(--libre-size-6);
+  border-radius: var(--libre-radius-pill);
+  background: var(--libre-c-rgba-255-255-255-0-08);
+  overflow: hidden;
+}
+
+.libre-practice-gate-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--libre-radius-pill);
+  background: var(--libre-c-fcd34d);
+  transition: width var(--libre-dur-500) var(--libre-ease-cb-6);
+}
+
+.libre-practice-gate-count {
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
   color: var(--color-text-secondary);
-  max-width: var(--libre-size-520);
-  line-height: var(--libre-lh-1-5);
+  font-variant-numeric: tabular-nums;
+}
+
+.libre-practice-gate-cta {
+  margin-top: var(--libre-space-8);
+  min-height: var(--libre-size-44);
 }
 
 /* ---- Responsiveness ----------------------------------------------- */
@@ -633,8 +589,14 @@
   .libre-practice-hero-title {
     font-size: var(--libre-fs-26);
   }
-  .libre-practice-stat-value {
-    font-size: var(--libre-fs-22);
+  /* Comfortable thumb targets — the pills are the smallest
+   * interactive elements on the page. */
+  .libre-practice-pill {
+    min-height: var(--libre-size-44);
+    padding: var(--libre-space-8) var(--libre-space-14);
+  }
+  .libre-practice-customize-toggle {
+    min-height: var(--libre-size-44);
   }
 }
 
@@ -669,9 +631,17 @@
 button.libre-practice-type {
   cursor: pointer;
 }
-button.libre-practice-type:hover {
+button.libre-practice-type:hover:not(:disabled) {
   border-color: var(--color-border-card-strong);
   background: var(--color-bg-tertiary);
+}
+button.libre-practice-type:disabled {
+  cursor: default;
+  opacity: var(--libre-opacity-0-55);
+}
+button.libre-practice-type:disabled .libre-practice-type-meta--go {
+  background: var(--libre-c-rgba-255-255-255-0-07);
+  color: var(--color-text-tertiary);
 }
 .libre-practice-type-icon {
   flex: none;

@@ -1,0 +1,114 @@
+/* PracticeChallenges — daily mini-challenge strip. Card vocabulary
+ * matches the practice-type tiles (same bg / border / radius tokens)
+ * so the section reads as part of the same page, with a thin
+ * progress bar hugging the card's bottom edge. */
+
+.libre-practice-challenges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-12);
+}
+
+.libre-practice-challenge-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--libre-size-220), 1fr));
+  gap: var(--libre-space-12);
+}
+
+.libre-practice-challenge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  min-height: var(--libre-size-44);
+  padding: var(--libre-space-12) var(--libre-space-14) var(--libre-space-14);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-card);
+  border-radius: var(--libre-radius-12);
+  overflow: hidden;
+  --challenge-tone: var(--libre-c-c79bff);
+}
+
+.libre-practice-challenge--done {
+  --challenge-tone: var(--libre-c-7cd97c);
+  border-color: color-mix(in srgb, var(--challenge-tone) 45%, transparent);
+}
+
+.libre-practice-challenge-icon {
+  flex: none;
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
+  display: grid;
+  place-items: center;
+  border-radius: var(--libre-radius-9);
+  background: color-mix(in srgb, var(--challenge-tone) 18%, transparent);
+  color: var(--challenge-tone);
+}
+
+/* Done → filled check chip. */
+.libre-practice-challenge--done .libre-practice-challenge-icon {
+  background: var(--challenge-tone);
+  color: var(--color-bg-primary);
+}
+
+.libre-practice-challenge-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-2);
+}
+
+.libre-practice-challenge-title {
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-text-primary);
+}
+
+.libre-practice-challenge-desc {
+  font-size: var(--libre-fs-11-5);
+  line-height: var(--libre-lh-1-4);
+  color: var(--color-text-secondary);
+}
+
+.libre-practice-challenge-meta {
+  flex: none;
+  font-size: var(--libre-fs-11-5);
+  font-weight: var(--libre-fw-700);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  padding: var(--libre-space-3) var(--libre-space-10);
+  border-radius: var(--libre-radius-pill);
+  background: var(--libre-c-rgba-255-255-255-0-07);
+  white-space: nowrap;
+}
+
+.libre-practice-challenge--done .libre-practice-challenge-meta {
+  background: color-mix(in srgb, var(--challenge-tone) 20%, transparent);
+  color: var(--challenge-tone);
+}
+
+/* Thin progress bar along the card's bottom edge. */
+.libre-practice-challenge-bar {
+  position: absolute;
+  left: var(--libre-space-0);
+  right: var(--libre-space-0);
+  bottom: var(--libre-space-0);
+  height: var(--libre-size-3);
+  background: var(--libre-c-rgba-255-255-255-0-07);
+}
+
+.libre-practice-challenge-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--challenge-tone);
+  transition: width var(--libre-dur-500) var(--libre-ease-cb-6);
+}
+
+/* ---- Mobile (stacked cards) --------------------------------------- */
+
+@media (max-width: 480px) {
+  .libre-practice-challenge-list {
+    grid-template-columns: 1fr;
+  }
+}
