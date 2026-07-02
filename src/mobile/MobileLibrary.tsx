@@ -19,7 +19,7 @@
 /// no difficulty or topic axis on phone, since most learners on mobile
 /// drill into one course rather than browsing the catalog.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Course, LanguageId } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
 import { isChallengePack, isExerciseTrack, isKoans, isLings } from "@/data/types";
@@ -62,6 +62,11 @@ interface Props {
   /// → untouched → completed).
   history?: readonly Completion[];
   onOpenLesson: (course: Course, chapterIndex: number, lessonIndex: number) => void;
+  /// Optional — long-pressing a course card opens a manage sheet with
+  /// "Remove from library". The heavy lifting (storage delete + sync
+  /// bookkeeping) lives in MobileApp; omitting the prop disables the
+  /// long-press affordance entirely.
+  onUninstall?: (course: Course) => Promise<void> | void;
   /// Optional — fired by the top-right search button to open the
   /// global mobile search palette. Left optional so callers that
   /// haven't wired the palette in yet still type-check.
@@ -131,6 +136,7 @@ export default function MobileLibrary({
   pane,
   onPaneChange,
   onOpenLesson,
+  onUninstall,
   onOpenSearch,
   onRefresh,
 }: Props) {
@@ -142,6 +148,59 @@ export default function MobileLibrary({
     enabled: !!onRefresh,
   });
   const [filter, setFilter] = useState<LanguageId | "all">("all");
+
+  /// Long-press → manage sheet ("Remove from library"). Pointer-based
+  /// (550ms hold, cancelled by >10px drift or release) because iOS
+  /// Safari doesn't fire contextmenu for arbitrary elements. The
+  /// suppress ref eats the click that iOS synthesizes after the hold
+  /// so the course doesn't ALSO open underneath the sheet.
+  const [manageCourse, setManageCourse] = useState<Course | null>(null);
+  const pressTimer = useRef<number | null>(null);
+  const pressOrigin = useRef<{ x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+  const cancelPress = () => {
+    if (pressTimer.current !== null) {
+      window.clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+    pressOrigin.current = null;
+  };
+  const pressHandlers = (c: Course) =>
+    onUninstall
+      ? {
+          onPointerDown: (e: React.PointerEvent) => {
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+            pressOrigin.current = { x: e.clientX, y: e.clientY };
+            pressTimer.current = window.setTimeout(() => {
+              pressTimer.current = null;
+              suppressClick.current = true;
+              void haptics.medium();
+              setManageCourse(c);
+            }, 550);
+          },
+          onPointerMove: (e: React.PointerEvent) => {
+            const o = pressOrigin.current;
+            if (!o) return;
+            if (Math.abs(e.clientX - o.x) > 10 || Math.abs(e.clientY - o.y) > 10) {
+              cancelPress();
+            }
+          },
+          onPointerUp: cancelPress,
+          onPointerCancel: cancelPress,
+          onClickCapture: (e: React.MouseEvent) => {
+            if (suppressClick.current) {
+              suppressClick.current = false;
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          },
+          onContextMenu: (e: React.MouseEvent) => {
+            // Desktop-pointer fallback: right-click opens the same sheet.
+            e.preventDefault();
+            setManageCourse(c);
+          },
+        }
+      : {};
   /// Persisted view-mode preference. Default "grid" so the first-time
   /// experience matches the desktop default; a learner who flips to
   /// "covers" gets that preference back across launches via
@@ -425,7 +484,7 @@ export default function MobileLibrary({
                 const { ch, ls, total, done } = nextLessonOf(c, completed);
                 const pct = total > 0 ? done / total : 0;
                 return (
-                  <li key={c.id} className="m-lib__cardcell">
+                  <li key={c.id} className="m-lib__cardcell" {...pressHandlers(c)}>
                     <CourseCard
                       course={c}
                       total={total}
@@ -453,7 +512,7 @@ export default function MobileLibrary({
                 const { ch, ls, total, done } = nextLessonOf(c, completed);
                 const pct = total > 0 ? done / total : 0;
                 return (
-                  <li key={c.id} className="m-lib__cell">
+                  <li key={c.id} className="m-lib__cell" {...pressHandlers(c)}>
                     <BookCover
                       course={c}
                       progress={pct}
@@ -469,6 +528,45 @@ export default function MobileLibrary({
           )}
         </section>
       ))}
+
+      {/* Manage sheet — long-press target. Backdrop tap or Cancel
+          dismisses; Remove hands off to MobileApp's uninstall flow. */}
+      {manageCourse && (
+        <div
+          className="m-lib__sheet-backdrop"
+          onClick={() => setManageCourse(null)}
+        >
+          <div
+            className="m-lib__sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Manage ${manageCourse.title}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="m-lib__sheet-grip" aria-hidden />
+            <div className="m-lib__sheet-title">{manageCourse.title}</div>
+            <button
+              type="button"
+              className="m-lib__sheet-btn m-lib__sheet-btn--danger"
+              onClick={() => {
+                const c = manageCourse;
+                setManageCourse(null);
+                void haptics.warning();
+                void onUninstall?.(c);
+              }}
+            >
+              Remove from library
+            </button>
+            <button
+              type="button"
+              className="m-lib__sheet-btn"
+              onClick={() => setManageCourse(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

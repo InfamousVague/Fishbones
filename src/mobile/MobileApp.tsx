@@ -961,6 +961,66 @@ export default function MobileApp() {
       active.lessonIndex + 1 < active.course.chapters[active.chapterIndex].lessons.length
     : false;
 
+  /// Remove an installed course. Four-part bookkeeping so the delete
+  /// STAYS deleted across sync:
+  ///   1. drop the IndexedDB record (frees the stored JSON),
+  ///   2. remove the course from the synced library-marker set locally
+  ///      AND delete its marker row on the relay (else the next full
+  ///      pull resurrects it in `syncedLibraryIds`),
+  ///   3. remove it from the settings allowlist + push the shrunk list,
+  ///   4. if the learner was inside that course, back out to the
+  ///      Library and forget the session-restore point.
+  /// Caveat: a future SEED_VERSION bump re-seeds the record for
+  /// signed-out visitors (same behavior as desktop-web); the allow-
+  /// list/markers keep it hidden for signed-in accounts.
+  const uninstallCourse = async (course: Course) => {
+    const { storage } = await import("@/lib/storage");
+    await storage.deleteCourse(course.id);
+    track.courseUninstall(course.id);
+    setSyncedLibraryIds((prev) => {
+      if (!prev || !prev.has(course.id)) return prev;
+      const next = new Set(prev);
+      next.delete(course.id);
+      try {
+        localStorage.setItem(
+          SYNCED_LIBRARY_KEY,
+          JSON.stringify(Array.from(next).sort()),
+        );
+      } catch {
+        /* swallow */
+      }
+      return next;
+    });
+    void cloud.deleteCourseProgress(course.id, [LIBRARY_MARKER_LESSON_ID]);
+    setLibraryAllowlist((prev) => {
+      if (!prev || !prev.has(course.id)) return prev;
+      const next = new Set(prev);
+      next.delete(course.id);
+      const serialized = serializeLibraryAllowlist(next);
+      try {
+        localStorage.setItem(LIBRARY_INSTALLED_IDS_KEY, serialized);
+      } catch {
+        /* swallow */
+      }
+      realtime.pushSetting({
+        key: LIBRARY_INSTALLED_IDS_KEY,
+        value: serialized,
+        updated_at: new Date().toISOString(),
+      });
+      return next;
+    });
+    if (active?.course.id === course.id) {
+      setActive(null);
+      setView("library");
+      try {
+        localStorage.removeItem(ACTIVE_LESSON_KEY);
+      } catch {
+        /* swallow */
+      }
+    }
+    await refreshCourses();
+  };
+
   const onComplete = () => {
     if (!active || !lesson) return;
     // Fresh-completion celebration — XP is only awarded once per
@@ -1045,6 +1105,7 @@ export default function MobileApp() {
           <MobileLibrary
             courses={courses}
             completed={completed}
+            onUninstall={uninstallCourse}
             // `history` threads through so the library can sort by
             // most-recent activity (last lesson completion per
             // course). Without it, the library can only check the

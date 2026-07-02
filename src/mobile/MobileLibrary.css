@@ -473,3 +473,102 @@
   background: var(--gg-fill-white);
   transition: width var(--libre-dur-300) var(--libre-ease-ease);
 }
+
+/* ── Manage sheet (long-press) ─────────────────────────────────── */
+/* Bottom action sheet for course management. Same backdrop-blur
+   language as the outline sheet. */
+
+.m-lib__sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--libre-z-1000);
+  background: var(--libre-c-rgba-0-0-0-0-55);
+  backdrop-filter: blur(var(--libre-blur-3));
+  -webkit-backdrop-filter: blur(var(--libre-blur-3));
+  display: flex;
+  align-items: flex-end;
+}
+
+.m-lib__sheet {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-10) var(--libre-space-16)
+    calc(var(--libre-space-24) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border-top-left-radius: var(--libre-radius-22);
+  border-top-right-radius: var(--libre-radius-22);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+  animation: m-lib-sheet-rise var(--libre-dur-250) var(--libre-ease-cb-6);
+}
+
+@keyframes m-lib-sheet-rise {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-lib__sheet {
+    animation: none;
+  }
+}
+
+.m-lib__sheet-grip {
+  width: var(--libre-size-36);
+  height: var(--libre-size-4);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-14));
+  margin: 0 auto var(--libre-space-4);
+}
+
+.m-lib__sheet-title {
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-text-secondary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: var(--libre-space-4);
+}
+
+.m-lib__sheet-btn {
+  width: 100%;
+  padding: var(--libre-space-14);
+  border-radius: var(--libre-radius-12);
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-700);
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--libre-motion-quick);
+}
+
+.m-lib__sheet-btn:active {
+  background: var(--color-bg-inset, var(--libre-c-rgba-255-255-255-0-08));
+}
+
+.m-lib__sheet-btn--danger {
+  color: var(--libre-c-ef4444);
+  background: var(--libre-c-rgba-239-68-68-0-1);
+  border-color: var(--libre-c-rgba-239-68-68-0-5);
+}
+
+/* Long-pressable cells: suppress the iOS text-selection callout so
+   the hold gesture reads as an app action, not a text action. */
+.m-lib__cardcell,
+.m-lib__cell {
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
