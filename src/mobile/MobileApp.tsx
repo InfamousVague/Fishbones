@@ -40,7 +40,8 @@ import { installCatalogEntryWeb } from "./installCatalogEntry";
 import { track } from "@/lib/track";
 import type { CatalogEntry } from "@/lib/catalog";
 import { isHiddenCourse } from "@/lib/hiddenCourses";
-import { unlockAudioContext } from "@/lib/sfx";
+import { playSound, unlockAudioContext } from "@/lib/sfx";
+import XpBurst, { fireXpBurst } from "@/components/atoms/XpBurst/XpBurst";
 import { haptics } from "@/lib/haptics";
 import type { Course, Lesson } from "@/data/types";
 import { isoToUnixSeconds, unixSecondsToIso } from "@/lib/timestamps";
@@ -802,6 +803,55 @@ export default function MobileApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingOpen, loaded, coursesAll]);
 
+  // ── Session restore ────────────────────────────────────────────────
+  // Native reading apps reopen where you left off; mobile previously
+  // always cold-launched to the Library. Persist the active lesson by
+  // STABLE ids (course + lesson, not indices — course updates can
+  // reorder chapters) whenever it changes; clear when the learner
+  // deliberately backs out to the Library. Restored once per launch,
+  // and only when no ?courseId deep link claimed the landing first.
+  const ACTIVE_LESSON_KEY = "libre.mobile.active-lesson.v1";
+  useEffect(() => {
+    if (!active) return;
+    const lessonId =
+      active.course.chapters[active.chapterIndex]?.lessons[active.lessonIndex]?.id;
+    if (!lessonId) return;
+    try {
+      localStorage.setItem(
+        ACTIVE_LESSON_KEY,
+        JSON.stringify({ courseId: active.course.id, lessonId }),
+      );
+    } catch {
+      /* quota / private mode — resume just won't survive relaunch */
+    }
+  }, [active]);
+  const didRestoreRef = useRef(false);
+  useEffect(() => {
+    if (didRestoreRef.current || !loaded) return;
+    didRestoreRef.current = true;
+    if (pendingOpen) return; // deep link wins the landing
+    try {
+      const raw = localStorage.getItem(ACTIVE_LESSON_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { courseId?: string; lessonId?: string };
+      if (!saved?.courseId || !saved.lessonId) return;
+      const course = coursesAll.find((c) => c.id === saved.courseId);
+      if (!course) return;
+      for (let ci = 0; ci < course.chapters.length; ci++) {
+        const li = course.chapters[ci].lessons.findIndex(
+          (l) => l.id === saved.lessonId,
+        );
+        if (li >= 0) {
+          void openLesson(course, ci, li);
+          return;
+        }
+      }
+    } catch {
+      /* malformed record — ignore, land on Library */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, pendingOpen, coursesAll]);
+
   const goNext = () => {
     if (!active) return;
     const ch = active.course.chapters[active.chapterIndex];
@@ -845,6 +895,34 @@ export default function MobileApp() {
 
   const onComplete = () => {
     if (!active || !lesson) return;
+    // Fresh-completion celebration — XP is only awarded once per
+    // lesson, so the sound + floating "+N XP" burst fire only when
+    // this key isn't already in the completed set (re-passing a
+    // lesson deliberately shouldn't re-reward). Mirrors the desktop
+    // markCompletedAndCelebrate flow; the XP-per-kind values mirror
+    // useStreakAndXp's private table.
+    const isFresh = !completed.has(`${active.course.id}:${lesson.id}`);
+    if (isFresh) {
+      const xp =
+        lesson.kind === "reading"
+          ? 5
+          : lesson.kind === "quiz"
+            ? 10
+            : lesson.kind === "exercise" || lesson.kind === "mixed"
+              ? 20
+              : 0;
+      playSound("xp-pop", { volume: 0.7 });
+      fireXpBurst(xp);
+      // Web-only analytics event (coarse ids, no PII) — same event
+      // the desktop web build logs, so mobile completions stop being
+      // invisible in the dashboard's course breakdown.
+      void import("@/lib/analytics").then(({ trackEvent }) => {
+        trackEvent("lesson.complete", {
+          courseId: active.course.id,
+          lessonId: lesson.id,
+        });
+      });
+    }
     void markCompleted(active.course.id, lesson.id);
     // Mirror to the realtime sync bus so the desktop (and other phones
     // signed into the same account) see this lesson tick green within
@@ -944,7 +1022,16 @@ export default function MobileApp() {
             lessonIndex={active.lessonIndex}
             lesson={lesson}
             completed={completed}
-            onBack={() => setView("library")}
+            onBack={() => {
+              // Deliberate exit — forget the resume point so the next
+              // launch lands on the Library, not back in the lesson.
+              try {
+                localStorage.removeItem(ACTIVE_LESSON_KEY);
+              } catch {
+                /* ignore */
+              }
+              setView("library");
+            }}
             onComplete={onComplete}
             onPrev={hasPrev ? goPrev : undefined}
             onNext={hasNext ? goNext : undefined}
@@ -1070,6 +1157,10 @@ export default function MobileApp() {
           and the component returns null when closed. Hosted here
           (above the search palette + sign-in dialog) so the
           overlay floats above every page surface. */}
+      {/* Floating "+N XP" reward bursts — portaled to <body>, fired
+          from onComplete on fresh completions. */}
+      <XpBurst />
+
       <StreakExtendedOverlay
         open={streakOverlayOpen}
         streakDays={stats.streakDays}

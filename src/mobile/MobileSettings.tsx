@@ -35,6 +35,8 @@ import LanguageDropdown from "@/components/molecules/LanguageDropdown/LanguageDr
 // match the new graphics instead of the old three-stripe swatch.
 import { themeThumb } from "@/components/organisms/dialogs/ThemePicker/themeThumbs";
 import { useAnalyticsSetting } from "@/hooks/useAnalyticsSetting";
+import { getSfxSettings, setSfxSettings, playSound } from "@/lib/sfx";
+import { readHapticSettings, writeHapticSettings, haptics } from "@/lib/haptics";
 import { THEME_PREVIEW } from "@/theme/themePreviews";
 import "./MobileSettings.css";
 
@@ -86,6 +88,21 @@ export default function MobileSettings({
   // desktop Settings → Data pane uses, so the choice syncs semantics
   // across surfaces (the analytics engine reacts to the event).
   const analytics = useAnalyticsSetting();
+  // Sound + haptics preferences — same persisted keys the desktop
+  // Sounds/Haptics panes write, so the choice follows the account via
+  // settings sync. Local mirrors for immediate slider/toggle feedback.
+  const [sfx, setSfx] = useState(() => getSfxSettings());
+  const [haptic, setHaptic] = useState(() => readHapticSettings());
+  const updateSfx = (next: Partial<{ enabled: boolean; volume: number }>) => {
+    setSfxSettings(next);
+    setSfx(getSfxSettings());
+  };
+  const updateHaptic = (
+    next: Partial<{ enabled: boolean; intensity: number }>,
+  ) => {
+    writeHapticSettings(next);
+    setHaptic(readHapticSettings());
+  };
 
   function handleThemeChange(next: ThemeName) {
     setTheme(next);
@@ -329,6 +346,92 @@ export default function MobileSettings({
         >
           <span className="m-set__row-title">Reset to defaults</span>
         </button>
+      </section>
+
+      <section className="m-set__section">
+        <h3 className="m-set__section-title">Sound &amp; haptics</h3>
+        <p className="m-set__blurb">
+          Completion chimes and touch feedback. The phone is where the
+          buzz actually lands — these were desktop-only settings before.
+        </p>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={sfx.enabled}
+          className="m-set__row m-set__row--button"
+          onClick={() => updateSfx({ enabled: !sfx.enabled })}
+        >
+          <span className="m-set__row-title">Sound effects</span>
+          <span
+            className={"m-set__switch" + (sfx.enabled ? " m-set__switch--on" : "")}
+            aria-hidden
+          >
+            <span className="m-set__switch-thumb" />
+          </span>
+        </button>
+        {sfx.enabled && (
+          <div className="m-set__scale-row">
+            <div className="m-set__scale-text">
+              <span className="m-set__row-title">Volume</span>
+            </div>
+            <div className="m-set__scale-control">
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={sfx.volume}
+                className="m-set__scale-slider"
+                aria-label="Sound volume"
+                onChange={(e) => updateSfx({ volume: Number(e.target.value) })}
+                // Audible preview on release, not per-tick — dragging
+                // through 20 values shouldn't machine-gun the chime.
+                onPointerUp={() => playSound("xp-pop", { volume: sfx.volume })}
+              />
+              <span className="m-set__scale-val">{Math.round(sfx.volume * 100)}%</span>
+            </div>
+          </div>
+        )}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={haptic.enabled}
+          className="m-set__row m-set__row--button"
+          onClick={() => {
+            const next = !haptic.enabled;
+            updateHaptic({ enabled: next });
+            if (next) void haptics.success();
+          }}
+        >
+          <span className="m-set__row-title">Haptic feedback</span>
+          <span
+            className={"m-set__switch" + (haptic.enabled ? " m-set__switch--on" : "")}
+            aria-hidden
+          >
+            <span className="m-set__switch-thumb" />
+          </span>
+        </button>
+        {haptic.enabled && (
+          <div className="m-set__scale-row">
+            <div className="m-set__scale-text">
+              <span className="m-set__row-title">Intensity</span>
+            </div>
+            <div className="m-set__scale-control">
+              <input
+                type="range"
+                min={0.1}
+                max={1}
+                step={0.05}
+                value={haptic.intensity}
+                className="m-set__scale-slider"
+                aria-label="Haptic intensity"
+                onChange={(e) => updateHaptic({ intensity: Number(e.target.value) })}
+                onPointerUp={() => void haptics.medium()}
+              />
+              <span className="m-set__scale-val">{Math.round(haptic.intensity * 100)}%</span>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="m-set__section">

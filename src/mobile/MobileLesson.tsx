@@ -8,9 +8,13 @@
 /// The header (back arrow + course title + chapter label) is shared
 /// across all three so navigation feels uniform.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Course, Lesson } from "@/data/types";
 import { isExerciseKind, isQuiz } from "@/data/types";
+import { availableLocalesFor, localizedLesson } from "@/data/localize";
+import { useBookLocale } from "@/hooks/useBookLocale";
+import { useLocale } from "@/i18n/i18n";
+import type { Locale } from "@/data/locales";
 import MobileReader from "./MobileReader";
 import MobileQuiz from "./MobileQuiz";
 import MobileOutline from "./MobileOutline";
@@ -40,7 +44,7 @@ export default function MobileLesson({
   course,
   chapterIndex,
   lessonIndex,
-  lesson,
+  lesson: rawLesson,
   completed,
   onBack,
   onComplete,
@@ -51,6 +55,28 @@ export default function MobileLesson({
 }: Props) {
   const chapter = course.chapters[chapterIndex];
   const [outlineOpen, setOutlineOpen] = useState(false);
+
+  // Translate the lesson BEFORE any downstream view sees it — the
+  // same resolution the desktop LessonView runs: the learner's
+  // explicit per-book pick (useBookLocale, synced from desktop),
+  // else the app locale when this book actually ships it, else
+  // English. Mobile previously skipped this entirely, so a Hindi
+  // user reading a translated book still got raw English prose.
+  // Identity-stable for `en` / books without overlays, so the
+  // downstream memo/key behavior is unchanged for untranslated books.
+  const { locale } = useLocale();
+  const [bookLocaleSel] = useBookLocale(course.id);
+  const availableLocales = useMemo(() => availableLocalesFor(course), [course]);
+  const readingLocale: Locale =
+    bookLocaleSel && availableLocales.includes(bookLocaleSel)
+      ? bookLocaleSel
+      : availableLocales.includes(locale)
+        ? locale
+        : "en";
+  const lesson = useMemo(
+    () => localizedLesson(rawLesson, readingLocale),
+    [rawLesson, readingLocale],
+  );
 
   // Reset the page scroll on every lesson change. Without this,
   // navigating from a long reading lesson to a short one keeps the
