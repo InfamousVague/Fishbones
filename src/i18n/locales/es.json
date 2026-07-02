@@ -1,4 +1,11 @@
 {
+  "installLanguages": {
+    "title": "Descargar idiomas",
+    "description": "Elige qué idiomas descargar para “{title}”. El inglés siempre está incluido.",
+    "englishRequired": "Siempre incluido",
+    "download": "Descargar",
+    "cancel": "Cancelar"
+  },
   "collections": {
     "rust": {
       "title": "Rust",

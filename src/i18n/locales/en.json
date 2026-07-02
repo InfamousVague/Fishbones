@@ -1,4 +1,11 @@
 {
+  "installLanguages": {
+    "title": "Download languages",
+    "description": "Choose which languages to download for “{title}”. English is always included.",
+    "englishRequired": "Always included",
+    "download": "Download",
+    "cancel": "Cancel"
+  },
   "collections": {
     "rust": { "title": "Rust", "blurb": "Everything Rust — the books, the Exercism track, Rustlings, and the challenge pack." },
     "python": { "title": "Python", "blurb": "Everything Python — the in-house books, the Exercism track, the koans, and the challenge pack." },
@@ -394,6 +401,9 @@
     "languageSearch": "Search languages",
     "languageSearchPlaceholder": "Search by name or code…",
     "languageNoResults": "No languages match “{query}”.",
+    "downloadLanguagesCard": "Download languages",
+    "downloadLanguages": "Default languages to download",
+    "downloadLanguagesDescription": "When you install a translated book, these languages are pre-selected. English is always included. Auto-installed starter books download only these languages too.",
     "learningCard": "Learning",
     "autoAdvanceLabel": "Auto-advance after a pass",
     "autoAdvanceSub": "When you pass the tests on a code exercise, jump straight to the next lesson.",

@@ -1,4 +1,11 @@
 {
+  "installLanguages": {
+    "title": "言語のダウンロード",
+    "description": "「{title}」でダウンロードする言語を選択してください。Englishは常に含まれます。",
+    "englishRequired": "常に含まれます",
+    "download": "ダウンロード",
+    "cancel": "キャンセル"
+  },
   "collections": {
     "rust": { "title": "Rust", "blurb": "Rustのすべて — 書籍、Exercismトラック、Rustlings、チャレンジパック。" },
     "python": { "title": "Python", "blurb": "Pythonのすべて — 自社制作の書籍、Exercismトラック、koans、チャレンジパック。" },

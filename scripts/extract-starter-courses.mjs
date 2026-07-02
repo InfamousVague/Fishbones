@@ -469,8 +469,47 @@ async function main() {
         continue;
       }
 
+      // Split the fully-translated course into an English-only base plus one
+      // sidecar overlay per translated locale (`<id>.<locale>.json`), so
+      // installs/seeds fetch base + only the chosen languages. The reader
+      // still sees inline `translations` — the client merges overlays back on
+      // (`applyLocaleOverlay`). `reviewQuestions` + all base content ride the
+      // base file. Mirrors availableLocalesFor() / extractLocaleOverlay().
+      const trLocales = new Set(["en"]);
+      const addTr = (node) => {
+        if (node && node.translations)
+          for (const k of Object.keys(node.translations)) trLocales.add(k);
+      };
+      addTr(course);
+      for (const ch of course.chapters || []) {
+        addTr(ch);
+        for (const l of ch.lessons || []) addTr(l);
+      }
+      const localeSizes = {};
+      for (const loc of trLocales) {
+        if (loc === "en") continue;
+        const overlay = { locale: loc, chapters: {}, lessons: {} };
+        if (course.translations?.[loc]) overlay.course = course.translations[loc];
+        for (const ch of course.chapters || []) {
+          if (ch.translations?.[loc])
+            overlay.chapters[ch.id] = ch.translations[loc];
+          for (const l of ch.lessons || []) {
+            if (l.translations?.[loc])
+              overlay.lessons[`${ch.id}/${l.id}`] = l.translations[loc];
+          }
+        }
+        const ovJson = JSON.stringify(overlay);
+        await writeFile(join(OUT, `${id}.${loc}.json`), ovJson, "utf-8");
+        localeSizes[loc] = Buffer.byteLength(ovJson);
+      }
+      // Strip inline translations from the base — English only.
+      delete course.translations;
+      for (const ch of course.chapters || []) {
+        delete ch.translations;
+        for (const l of ch.lessons || []) delete l.translations;
+      }
       const outFile = join(OUT, `${id}.json`);
-      await writeFile(outFile, courseJson, "utf-8");
+      await writeFile(outFile, JSON.stringify(course), "utf-8");
       const info = await stat(outFile);
 
       // Cover art — four-tier lookup, first match wins:
@@ -629,6 +668,13 @@ async function main() {
         // is OMITTED for non-hidden packs so the manifest stays
         // compact and only carries the flag where it matters.
         ...(isHiddenPack(id) ? { hidden: true } : {}),
+        // Only when the course actually ships translations (>1 locale), so
+        // English-only packs keep a compact manifest entry. `localeSizes` is
+        // the byte size of each `<id>.<locale>.json` overlay — drives the
+        // "+X KB" hint in the install language picker.
+        ...(trLocales.size > 1
+          ? { translationLocales: [...trLocales], localeSizes }
+          : {}),
         lessonCount,
       });
       console.log(

@@ -1,0 +1,128 @@
+/* Backdrop chrome lives in ModalBackdrop.css; this panel mirrors
+   ConfirmDialog's shape and sits at z-index 200 (set on ModalBackdrop). */
+
+.libre-install-langs-panel {
+  width: min(var(--libre-size-420), 90vw);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-lg);
+  padding: var(--libre-space-20);
+  animation: libre-install-langs-enter var(--libre-dur-160)
+    var(--libre-ease-ease-out);
+}
+
+@keyframes libre-install-langs-enter {
+  from {
+    opacity: var(--libre-opacity-0);
+    transform: translateY(var(--libre-size-6)) scale(0.98);
+  }
+  to {
+    opacity: var(--libre-opacity-1);
+    transform: translateY(0) scale(1);
+  }
+}
+
+.libre-install-langs-title {
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary);
+  margin-bottom: var(--libre-space-8);
+}
+
+.libre-install-langs-description {
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-55);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--libre-space-16);
+}
+
+.libre-install-langs-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-8);
+  margin-bottom: var(--libre-space-18);
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.libre-install-langs-option {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-10);
+  padding: var(--libre-space-10) var(--libre-space-12);
+  background: var(--color-bg-primary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-sm);
+  font-size: var(--libre-fs-12-5);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.libre-install-langs-option--required {
+  cursor: default;
+  opacity: var(--libre-opacity-0-9);
+}
+
+.libre-install-langs-option input[type="checkbox"] {
+  flex: none;
+}
+
+.libre-install-langs-flag {
+  font-size: var(--libre-fs-14);
+  line-height: 1;
+}
+
+.libre-install-langs-name {
+  flex: 1 1 auto;
+}
+
+.libre-install-langs-required {
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary);
+}
+
+.libre-install-langs-size {
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.libre-install-langs-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--libre-space-8);
+}
+
+.libre-install-langs-btn {
+  padding: var(--libre-space-8) var(--libre-space-14);
+  background: transparent;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-7);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: var(--libre-fs-12-5);
+  font-weight: var(--libre-fw-500);
+  cursor: pointer;
+  transition:
+    background var(--libre-motion-snappy),
+    border-color var(--libre-motion-snappy),
+    color var(--libre-motion-snappy);
+}
+
+.libre-install-langs-btn:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.libre-install-langs-btn--primary {
+  background: var(--gg-fill-white);
+  color: var(--color-bg-primary);
+  border-color: var(--gg-fill-white);
+  font-weight: var(--libre-fw-600);
+}
+
+.libre-install-langs-btn--primary:hover {
+  opacity: var(--libre-opacity-0-9);
+  background: var(--gg-fill-white);
+  color: var(--color-bg-primary);
+}

@@ -1,4 +1,11 @@
 {
+  "installLanguages": {
+    "title": "भाषाएँ डाउनलोड करें",
+    "description": "“{title}” के लिए डाउनलोड करने हेतु भाषाएँ चुनें। English हमेशा शामिल होती है।",
+    "englishRequired": "हमेशा शामिल",
+    "download": "डाउनलोड करें",
+    "cancel": "रद्द करें"
+  },
   "collections": {
     "rust": { "title": "Rust", "blurb": "Rust की हर चीज़ — किताबें, Exercism ट्रैक, Rustlings, और चैलेंज पैक।" },
     "python": { "title": "Python", "blurb": "Python की हर चीज़ — इन-हाउस किताबें, Exercism ट्रैक, koans, और चैलेंज पैक।" },

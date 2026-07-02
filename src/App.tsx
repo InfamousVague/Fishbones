@@ -66,6 +66,8 @@ const CertificatesPage = lazy(() => import("@/components/organisms/Certificates/
 const PathsPage = lazy(() => import("@/components/templates/Paths/PathsPage"));
 import { mintCertificate } from "@/data/certificates";
 import { availableLocalesFor } from "@/data/localize";
+import type { Locale } from "@/data/locales";
+import InstallLanguagesDialog from "@/components/organisms/dialogs/InstallLanguagesDialog/InstallLanguagesDialog";
 import { notifyCertificatesChanged } from "@/hooks/useCertificates";
 import { playSound, unlockAudioContext } from "@/lib/sfx";
 import { isWeb, isMobile } from "@/lib/platform";
@@ -342,6 +344,19 @@ export default function App() {
   // from the dropdown whenever they want.
   const [signInOpen, setSignInOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // Pending "which languages to download" prompt, set when installing a book
+  // that ships translations. Holds the catalog entry + its available locales;
+  // the dialog's confirm installs with the chosen subset.
+  const [installPrompt, setInstallPrompt] = useState<{
+    entry: {
+      id: string;
+      file: string;
+      title: string;
+      translationLocales?: Locale[];
+      localeSizes?: Partial<Record<Locale, number>>;
+    };
+    locales: Locale[];
+  } | null>(null);
   // Pending delete request queued by the library / sidebar context menu.
   // Kept in state rather than firing window.confirm() directly so we can
   // render an app-styled modal with Escape + backdrop-click dismissal.
@@ -3404,6 +3419,22 @@ export default function App() {
         />
       )}
 
+      {/* Language picker shown when installing a book that ships
+          translations — the chosen subset is what actually gets stored. */}
+      {installPrompt && (
+        <InstallLanguagesDialog
+          title={installPrompt.entry.title}
+          locales={installPrompt.locales}
+          localeSizes={installPrompt.entry.localeSizes}
+          onCancel={() => setInstallPrompt(null)}
+          onConfirm={(selected) => {
+            const { entry } = installPrompt;
+            setInstallPrompt(null);
+            void installEntryWithLocales(entry, selected);
+          }}
+        />
+      )}
+
       {/* Cmd+K command palette. Searches across actions + every
           loaded course / lesson. Opening a lesson reuses the same
           selectLesson path the sidebar uses, so tab + recents
@@ -3601,17 +3632,51 @@ export default function App() {
   /// hydrate the new course so the placeholder tile in the Library
   /// flips to a real installed cover and the user can click into it
   /// immediately.
-  async function handleInstallCatalogEntry(entry: {
-    id: string;
-    file: string;
-    title: string;
-  }) {
+  async function installEntryWithLocales(
+    entry: {
+      id: string;
+      file: string;
+      title: string;
+      translationLocales?: Locale[];
+    },
+    keep?: Locale[],
+  ) {
     try {
-      const { jsonHref } = await import("@/lib/catalog");
-      const url = jsonHref({ file: entry.file } as Parameters<typeof jsonHref>[0]);
-      const res = await fetch(url, { cache: "no-cache" });
+      const { jsonHref, localeJsonHref } = await import("@/lib/catalog");
+      const { stripCourseToLocales, applyLocaleOverlay } = await import(
+        "@/data/localize"
+      );
+      // Languages to install: the explicit pick, else every language the book
+      // offers (Path installs), else just English.
+      const wanted: Locale[] =
+        keep && keep.length
+          ? keep
+          : entry.translationLocales && entry.translationLocales.length
+            ? entry.translationLocales
+            : ["en"];
+      const res = await fetch(
+        jsonHref({ file: entry.file } as Parameters<typeof jsonHref>[0]),
+        { cache: "no-cache" },
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const course = await res.json();
+      let course = await res.json();
+      // Old-format base carries inline translations — prune to `wanted` so we
+      // never store languages the learner didn't ask for.
+      course = stripCourseToLocales(course, wanted);
+      // New-format base is English-only: fetch each chosen locale's overlay
+      // and merge it back on. A missing overlay (404) is fine — the base
+      // fallback above already kept any inline copy.
+      for (const loc of wanted) {
+        if (loc === "en") continue;
+        try {
+          const ovRes = await fetch(localeJsonHref({ file: entry.file }, loc), {
+            cache: "no-cache",
+          });
+          if (ovRes.ok) course = applyLocaleOverlay(course, await ovRes.json());
+        } catch {
+          /* overlay unavailable — base fallback stands */
+        }
+      }
       const { storage } = await import("@/lib/storage");
       await storage.saveCourse(entry.id, course);
       await refreshCourses();
@@ -3622,6 +3687,23 @@ export default function App() {
         `Couldn't install ${entry.title}: ${e instanceof Error ? e.message : String(e)}`,
       );
     }
+  }
+
+  /// Discover "Install" entry point. When the book ships translations (the
+  /// manifest carries `translationLocales` with >1 entry), prompt the learner
+  /// for which languages to download; otherwise install directly, unchanged.
+  async function handleInstallCatalogEntry(entry: {
+    id: string;
+    file: string;
+    title: string;
+    translationLocales?: Locale[];
+    localeSizes?: Partial<Record<Locale, number>>;
+  }) {
+    if (entry.translationLocales && entry.translationLocales.length > 1) {
+      setInstallPrompt({ entry, locales: entry.translationLocales });
+      return;
+    }
+    await installEntryWithLocales(entry);
   }
 
   /// Install a course by id alone — resolve it against the catalog,
@@ -3637,7 +3719,9 @@ export default function App() {
     if (!entry) {
       throw new Error(`course not in catalog: ${courseId}`);
     }
-    await handleInstallCatalogEntry(entry);
+    // Path-driven installs skip the language prompt (there's no browse
+    // context to pause into) and download every available language.
+    await installEntryWithLocales(entry);
   }
 
   /// Unified "Add course" handler — replaces the four separate

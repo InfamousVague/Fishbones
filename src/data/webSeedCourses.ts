@@ -24,6 +24,11 @@ interface ManifestEntry {
   cover?: string;
   sizeBytes: number;
   packType?: "course" | "challenges" | "track";
+  /// Locales this book has download overlays for (EN-first). The seed
+  /// fetches the English base + only the learner's default-download
+  /// locales (`getDownloadLocales`) among these, keeping the auto-seeded
+  /// footprint small. Absent → English-only book.
+  translationLocales?: string[];
   /// "Unlisted" — see Course.hidden + CatalogEntry.hidden. We still
   /// seed the course (so a deep link to `?courseId=…` works without
   /// an extra fetch) but stamp the flag onto the saved Course so
@@ -603,6 +608,14 @@ export async function seedWebStarterCourses(): Promise<number> {
   })();
   const currentIds = new Set(manifest.courses.map((e) => e.id));
 
+  // Loaded once; the per-course loop reconstructs each book from its English
+  // base plus only the learner's default-download locale overlays.
+  const { applyLocaleOverlay, stripCourseToLocales } = await import(
+    "@/data/localize"
+  );
+  const { getDownloadLocales } = await import("@/hooks/useDownloadLocales");
+  const wantedLocales = getDownloadLocales();
+
   let written = 0;
   for (const entry of manifest.courses) {
     try {
@@ -614,7 +627,25 @@ export async function seedWebStarterCourses(): Promise<number> {
         );
         continue;
       }
-      const course = (await res.json()) as Course;
+      // Base may be old-format (inline translations) — prune to the wanted
+      // set; new-format base is English-only, so this is a no-op there.
+      let course = stripCourseToLocales((await res.json()) as Course, wantedLocales);
+      // Fetch + merge overlays for the wanted non-EN locales this book offers.
+      if (entry.translationLocales && entry.translationLocales.length > 1) {
+        const stem = entry.file.replace(/\.json$/, "");
+        for (const loc of wantedLocales) {
+          if (loc === "en" || !entry.translationLocales.includes(loc)) continue;
+          try {
+            const ovRes = await fetch(
+              starterUrl(`/starter-courses/${stem}.${loc}.json`),
+              { cache: "no-cache" },
+            );
+            if (ovRes.ok) course = applyLocaleOverlay(course, await ovRes.json());
+          } catch {
+            /* overlay unavailable — base fallback stands */
+          }
+        }
+      }
       // Force the id we got from the manifest in case the JSON's
       // own id field disagrees (would point at a desktop-style
       // path-derived id rather than the slug). Never seen in

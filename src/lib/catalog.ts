@@ -34,6 +34,7 @@
 /// installed set as `placeholder: true` Course objects.
 
 import type { Course, LanguageId } from "@/data/types";
+import type { Locale } from "@/data/locales";
 import { isHiddenCourse } from "./hiddenCourses";
 
 export interface CatalogEntry {
@@ -62,6 +63,14 @@ export interface CatalogEntry {
   packType?: "course" | "challenges" | "track";
   releaseStatus?: "BETA" | "ALPHA" | "UNREVIEWED" | "PRE-RELEASE";
   lessonCount?: number;
+  /// Locales this book has inline translations for (EN-first), from the
+  /// manifest. Present only when the book ships more than English, so the
+  /// install flow can offer a language picker; absent/length≤1 → install
+  /// directly with no prompt. See `scripts/extract-starter-courses.mjs`.
+  translationLocales?: Locale[];
+  /// Byte size of each `<id>.<locale>.json` download overlay, keyed by
+  /// locale — drives the "+X KB" hint in the install language picker.
+  localeSizes?: Partial<Record<Locale, number>>;
   /// Unlisted flag — see Course.hidden. The catalog layer drops
   /// hidden entries before returning to the UI so Discover never
   /// renders a placeholder tile for them; the manifest still
@@ -324,6 +333,18 @@ export function coverHref(entry: CatalogEntry): string | undefined {
 /// the parsed Course via `storage.saveCourse`.
 export function jsonHref(entry: CatalogEntry): string {
   return `${catalogAssetBase()}/${entry.file}`;
+}
+
+/// URL for a per-locale download overlay (`<id>.<locale>.json`) — the
+/// translated slices the install/seed path fetches on top of the English
+/// base and merges via `applyLocaleOverlay`. Derived from the base `file`
+/// so it tracks whatever id the manifest uses.
+export function localeJsonHref(
+  entry: Pick<CatalogEntry, "file">,
+  locale: Locale,
+): string {
+  const stem = entry.file.replace(/\.json$/, "");
+  return `${catalogAssetBase()}/${stem}.${locale}.json`;
 }
 
 /// Build a synthetic `Course` from a catalog entry — used as a
