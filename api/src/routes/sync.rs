@@ -180,8 +180,27 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>, user_id: String)
             // Periodic ping so idle proxies don't hang up. Caddy's
             // default reverse-proxy idle timeout is 60s — we ping
             // every 25 with plenty of headroom.
+            //
+            // TWO frames on purpose: the protocol-level Ping keeps
+            // proxies + the TCP path honest, but browsers handle it
+            // in the network stack — page JS never sees it, so a
+            // client can't distinguish a quiet-but-alive socket from
+            // a half-open dead one (laptop sleep, NAT rebind, relay
+            // deploy). The `{"type":"ping"}` TEXT frame is the
+            // client-visible liveness beacon its dead-socket
+            // watchdog resets on; ~70s of silence means the socket
+            // is dead and the client force-reconnects + re-pulls.
             _ = ping_interval.tick() => {
                 if sink.send(Message::Ping(vec![])).await.is_err() {
+                    break;
+                }
+                if sink
+                    .send(Message::Text(
+                        serde_json::json!({"type": "ping"}).to_string(),
+                    ))
+                    .await
+                    .is_err()
+                {
                     break;
                 }
             }

@@ -70,7 +70,10 @@ import { notifyCertificatesChanged } from "@/hooks/useCertificates";
 import { playSound, unlockAudioContext } from "@/lib/sfx";
 import { isWeb, isMobile } from "@/lib/platform";
 import { consumePendingOAuthSession } from "@/lib/oauthSession";
-import { isoToUnixSeconds } from "@/lib/timestamps";
+import { isoToUnixSeconds, unixSecondsToIso } from "@/lib/timestamps";
+import { applySyncedWorkbench } from "@/hooks/useWorkbenchFiles";
+import { applySettingRowsLocally } from "@/lib/settingsSync";
+import { useSettingsSyncBridge } from "@/hooks/useSettingsSyncBridge";
 import DownloadButton from "@/components/atoms/DownloadButton/DownloadButton";
 const GeneratePackDialog = lazy(() => import("@/components/organisms/dialogs/ChallengePack/GeneratePackDialog"));
 import { useIngestRun } from "@/hooks/useIngestRun";
@@ -358,6 +361,7 @@ export default function App() {
     clearLessonCompletion,
     clearChapterCompletions,
     clearCourseCompletions,
+    resetProgress,
   } = useProgress();
 
   /// Optional Libre cloud account — bound at the app level so the
@@ -559,72 +563,92 @@ export default function App() {
         // missing rows. When `lessonIds` is null the whole course
         // gets reset; otherwise just the listed lessons. The local
         // useProgress reducers handle both shapes.
+        //
+        // Sentinel course id `"*"` (with null lesson_ids) means the
+        // whole ACCOUNT was wiped on another device ("Start fresh") —
+        // clear every local completion + saved workbench via the same
+        // full-reset path the local Start-fresh button drives, so this
+        // device converges instead of re-uploading its stale history
+        // on the next reconcile.
+        if (courseId === "*" && lessonIds === null) {
+          void resetProgress();
+          return;
+        }
         if (lessonIds && lessonIds.length > 0) {
           clearChapterCompletions(courseId, lessonIds);
         } else {
           clearCourseCompletions(courseId);
         }
       },
-      [clearCourseCompletions, clearChapterCompletions],
+      [clearCourseCompletions, clearChapterCompletions, resetProgress],
     ),
     applySolutions: useCallback(
       (
-        rows: Array<{ course_id: string; lesson_id: string; content: string }>,
+        rows: Array<{
+          course_id: string;
+          lesson_id: string;
+          content: string;
+          updated_at: string;
+        }>,
       ) => {
-        // Solutions persist under the workbench prefix used by
-        // useWorkbenchFiles — write straight there so the next mount
-        // of the lesson picks up the synced version. The on-screen
-        // editor state for the *currently open* lesson stays put;
-        // clobbering it mid-typing on a sibling-device sync would be
-        // worse than the small inconsistency until the next reopen.
+        // Solutions persist into the SAME localStorage slot
+        // `useWorkbenchFiles` reads (profile-scoped
+        // `libre:workbench:v1:` prefix — an earlier applier wrote a
+        // dead `kata:` prefix nothing read), so the next mount of the
+        // lesson picks up the synced version. The helper computes a
+        // reader-acceptable signature from the synced files and
+        // applies last-write-wins against the local save timestamp.
+        // The on-screen editor state for the *currently open* lesson
+        // stays put; clobbering it mid-typing on a sibling-device
+        // sync would be worse than the small inconsistency until the
+        // next reopen.
         for (const r of rows) {
-          try {
-            // Match the schema useWorkbenchFiles expects:
-            // {signature, files, savedAt}. We don't know the
-            // signature here (it's derived from starter), so we
-            // leave the previous payload in place when present and
-            // overwrite only the file blob — useWorkbenchFiles will
-            // fall back to starter if signatures don't line up.
-            const key = `kata:workbench:v1:${r.course_id}:${r.lesson_id}`;
-            const previous = localStorage.getItem(key);
-            const sig = previous
-              ? (JSON.parse(previous) as { signature?: string }).signature ??
-                ""
-              : "";
-            const parsed = JSON.parse(r.content) as unknown;
-            const files = Array.isArray(parsed) ? parsed : null;
-            if (!files) continue;
-            localStorage.setItem(
-              key,
-              JSON.stringify({
-                signature: sig,
-                files,
-                savedAt: Date.now(),
-              }),
-            );
-          } catch {
-            /* swallow — best-effort sync */
-          }
+          applySyncedWorkbench(
+            r.course_id,
+            r.lesson_id,
+            r.content,
+            r.updated_at,
+          );
         }
       },
       [],
     ),
     applySettings: useCallback(
       (rows: Array<{ key: string; value: string }>) => {
-        for (const r of rows) {
-          try {
-            // Server-stored JSON; localStorage stores the same JSON
-            // string so consumers can JSON.parse the same way they
-            // did before sync existed.
-            localStorage.setItem(r.key, r.value);
-          } catch {
-            /* swallow */
-          }
-        }
+        // Server-stored JSON; localStorage stores the same JSON string
+        // so consumers can JSON.parse the same way they did before
+        // sync existed. The shared helper additionally folds keys with
+        // live in-memory stores (currently the locale) into those
+        // stores so mounted consumers repaint without a reload, and
+        // raises the suppression flag `useSettingsSyncBridge` checks
+        // so a remote apply can't re-push the rows it just received.
+        applySettingRowsLocally(rows);
       },
       [],
     ),
+    /// Snapshot of local completion history in push-row shape, used by
+    /// the hook's sign-in reconciliation to push local-only rows (e.g.
+    /// progress earned while signed out) up to the relay. Same mapping
+    /// the SyncDebugPanel "Push all" button uses. `history` never
+    /// contains library-marker rows, so no filtering needed here.
+    collectLocalProgress: useCallback(
+      () =>
+        history.map((h) => ({
+          course_id: h.course_id,
+          lesson_id: h.lesson_id,
+          completed_at: unixSecondsToIso(h.completed_at),
+        })),
+      [history],
+    ),
   });
+
+  /// Outbound settings bridge — forwards `libre:setting-changed`
+  /// CustomEvents (dispatched by preference modules like `useLocale`
+  /// that sit below the cloud stack in the dep graph) into
+  /// `realtime.pushSetting` so a language flip here lands on the
+  /// user's other devices. Inbound remote applies are suppressed
+  /// inside the hook so they can't echo back up.
+  useSettingsSyncBridge(realtime);
 
   /// Bridge `useWorkbenchFiles`' debounced save event into the
   /// realtime sync push pipeline. Without this, edits stayed local;

@@ -145,6 +145,92 @@ interface PersistedWorkbench {
   savedAt: number;
 }
 
+/// Loose runtime validation of a cloud-synced file entry. The wire
+/// payload is sibling-device-controlled JSON, so we verify the
+/// load-bearing fields are strings before letting the row anywhere
+/// near the editor. Extra properties pass through untouched.
+function isWorkbenchFileLike(v: unknown): v is WorkbenchFile {
+  if (typeof v !== "object" || v === null) return false;
+  const f = v as Record<string, unknown>;
+  return (
+    typeof f.name === "string" &&
+    f.name.length > 0 &&
+    typeof f.content === "string" &&
+    typeof f.language === "string"
+  );
+}
+
+/// Persist a workbench payload received from cloud sync (the
+/// `solutions` channel) into the SAME localStorage slot the editor
+/// reads. Used by the realtime-sync appliers in App.tsx and
+/// MobileApp.tsx — centralised here so the key derivation and the
+/// `PersistedWorkbench` schema can never drift from the reader again
+/// (an earlier applier wrote a stale `kata:workbench:v1:` prefix that
+/// nothing read, silently breaking cross-device code sync).
+///
+/// Two deliberate choices:
+///
+///   - **Signature is computed from the synced files themselves.**
+///     `signatureOf` is filename-shape only, and a learner's edits
+///     keep the starter's filenames, so `signatureOf(files)` equals
+///     `signatureOf(starter)` whenever both devices run the same
+///     lesson shape. This makes restored payloads readable even for
+///     lessons never opened on this device (there's no previous local
+///     payload to copy a signature from), while still falling back to
+///     starter when the lesson was regenerated with different files.
+///
+///   - **Last-write-wins.** The row's `updated_at` (stamped by the
+///     editing device at save time) is compared against the local
+///     payload's `savedAt`; older-or-equal remote rows are dropped so
+///     an out-of-order WS echo can't roll back newer local typing.
+///     The winning row is stored with `savedAt = updated_at` so later
+///     comparisons stay consistent.
+export function applySyncedWorkbench(
+  courseId: string,
+  lessonId: string,
+  content: string,
+  updatedAtIso: string,
+): void {
+  if (typeof localStorage === "undefined") return;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    return;
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) return;
+  const files = parsed.filter(isWorkbenchFileLike);
+  // Reject partially-valid payloads outright rather than persisting a
+  // file subset the lesson can't run.
+  if (files.length !== parsed.length) return;
+  const remoteMs = Date.parse(updatedAtIso);
+  const savedAt = Number.isNaN(remoteMs) ? Date.now() : remoteMs;
+  const key = storageKey(courseId, lessonId);
+  try {
+    const prevRaw = localStorage.getItem(key);
+    if (prevRaw) {
+      const prev = JSON.parse(prevRaw) as Partial<PersistedWorkbench>;
+      // Ties keep the local copy — the relay echoing back our own
+      // push carries the same timestamp and identical bytes.
+      if (typeof prev.savedAt === "number" && prev.savedAt >= savedAt) {
+        return;
+      }
+    }
+  } catch {
+    /* unreadable previous payload — the remote row wins */
+  }
+  const payload: PersistedWorkbench = {
+    signature: signatureOf(files),
+    files,
+    savedAt,
+  };
+  try {
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch {
+    /* quota / private mode — best-effort sync, drop */
+  }
+}
+
 export interface UseWorkbenchFilesResult {
   files: WorkbenchFile[];
   setFiles: React.Dispatch<React.SetStateAction<WorkbenchFile[]>>;

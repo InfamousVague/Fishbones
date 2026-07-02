@@ -39,7 +39,10 @@ import { isHiddenCourse } from "@/lib/hiddenCourses";
 import { unlockAudioContext } from "@/lib/sfx";
 import { haptics } from "@/lib/haptics";
 import type { Course, Lesson } from "@/data/types";
-import { isoToUnixSeconds } from "@/lib/timestamps";
+import { isoToUnixSeconds, unixSecondsToIso } from "@/lib/timestamps";
+import { applySyncedWorkbench } from "@/hooks/useWorkbenchFiles";
+import { applySettingRowsLocally } from "@/lib/settingsSync";
+import { useSettingsSyncBridge } from "@/hooks/useSettingsSyncBridge";
 import MobileLibrary, { type LibraryPane } from "./MobileLibrary";
 import MobileDiscover from "./MobileDiscover";
 import MobileLesson from "./MobileLesson";
@@ -231,6 +234,18 @@ export default function MobileApp() {
   // out on platforms without an App Group container).
   useWidgetSnapshot({ courses, completed, history, stats });
 
+  /// Mirror of `realtime.status`, readable from inside the applier
+  /// callbacks below (which close over refs, not render values). Used
+  /// to tell FULL PULLS apart from live WS deltas in `applyProgress`:
+  /// the initial sign-in / `resync()` pull runs while status is still
+  /// "idle" / "syncing" (the hook only flips to "live" after the pull
+  /// applies), whereas WS events and reconnect re-pulls arrive at
+  /// "live". Declared before the hook call because the appliers are
+  /// constructed as hook options; assigned right after it returns.
+  const realtimeStatusRef = useRef<"idle" | "syncing" | "live" | "error">(
+    "idle",
+  );
+
   /// Real-time cross-device sync. Identical wiring to the desktop
   /// App.tsx — pulls progress / solutions / settings on sign-in,
   /// subscribes to the relay's WS bus, and exposes debounced push
@@ -282,24 +297,38 @@ export default function MobileApp() {
           })),
         );
         if (markerCourseIds.length > 0) {
+          // REPLACE vs UNION depends on which path delivered the
+          // batch:
+          //
+          //   - FULL PULLS (sign-in / resync — the hook is still
+          //     "syncing" when the applier runs) carry the server's
+          //     complete marker table, so replacing converges mobile
+          //     on the true set, including removals (a course deleted
+          //     on desktop also has its marker rows deleted server-
+          //     side via deleteCourseProgress).
+          //
+          //   - WS DELTA events carry only the rows just pushed. The
+          //     relay echoes our own pushes back, so mobile installing
+          //     one course produced a 1-marker delta that — under the
+          //     old unconditional replace — collapsed the phone's
+          //     visible library to that single course until the next
+          //     full pull. Desktop's delta pushes are no better a
+          //     snapshot: they list desktop's installed set, which
+          //     excludes mobile-only installs. Deltas therefore only
+          //     ever UNION; removals wait for the next full pull.
+          //
+          // (Tiny race: a delta landing in the gap between the pull
+          // resolving and the "live" status committing is treated as a
+          // full snapshot. Self-heals on the next pull, and the window
+          // is one render during sign-in.)
+          const isFullSnapshot = realtimeStatusRef.current !== "live";
           setSyncedLibraryIds((prev) => {
-            // Replace semantics: each pull/WS event is a fresh
-            // snapshot of the desktop's installed list, so we
-            // overwrite rather than union. (Union would let
-            // removed-on-desktop books linger forever on mobile.)
-            const next = new Set(markerCourseIds);
-            // Mirror into localStorage so cold-start sees it before
-            // the next sync round.
-            try {
-              localStorage.setItem(
-                SYNCED_LIBRARY_KEY,
-                JSON.stringify(Array.from(next).sort()),
-              );
-            } catch {
-              /* swallow */
-            }
+            const next = isFullSnapshot
+              ? new Set(markerCourseIds)
+              : new Set([...(prev ?? []), ...markerCourseIds]);
             // Bail out of the setState if nothing changed — saves
-            // a re-render of the library + tab bar on every WS tick.
+            // a re-render of the library + tab bar on every WS tick
+            // (and skips the localStorage mirror write below).
             if (prev && prev.size === next.size) {
               let same = true;
               for (const id of next) {
@@ -309,6 +338,16 @@ export default function MobileApp() {
                 }
               }
               if (same) return prev;
+            }
+            // Mirror into localStorage so cold-start sees it before
+            // the next sync round.
+            try {
+              localStorage.setItem(
+                SYNCED_LIBRARY_KEY,
+                JSON.stringify(Array.from(next).sort()),
+              );
+            } catch {
+              /* swallow */
             }
             return next;
           });
@@ -327,57 +366,61 @@ export default function MobileApp() {
         // local progress" (handled by `resetProgress`), so we
         // never originate `progress_cleared` from this client —
         // we only ever HONOUR it.
+        //
+        // Sentinel course id `"*"` (with null lesson_ids) means the
+        // whole ACCOUNT was wiped on another device ("Start fresh") —
+        // run the same full local wipe the Settings button drives so
+        // the phone converges instead of re-uploading its stale
+        // history on the next reconcile.
+        if (courseId === "*" && lessonIds === null) {
+          void resetProgress();
+          return;
+        }
         if (lessonIds && lessonIds.length > 0) {
           clearChapterCompletions(courseId, lessonIds);
         } else {
           clearCourseCompletions(courseId);
         }
       },
-      [clearCourseCompletions, clearChapterCompletions],
+      [clearCourseCompletions, clearChapterCompletions, resetProgress],
     ),
     applySolutions: useCallback(
       (
-        rows: Array<{ course_id: string; lesson_id: string; content: string }>,
+        rows: Array<{
+          course_id: string;
+          lesson_id: string;
+          content: string;
+          updated_at: string;
+        }>,
       ) => {
-        // Persist into the same workbench-localStorage key the desktop
-        // uses, so the next mount of the lesson picks up the synced
-        // version. Mobile doesn't render the workbench tab strip —
-        // lessons run via a single solution string — but the storage
-        // key shape is shared and deterministic.
+        // Persist into the same workbench-localStorage key the editor
+        // reads (shared helper in useWorkbenchFiles — an earlier
+        // applier wrote a dead `kata:` prefix nothing read), so the
+        // next mount of the lesson picks up the synced version.
+        // Mobile doesn't render the workbench tab strip — lessons run
+        // via a single solution string — but the storage key shape is
+        // shared and deterministic. The helper computes a reader-
+        // acceptable signature from the synced files and applies
+        // last-write-wins against the local save timestamp.
         for (const r of rows) {
-          try {
-            const key = `kata:workbench:v1:${r.course_id}:${r.lesson_id}`;
-            const previous = localStorage.getItem(key);
-            const sig = previous
-              ? (JSON.parse(previous) as { signature?: string }).signature ??
-                ""
-              : "";
-            const parsed = JSON.parse(r.content) as unknown;
-            const files = Array.isArray(parsed) ? parsed : null;
-            if (!files) continue;
-            localStorage.setItem(
-              key,
-              JSON.stringify({
-                signature: sig,
-                files,
-                savedAt: Date.now(),
-              }),
-            );
-          } catch {
-            /* swallow — best-effort sync */
-          }
+          applySyncedWorkbench(
+            r.course_id,
+            r.lesson_id,
+            r.content,
+            r.updated_at,
+          );
         }
       },
       [],
     ),
     applySettings: useCallback(
       (rows: Array<{ key: string; value: string }>) => {
+        // Shared helper: write each row to localStorage under its wire
+        // key and fold live-store keys (locale) into their in-memory
+        // stores, with the suppression flag up so the outbound bridge
+        // can't re-push what we just received.
+        applySettingRowsLocally(rows);
         for (const r of rows) {
-          try {
-            localStorage.setItem(r.key, r.value);
-          } catch {
-            /* swallow */
-          }
           // The library allowlist piggybacks on the settings sync.
           // Re-parse and lift into React state so the visible-courses
           // memo invalidates and the library re-renders against the
@@ -389,7 +432,34 @@ export default function MobileApp() {
       },
       [],
     ),
+    /// Snapshot of local completion history in push-row shape, used by
+    /// the hook's sign-in reconciliation to push local-only rows (e.g.
+    /// progress earned while signed out) up to the relay. Same mapping
+    /// the SyncDebugPanel "Push all" button uses. `history` never
+    /// contains library-marker rows (the applier above splits them out
+    /// before they reach the completion store), so no filtering needed.
+    collectLocalProgress: useCallback(
+      () =>
+        history.map((h) => ({
+          course_id: h.course_id,
+          lesson_id: h.lesson_id,
+          completed_at: unixSecondsToIso(h.completed_at),
+        })),
+      [history],
+    ),
   });
+  // Keep the status mirror fresh for the appliers above. Assigning
+  // during render is safe: appliers only run from async callbacks, by
+  // which point the render that produced the latest status committed.
+  realtimeStatusRef.current = realtime.status;
+
+  /// Outbound settings bridge — forwards `libre:setting-changed`
+  /// CustomEvents (dispatched by preference modules like `useLocale`
+  /// that sit below the cloud stack in the dep graph) into
+  /// `realtime.pushSetting` so a language flip here lands on the
+  /// user's other devices. Inbound remote applies are suppressed
+  /// inside the hook so they can't echo back up.
+  useSettingsSyncBridge(realtime);
 
   /// Mobile-side library push. Bidirectional by design — when the
   /// user adds or removes a course locally (e.g. a future "import

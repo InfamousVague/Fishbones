@@ -68,12 +68,13 @@ pub async fn upsert(
 /// user. Triggered by the desktop "Start fresh" Settings action; the
 /// client paired wipe (local SQLite / IDB + cached state) runs in
 /// parallel so the local + remote views converge to empty on this
-/// device. Other devices pick up the empty state on their next GET
-/// pull or full re-sign-in; we DON'T publish a SyncEvent here today
-/// (no `progress_cleared` variant yet) so a connected sibling device
-/// could re-fill the rows via its next bulk push. Adding a fan-out
-/// variant is a follow-up — the user surfaces the limitation via the
-/// "sign out + back in on each device" guidance in the reset toast.
+/// device.
+///
+/// Fans out a `progress_cleared` event with the sentinel course id
+/// `"*"` (lesson_ids = None), which receivers treat as "clear
+/// EVERYTHING". Without the fan-out, a connected sibling device kept
+/// its rows and re-filled the server on its next bulk push —
+/// resurrecting the account the user just reset.
 ///
 /// Idempotent: rerunning when there are no rows returns 204 cleanly.
 pub async fn clear(
@@ -84,6 +85,13 @@ pub async fn clear(
         .db
         .clear_progress(&user_id)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    state.sync_bus.publish(
+        &user_id,
+        SyncEvent::ProgressCleared {
+            course_id: "*".to_string(),
+            lesson_ids: None,
+        },
+    );
     Ok(StatusCode::NO_CONTENT)
 }
 

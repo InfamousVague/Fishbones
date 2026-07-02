@@ -145,17 +145,27 @@ export function useLocale(): readonly [Locale, (next: Locale) => void] {
 
   const set = useCallback((next: Locale) => {
     if (!isLocale(next)) return;
+    const changed = next !== getLocaleSnapshot();
     setStoredLocale(next);
     // Best-effort cloud sync — if the user is signed in, push the
     // new locale through the same `settings` channel that theme
     // uses. Implemented as a CustomEvent so this hook doesn't have
     // to import `useLibreCloud` (avoiding a layered dep cycle:
     // useLocale lives below the cloud hook in the dep graph). The
-    // App-level cloud bootstrap subscribes and forwards.
-    if (typeof window !== "undefined") {
+    // `useSettingsSyncBridge` hook mounted in App / MobileApp
+    // subscribes and forwards to `realtime.pushSetting`.
+    //
+    // Contract (see lib/settingsSync.ts): `key` is the LITERAL
+    // localStorage key and `value` is the EXACT string stored under
+    // it, so the receiving device's applier can round-trip the row
+    // straight into localStorage. Skipped when the locale didn't
+    // actually change — re-selecting the current language (or a
+    // remote apply echoing through a controlled input) shouldn't
+    // generate network traffic.
+    if (changed && typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("libre:setting-changed", {
-          detail: { key: "locale", value: next },
+          detail: { key: LOCALE_STORAGE_KEY, value: JSON.stringify(next) },
         }),
       );
     }

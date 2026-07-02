@@ -117,6 +117,7 @@ export interface SettingRow {
 /// rendered as `{"type": "...", "rows": [...]}` on the WebSocket.
 export type SyncEvent =
   | { type: "hello" }
+  | { type: "ping" }
   | { type: "resync" }
   | { type: "progress"; rows: ProgressRow[] }
   | { type: "progress_cleared"; course_id: string; lesson_ids: string[] | null }
@@ -783,7 +784,16 @@ export function useLibreCloud(): UseLibreCloud {
       if (init.body && !headers.has("Content-Type")) {
         headers.set("Content-Type", "application/json");
       }
-      return fetch(`${relayUrl}${path}`, { ...init, headers });
+      // `keepalive` lets a request survive page unload / app quit —
+      // the "complete a lesson then immediately quit" push previously
+      // died mid-flight and the row never reached the relay. Browsers
+      // cap keepalive bodies at ~64KB (fetch REJECTS above it), so
+      // only small payloads opt in; anything larger keeps the normal
+      // path. Callers may still override via init.keepalive.
+      const keepalive =
+        init.keepalive ??
+        (typeof init.body === "string" && init.body.length < 60_000);
+      return fetch(`${relayUrl}${path}`, { ...init, headers, keepalive });
     },
     [token, relayUrl],
   );
@@ -949,6 +959,52 @@ export function useLibreCloud(): UseLibreCloud {
         return `${base}/sync/ws?token=${tok}`;
       };
 
+      // ── Dead-socket watchdog ─────────────────────────────────
+      // A half-open TCP connection (laptop sleep, Wi-Fi swap, NAT
+      // rebind, relay restart mid-deploy) leaves the browser socket
+      // in readyState OPEN with `close` never firing — the server's
+      // protocol-level pings are handled by the network stack and
+      // are INVISIBLE to page JS, so without an application-level
+      // signal the client can't tell "quiet but alive" from "dead."
+      // The relay now sends a `{"type":"ping"}` TEXT frame every
+      // ~25s; any message (ping or real event) proves liveness. If
+      // nothing arrives inside WATCHDOG_SILENCE_MS (~2.5 missed
+      // pings), we force-close and let the normal backoff reconnect
+      // — which the consumer treats as "re-pull everything."
+      const WATCHDOG_SILENCE_MS = 70_000;
+      let lastMessageAt = Date.now();
+      let watchdogTimer: number | null = null;
+
+      const stopWatchdog = (): void => {
+        if (watchdogTimer !== null) {
+          window.clearInterval(watchdogTimer);
+          watchdogTimer = null;
+        }
+      };
+      const startWatchdog = (): void => {
+        stopWatchdog();
+        lastMessageAt = Date.now();
+        watchdogTimer = window.setInterval(() => {
+          if (stopped || !socket) return;
+          if (Date.now() - lastMessageAt < WATCHDOG_SILENCE_MS) return;
+          console.warn(
+            "[libre-sync] no server traffic in",
+            Math.round((Date.now() - lastMessageAt) / 1000),
+            "s — assuming dead socket, reconnecting",
+          );
+          stopWatchdog();
+          try {
+            // close() on a half-open socket still transitions the
+            // local readyState and fires our `close` listener, which
+            // schedules the reconnect.
+            socket.close();
+          } catch {
+            // Even if close() throws, force the reconnect path.
+            schedule();
+          }
+        }, 10_000);
+      };
+
       const connect = (): void => {
         if (stopped) return;
         try {
@@ -962,8 +1018,10 @@ export function useLibreCloud(): UseLibreCloud {
           // Reset backoff on a clean connect; the server's `hello`
           // event arrives shortly after.
           backoff = 500;
+          startWatchdog();
         });
         socket.addEventListener("message", (ev) => {
+          lastMessageAt = Date.now();
           try {
             const data = JSON.parse(ev.data as string) as SyncEvent;
             handler(data);
@@ -972,6 +1030,7 @@ export function useLibreCloud(): UseLibreCloud {
           }
         });
         socket.addEventListener("close", () => {
+          stopWatchdog();
           if (!stopped) schedule();
         });
         socket.addEventListener("error", () => {
@@ -1005,6 +1064,7 @@ export function useLibreCloud(): UseLibreCloud {
 
       return () => {
         stopped = true;
+        stopWatchdog();
         if (initialConnectTimer !== null) {
           window.clearTimeout(initialConnectTimer);
           initialConnectTimer = null;

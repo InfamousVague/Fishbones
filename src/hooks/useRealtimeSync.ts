@@ -55,6 +55,14 @@ export interface RealtimeSyncOpts {
   ) => void;
   applySolutions?: (rows: SolutionRow[]) => void;
   applySettings?: (rows: SettingRow[]) => void;
+  /// Snapshot of the LOCAL completion history as push-shaped rows.
+  /// When provided, sign-in (and every full re-pull) reconciles in
+  /// BOTH directions: after the server rows apply locally, any row
+  /// that exists locally but not on the server is pushed up. Without
+  /// this, progress earned while signed out (or lost to a failed
+  /// push) never reached sibling devices until a manual debug-panel
+  /// "Push all".
+  collectLocalProgress?: () => ProgressRow[];
   /// Optional debounce window for coalescing local writes before
   /// the cloud push fires. Defaults to 600ms — fast enough to feel
   /// "real time" between devices, slow enough that a burst of
@@ -106,6 +114,7 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
     applyProgressCleared,
     applySolutions,
     applySettings,
+    collectLocalProgress,
     pushDebounceMs = 600,
   } = opts;
 
@@ -128,6 +137,8 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
   applySolutionsRef.current = applySolutions;
   const applySettingsRef = useRef(applySettings);
   applySettingsRef.current = applySettings;
+  const collectLocalProgressRef = useRef(collectLocalProgress);
+  collectLocalProgressRef.current = collectLocalProgress;
 
   // Push buffers — keyed maps so we can coalesce repeated edits to
   // the same (course, lesson) or settings key into one network call.
@@ -152,44 +163,74 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
     });
   }, []);
 
+  /// Restore rows that failed to push back into their buffer so the
+  /// next flush retries them. A row is only restored when its key is
+  /// still absent — an edit made while the failed push was in flight
+  /// is newer and must win.
+  function restoreRows<R>(buf: Map<string, R>, rows: [string, R][]): void {
+    for (const [key, row] of rows) {
+      if (!buf.has(key)) buf.set(key, row);
+    }
+  }
+
   const flush = useCallback(async (): Promise<void> => {
     if (flushTimer.current !== null) {
       window.clearTimeout(flushTimer.current);
       flushTimer.current = null;
     }
-    const progressRows = Array.from(progressBuf.current.values());
-    const solutionRows = Array.from(solutionsBuf.current.values());
-    const settingRows = Array.from(settingsBuf.current.values());
+    // Snapshot WITH keys (for restore-on-failure), then clear. New
+    // edits arriving while the network call is in flight land in the
+    // now-empty buffers and get their own flush.
+    const progressRows = Array.from(progressBuf.current.entries());
+    const solutionRows = Array.from(solutionsBuf.current.entries());
+    const settingRows = Array.from(settingsBuf.current.entries());
     progressBuf.current.clear();
     solutionsBuf.current.clear();
     settingsBuf.current.clear();
     refreshPendingCount();
-    try {
-      // Run in parallel — they're independent endpoints. Failures
-      // log but don't stop the others.
-      await Promise.all([
-        progressRows.length > 0
-          ? cloud.pushProgress(progressRows).catch((e) => {
-              console.warn("[realtime-sync] push progress failed:", e);
-            })
-          : Promise.resolve(),
-        solutionRows.length > 0
-          ? cloud.pushSolutions(solutionRows).catch((e) => {
-              console.warn("[realtime-sync] push solutions failed:", e);
-            })
-          : Promise.resolve(),
-        settingRows.length > 0
-          ? cloud.pushSettings(settingRows).catch((e) => {
-              console.warn("[realtime-sync] push settings failed:", e);
-            })
-          : Promise.resolve(),
-      ]);
-    } catch (e) {
-      // Promise.all in this shape can't actually reject (each .catch
-      // swallows), but TypeScript doesn't know that.
-      console.warn("[realtime-sync] flush failed:", e);
+    // Push in parallel — independent endpoints. A failed batch is
+    // RESTORED to its buffer and retried on the next flush (the next
+    // local edit, the unload/hidden flush, or a reconnect-triggered
+    // schedule) instead of being dropped with just a console warning
+    // — previously "complete a lesson during a network blip" lost
+    // the row until a manual debug-panel push.
+    let anyFailed = false;
+    await Promise.all([
+      progressRows.length > 0
+        ? cloud.pushProgress(progressRows.map(([, r]) => r)).catch((e) => {
+            console.warn("[realtime-sync] push progress failed (queued for retry):", e);
+            restoreRows(progressBuf.current, progressRows);
+            anyFailed = true;
+          })
+        : Promise.resolve(),
+      solutionRows.length > 0
+        ? cloud.pushSolutions(solutionRows.map(([, r]) => r)).catch((e) => {
+            console.warn("[realtime-sync] push solutions failed (queued for retry):", e);
+            restoreRows(solutionsBuf.current, solutionRows);
+            anyFailed = true;
+          })
+        : Promise.resolve(),
+      settingRows.length > 0
+        ? cloud.pushSettings(settingRows.map(([, r]) => r)).catch((e) => {
+            console.warn("[realtime-sync] push settings failed (queued for retry):", e);
+            restoreRows(settingsBuf.current, settingRows);
+            anyFailed = true;
+          })
+        : Promise.resolve(),
+    ]);
+    if (anyFailed) {
+      refreshPendingCount();
+      // Retry with a fixed generous delay — the common causes (network
+      // blip, relay restart) clear within seconds. scheduleFlush's
+      // debounce guard dedupes if a local edit schedules one earlier.
+      if (flushTimer.current === null) {
+        flushTimer.current = window.setTimeout(() => {
+          flushTimer.current = null;
+          void flush();
+        }, 15_000);
+      }
     }
-  }, [cloud]);
+  }, [cloud, refreshPendingCount]);
 
   const scheduleFlush = useCallback(() => {
     if (flushTimer.current !== null) return;
@@ -266,6 +307,34 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
     let cancelled = false;
     setStatus("syncing");
     setError(null);
+    /// Whether this effect run has seen its first `hello`. The first
+    /// one accompanies the initial pull below (no extra work); every
+    /// LATER hello on the same subscription means subscribeSync's
+    /// internal backoff silently re-opened the socket after a drop —
+    /// and any events published during the gap are gone forever (the
+    /// server bus has no replay). Re-pull everything on those so a
+    /// reconnect always implies catch-up. Previously `hello` was a
+    /// no-op and a desktop that dropped its socket (laptop sleep,
+    /// Wi-Fi swap, relay deploy) reconnected deaf-to-the-past and
+    /// diverged until the next app relaunch.
+    let sawInitialHello = false;
+    /// Full re-pull of every domain through the appliers. Same
+    /// partial-failure tolerance as the initial pull (allSettled) so
+    /// one failing endpoint doesn't black-hole the others.
+    const pullAll = async (reason: string): Promise<void> => {
+      const [pr, sr, str] = await Promise.allSettled([
+        cloud.pullProgress(),
+        cloud.pullSolutions(),
+        cloud.pullSettings(),
+      ]);
+      if (cancelled) return;
+      if (pr.status === "fulfilled") applyProgressRef.current?.(pr.value);
+      else console.warn(`[realtime-sync] ${reason} progress pull failed:`, pr.reason);
+      if (sr.status === "fulfilled") applySolutionsRef.current?.(sr.value);
+      else console.warn(`[realtime-sync] ${reason} solutions pull failed:`, sr.reason);
+      if (str.status === "fulfilled") applySettingsRef.current?.(str.value);
+      else console.warn(`[realtime-sync] ${reason} settings pull failed:`, str.reason);
+    };
     void (async () => {
       // CRITICAL: use `allSettled`, NOT `all`. The three pull
       // endpoints are independent — if the relay returns 404 on
@@ -296,6 +365,32 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
       const failures: string[] = [];
       if (progressR.status === "fulfilled") {
         applyProgressRef.current?.(progressR.value);
+        // Reconcile UP: push completions the server doesn't have.
+        // Progress earned signed-out, or stranded by a failed push on
+        // a previous session, only lives in local history — without
+        // this it never reaches sibling devices. Server-side merge is
+        // MAX(completed_at), so pushing is idempotent and safe.
+        const collect = collectLocalProgressRef.current;
+        if (collect) {
+          try {
+            const serverKeys = new Set(
+              progressR.value.map((r) => `${r.course_id}:${r.lesson_id}`),
+            );
+            const localOnly = collect().filter(
+              (r) => !serverKeys.has(`${r.course_id}:${r.lesson_id}`),
+            );
+            if (localOnly.length > 0) {
+              console.info(
+                `[realtime-sync] reconciling ${localOnly.length} local-only completion(s) up to the relay`,
+              );
+              void cloud.pushProgress(localOnly).catch((e) => {
+                console.warn("[realtime-sync] reconcile push failed:", e);
+              });
+            }
+          } catch (e) {
+            console.warn("[realtime-sync] reconcile skipped:", e);
+          }
+        }
       } else {
         const msg = errorMessage(progressR.reason);
         failures.push(`progress: ${msg}`);
@@ -338,27 +433,24 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
     const teardownSocket = cloud.subscribeSync((event: SyncEvent) => {
       switch (event.type) {
         case "hello":
-          // Server has us subscribed; status flips to live once the
-          // initial pull settles (above).
+          // First hello of this subscription rides alongside the
+          // initial pull above — nothing to do. Any LATER hello means
+          // the socket dropped and subscribeSync's backoff re-opened
+          // it; everything published during the gap is lost (the bus
+          // has no replay), so a reconnect must imply a full re-pull.
+          if (sawInitialHello) {
+            void pullAll("reconnect");
+          }
+          sawInitialHello = true;
+          break;
+        case "ping":
+          // Server liveness beacon (~25s cadence). No payload — its
+          // arrival already reset subscribeSync's dead-socket
+          // watchdog before the handler ran.
           break;
         case "resync": {
-          // Backlog overflowed — re-pull everything. Same partial-
-          // failure tolerance as the initial pull above (allSettled,
-          // not all) so a 404 on one endpoint doesn't black-hole
-          // the others.
-          void (async () => {
-            const [pr, sr, str] = await Promise.allSettled([
-              cloud.pullProgress(),
-              cloud.pullSolutions(),
-              cloud.pullSettings(),
-            ]);
-            if (pr.status === "fulfilled") applyProgressRef.current?.(pr.value);
-            else console.warn("[realtime-sync] resync progress failed:", pr.reason);
-            if (sr.status === "fulfilled") applySolutionsRef.current?.(sr.value);
-            else console.warn("[realtime-sync] resync solutions failed:", sr.reason);
-            if (str.status === "fulfilled") applySettingsRef.current?.(str.value);
-            else console.warn("[realtime-sync] resync settings failed:", str.reason);
-          })();
+          // Backlog overflowed — re-pull everything.
+          void pullAll("resync");
           break;
         }
         case "progress":
@@ -383,7 +475,20 @@ export function useRealtimeSync(opts: RealtimeSyncOpts): RealtimeSyncHandle {
     return () => {
       cancelled = true;
       teardownSocket();
-      if (flushTimer.current !== null) {
+      // DRAIN, don't drop: this teardown also runs on resyncEpoch
+      // bumps (visibility resume) and cloud identity changes — if a
+      // debounced flush was pending, cancelling the timer without
+      // flushing stranded those rows in the buffer until the next
+      // local edit. flush() clears the timer itself and the buffers
+      // survive in refs across effect re-runs, so this is safe even
+      // when the push races the new subscription.
+      if (
+        progressBuf.current.size > 0 ||
+        solutionsBuf.current.size > 0 ||
+        settingsBuf.current.size > 0
+      ) {
+        void flush();
+      } else if (flushTimer.current !== null) {
         window.clearTimeout(flushTimer.current);
         flushTimer.current = null;
       }
