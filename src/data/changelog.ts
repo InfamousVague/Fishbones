@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 /// Newest first.
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "2.8.0",
+    date: "2026-07-02",
+    highlights: [
+      "Pick your languages when you install a book — download only the translations you want, and see how much each one adds before you commit.",
+      "Translated books now download in pieces: English plus just the languages you chose, so they install lighter and faster.",
+      "Set your default download languages in Settings → General — new installs and the starter library follow your choice.",
+    ],
+  },
+  {
     version: "2.7.0",
     date: "2026-07-02",
     highlights: [
