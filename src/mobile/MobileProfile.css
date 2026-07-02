@@ -69,6 +69,194 @@
   display: none;
 }
 
+/* --- IDENTITY HERO ------------------------------------------------ */
+/* Avatar + name + level line on a glass card with a soft accent
+   bloom in the corner — the one intentionally "premium" surface on
+   the page. Uses the same --gg-* glass recipe the desktop chrome
+   uses; every token has a solid fallback for themes without the
+   glass ladder. */
+
+.m-prof__hero {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-14) var(--libre-space-16);
+  border-radius: var(--libre-radius-16);
+  background:
+    radial-gradient(
+      120% 160% at 8% 0%,
+      color-mix(in srgb, var(--gg-accent, var(--color-accent)) 14%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--gg-glass-card, var(--color-bg-secondary));
+  border: var(--libre-bw-1) solid var(--gg-glass-brd, var(--color-border-default));
+  box-shadow: inset 0 1px 0 var(--gg-glass-rim, transparent);
+  backdrop-filter: blur(var(--gg-blur, var(--libre-blur-20)));
+  -webkit-backdrop-filter: blur(var(--gg-blur, var(--libre-blur-20)));
+}
+
+.m-prof__hero-avatar {
+  width: var(--libre-size-44);
+  height: var(--libre-size-44);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--libre-radius-circle);
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-800);
+  letter-spacing: var(--libre-ls-0-02em);
+  color: var(--color-text-primary);
+  background:
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--gg-accent, var(--color-accent)) 32%, transparent),
+      color-mix(in srgb, var(--gg-accent, var(--color-accent)) 10%, transparent)
+    ),
+    var(--color-bg-elevated);
+  border: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--gg-accent, var(--color-accent)) 45%, var(--color-border-default));
+}
+
+.m-prof__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.m-prof__hero-name {
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-800);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m-prof__hero-sub {
+  font-size: var(--libre-fs-12);
+  color: var(--color-text-secondary);
+  font-feature-settings: "tnum";
+}
+
+.m-prof__hero-signin {
+  flex-shrink: 0;
+  padding: var(--libre-space-8) var(--libre-space-12);
+  border-radius: var(--libre-radius-pill);
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--gg-accent, var(--color-accent)) 16%, transparent);
+  border: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--gg-accent, var(--color-accent)) 40%, var(--color-border-default));
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--libre-motion-quick);
+}
+
+.m-prof__hero-signin:active {
+  background: color-mix(in srgb, var(--gg-accent, var(--color-accent)) 28%, transparent);
+}
+
+/* --- STREAK SHIELDS (freeze panel) -------------------------------- */
+/* Direct port of the desktop TopBar stats-dropdown freeze panel
+   (TopBar.css .libre__topbar-stats-freeze) with mobile spacing.
+   Pale-blue identity — rgba(127,200,255) — matches the snowflake
+   color desktop established for freezes. */
+
+.m-prof__freeze {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  border-radius: var(--libre-radius-16);
+  background: linear-gradient(
+    90deg,
+    var(--libre-c-rgba-127-200-255-0-08),
+    transparent 90%
+  );
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-127-200-255-0-22);
+}
+
+.m-prof__freeze-head {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-6);
+}
+
+.m-prof__freeze-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--libre-c-7fc8ff);
+}
+
+.m-prof__freeze-label {
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-06em);
+  text-transform: uppercase;
+  color: var(--libre-c-rgba-127-200-255-0-95);
+  flex: 1;
+}
+
+.m-prof__freeze-count {
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-text-secondary);
+  font-feature-settings: "tnum";
+}
+
+.m-prof__freeze-pips {
+  display: flex;
+  gap: var(--libre-space-5);
+}
+
+.m-prof__freeze-pip {
+  width: var(--libre-size-10);
+  height: var(--libre-size-10);
+  border-radius: var(--libre-radius-circle);
+  background: transparent;
+  border: var(--libre-bw-1-5) solid var(--libre-c-rgba-127-200-255-0-55);
+}
+
+.m-prof__freeze-pip--used {
+  background: var(--libre-c-rgba-127-200-255-0-55);
+}
+
+.m-prof__freeze-hint {
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-35);
+  color: var(--color-text-secondary);
+  margin: var(--libre-space-0);
+}
+
+.m-prof__freeze-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--libre-space-6);
+  width: 100%;
+  padding: var(--libre-space-10) var(--libre-space-12);
+  border-radius: var(--libre-radius-10);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--libre-c-cfe6ff);
+  background: var(--libre-c-rgba-127-200-255-0-18);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-127-200-255-0-55);
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--libre-motion-quick), color var(--libre-motion-quick);
+}
+
+.m-prof__freeze-btn:active {
+  background: var(--libre-c-rgba-127-200-255-0-3);
+  color: var(--libre-c-white);
+}
+
 /* --- TWIN RINGS (streak + level) --------------------------------- */
 /* The two rings sit side by side at the top of the profile so the
    most-asked-about numbers (streak / level) become the visual focal
@@ -87,8 +275,13 @@
   aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
-  background: var(--color-bg-secondary);
-  border: var(--libre-bw-1) solid var(--color-border-default);
+  /* Glass card — same recipe as the hero so the top of the page
+     reads as one family of premium surfaces. */
+  background: var(--gg-glass-card, var(--color-bg-secondary));
+  border: var(--libre-bw-1) solid var(--gg-glass-brd, var(--color-border-default));
+  box-shadow: inset 0 1px 0 var(--gg-glass-rim, transparent);
+  backdrop-filter: blur(var(--gg-blur, var(--libre-blur-20)));
+  -webkit-backdrop-filter: blur(var(--gg-blur, var(--libre-blur-20)));
   border-radius: var(--libre-radius-16);
   padding: var(--libre-space-14);
   /* `--ring-tone` is set by the tone variants below. The track is a
@@ -102,9 +295,17 @@
   --ring-tone-soft: var(--libre-c-rgba-245-158-59-0-16);
 }
 
+/* Level follows the theme's accent hue (the Settings knob) so the
+   profile recolors with the rest of the app; the green stays as the
+   fallback for anything without the --gg ladder. Streak keeps its
+   flame-orange identity on every theme. */
 .m-prof__ring--level {
-  --ring-tone: var(--libre-c-7cd97c);
-  --ring-tone-soft: var(--libre-c-rgba-124-217-124-0-16);
+  --ring-tone: var(--gg-accent, var(--libre-c-7cd97c));
+  --ring-tone-soft: color-mix(
+    in srgb,
+    var(--gg-accent, var(--libre-c-7cd97c)) 16%,
+    transparent
+  );
 }
 
 .m-prof__ring-svg {
@@ -191,6 +392,8 @@
 .m-prof__stat:nth-child(2) { animation-delay: 35ms;  }
 .m-prof__stat:nth-child(3) { animation-delay: 70ms;  }
 .m-prof__stat:nth-child(4) { animation-delay: 105ms; }
+.m-prof__stat:nth-child(5) { animation-delay: 140ms; }
+.m-prof__stat:nth-child(6) { animation-delay: 175ms; }
 .m-prof__level             { animation-delay: 140ms; }
 .m-prof__section           { animation-delay: 180ms; }
 
@@ -240,7 +443,9 @@
 .m-prof__stat--streak  { --stat-tone: var(--libre-c-f59e3b); }
 .m-prof__stat--lessons { --stat-tone: var(--libre-c-7cd9d3); }
 .m-prof__stat--xp      { --stat-tone: var(--libre-c-fcd34d); }
-.m-prof__stat--level   { --stat-tone: var(--libre-c-7cd97c); }
+.m-prof__stat--level   { --stat-tone: var(--gg-accent, var(--libre-c-7cd97c)); }
+.m-prof__stat--longest { --stat-tone: var(--libre-c-e8c46b); }
+.m-prof__stat--langs   { --stat-tone: var(--libre-c-7cc1d9); }
 
 .m-prof__stat-icon {
   width: var(--libre-size-32);
@@ -427,6 +632,24 @@
   background: var(--color-bg-elevated);
 }
 
+/* Kind dot — reading / quiz / exercise rows scan apart at a glance.
+   Same palette as the desktop profile's activity list. */
+.m-prof__recent-kind {
+  width: var(--libre-size-8);
+  height: var(--libre-size-8);
+  border-radius: var(--libre-radius-circle);
+  flex-shrink: 0;
+  background: var(--color-text-tertiary);
+}
+
+.m-prof__recent-kind[data-kind="reading"] { background: var(--libre-c-7cd97c); }
+.m-prof__recent-kind[data-kind="quiz"]    { background: var(--libre-c-e8c46b); }
+.m-prof__recent-kind[data-kind="exercise"],
+.m-prof__recent-kind[data-kind="mixed"]   { background: var(--libre-c-7cc1d9); }
+.m-prof__recent-kind[data-kind="puzzle"],
+.m-prof__recent-kind[data-kind="cloze"],
+.m-prof__recent-kind[data-kind="micropuzzle"] { background: var(--libre-c-c79bff); }
+
 .m-prof__recent-text {
   display: flex;
   flex-direction: column;
@@ -502,6 +725,16 @@
 .m-prof__heatmap-cell--lvl-4 {
   background: var(--libre-c-7cd97c);
   border-color: var(--libre-c-rgba-124-217-124-0-85);
+}
+
+/* Window summary line above the grid — "N completions · N active
+   days" — mirrors the desktop heatmap's meta so quiet and busy
+   windows don't read identically at a glance. */
+.m-prof__heatmap-meta {
+  font-size: var(--libre-fs-12);
+  color: var(--color-text-secondary);
+  margin: var(--libre-space-0);
+  font-feature-settings: "tnum";
 }
 
 .m-prof__heatmap-legend {

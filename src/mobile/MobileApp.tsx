@@ -23,6 +23,10 @@ import { useProgress } from "@/hooks/useProgress";
 import { useLibreCloud } from "@/hooks/useLibreCloud";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useStreakAndXp } from "@/hooks/useStreakAndXp";
+import { useStreakShields } from "@/hooks/useStreakShields";
+import type { CloudStats } from "@/hooks/useLibreCloud";
+import { harvestPracticeItems } from "@/components/templates/Practice/practiceHarvest";
+import { loadAllRecords, summariseStats } from "@/components/templates/Practice/practiceStore";
 import { useWidgetSnapshot } from "./useWidgetSnapshot";
 import {
   LIBRARY_INSTALLED_IDS_KEY,
@@ -79,6 +83,7 @@ export default function MobileApp() {
   const {
     completed,
     history,
+    loaded: progressLoaded,
     markCompleted,
     markCompletedBatch,
     resetProgress,
@@ -197,7 +202,13 @@ export default function MobileApp() {
     cloud.signedIn,
   ]);
 
-  const stats = useStreakAndXp(history, courses);
+  // Streak shields (freezes). Same shared hook the desktop TopBar
+  // uses — localStorage-backed weekly budget + frozen-day registry.
+  // Feeding `frozenDays` into the streak engine makes frozen days
+  // count as phantom completions, so the streak number, celebration
+  // trigger, profile rings and widget snapshot all honor freezes.
+  const shields = useStreakShields();
+  const stats = useStreakAndXp(history, courses, shields.frozenDays);
 
   // ── Streak-extension celebration ───────────────────────────────
   // Watches `stats.streakDays` for an INCREASE and fires the
@@ -233,6 +244,62 @@ export default function MobileApp() {
   // No-op on non-iOS targets (the underlying Tauri command bails
   // out on platforms without an App Group container).
   useWidgetSnapshot({ courses, completed, history, stats });
+
+  // Stats are "ready" once BOTH stores hydrated — never push (or
+  // celebrate) the 0 → real placeholder transition.
+  const statsReady = loaded && progressLoaded;
+
+  // ── Push aggregate stats to the relay for friends + leaderboards ──
+  // Same debounced effect as desktop App.tsx: phone-only learners
+  // previously never uploaded a snapshot, so their leaderboard rows
+  // sat stale/zero for everyone else. Guards: signed-in + statsReady,
+  // value-diffed vs the last push, debounced 1.5s so a burst of
+  // completions folds into one PUT. pushStats itself is best-effort.
+  const lastPushedStatsRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!cloud.signedIn || !statsReady) return;
+    const snapshot: CloudStats = {
+      total_xp: stats.xp,
+      current_streak_days: stats.streakDays,
+      longest_streak_days: stats.longestStreakDays,
+      lessons_completed: stats.lessonsCompleted,
+      level: stats.level,
+    };
+    const serialized = JSON.stringify(snapshot);
+    if (serialized === lastPushedStatsRef.current) return;
+    const timer = window.setTimeout(() => {
+      lastPushedStatsRef.current = serialized;
+      void cloud.pushStats(snapshot);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [
+    cloud,
+    cloud.signedIn,
+    statsReady,
+    stats.xp,
+    stats.streakDays,
+    stats.longestStreakDays,
+    stats.lessonsCompleted,
+    stats.level,
+  ]);
+
+  // Spaced-repetition "reviews due" count for the Practice tab badge.
+  // Mirrors the desktop nav-rail badge: re-pulled on the
+  // `libre:practice-graded` event the practice store dispatches after
+  // every graded attempt / reset.
+  const [practiceRecordsVersion, setPracticeRecordsVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setPracticeRecordsVersion((v) => v + 1);
+    window.addEventListener("libre:practice-graded", bump);
+    return () => window.removeEventListener("libre:practice-graded", bump);
+  }, []);
+  const practiceDue = useMemo(() => {
+    const items = harvestPracticeItems(courses, completed);
+    return summariseStats(items, loadAllRecords()).dueCount;
+    // practiceRecordsVersion is the re-pull trigger; loadAllRecords()
+    // reads localStorage so it isn't a reactive dep by itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courses, completed, practiceRecordsVersion]);
 
   /// Mirror of `realtime.status`, readable from inside the applier
   /// callbacks below (which close over refs, not render values). Used
@@ -689,6 +756,52 @@ export default function MobileApp() {
     }
   };
 
+  // ── Deep links: ?courseId=…&lessonId=… ────────────────────────────
+  // The marketing site's course pages hand learners over to /learn/
+  // with these params ("Open in browser"). Desktop has handled them
+  // since the web build shipped; mobile silently dropped them and
+  // landed everyone on the Library. Parse once at mount, then jump as
+  // soon as the course list has loaded. Cleared after a successful
+  // match so a stale ?courseId in history can't re-yank the learner.
+  const [pendingOpen, setPendingOpen] = useState<{
+    courseId: string;
+    lessonId?: string;
+  } | null>(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const courseId = params.get("courseId");
+      if (!courseId) return null;
+      return { courseId, lessonId: params.get("lessonId") ?? undefined };
+    } catch {
+      return null;
+    }
+  });
+  useEffect(() => {
+    if (!pendingOpen || !loaded) return;
+    // Resolve against coursesAll (not the visibility-filtered list) so
+    // hidden / unlisted courses stay openable by direct URL — that's
+    // the point of the unlisted flag.
+    const course = coursesAll.find((c) => c.id === pendingOpen.courseId);
+    if (!course) return;
+    setPendingOpen(null);
+    if (pendingOpen.lessonId) {
+      for (let ci = 0; ci < course.chapters.length; ci++) {
+        const ch = course.chapters[ci];
+        for (let li = 0; li < ch.lessons.length; li++) {
+          if (ch.lessons[li].id === pendingOpen.lessonId) {
+            void openLesson(course, ci, li);
+            return;
+          }
+        }
+      }
+    }
+    // No lesson id (or a stale one) — first incomplete lesson.
+    void openCourseById(course.id);
+    // openLesson / openCourseById are stable-enough closures re-created
+    // per render; the guard state (pendingOpen → null) prevents re-runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingOpen, loaded, coursesAll]);
+
   const goNext = () => {
     if (!active) return;
     const ch = active.course.chapters[active.chapterIndex];
@@ -872,6 +985,14 @@ export default function MobileApp() {
             history={history}
             stats={stats}
             completed={completed}
+            // Streak shields — the Profile hosts the freeze panel
+            // (weekly budget pips + "Freeze yesterday"), mirroring
+            // the desktop TopBar stats dropdown.
+            shields={shields}
+            // Identity hero: signed-in account (avatar + name) or a
+            // "sign in to sync" affordance when anonymous.
+            user={cloud.user || null}
+            onRequestSignIn={() => setSignInOpen(true)}
             onOpenLesson={openLesson}
             onOpenSearch={() => setSearchOpen(true)}
             // Profile owns the entry point to Settings now that the
@@ -912,6 +1033,7 @@ export default function MobileApp() {
           void haptics.selection();
           setView("playground");
         }}
+        practiceDue={practiceDue}
         onPractice={() => {
           void haptics.selection();
           setView("practice");
@@ -952,6 +1074,9 @@ export default function MobileApp() {
         open={streakOverlayOpen}
         streakDays={stats.streakDays}
         history={history}
+        // Frozen days light up in the 7-day pill row so a
+        // shield-protected day reads as covered, not missed.
+        frozenDays={shields.frozenDays}
         onClose={() => setStreakOverlayOpen(false)}
       />
 

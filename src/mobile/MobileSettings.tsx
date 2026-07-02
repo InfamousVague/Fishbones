@@ -30,6 +30,12 @@ import {
   resetScales,
 } from "@/theme/themes";
 import LanguageDropdown from "@/components/molecules/LanguageDropdown/LanguageDropdown";
+// Cover-art thumbnails + per-theme preview palettes — the exact
+// assets/data the desktop theme pickers render, so the mobile rows
+// match the new graphics instead of the old three-stripe swatch.
+import { themeThumb } from "@/components/organisms/dialogs/ThemePicker/themeThumbs";
+import { useAnalyticsSetting } from "@/hooks/useAnalyticsSetting";
+import { THEME_PREVIEW } from "@/theme/themePreviews";
 import "./MobileSettings.css";
 
 /// Appearance scale knobs (same set as the desktop ThemePane). Plain
@@ -76,6 +82,10 @@ export default function MobileSettings({
   // (loadTheme reads localStorage). `applyTheme` writes-through on
   // every selection so the change persists across launches.
   const [theme, setTheme] = useState<ThemeName>(() => loadTheme());
+  // Anonymous-analytics opt-out. Same persisted key + broadcast the
+  // desktop Settings → Data pane uses, so the choice syncs semantics
+  // across surfaces (the analytics engine reacts to the event).
+  const analytics = useAnalyticsSetting();
 
   function handleThemeChange(next: ThemeName) {
     setTheme(next);
@@ -201,6 +211,12 @@ export default function MobileSettings({
         <ul className="m-set__theme-list" role="radiogroup" aria-label="Theme">
           {THEMES.map((t) => {
             const active = t.id === theme;
+            const thumb = themeThumb(t.id);
+            const colors = THEME_PREVIEW[t.id] ?? {
+              bg: "#000",
+              fg: "#fff",
+              accent: "#fff",
+            };
             return (
               <li key={t.id}>
                 <button
@@ -212,20 +228,59 @@ export default function MobileSettings({
                   }
                   onClick={() => handleThemeChange(t.id)}
                 >
+                  {/* Cover-art squircle — same JPGs the desktop pickers
+                      use (themeThumbs glob). Colour-tile fallback for
+                      any future theme that ships without art. */}
                   <span
-                    className="m-set__theme-swatch"
-                    data-theme={t.id}
+                    className="m-set__theme-squircle"
                     aria-hidden
-                  />
+                    style={
+                      thumb
+                        ? undefined
+                        : {
+                            background: `radial-gradient(120% 120% at 20% 12%, ${colors.accent}40 0%, transparent 46%), ${colors.bg}`,
+                          }
+                    }
+                  >
+                    {thumb ? <img src={thumb} alt="" loading="lazy" /> : null}
+                  </span>
+                  {/* Mini app-chrome mock-up in the destination palette
+                      (inline --swatch-* from the generated THEME_PREVIEW,
+                      so it can never go stale against the registry). */}
+                  <span
+                    className="m-set__theme-preview"
+                    aria-hidden
+                    style={
+                      {
+                        "--swatch-bg": colors.bg,
+                        "--swatch-fg": colors.fg,
+                        "--swatch-accent": colors.accent,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <span className="m-set__theme-prev-rail" />
+                    <span className="m-set__theme-prev-side">
+                      <span className="m-set__theme-prev-srow" />
+                      <span className="m-set__theme-prev-srow m-set__theme-prev-srow--active" />
+                      <span className="m-set__theme-prev-srow" />
+                    </span>
+                    <span className="m-set__theme-prev-main">
+                      <span className="m-set__theme-prev-topbar" />
+                      <span className="m-set__theme-prev-line" style={{ width: "72%" }} />
+                      <span
+                        className="m-set__theme-prev-line m-set__theme-prev-line--accent"
+                        style={{ width: "46%" }}
+                      />
+                      <span className="m-set__theme-prev-line" style={{ width: "84%" }} />
+                    </span>
+                  </span>
                   <span className="m-set__theme-text">
                     <span className="m-set__theme-label">{t.label}</span>
                     <span className="m-set__theme-desc">{t.description}</span>
                   </span>
-                  {active && (
-                    <span className="m-set__theme-check" aria-hidden>
-                      ✓
-                    </span>
-                  )}
+                  <span className="m-set__theme-check" aria-hidden>
+                    ✓
+                  </span>
                 </button>
               </li>
             );
@@ -305,6 +360,32 @@ export default function MobileSettings({
             ↗
           </span>
         </a>
+      </section>
+
+      <section className="m-set__section">
+        <h3 className="m-set__section-title">Privacy</h3>
+        <p className="m-set__blurb">
+          Anonymous, cookieless product analytics (Plausible) — no personal
+          data, no cross-site tracking. Turning it off stops all reporting
+          from this device immediately.
+        </p>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={analytics.enabled}
+          className="m-set__row m-set__row--button"
+          onClick={() => analytics.setEnabled(!analytics.enabled)}
+        >
+          <span className="m-set__row-title">Share anonymous usage data</span>
+          <span
+            className={
+              "m-set__switch" + (analytics.enabled ? " m-set__switch--on" : "")
+            }
+            aria-hidden
+          >
+            <span className="m-set__switch-thumb" />
+          </span>
+        </button>
       </section>
 
       <section className="m-set__section">

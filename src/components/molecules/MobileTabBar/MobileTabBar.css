@@ -79,6 +79,7 @@
 }
 
 .libre-mtab__btn {
+  position: relative;
   flex: 1;
   display: inline-flex;
   flex-direction: column;
@@ -117,4 +118,27 @@
 
 .libre-mtab__btn span {
   display: block;
+}
+
+/* Reviews-due count bubble on the Practice tab — desktop nav-rail
+   parity. Anchored to the button's top-right; accent-tinted so it
+   reads as "action available", not an error. */
+.libre-mtab__badge {
+  position: absolute;
+  top: var(--libre-space-2);
+  left: 50%;
+  margin-left: var(--libre-space-8);
+  min-width: var(--libre-size-16);
+  height: var(--libre-size-16);
+  padding: 0 var(--libre-space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--libre-radius-pill);
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-800);
+  line-height: var(--libre-lh-1);
+  color: var(--libre-c-0b0b0d);
+  background: var(--gg-accent, var(--libre-c-f2a93b));
+  font-feature-settings: "tnum";
 }

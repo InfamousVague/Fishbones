@@ -48,6 +48,10 @@ interface Props {
   /// Practice surface (legacy mobile builds during rollout) can
   /// still mount the bar; when omitted, the button is hidden.
   onPractice?: () => void;
+  /// Spaced-repetition reviews due right now — renders as a small
+  /// count bubble on the Practice tab (desktop nav-rail parity).
+  /// Omitted or 0 → no bubble.
+  practiceDue?: number;
   onProfile: () => void;
 }
 
@@ -56,6 +60,7 @@ export default function MobileTabBar({
   onLibrary,
   onPlayground,
   onPractice,
+  practiceDue,
   onProfile,
 }: Props) {
   return (
@@ -93,6 +98,11 @@ export default function MobileTabBar({
           >
             <Icon icon={dumbbell} size="lg" />
             <span>Practice</span>
+            {(practiceDue ?? 0) > 0 && (
+              <span className="libre-mtab__badge" aria-label={`${practiceDue} reviews due`}>
+                {practiceDue! > 99 ? "99+" : practiceDue}
+              </span>
+            )}
           </button>
         )}
         <button

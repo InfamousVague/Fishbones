@@ -5,30 +5,33 @@
 /// The screen is a stack of richly-iconed visual modules, each
 /// answering a different "how am I doing?" question:
 ///
-///   1. Streak + Level rings — twin circular gauges that show the
+///   1. Identity hero — avatar initials + display name + level line
+///      for signed-in learners; a "sign in to sync" affordance for
+///      anonymous ones.
+///   2. Streak + Level rings — twin circular gauges that show the
 ///      learner's two most-mentioned numbers (consecutive days, and
 ///      progress toward the next level) in one glance.
-///   2. Stat tiles — four small cards (streak, lessons, XP, level)
-///      with kind-specific icons for at-a-glance scanning.
-///   3. Activity heatmap — a 12-week 7×N grid of daily completion
-///      counts, GitHub-contribution-style. Long-running learners get
-///      a satisfying mosaic; absent days don't shame, they just sit
-///      muted.
-///   4. Per-language XP — a horizontal bar chart broken down by
+///   3. Streak shields — the weekly freeze budget (pips + "Freeze
+///      yesterday" CTA), mirroring the desktop TopBar stats dropdown.
+///   4. Stat tiles — six small cards (streak, lessons, XP, level,
+///      longest streak, languages) with kind-specific icons.
+///   5. Activity heatmap — a 12-week 7×N grid of daily completion
+///      counts, GitHub-contribution-style, with a window summary.
+///   6. Per-language XP — a horizontal bar chart broken down by
 ///      language, sorted descending. Doubles as "languages I've
 ///      touched" — feeds the Practice tab's "Covered" pill.
-///   5. Milestone badges — a row of unlock-able achievement
-///      iconography (first lesson, weekly streak, exercise grinder,
-///      etc) that fills in as the learner progresses. Locked
-///      badges are dimmed instead of hidden so the next goal is
-///      visible.
-///   6. Continue learning — same in-progress courses rail as before.
-///   7. Recent — last few completed lessons.
+///   7. Continue learning — same in-progress courses rail as before.
+///   8. Recent — last few completed lessons, kind-dotted.
 
 import { useMemo } from "react";
 import type { Course, LanguageId } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
 import type { StreakAndXp } from "@/hooks/useStreakAndXp";
+import type { StreakShieldsState } from "@/hooks/useStreakShields";
+import { useFreezeAffordance } from "@/hooks/useFreezeAffordance";
+import type { LibreCloudUser } from "@/hooks/useLibreCloud";
+import { useT } from "@/i18n/i18n";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@base/primitives/icon";
 import { search as searchIcon } from "@base/primitives/icon/icons/search";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
@@ -36,6 +39,10 @@ import { flame } from "@base/primitives/icon/icons/flame";
 import { zap } from "@base/primitives/icon/icons/zap";
 import { bookOpenCheck } from "@base/primitives/icon/icons/book-open-check";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
+import { snowflake } from "@base/primitives/icon/icons/snowflake";
+import { trophy } from "@base/primitives/icon/icons/trophy";
+import { globe2 } from "@base/primitives/icon/icons/globe-2";
+import { circleUserRound } from "@base/primitives/icon/icons/circle-user-round";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileProfile.css";
@@ -45,6 +52,16 @@ interface Props {
   history: Completion[];
   stats: StreakAndXp;
   completed: Set<string>;
+  /// Streak shields (freezes). When wired, the profile hosts the
+  /// freeze panel — weekly budget pips + the "Freeze yesterday" CTA —
+  /// mirroring the desktop TopBar stats dropdown.
+  shields?: StreakShieldsState;
+  /// Signed-in cloud account, or null when anonymous. Drives the
+  /// identity hero (avatar initials + display name); anonymous
+  /// learners get a "sign in to sync" affordance instead.
+  user?: LibreCloudUser | null;
+  /// Opens the sign-in dialog (hosted by MobileApp).
+  onRequestSignIn?: () => void;
   onOpenLesson: (course: Course, chapterIndex: number, lessonIndex: number) => void;
   /// Optional — fired by the top-right search button. Mirrors the
   /// MobileLibrary signature so MobileApp can wire the same handler
@@ -72,6 +89,9 @@ interface RecentRow {
   chapterIndex: number;
   lessonIndex: number;
   lessonTitle: string;
+  /// Lesson kind — drives the colored dot so reading / quiz /
+  /// exercise rows scan apart at a glance (desktop parity).
+  kind: string;
   completedAt: number;
 }
 
@@ -141,22 +161,60 @@ function langLabel(id: LanguageId): string {
   return LANG_LABELS[id] ?? id;
 }
 
+/// Abbreviate large numbers the way the desktop profile does —
+/// "12400" → "12.4k" — so five-digit XP doesn't overflow a tile.
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) {
+    return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+  }
+  if (n >= 10_000) {
+    return `${(n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1)}k`;
+  }
+  return n.toLocaleString();
+}
+
+/// Avatar initials from the account: display name's first letters
+/// ("Ada Lovelace" → "AL"), else the email's first letter.
+function initialsOf(user: { display_name: string | null; email: string | null }): string {
+  const name = (user.display_name ?? "").trim();
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean);
+    const first = parts[0]?.[0] ?? "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase() || "?";
+  }
+  return (user.email?.[0] ?? "?").toUpperCase();
+}
+
 export default function MobileProfile({
   courses,
   history,
   stats,
   completed,
+  shields,
+  user,
+  onRequestSignIn,
   onOpenLesson,
   onOpenSearch,
   onOpenSettings,
   onRefresh,
 }: Props) {
+  const t = useT();
   // Pull-to-refresh — triggers the realtime resync when wired by
   // the host. Inert when the host doesn't pass `onRefresh`.
   const { pullDistance, isRefreshing } = usePullToRefresh({
     onRefresh: onRefresh ?? (() => {}),
     enabled: !!onRefresh,
   });
+  // Freeze-affordance rules shared with the desktop StatsChip — when
+  // the "Freeze yesterday" CTA is actually useful, how many shields
+  // are spent, etc.
+  const freeze = useFreezeAffordance(
+    history,
+    shields,
+    stats.streakDays >= 1,
+    stats.streakDays,
+  );
   // Per-course aggregates for the "in progress" rail.
   const courseProgress = useMemo(() => {
     const out: Array<{ course: Course; pct: number; done: number; total: number }> = [];
@@ -200,6 +258,7 @@ export default function MobileProfile({
         chapterIndex: found.ci,
         lessonIndex: found.li,
         lessonTitle: lesson.title,
+        kind: lesson.kind,
         completedAt: h.completed_at,
       });
       if (rows.length >= 12) break;
@@ -238,7 +297,10 @@ export default function MobileProfile({
     // months ago doesn't squash the rest of the chart into pale
     // boxes.
     const peak = Math.max(1, ...cells.map((c) => c.count));
-    return { cells, peak };
+    // Window totals for the meta line above the grid.
+    const completions = cells.reduce((a, c) => a + c.count, 0);
+    const activeDays = cells.reduce((a, c) => a + (c.count > 0 ? 1 : 0), 0);
+    return { cells, peak, completions, activeDays };
   }, [history]);
 
   // Per-language XP breakdown. Each completion's lesson kind is
@@ -269,7 +331,9 @@ export default function MobileProfile({
       .map(([lang, xp]) => ({ lang, xp, pct: total > 0 ? xp / total : 0 }))
       .sort((a, b) => b.xp - a.xp)
       .slice(0, 6);
-    return { rows, total };
+    // `count` is the UN-sliced language total — the "Languages" stat
+    // tile wants every language touched, not just the top-6 charted.
+    return { rows, total, count: xpByLang.size };
   }, [history, courses]);
 
   return (
@@ -316,6 +380,41 @@ export default function MobileProfile({
         </div>
       </header>
 
+      {/* Identity hero — avatar + name + level line. Signed-out
+          learners see a local-only note and a sign-in chip instead;
+          progress works either way, sync is the only difference. */}
+      <section className="m-prof__hero">
+        <span className="m-prof__hero-avatar" aria-hidden>
+          {user ? (
+            initialsOf(user)
+          ) : (
+            <Icon icon={circleUserRound} size="lg" color="currentColor" />
+          )}
+        </span>
+        <div className="m-prof__hero-text">
+          <span className="m-prof__hero-name">
+            {user ? (user.display_name || user.email || "Learner") : "Learning locally"}
+          </span>
+          <span className="m-prof__hero-sub">
+            {user
+              ? `Level ${stats.level} · ${stats.xp.toLocaleString()} XP`
+              : "Progress stays on this device"}
+          </span>
+        </div>
+        {!user && onRequestSignIn && (
+          <button
+            type="button"
+            className="m-prof__hero-signin"
+            onClick={() => {
+              void haptics.light();
+              onRequestSignIn();
+            }}
+          >
+            Sign in to sync
+          </button>
+        )}
+      </section>
+
       {/* Twin gauges: streak ring (consecutive days against current
           milestone target) + level ring (XP into the next level).
           Visual focal point of the profile — "what number am I
@@ -343,6 +442,66 @@ export default function MobileProfile({
         />
       </section>
 
+      {/* Streak shields — weekly freeze budget. Mirrors the desktop
+          TopBar stats dropdown: pale-blue panel, pip row for the
+          budget, context hint, and the "Freeze yesterday" CTA only
+          when it would actually save the run. */}
+      {shields && (
+        <section
+          className="m-prof__freeze"
+          aria-label={t("stats.streakShieldsAria")}
+        >
+          <div className="m-prof__freeze-head">
+            <span className="m-prof__freeze-icon" aria-hidden>
+              <Icon icon={snowflake} size="xs" color="currentColor" />
+            </span>
+            <span className="m-prof__freeze-label">
+              {t("stats.streakShieldsLabel")}
+            </span>
+            <span className="m-prof__freeze-count">
+              {t("stats.shieldsCount", {
+                available: shields.available,
+                perWeek: shields.perWeek,
+              })}
+            </span>
+          </div>
+          <div className="m-prof__freeze-pips" aria-hidden>
+            {Array.from({ length: shields.perWeek }, (_, i) => (
+              <span
+                key={i}
+                className={`m-prof__freeze-pip${
+                  i < freeze.usedShields ? " m-prof__freeze-pip--used" : ""
+                }`}
+              />
+            ))}
+          </div>
+          <p className="m-prof__freeze-hint">
+            {freeze.canFreezeYesterday
+              ? t("stats.hintCanFreeze")
+              : freeze.yesterdayFrozen
+                ? t("stats.hintYesterdayFrozen")
+                : shields.available === 0
+                  ? t("stats.hintNoShields")
+                  : freeze.todayHasCompletion
+                    ? t("stats.hintTodayActive")
+                    : t("stats.hintRefillsMonday")}
+          </p>
+          {freeze.canFreezeYesterday && (
+            <button
+              type="button"
+              className="m-prof__freeze-btn"
+              onClick={() => {
+                void haptics.medium();
+                shields.freezeDay(freeze.yesterdayKey);
+              }}
+            >
+              <Icon icon={snowflake} size="xs" color="currentColor" />
+              <span>{t("stats.freezeYesterday")}</span>
+            </button>
+          )}
+        </section>
+      )}
+
       {/* Stat tiles. Same data the rings cover but flat / numeric —
           the rings are for emotional pull, the tiles for at-a-glance
           scanning. */}
@@ -356,15 +515,27 @@ export default function MobileProfile({
         <StatTile
           icon={bookOpenCheck}
           tone="lessons"
-          value={stats.lessonsCompleted}
+          value={formatNumber(stats.lessonsCompleted)}
           label="Lessons"
         />
-        <StatTile icon={zap} tone="xp" value={stats.xp} label="XP" />
+        <StatTile icon={zap} tone="xp" value={formatNumber(stats.xp)} label="XP" />
         <StatTile
           icon={sparkles}
           tone="level"
           value={stats.level}
           label="Level"
+        />
+        <StatTile
+          icon={trophy}
+          tone="longest"
+          value={stats.longestStreakDays}
+          label="Longest streak"
+        />
+        <StatTile
+          icon={globe2}
+          tone="langs"
+          value={langChart.count}
+          label="Languages"
         />
       </div>
 
@@ -372,6 +543,13 @@ export default function MobileProfile({
           consistency, not just streak length. */}
       <section className="m-prof__section">
         <h3 className="m-prof__section-title">Activity</h3>
+        {/* Window summary — same meta line the desktop heatmap
+            carries, so "12 quiet weeks" and "12 busy weeks" don't
+            render identically at a glance. */}
+        <p className="m-prof__heatmap-meta">
+          {heatmap.completions} completion{heatmap.completions === 1 ? "" : "s"} ·{" "}
+          {heatmap.activeDays} active day{heatmap.activeDays === 1 ? "" : "s"}
+        </p>
         <Heatmap cells={heatmap.cells} peak={heatmap.peak} />
         <div className="m-prof__heatmap-legend">
           <span>Less</span>
@@ -473,6 +651,11 @@ export default function MobileProfile({
                   className="m-prof__recent-row"
                   onClick={() => onOpenLesson(r.course, r.chapterIndex, r.lessonIndex)}
                 >
+                  <span
+                    className="m-prof__recent-kind"
+                    data-kind={r.kind}
+                    aria-hidden
+                  />
                   <div className="m-prof__recent-text">
                     <span className="m-prof__recent-title">{r.lessonTitle}</span>
                     <span className="m-prof__recent-meta">
@@ -574,8 +757,8 @@ function StatTile({
   label,
 }: {
   icon: string;
-  tone: "streak" | "lessons" | "xp" | "level";
-  value: number;
+  tone: "streak" | "lessons" | "xp" | "level" | "longest" | "langs";
+  value: number | string;
   label: string;
 }) {
   return (
