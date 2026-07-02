@@ -894,3 +894,63 @@
 .m-prof__badge--unlocked .m-prof__badge-meta {
   color: var(--libre-c-rgba-252-211-77-0-85);
 }
+
+/* --- FRIENDS & LEADERBOARD ENTRY ---------------------------------- */
+/* Glass row under the hero — one tap into the social view. */
+
+.m-prof__social-row {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  width: 100%;
+  padding: var(--libre-space-12) var(--libre-space-14);
+  border-radius: var(--libre-radius-16);
+  background: var(--gg-glass-card, var(--color-bg-secondary));
+  border: var(--libre-bw-1) solid var(--gg-glass-brd, var(--color-border-default));
+  box-shadow: inset 0 1px 0 var(--gg-glass-rim, transparent);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--libre-motion-quick);
+}
+
+.m-prof__social-row:active {
+  background: var(--color-bg-elevated);
+}
+
+.m-prof__social-icon {
+  width: var(--libre-size-32);
+  height: var(--libre-size-32);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--libre-radius-md);
+  background: color-mix(in srgb, var(--gg-accent, var(--color-accent)) 18%, transparent);
+  color: var(--gg-accent, var(--color-accent));
+}
+
+.m-prof__social-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.m-prof__social-title {
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
+}
+
+.m-prof__social-sub {
+  font-size: var(--libre-fs-11-5);
+  color: var(--color-text-tertiary);
+}
+
+.m-prof__social-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  display: inline-flex;
+}

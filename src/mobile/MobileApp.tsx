@@ -55,6 +55,8 @@ import MobilePlayground from "./MobilePlayground";
 import MobileProfile from "./MobileProfile";
 import MobileSettings from "./MobileSettings";
 import PracticeView from "@/components/templates/Practice/PracticeView";
+import SocialView from "@/components/templates/Social/SocialView";
+import ProfileCard from "@/components/molecules/ProfileCard/ProfileCard";
 import MobileSearchPalette from "./MobileSearchPalette";
 import SignInDialog from "@/components/organisms/dialogs/SignInDialog/SignInDialog";
 import MobileTabBar, { type MobileTab } from "@/components/molecules/MobileTabBar/MobileTabBar";
@@ -69,6 +71,7 @@ type View =
   | "playground"
   | "practice"
   | "profile"
+  | "social"
   | "settings";
 
 interface ActiveLesson {
@@ -675,6 +678,10 @@ export default function MobileApp() {
   const [view, setView] = useState<View>("library");
   const [active, setActive] = useState<ActiveLesson | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
+  /// Public-profile popup opened from leaderboard / friends rows.
+  const [profileCardUserId, setProfileCardUserId] = useState<string | null>(
+    null,
+  );
   // Cmd+K-style search overlay state. Lives at the app level (not
   // per-view) so any screen can pop the palette and any result can
   // navigate to a lesson without prop-drilling — and so the same
@@ -958,7 +965,7 @@ export default function MobileApp() {
         ? "playground"
         : view === "practice"
           ? "practice"
-          : view === "profile"
+          : view === "profile" || view === "social"
             ? "profile"
             : view === "settings"
               ? "settings"
@@ -1072,6 +1079,12 @@ export default function MobileApp() {
             history={history}
             stats={stats}
             completed={completed}
+            // Friends + leaderboard live one tap away from Profile
+            // (the tab bar is at its four-slot thumb-reach max).
+            onOpenSocial={() => {
+              void haptics.selection();
+              setView("social");
+            }}
             // Streak shields — the Profile hosts the freeze panel
             // (weekly budget pips + "Freeze yesterday"), mirroring
             // the desktop TopBar stats dropdown.
@@ -1091,6 +1104,28 @@ export default function MobileApp() {
             // Pull-to-refresh → realtime resync. Stats / heatmap
             // re-derive from the freshly-pulled history.
             onRefresh={() => realtime.resync()}
+          />
+        )}
+        {view === "social" && (
+          // The desktop SocialView is prop-driven (no hook deps) and
+          // ships its own <=520px responsive block, so mobile mounts
+          // it directly — same pattern as PracticeView above.
+          <SocialView
+            listFriends={cloud.listFriends}
+            addFriend={cloud.addFriend}
+            listFriendRequests={cloud.listFriendRequests}
+            acceptFriendRequest={cloud.acceptFriendRequest}
+            removeFriend={cloud.removeFriend}
+            getFriendsLeaderboard={cloud.getFriendsLeaderboard}
+            getGlobalLeaderboard={cloud.getGlobalLeaderboard}
+            getProfile={cloud.getProfile}
+            onOpenProfile={(userId) => setProfileCardUserId(userId)}
+            currentUserId={
+              typeof cloud.user === "object" && cloud.user
+                ? cloud.user.id
+                : null
+            }
+            onSignIn={() => setSignInOpen(true)}
           />
         )}
         {view === "settings" && (
@@ -1148,6 +1183,21 @@ export default function MobileApp() {
         <SignInDialog
           cloud={cloud}
           onClose={() => setSignInOpen(false)}
+        />
+      )}
+
+      {/* Public profile popup — opened from leaderboard / friends
+          rows. Same overlay + cloud wiring as desktop App.tsx. */}
+      {profileCardUserId && (
+        <ProfileCard
+          userId={profileCardUserId}
+          getProfile={cloud.getProfile}
+          onAddFriend={async (email) => {
+            await cloud.addFriend(email);
+          }}
+          onRemoveFriend={cloud.removeFriend}
+          onAcceptRequest={cloud.acceptFriendRequest}
+          onClose={() => setProfileCardUserId(null)}
         />
       )}
 

@@ -43,6 +43,8 @@ import { snowflake } from "@base/primitives/icon/icons/snowflake";
 import { trophy } from "@base/primitives/icon/icons/trophy";
 import { globe2 } from "@base/primitives/icon/icons/globe-2";
 import { circleUserRound } from "@base/primitives/icon/icons/circle-user-round";
+import { users as usersIcon } from "@base/primitives/icon/icons/users";
+import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileProfile.css";
@@ -62,6 +64,8 @@ interface Props {
   user?: LibreCloudUser | null;
   /// Opens the sign-in dialog (hosted by MobileApp).
   onRequestSignIn?: () => void;
+  /// Opens the Friends & Leaderboard view (hosted by MobileApp).
+  onOpenSocial?: () => void;
   onOpenLesson: (course: Course, chapterIndex: number, lessonIndex: number) => void;
   /// Optional — fired by the top-right search button. Mirrors the
   /// MobileLibrary signature so MobileApp can wire the same handler
@@ -194,6 +198,7 @@ export default function MobileProfile({
   shields,
   user,
   onRequestSignIn,
+  onOpenSocial,
   onOpenLesson,
   onOpenSearch,
   onOpenSettings,
@@ -414,6 +419,30 @@ export default function MobileProfile({
           </button>
         )}
       </section>
+
+      {/* Friends & Leaderboard entry — one tap into the social view.
+          Same glass family as the hero so the top of the page reads
+          as one set of account-level surfaces. */}
+      {onOpenSocial && (
+        <button
+          type="button"
+          className="m-prof__social-row"
+          onClick={onOpenSocial}
+        >
+          <span className="m-prof__social-icon" aria-hidden>
+            <Icon icon={usersIcon} size="sm" color="currentColor" />
+          </span>
+          <span className="m-prof__social-text">
+            <span className="m-prof__social-title">Friends &amp; Leaderboard</span>
+            <span className="m-prof__social-sub">
+              Compare streaks and XP with friends
+            </span>
+          </span>
+          <span className="m-prof__social-chevron" aria-hidden>
+            <Icon icon={chevronRight} size="sm" color="currentColor" />
+          </span>
+        </button>
+      )}
 
       {/* Twin gauges: streak ring (consecutive days against current
           milestone target) + level ring (XP into the next level).
