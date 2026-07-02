@@ -283,7 +283,8 @@ EXERCISE (single-file, the default):
     "body": "markdown prompt explaining the task",
     "starter": "runnable file ending with module.exports = { ... } (JS) or equivalent",
     "solution": "reference solution — must pass every test",
-    "tests": "test file using the harness below"
+    "tests": "test file using the harness below",
+    "reviewQuestions": [ /* see REVIEW QUESTIONS below — required on every exercise */ ]
   }
 
 EXERCISE (multi-file, when the task genuinely benefits from multiple files):
@@ -311,6 +312,9 @@ QUIZ:
       { "kind": "short", "prompt": "...", "accept": ["answer-1","alt"], "explanation": "..." }
     ]
   }
+
+REVIEW QUESTIONS (exercise lessons only — single- AND multi-file):
+  Every EXERCISE lesson MUST also include a top-level "reviewQuestions" field: EXACTLY 3 questions — 2 mcq + 1 short — using the same question shapes as QUIZ. These are spaced-repetition review cards shown later WITHOUT the lesson or its code on screen, so they must review the lesson's core CONCEPT ("Why does async Rust need Pin?") — never reference the exercise's code, line numbers, variable names, or file layout. mcq: exactly 4 plausible options, exactly one correct (vary which index is correct), 1-sentence explanation. short: a 1-2 word answer with 2-4 lowercase accepted variants in "accept". Do NOT add reviewQuestions to reading or quiz lessons.
 
 When to use multi-file EXERCISE (STRONG RULES — do not shortcut):
   - Rust lessons that teach modules, crates, workspaces, or file organization (e.g. Chapter 7 of the Rust Book — "Packages, Crates, and Modules") MUST ship as multi-file. Do NOT cram `mod foo { ... }` blocks into a single file to simulate multi-file layout — the whole point of the lesson is the filesystem layout.
@@ -720,12 +724,18 @@ EXERCISE lesson shape:
     "solution": "reference solution that passes every test",
     "tests": "test code — see TEST HARNESS below",
     "objectives": [...],
-    "enrichment": { "glossary": [...], "symbols": [...] }
+    "enrichment": { "glossary": [...], "symbols": [...] },
+    "reviewQuestions": [
+      { "kind": "mcq", "prompt": "...", "options": ["...", "...", "...", "..."], "correctIndex": 0, "explanation": "..." },
+      { "kind": "mcq", "prompt": "...", "options": ["...", "...", "...", "..."], "correctIndex": 2, "explanation": "..." },
+      { "kind": "short", "prompt": "...", "accept": ["answer", "variant"], "explanation": "..." }
+    ]
   }
 
   - INVENT a small, focused practice task rooted in the page's concept. DO NOT just copy an example verbatim from the source — design a fresh exercise that tests understanding of the SAME idea.
   - Scope: 5-20 lines of solution code. Single-concept, single-function when possible.
   - If the page is too meta or environmental to turn into a code exercise (e.g. "installing Node"), DOWNGRADE to a quiz instead and use the quiz shape below.
+  - reviewQuestions (EXERCISE only, required): exactly 3 — 2 mcq + 1 short. Spaced-repetition review of the lesson's core concept, answerable WITHOUT the code on screen (never "what does line 3 say", no variable names). mcq: 4 plausible options, one correct. short: 1-2 word answer, 2-4 lowercase accepted variants. Explanations 1 sentence.
 
 QUIZ lesson shape:
   {
@@ -857,7 +867,12 @@ Return ONE JSON object matching the EXERCISE schema (same shape as `generate_les
     "enrichment": {
       "glossary": [{ "term": "...", "definition": "..." }],
       "symbols":  [{ "pattern": "...", "signature": "...", "description": "...", "docUrl": "..." }]
-    }
+    },
+    "reviewQuestions": [
+      { "kind": "mcq", "prompt": "...", "options": ["...", "...", "...", "..."], "correctIndex": 0, "explanation": "1 sentence" },
+      { "kind": "mcq", "prompt": "...", "options": ["...", "...", "...", "..."], "correctIndex": 3, "explanation": "1 sentence" },
+      { "kind": "short", "prompt": "...", "accept": ["answer", "variant"], "explanation": "1 sentence" }
+    ]
   }
 
 Multi-file variant — use ONLY when the language genuinely needs a split (Rust workspace / integration tests, web HTML+CSS+JS):
@@ -869,6 +884,7 @@ KEY RULES:
   3. Concept coverage: pull from the chapter's MAIN ideas, not an obscure footnote. The exercise should feel like "the thing this chapter was really teaching".
   4. Title: verb + noun, e.g. "Build a Rate Limiter", "Parse a Config File", "Render a Scene with Lights". Not "Exercise 1" or "Chapter Capstone".
   5. If the chapter is too meta to turn into code (e.g. "How React Native Works" overview) — STILL attempt an exercise: design a SMALL task that requires the learner to APPLY the architectural knowledge (e.g. "identify which of these components re-renders when..." as a quiz-style exercise). Never return a "reading" or "quiz" — the schema above requires kind: "exercise".
+  6. reviewQuestions (required): exactly 3 — 2 mcq + 1 short — reviewing the chapter's core concepts. Shown later WITHOUT the lesson on screen, so keep them conceptual: never reference the capstone's code, variable names, or line numbers. mcq: 4 plausible options, exactly one correct (vary the correct index). short: a 1-2 word answer with 2-4 lowercase accepted variants. Explanations 1 sentence.
 
 TEST HARNESS — pick per `language`:
 
