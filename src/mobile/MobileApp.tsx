@@ -57,6 +57,9 @@ import MobileSettings from "./MobileSettings";
 import PracticeView from "@/components/templates/Practice/PracticeView";
 import SocialView from "@/components/templates/Social/SocialView";
 import ProfileCard from "@/components/molecules/ProfileCard/ProfileCard";
+import CertificatesPage from "@/components/organisms/Certificates/CertificatesPage";
+import { mintCertificate } from "@/data/certificates";
+import { notifyCertificatesChanged } from "@/hooks/useCertificates";
 import MobileSearchPalette from "./MobileSearchPalette";
 import SignInDialog from "@/components/organisms/dialogs/SignInDialog/SignInDialog";
 import MobileTabBar, { type MobileTab } from "@/components/molecules/MobileTabBar/MobileTabBar";
@@ -72,6 +75,7 @@ type View =
   | "practice"
   | "profile"
   | "social"
+  | "certs"
   | "settings";
 
 interface ActiveLesson {
@@ -304,6 +308,63 @@ export default function MobileApp() {
     // reads localStorage so it isn't a reactive dep by itself.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courses, completed, practiceRecordsVersion]);
+
+  // ── Certificate minting on book completion ─────────────────────────
+  // Ported from desktop App.tsx: watch the completed set for NEW keys
+  // (ref init'd to the mount-time set so cold-start history never
+  // triggers; >5 new keys = sync back-fill, also skipped), and when a
+  // fresh completion closes out a whole book, mint the certificate.
+  // mintCertificate is idempotent per courseId, so StrictMode double
+  // effects / sync replays can't duplicate.
+  const prevCompletedRef = useRef<Set<string>>(completed);
+  useEffect(() => {
+    const prev = prevCompletedRef.current;
+    if (prev === completed) return;
+    const newKeys: string[] = [];
+    for (const k of completed) if (!prev.has(k)) newKeys.push(k);
+    prevCompletedRef.current = completed;
+    if (newKeys.length === 0 || newKeys.length > 5) return;
+    for (const key of newKeys) {
+      const [courseId] = key.split(":");
+      const course = coursesAll.find((c) => c.id === courseId);
+      if (!course) continue;
+      const allBookDone = course.chapters.every((ch) =>
+        ch.lessons.every((l) => completed.has(`${courseId}:${l.id}`)),
+      );
+      if (!allBookDone) continue;
+      const totalLessons = course.chapters.reduce(
+        (n, ch) => n + ch.lessons.length,
+        0,
+      );
+      const recipientName =
+        (typeof cloud.user === "object" && cloud.user?.display_name) ||
+        (typeof cloud.user === "object" && cloud.user?.email
+          ? cloud.user.email.split("@")[0]
+          : null) ||
+        "Libre learner";
+      const recipientEmail =
+        typeof cloud.user === "object" && cloud.user?.email
+          ? cloud.user.email
+          : undefined;
+      const courseHistory = history.filter((c) => c.course_id === courseId);
+      const startedAt =
+        courseHistory.length > 0
+          ? new Date(
+              Math.min(...courseHistory.map((c) => c.completed_at)) * 1000,
+            ).toISOString()
+          : undefined;
+      void mintCertificate({
+        courseId,
+        courseTitle: course.title,
+        courseLanguage: course.language,
+        recipientName,
+        recipientEmail,
+        lessonCount: totalLessons,
+        xpEarned: 0,
+        startedAt,
+      }).then(() => notifyCertificatesChanged());
+    }
+  }, [completed, coursesAll, cloud.user, history]);
 
   /// Mirror of `realtime.status`, readable from inside the applier
   /// callbacks below (which close over refs, not render values). Used
@@ -965,7 +1026,7 @@ export default function MobileApp() {
         ? "playground"
         : view === "practice"
           ? "practice"
-          : view === "profile" || view === "social"
+          : view === "profile" || view === "social" || view === "certs"
             ? "profile"
             : view === "settings"
               ? "settings"
@@ -1085,6 +1146,10 @@ export default function MobileApp() {
               void haptics.selection();
               setView("social");
             }}
+            onOpenCerts={() => {
+              void haptics.selection();
+              setView("certs");
+            }}
             // Streak shields — the Profile hosts the freeze panel
             // (weekly budget pips + "Freeze yesterday"), mirroring
             // the desktop TopBar stats dropdown.
@@ -1127,6 +1192,20 @@ export default function MobileApp() {
             }
             onSignIn={() => setSignInOpen(true)}
           />
+        )}
+        {view === "certs" && (
+          // Desktop CertificatesPage inside a mobile wrapper. The
+          // ticket is a fixed-proportion print artifact — at phone
+          // widths its 7-row body crushes to 0-height rows — so the
+          // .m-certs CSS renders each stage at design width and
+          // scales it down instead (see MobileApp.css).
+          <MobileCertsFrame>
+            <CertificatesPage
+              courses={courses}
+              completed={completed}
+              onResume={(courseId) => void openCourseById(courseId)}
+            />
+          </MobileCertsFrame>
         )}
         {view === "settings" && (
           <MobileSettings
@@ -1227,6 +1306,48 @@ export default function MobileApp() {
         courses={courses}
         onOpenLesson={openLesson}
       />
+    </div>
+  );
+}
+
+/// Certificates wrapper — measures its own width and drives the
+/// ticket-stage scale vars (see the .m-certs rules in MobileApp.css).
+/// The certificate ticket is a print-like artifact designed for a
+/// ~520px column; squeezing its LAYOUT crushes the flex rows, so we
+/// lay each stage out at design width and scale the finished artifact
+/// down. Measured in JS because the pure-CSS route needs length÷length
+/// calc() division, which Chrome/WebKit only support behind very
+/// recent versions.
+function MobileCertsFrame({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      setWidth(entries[0]?.contentRect.width ?? 0);
+    });
+    ro.observe(el);
+    setWidth(el.getBoundingClientRect().width);
+    return () => ro.disconnect();
+  }, []);
+  // The page carries ~32px side gutters inside this wrapper; the
+  // design width matches the desktop ticket column.
+  const col = Math.max(0, width - 64);
+  const DESIGN = 520;
+  // Stage height ≈ 0.49 × its width (5:2 ticket + hover-tilt padding).
+  const style =
+    col > 0 && col < DESIGN
+      ? ({
+          "--m-cert-w": `${DESIGN}px`,
+          "--m-cert-scale": String(col / DESIGN),
+          "--m-cert-mr": `${col - DESIGN}px`,
+          "--m-cert-mb": `${Math.round(0.49 * col - 0.49 * DESIGN)}px`,
+        } as React.CSSProperties)
+      : undefined;
+  return (
+    <div className="m-certs" ref={ref} style={style}>
+      {children}
     </div>
   );
 }

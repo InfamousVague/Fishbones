@@ -83,3 +83,23 @@
      through and the loading state looks half-mounted. */
   z-index: var(--libre-z-200);
 }
+
+/* ── Certificates (mobile wrapper) ─────────────────────────────────
+   The certificate ticket is a print-like artifact designed for a
+   ~520px column: 5:2 parchment, 71/29 body/stub split, QR stub with
+   a fixed minimum size. Squeezing its LAYOUT to a phone column
+   crushes the flex rows (recipient/course collapse to 0 height) and
+   overflows the stub. So instead: lay each ticket stage out at its
+   design width and scale the finished artifact down to the column —
+   the same treatment a PDF preview gets. Container queries drive the
+   factor so it tracks any phone width; browsers without container
+   support just keep today's (cramped but functional) layout. */
+.m-certs .libre-cert-ticket-stage {
+  /* All no-ops until MobileCertsFrame sets the vars (i.e. the column
+     is narrower than the ticket's 520px design width). */
+  width: var(--m-cert-w, auto);
+  transform: scale(var(--m-cert-scale, 1));
+  transform-origin: top left;
+  margin-right: var(--m-cert-mr, 0);
+  margin-bottom: var(--m-cert-mb, 0);
+}

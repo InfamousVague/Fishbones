@@ -45,6 +45,7 @@ import { globe2 } from "@base/primitives/icon/icons/globe-2";
 import { circleUserRound } from "@base/primitives/icon/icons/circle-user-round";
 import { users as usersIcon } from "@base/primitives/icon/icons/users";
 import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
+import { award } from "@base/primitives/icon/icons/award";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileProfile.css";
@@ -66,6 +67,8 @@ interface Props {
   onRequestSignIn?: () => void;
   /// Opens the Friends & Leaderboard view (hosted by MobileApp).
   onOpenSocial?: () => void;
+  /// Opens the Certificates view (hosted by MobileApp).
+  onOpenCerts?: () => void;
   onOpenLesson: (course: Course, chapterIndex: number, lessonIndex: number) => void;
   /// Optional — fired by the top-right search button. Mirrors the
   /// MobileLibrary signature so MobileApp can wire the same handler
@@ -199,6 +202,7 @@ export default function MobileProfile({
   user,
   onRequestSignIn,
   onOpenSocial,
+  onOpenCerts,
   onOpenLesson,
   onOpenSearch,
   onOpenSettings,
@@ -436,6 +440,28 @@ export default function MobileProfile({
             <span className="m-prof__social-title">Friends &amp; Leaderboard</span>
             <span className="m-prof__social-sub">
               Compare streaks and XP with friends
+            </span>
+          </span>
+          <span className="m-prof__social-chevron" aria-hidden>
+            <Icon icon={chevronRight} size="sm" color="currentColor" />
+          </span>
+        </button>
+      )}
+
+      {/* Certificates entry — parchment tickets for finished books. */}
+      {onOpenCerts && (
+        <button
+          type="button"
+          className="m-prof__social-row"
+          onClick={onOpenCerts}
+        >
+          <span className="m-prof__social-icon" aria-hidden>
+            <Icon icon={award} size="sm" color="currentColor" />
+          </span>
+          <span className="m-prof__social-text">
+            <span className="m-prof__social-title">Certificates</span>
+            <span className="m-prof__social-sub">
+              Earned by finishing a whole book
             </span>
           </span>
           <span className="m-prof__social-chevron" aria-hidden>
