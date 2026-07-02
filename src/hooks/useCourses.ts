@@ -168,7 +168,17 @@ export function useCourses() {
       // on desktop entirely. Runs BEFORE the summary pull so the
       // first render already has courses.
       if (isWeb) {
-        await seedWebStarterCourses();
+        const seededCount = await seedWebStarterCourses();
+        // The prewarmed summary (main.tsx fires it before React
+        // mounts) resolved against the PRE-seed DB. If the seed just
+        // wrote courses, that promise is stale — consuming it would
+        // render a 0-course library on the very first visit (the
+        // optimized prod bundle loses this race every time; dev's
+        // slower module loading masked it). Discard it so the pull
+        // below hits live storage and sees the freshly seeded set.
+        if (seededCount > 0) {
+          consumePrewarmedSummary();
+        }
       }
 
       // Stage 1: fast summary pull. One call into storage (Tauri

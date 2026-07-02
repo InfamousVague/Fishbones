@@ -531,7 +531,16 @@ function starterUrl(path: string): string {
 /// HashMap-centric blocks puzzle — off-topic for a modules lesson, and HashMap
 /// isn't taught until the next chapter; blocks puzzle reworked around `mod`/`use`).
 /// Bump re-seeds the corrected lesson for visitors already at v36.
-const SEED_VERSION = 37;
+/// V38 — Course translations land. `the-rust-programming-language` and the
+/// other Rust books (rust-by-example, testing-rust, rust-async-book) now ship
+/// inline `translations` overlays for es/hi/kr/jp. Returning visitors sit on
+/// the pre-translation cache, so their book resolves only `en` and the reader's
+/// per-book language picker stays hidden (it appears only when a book has >1
+/// available locale). Bumping forces a re-fetch of the translated JSON, which
+/// surfaces the picker. The same re-fetch also picks up the new
+/// `reviewQuestions` review material generated for every Rust-book code
+/// lesson (Practice-deck coverage), which shipped in the same window.
+const SEED_VERSION = 38;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +
