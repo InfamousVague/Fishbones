@@ -327,7 +327,10 @@ impl Database {
                         r.get::<_, String>(0)?,
                         r.get::<_, Option<String>>(1)?,
                         r.get::<_, Option<String>>(2)?,
-                        r.get::<_, String>(3)?,
+                        // Nullable read: legacy rows may carry NULL (or,
+                        // post-migration, '') created_at — a missing
+                        // member-since date must never 500 the profile.
+                        r.get::<_, Option<String>>(3)?.unwrap_or_default(),
                     ))
                 },
             )

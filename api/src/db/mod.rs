@@ -89,6 +89,28 @@ impl Database {
                 "ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 1;",
             )?;
         }
+        // Same probe-and-add for `created_at` / `updated_at`: databases
+        // created before those columns existed never got them (the
+        // CREATE TABLE IF NOT EXISTS batch skips existing tables), and
+        // the friends-profile endpoint SELECTs `created_at` — on a
+        // legacy DB that's "no such column" → 500 for every profile.
+        // ADD COLUMN can't carry a non-constant default, so backfill is
+        // '' (renders as "member since unknown" client-side, which is
+        // honest for rows that predate the column).
+        for col in ["created_at", "updated_at"] {
+            let present: bool = conn
+                .prepare(&format!(
+                    "SELECT 1 FROM pragma_table_info('users') WHERE name = '{col}'"
+                ))?
+                .query_row([], |_| Ok(()))
+                .optional()?
+                .is_some();
+            if !present {
+                conn.execute_batch(&format!(
+                    "ALTER TABLE users ADD COLUMN {col} TEXT NOT NULL DEFAULT '';"
+                ))?;
+            }
+        }
         Ok(())
     }
 

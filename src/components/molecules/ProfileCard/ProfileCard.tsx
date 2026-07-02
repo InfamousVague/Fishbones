@@ -87,7 +87,10 @@ export default function ProfileCard({
       try {
         const p = await getProfile(userId);
         if (!cancelled) setProfile(p);
-      } catch {
+      } catch (err) {
+        // Surface the real failure (status code etc.) for diagnosis —
+        // the UI copy stays generic, but the console shouldn't.
+        console.error("[libre] profile load failed:", userId, err);
         if (!cancelled) setErrorKey("friends.profileLoadError");
       }
     })();
@@ -125,12 +128,18 @@ export default function ProfileCard({
     profile?.email?.split("@")[0] ||
     t("friends.anonymous");
 
-  const memberSince = profile
-    ? new Date(profile.created_at).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-      })
-    : "";
+  // Legacy relay rows can carry an empty created_at (the column was
+  // backfilled with '' for accounts that predate it) — `new Date("")`
+  // is Invalid Date, which would render "member since Invalid Date".
+  // Only show the line when the date actually parses.
+  const createdDate = profile ? new Date(profile.created_at) : null;
+  const memberSince =
+    createdDate && Number.isFinite(createdDate.getTime())
+      ? createdDate.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+        })
+      : "";
 
   const body = (
     <>

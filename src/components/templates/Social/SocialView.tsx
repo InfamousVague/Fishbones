@@ -149,7 +149,7 @@ export default function SocialView({
             <>
               <SegmentedControl
                 className="libre-social-seg"
-                size="md"
+                size="lg"
                 ariaLabel={t("social.title")}
                 value={tab}
                 onChange={(v) => setTab(v as Tab)}
@@ -620,7 +620,7 @@ function LeaderboardPanel({
       <div className="libre-social-lb-controls">
         <SegmentedControl
           className="libre-social-seg libre-social-seg--scope"
-          size="md"
+          size="lg"
           ariaLabel={t("leaderboard.title")}
           value={scope}
           onChange={(v) => setScope(v as Scope)}
@@ -648,7 +648,7 @@ function LeaderboardPanel({
           ]}
         />
         <SegmentedControl
-          size="md"
+          size="lg"
           ariaLabel={t("leaderboard.metricLabel")}
           value={metric}
           onChange={(v) => setMetric(v as LeaderboardMetric)}
