@@ -46,6 +46,7 @@ import { circleUserRound } from "@base/primitives/icon/icons/circle-user-round";
 import { users as usersIcon } from "@base/primitives/icon/icons/users";
 import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
 import { award } from "@base/primitives/icon/icons/award";
+import { swords } from "@base/primitives/icon/icons/swords";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileProfile.css";
@@ -69,6 +70,8 @@ interface Props {
   onOpenSocial?: () => void;
   /// Opens the Certificates view (hosted by MobileApp).
   onOpenCerts?: () => void;
+  /// Opens the Challenges tier browser (hosted by MobileApp).
+  onOpenChallenges?: () => void;
   onOpenLesson: (course: Course, chapterIndex: number, lessonIndex: number) => void;
   /// Optional — fired by the top-right search button. Mirrors the
   /// MobileLibrary signature so MobileApp can wire the same handler
@@ -203,6 +206,7 @@ export default function MobileProfile({
   onRequestSignIn,
   onOpenSocial,
   onOpenCerts,
+  onOpenChallenges,
   onOpenLesson,
   onOpenSearch,
   onOpenSettings,
@@ -462,6 +466,28 @@ export default function MobileProfile({
             <span className="m-prof__social-title">Certificates</span>
             <span className="m-prof__social-sub">
               Earned by finishing a whole book
+            </span>
+          </span>
+          <span className="m-prof__social-chevron" aria-hidden>
+            <Icon icon={chevronRight} size="sm" color="currentColor" />
+          </span>
+        </button>
+      )}
+
+      {/* Challenges entry — tiered packs + per-language progression. */}
+      {onOpenChallenges && (
+        <button
+          type="button"
+          className="m-prof__social-row"
+          onClick={onOpenChallenges}
+        >
+          <span className="m-prof__social-icon" aria-hidden>
+            <Icon icon={swords} size="sm" color="currentColor" />
+          </span>
+          <span className="m-prof__social-text">
+            <span className="m-prof__social-title">Challenges</span>
+            <span className="m-prof__social-sub">
+              Tiered drill packs across languages
             </span>
           </span>
           <span className="m-prof__social-chevron" aria-hidden>

@@ -153,6 +153,15 @@ export default function MobileDiscover({
         >
           Discover
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={pane === "paths"}
+          className={`m-lib__seg${pane === "paths" ? " m-lib__seg--active" : ""}`}
+          onClick={() => onPaneChange?.("paths")}
+        >
+          Paths
+        </button>
       </div>
       <header className="m-lib__head">
         <div className="m-lib__head-text">

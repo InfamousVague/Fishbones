@@ -43,7 +43,7 @@ const VIEW_MODE_KEY = "libre.mobile.libraryViewMode";
 /// installed courses (the original mobile behaviour); "discover" = the
 /// catalog browser. Owned by MobileApp so the segmented toggle in the
 /// header can flip between the two while both keep sharing this tab.
-export type LibraryPane = "library" | "discover";
+export type LibraryPane = "library" | "discover" | "paths";
 
 interface Props {
   courses: Course[];
@@ -376,6 +376,18 @@ export default function MobileLibrary({
             }}
           >
             Discover
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={pane === "paths"}
+            className={`m-lib__seg${pane === "paths" ? " m-lib__seg--active" : ""}`}
+            onClick={() => {
+              void haptics.selection();
+              onPaneChange?.("paths");
+            }}
+          >
+            Paths
           </button>
         </div>
       )}

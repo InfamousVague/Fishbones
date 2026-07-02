@@ -58,6 +58,8 @@ import PracticeView from "@/components/templates/Practice/PracticeView";
 import SocialView from "@/components/templates/Social/SocialView";
 import ProfileCard from "@/components/molecules/ProfileCard/ProfileCard";
 import CertificatesPage from "@/components/organisms/Certificates/CertificatesPage";
+import PathsPage from "@/components/templates/Paths/PathsPage";
+import ChallengesView from "@/components/templates/Challenges/ChallengesView";
 import { mintCertificate } from "@/data/certificates";
 import { notifyCertificatesChanged } from "@/hooks/useCertificates";
 import MobileSearchPalette from "./MobileSearchPalette";
@@ -65,7 +67,9 @@ import SignInDialog from "@/components/organisms/dialogs/SignInDialog/SignInDial
 import MobileTabBar, { type MobileTab } from "@/components/molecules/MobileTabBar/MobileTabBar";
 import AiAssistant from "@/components/organisms/AiAssistant/AiAssistant";
 import LibreLoader from "@/components/molecules/LibreLoader/LibreLoader";
-import StreakExtendedOverlay from "./StreakExtendedOverlay";
+import SectionCompleteSummary from "@/components/organisms/Achievements/SectionCompleteSummary";
+import { EarlyReleaseBanner } from "@/components/molecules/banners/EarlyReleaseBanner/EarlyReleaseBanner";
+import { useSoundOnChange } from "@/hooks/useSoundOnChange";
 import "./MobileApp.css";
 
 type View =
@@ -76,6 +80,7 @@ type View =
   | "profile"
   | "social"
   | "certs"
+  | "challenges"
   | "settings";
 
 interface ActiveLesson {
@@ -217,34 +222,33 @@ export default function MobileApp() {
   // trigger, profile rings and widget snapshot all honor freezes.
   const shields = useStreakShields();
   const stats = useStreakAndXp(history, courses, shields.frozenDays);
+  // Stats are "ready" once BOTH stores hydrated — never push (or
+  // celebrate) the 0 → real placeholder transition.
+  const statsReady = loaded && progressLoaded;
 
-  // ── Streak-extension celebration ───────────────────────────────
-  // Watches `stats.streakDays` for an INCREASE and fires the
-  // full-screen overlay. Skips the very first observation each
-  // session so a learner who already has a multi-day streak when
-  // they cold-launch the app doesn't get a celebration just for
-  // opening it — only ACTUAL extensions (a fresh completion that
-  // rolled the count forward) should trigger.
-  //
-  // `lastSeenStreakRef === null` means "we haven't observed any
-  // stats yet" — the first useEffect run sets it to the current
-  // count without showing the overlay. Subsequent runs compare
-  // and show on strict increase.
-  const [streakOverlayOpen, setStreakOverlayOpen] = useState(false);
-  const lastSeenStreakRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (lastSeenStreakRef.current === null) {
-      lastSeenStreakRef.current = stats.streakDays;
-      return;
-    }
-    if (
-      stats.streakDays > lastSeenStreakRef.current &&
-      stats.streakDays > 0
-    ) {
-      setStreakOverlayOpen(true);
-    }
-    lastSeenStreakRef.current = stats.streakDays;
-  }, [stats.streakDays]);
+  // ── Streak celebration — DESKTOP PARITY ───────────────────────────
+  // Same audible cues the desktop StatsChip plays: a soft tick on an
+  // ordinary day-flip, the fuller flame on milestone days, and the
+  // blow-out when a run breaks. (The old full-screen mobile-only
+  // overlay was removed: it was glitchy — hydration could fire it on
+  // launch — and mobile surfaces should match their desktop
+  // equivalents, which celebrate streaks with sound + the stats
+  // surfaces, not a takeover.) Gated on statsReady so the 0 → real
+  // hydration never plays as an "increase".
+  const streakMilestones = [3, 7, 14, 30, 50, 100, 365];
+  useSoundOnChange(stats.streakDays, "streak-tick", {
+    when: (prev, next) => next > prev && !streakMilestones.includes(next),
+    ready: statsReady,
+  });
+  useSoundOnChange(stats.streakDays, "streak-flame", {
+    when: (prev, next) => next > prev && streakMilestones.includes(next),
+    ready: statsReady,
+  });
+  useSoundOnChange(stats.streakDays, "flame-out", {
+    increaseOnly: false,
+    when: (prev, next) => next < prev && prev >= 2,
+    ready: statsReady,
+  });
 
   // Publish the snapshot the iOS widgets + watchOS app read on
   // every render where streak / library / completions changed.
@@ -253,9 +257,6 @@ export default function MobileApp() {
   // out on platforms without an App Group container).
   useWidgetSnapshot({ courses, completed, history, stats });
 
-  // Stats are "ready" once BOTH stores hydrated — never push (or
-  // celebrate) the 0 → real placeholder transition.
-  const statsReady = loaded && progressLoaded;
 
   // ── Push aggregate stats to the relay for friends + leaderboards ──
   // Same debounced effect as desktop App.tsx: phone-only learners
@@ -316,6 +317,13 @@ export default function MobileApp() {
   // fresh completion closes out a whole book, mint the certificate.
   // mintCertificate is idempotent per courseId, so StrictMode double
   // effects / sync replays can't duplicate.
+  /// Chapter / book completion card — the same SectionCompleteSummary
+  /// takeover desktop shows (chapter slides up, book is fullscreen).
+  const [sectionSummary, setSectionSummary] = useState<
+    | { kind: "chapter"; courseId: string; chapterIdx: number; xpEarned: number }
+    | { kind: "book"; courseId: string; xpEarned: number }
+    | null
+  >(null);
   const prevCompletedRef = useRef<Set<string>>(completed);
   useEffect(() => {
     const prev = prevCompletedRef.current;
@@ -325,13 +333,33 @@ export default function MobileApp() {
     prevCompletedRef.current = completed;
     if (newKeys.length === 0 || newKeys.length > 5) return;
     for (const key of newKeys) {
-      const [courseId] = key.split(":");
+      const [courseId, lessonId] = key.split(":");
       const course = coursesAll.find((c) => c.id === courseId);
       if (!course) continue;
+      const chapterIdx = course.chapters.findIndex((ch) =>
+        ch.lessons.some((l) => l.id === lessonId),
+      );
+      const chapter = chapterIdx >= 0 ? course.chapters[chapterIdx] : null;
+      const lessonKind = chapter?.lessons.find((l) => l.id === lessonId)?.kind;
+      const xpEarned =
+        lessonKind === "reading"
+          ? 5
+          : lessonKind === "quiz"
+            ? 10
+            : lessonKind === "exercise" || lessonKind === "mixed"
+              ? 20
+              : 0;
+      const allChapterDone =
+        !!chapter &&
+        chapter.lessons.every((l) => completed.has(`${courseId}:${l.id}`));
       const allBookDone = course.chapters.every((ch) =>
         ch.lessons.every((l) => completed.has(`${courseId}:${l.id}`)),
       );
+      if (allChapterDone && !allBookDone) {
+        setSectionSummary({ kind: "chapter", courseId, chapterIdx, xpEarned });
+      }
       if (!allBookDone) continue;
+      setSectionSummary({ kind: "book", courseId, xpEarned });
       const totalLessons = course.chapters.reduce(
         (n, ch) => n + ch.lessons.length,
         0,
@@ -961,6 +989,18 @@ export default function MobileApp() {
       active.lessonIndex + 1 < active.course.chapters[active.chapterIndex].lessons.length
     : false;
 
+  /// Install a course by id from the catalog — the Paths page's
+  /// install-in-place affordance. Resolves the id against the live
+  /// catalog and reuses the same installEntry pipeline Discover uses
+  /// (cover stamping, allowlist + marker bookkeeping, analytics).
+  const installCourseById = async (courseId: string): Promise<void> => {
+    const { fetchCatalog } = await import("@/lib/catalog");
+    const entries = await fetchCatalog();
+    const entry = entries.find((e) => e.id === courseId);
+    if (!entry) throw new Error(`course not in catalog: ${courseId}`);
+    await installEntry(entry);
+  };
+
   /// Remove an installed course. Four-part bookkeeping so the delete
   /// STAYS deleted across sync:
   ///   1. drop the IndexedDB record (frees the stored JSON),
@@ -1086,7 +1126,7 @@ export default function MobileApp() {
         ? "playground"
         : view === "practice"
           ? "practice"
-          : view === "profile" || view === "social" || view === "certs"
+          : view === "profile" || view === "social" || view === "certs" || view === "challenges"
             ? "profile"
             : view === "settings"
               ? "settings"
@@ -1099,6 +1139,11 @@ export default function MobileApp() {
           <LibreLoader label="loading" />
         </div>
       )}
+
+      {/* Early-release notice — the same banner desktop shows under
+          its TopBar: placeholder/AI content disclosure + support CTA.
+          Flex sibling above the scroll pane so it pushes content down. */}
+      <EarlyReleaseBanner />
 
       <main className="m-app__main">
         {view === "library" && libraryPane === "library" && (
@@ -1125,6 +1170,36 @@ export default function MobileApp() {
             // / level converge with desktop.
             onRefresh={() => realtime.resync()}
           />
+        )}
+        {view === "library" && libraryPane === "paths" && (
+          <div className="m-paths">
+            {/* Same segmented switch the Library/Discover panes render,
+                so Paths reads as the third pane of one surface. */}
+            <div className="m-lib__segmented" role="tablist" aria-label="Library, Discover or Paths">
+              {(["library", "discover", "paths"] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  role="tab"
+                  aria-selected={libraryPane === p}
+                  className={`m-lib__seg${libraryPane === p ? " m-lib__seg--active" : ""}`}
+                  onClick={() => {
+                    void haptics.selection();
+                    setLibraryPane(p);
+                  }}
+                >
+                  {p === "library" ? "My Library" : p === "discover" ? "Discover" : "Paths"}
+                </button>
+              ))}
+            </div>
+            <PathsPage
+              courses={courses}
+              completed={completed}
+              onOpenCourse={(courseId) => void openCourseById(courseId)}
+              onBrowseCatalog={() => setLibraryPane("discover")}
+              onInstallCourse={installCourseById}
+            />
+          </div>
         )}
         {view === "library" && libraryPane === "discover" && (
           <MobileDiscover
@@ -1211,6 +1286,10 @@ export default function MobileApp() {
               void haptics.selection();
               setView("certs");
             }}
+            onOpenChallenges={() => {
+              void haptics.selection();
+              setView("challenges");
+            }}
             // Streak shields — the Profile hosts the freeze panel
             // (weekly budget pips + "Freeze yesterday"), mirroring
             // the desktop TopBar stats dropdown.
@@ -1236,6 +1315,7 @@ export default function MobileApp() {
           // The desktop SocialView is prop-driven (no hook deps) and
           // ships its own <=520px responsive block, so mobile mounts
           // it directly — same pattern as PracticeView above.
+          <div className="m-social">
           <SocialView
             listFriends={cloud.listFriends}
             addFriend={cloud.addFriend}
@@ -1253,6 +1333,7 @@ export default function MobileApp() {
             }
             onSignIn={() => setSignInOpen(true)}
           />
+          </div>
         )}
         {view === "certs" && (
           // Desktop CertificatesPage inside a mobile wrapper. The
@@ -1267,6 +1348,33 @@ export default function MobileApp() {
               onResume={(courseId) => void openCourseById(courseId)}
             />
           </MobileCertsFrame>
+        )}
+        {view === "challenges" && (
+          // Desktop tier browser, embedded like Practice/Social/Certs.
+          <ChallengesView
+            courses={courses}
+            completed={completed}
+            onOpenLesson={(courseId, lessonId) => {
+              const course = courses.find((c) => c.id === courseId);
+              if (!course) return;
+              for (let ci = 0; ci < course.chapters.length; ci++) {
+                const li = course.chapters[ci].lessons.findIndex(
+                  (l) => l.id === lessonId,
+                );
+                if (li >= 0) {
+                  void openLesson(course, ci, li);
+                  return;
+                }
+              }
+            }}
+            // Cloud-aware reset — local reducer first for instant UI,
+            // then the relay forgets the rows (desktop parity; without
+            // the cloud call the next sync pull re-completes the pack).
+            onResetCourse={(courseId) => {
+              clearCourseCompletions(courseId);
+              void cloud.deleteCourseProgress(courseId);
+            }}
+          />
         )}
         {view === "settings" && (
           <MobileSettings
@@ -1341,25 +1449,41 @@ export default function MobileApp() {
         />
       )}
 
-      {/* Streak-extension celebration. Renders unconditionally so
-          the mount + animation flow runs cleanly on each
-          extension; the `open` prop drives visibility internally
-          and the component returns null when closed. Hosted here
-          (above the search palette + sign-in dialog) so the
-          overlay floats above every page surface. */}
       {/* Floating "+N XP" reward bursts — portaled to <body>, fired
           from onComplete on fresh completions. */}
       <XpBurst />
 
-      <StreakExtendedOverlay
-        open={streakOverlayOpen}
-        streakDays={stats.streakDays}
-        history={history}
-        // Frozen days light up in the 7-day pill row so a
-        // shield-protected day reads as covered, not missed.
-        frozenDays={shields.frozenDays}
-        onClose={() => setStreakOverlayOpen(false)}
-      />
+      {/* Chapter / book completion summary — desktop component,
+          desktop behavior: chapter card slides up, book completion is
+          a fullscreen takeover. */}
+      {sectionSummary
+        ? (() => {
+            const course = coursesAll.find(
+              (c) => c.id === sectionSummary.courseId,
+            );
+            if (!course) return null;
+            const chapter =
+              sectionSummary.kind === "chapter"
+                ? course.chapters[sectionSummary.chapterIdx]
+                : null;
+            const heading =
+              sectionSummary.kind === "book"
+                ? course.title
+                : chapter?.title ?? `Chapter ${sectionSummary.chapterIdx + 1}`;
+            const subheading =
+              sectionSummary.kind === "book" ? "Book complete" : course.title;
+            return (
+              <SectionCompleteSummary
+                kind={sectionSummary.kind}
+                heading={heading}
+                subheading={subheading}
+                xpEarned={sectionSummary.xpEarned}
+                streakDays={stats.streakDays}
+                onDismiss={() => setSectionSummary(null)}
+              />
+            );
+          })()
+        : null}
 
       <MobileSearchPalette
         open={searchOpen}

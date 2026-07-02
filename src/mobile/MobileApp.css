@@ -103,3 +103,64 @@
   margin-right: var(--m-cert-mr, 0);
   margin-bottom: var(--m-cert-mb, 0);
 }
+
+/* ── Social (mobile wrapper) ───────────────────────────────────────
+   The desktop SocialView is fluid down to ~520px but the dense
+   friend / leaderboard rows still cramp on a 390px phone: XP +
+   streak + lessons chips, level pill, action buttons and a name all
+   compete for one flex row. Tighten spacing and shed the lowest-
+   value chips at phone width so names never truncate into
+   uselessness. Scoped overrides only — the desktop stylesheet is
+   untouched. */
+
+.m-social .libre-social-scroll {
+  padding-left: var(--libre-space-12);
+  padding-right: var(--libre-space-12);
+}
+
+/* Friend + leaderboard rows: tighter padding, let the name column
+   actually shrink (min-width: 0 so ellipsis works). */
+.m-social .libre-social-row,
+.m-social .libre-social-rank-row {
+  padding: var(--libre-space-10) var(--libre-space-10);
+  gap: var(--libre-space-8);
+}
+
+.m-social .libre-social-rank-name,
+.m-social .libre-social-row-main {
+  min-width: 0;
+}
+
+.m-social .libre-social-rank-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Metrics chips: keep the PRIMARY metric, drop the tertiary ones —
+   the learner picked a metric tab, the row doesn't need all three. */
+@media (max-width: 480px) {
+  .m-social .libre-social-metrics > *:nth-child(n + 3) {
+    display: none;
+  }
+  .m-social .libre-social-rank-cells > .libre-social-chip--streak,
+  .m-social .libre-social-rank-level {
+    display: none;
+  }
+}
+
+/* Add-friend row: input takes the width, button stays tappable. */
+.m-social .libre-social-add-input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* ── Challenges (mobile) ───────────────────────────────────────────
+   The tier browser's header is a desktop two-column row (intro text
+   beside the search box); at phone width the intro squeezes into a
+   sliver. Stack them. Scoped under .m-app so desktop is untouched. */
+.m-app .libre-challenges__header {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--libre-space-10);
+}
