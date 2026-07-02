@@ -31,7 +31,7 @@ import {
 import AddCourseButton from "./AddCourseButton";
 import CourseCard from "./CourseCard";
 import CollectionFolder from "./CollectionFolder";
-import { COLLECTIONS, findCollection } from "./collections";
+import { COLLECTIONS, findCollection, localizedCollection } from "./collections";
 import LibraryControls, {
   type SortKey,
   type ViewMode,
@@ -1144,10 +1144,10 @@ export default function CourseLibrary({
               </button>
               <div className="libre-collection-bar-meta">
                 <h2 className="libre-collection-bar-title">
-                  {activeCollection.title}
+                  {localizedCollection(activeCollection, t).title}
                 </h2>
                 <span className="libre-collection-bar-blurb">
-                  {activeCollection.blurb}
+                  {localizedCollection(activeCollection, t).blurb}
                 </span>
               </div>
               {bulkBusy && (
@@ -1236,16 +1236,17 @@ export default function CourseLibrary({
           ) : query.trim() === "" && collectionMeta.length > 0 ? (
             <section
               className="libre-library-section libre-collections-section"
-              aria-label="Collections"
+              aria-label={t("library.collections")}
             >
               <header className="libre-library-section-head">
-                <h2 className="libre-library-section-title">Collections</h2>
+                <h2 className="libre-library-section-title">
+                  {t("library.collections")}
+                </h2>
                 <span className="libre-library-section-count">
                   {collectionMeta.length}
                 </span>
                 <span className="libre-library-section-blurb">
-                  Curated folders grouping a topic's books, track, and
-                  challenges together.
+                  {t("library.collectionsBlurb")}
                 </span>
               </header>
               <div className="libre-library-shelf libre-collections-shelf">

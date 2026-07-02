@@ -1,4 +1,16 @@
 {
+  "collections": {
+    "rust": { "title": "Rust", "blurb": "Everything Rust — the books, the Exercism track, Rustlings, and the challenge pack." },
+    "python": { "title": "Python", "blurb": "Everything Python — the in-house books, the Exercism track, the koans, and the challenge pack." },
+    "go": { "title": "Go", "blurb": "Everything Go — the book, the Exercism track, Golings, and the challenge pack." },
+    "zig": { "title": "Zig", "blurb": "Everything Zig — the book, the Exercism track, Ziglings, and the challenge pack." },
+    "web": { "title": "Web", "blurb": "The front-end stack — JavaScript & TypeScript fundamentals, the frameworks, and the drills." },
+    "mobile": { "title": "Mobile", "blurb": "Build for phones — React Native, Swift, and Dart, with their tracks and challenge packs." },
+    "jvm": { "title": "JVM", "blurb": "The JVM family — Java, Kotlin, and Scala tracks, koans, and challenge packs." },
+    "functional": { "title": "Functional", "blurb": "Think in functions — Haskell, Elixir, Scala, Clojure, and F#, plus functional JavaScript." },
+    "systems": { "title": "Systems", "blurb": "Close to the metal — C, C++, and ARM assembly, with their tracks and drills." },
+    "algorithms": { "title": "Algorithms & CS", "blurb": "Computer-science foundations — algorithms, data structures, interpreters, and crypto theory." }
+  },
   "changelog": {
     "eyebrow": "Updated",
     "title": "What's new in Libre {version}",
@@ -125,6 +137,8 @@
     "closeAria": "Close",
     "books": "Books",
     "booksBlurb": "Long-form courses with chapters and exercises.",
+    "collections": "Collections",
+    "collectionsBlurb": "Curated folders grouping a topic's books, track, and challenges together.",
     "tracks": "Challenges",
     "tracksBlurb": "Language tracks and exercise packs — concept lessons in order plus practice problems.",
     "challenges": "Challenges",

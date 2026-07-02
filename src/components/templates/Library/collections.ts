@@ -1,3 +1,5 @@
+import type { TFunction } from "@/i18n/i18n";
+
 /// Curated topic collections for the Library + Discover shelves. A
 /// collection is a hand-picked set of catalog ids that the UI surfaces
 /// as a single "folder" tile; opening the folder shows every member
@@ -207,4 +209,24 @@ export const COLLECTIONS: readonly Collection[] = [
 
 export function findCollection(id: string | null | undefined): Collection | undefined {
   return id ? COLLECTIONS.find((c) => c.id === id) : undefined;
+}
+
+/// Localized title + blurb for a collection. The English strings above are
+/// the source of truth (and the en.json fallback floor); translations live
+/// under the `collections.<id>` namespace in the locale JSONs. If a locale
+/// (or en.json) is missing an entry, `t()` returns the literal key — we
+/// detect that and fall back to the hard-coded English so a newly-added
+/// collection never renders a raw `collections.foo.title` string.
+export function localizedCollection(
+  c: Collection,
+  t: TFunction,
+): { title: string; blurb: string } {
+  const titleKey = `collections.${c.id}.title`;
+  const blurbKey = `collections.${c.id}.blurb`;
+  const title = t(titleKey);
+  const blurb = t(blurbKey);
+  return {
+    title: title === titleKey ? c.title : title,
+    blurb: blurb === blurbKey ? c.blurb : blurb,
+  };
 }

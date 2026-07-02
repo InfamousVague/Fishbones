@@ -90,6 +90,16 @@
   margin: var(--libre-space-0);
 }
 
+/* Hide the "Ask Libre about this code" badge (the `?` button
+   `markdown.ts` bakes onto every `.libre-code-block`). On desktop the
+   LessonReader wires its click handler and reveals it on hover; the
+   mobile reader renders the same markup but deliberately skips that
+   enrichment pass, so the badge is dead chrome — and with no hover on
+   touch it just sits there as a permanent, non-functional `?`. */
+.m-reader__prose .libre-code-block-ask {
+  display: none;
+}
+
 .m-reader__prose pre code {
   background: transparent;
   border: 0;

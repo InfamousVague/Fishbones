@@ -1,5 +1,7 @@
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 import type { Collection } from "./collections";
+import { localizedCollection } from "./collections";
+import { useT } from "@/i18n/i18n";
 
 /// One member's preview, rendered as a mini-card tile inside the folder
 /// mosaic — cover art plus the same title / subtitle / editorial-tier
@@ -40,6 +42,8 @@ export default function CollectionFolder({
   onContextMenu,
   style,
 }: Props) {
+  const t = useT();
+  const { title, blurb } = localizedCollection(collection, t);
   const cells = members.slice(0, 4);
   return (
     <div
@@ -51,8 +55,8 @@ export default function CollectionFolder({
       className="libre-collection-folder"
       onClick={onOpen}
       onContextMenu={onContextMenu}
-      aria-label={`Open the ${collection.title} collection — ${count} item${count === 1 ? "" : "s"}`}
-      title={collection.blurb}
+      aria-label={`Open the ${title} collection — ${count} item${count === 1 ? "" : "s"}`}
+      title={blurb}
     >
       <div className="libre-collection-folder-mosaic" aria-hidden>
         {cells.map((m) => (
@@ -81,7 +85,7 @@ export default function CollectionFolder({
       </span>
     </button>
     <span className="libre-collection-folder-title">
-      {collection.title}
+      {title}
       <span className="libre-collection-folder-count">{count}</span>
     </span>
     </div>

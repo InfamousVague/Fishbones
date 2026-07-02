@@ -261,6 +261,22 @@
 [data-ghostwire] .libre-nav-rail__top:has(.libre-nav-rail__item--active:hover) > .libre-nav-rail__pill {
   background: color-mix(in srgb, var(--gg-teal) 18%, transparent);
 }
+/* Bottom-cluster active item (Social) rides its OWN filled pill in the base
+   theme rather than the top cluster's shared sliding indicator. Under
+   GhostWire, give it the SAME accent-ring treatment as the sliding pill above
+   (transparent fill + teal inset ring + teal glyph, with a soft teal wash on
+   hover) so the active "you are here" marker reads identically in the top and
+   bottom clusters — it was otherwise falling back to the base flat bone
+   `--color-text-primary` fill, which read as a solid-white chip. */
+[data-ghostwire] .libre-nav-rail__item--active-standalone {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gg-teal) 34%, transparent);
+  color: var(--gg-teal);
+}
+[data-ghostwire] .libre-nav-rail__item--active-standalone:hover {
+  background: color-mix(in srgb, var(--gg-teal) 18%, transparent);
+  color: var(--gg-teal);
+}
 [data-ghostwire] .libre-editor-tabs-row .libre-editor-tab--active {
   border-bottom-color: var(--gg-seafoam);
 }

@@ -66,7 +66,12 @@ export default function MobileReader({ body, courseId, lessonId }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    void renderMarkdown(body).then((rendered) => {
+    // `interactiveSandboxes: false` — the mobile reader doesn't run the
+    // sandbox/enrichment hydration pass, so ```lang playground fences
+    // must render as read-only highlighted code blocks. Without this they
+    // come through as empty `.libre-inline-sandbox` divs and the code
+    // example is invisible on mobile.
+    void renderMarkdown(body, { interactiveSandboxes: false }).then((rendered) => {
       if (!cancelled) setHtml(rendered);
     });
     return () => {

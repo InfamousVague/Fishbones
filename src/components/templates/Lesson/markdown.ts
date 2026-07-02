@@ -86,7 +86,7 @@ md.validateLink = (url: string): boolean => {
 // we emit an inline-sandbox marker instead so LessonReader can hydrate it
 // into a tiny Monaco + Run component. The sandbox marker carries the same
 // base64-encoded source so nothing downstream has to re-parse the fence.
-md.renderer.rules.fence = (tokens, idx) => {
+md.renderer.rules.fence = (tokens, idx, _options, env) => {
   const token = tokens[idx];
   const infoParts = (token.info || "").trim().split(/\s+/);
   const lang = infoParts[0] || "text";
@@ -122,7 +122,19 @@ md.renderer.rules.fence = (tokens, idx) => {
   const b64 = typeof btoa === "function"
     ? btoa(unescape(encodeURIComponent(raw)))
     : Buffer.from(raw, "utf-8").toString("base64");
-  if (isPlayground) {
+  // `env.interactiveSandboxes === false` (the mobile reader) makes
+  // playground fences fall through to the normal read-only
+  // highlighted-code path below instead of emitting an inline Monaco+Run
+  // marker. The mobile tree never runs the sandbox hydration pass, so an
+  // un-hydrated `.libre-inline-sandbox` div stays empty — i.e. the code
+  // example renders INVISIBLE. Falling through to `libre-code-pending`
+  // gives mobile a Shiki-highlighted, readable block (minus the Run
+  // button it couldn't use anyway). Absent env → interactive, so the
+  // desktop reader and every other caller are unchanged.
+  const interactiveSandboxes =
+    (env as { interactiveSandboxes?: boolean } | undefined)
+      ?.interactiveSandboxes ?? true;
+  if (isPlayground && interactiveSandboxes) {
     return `<div class="libre-inline-sandbox" data-libre-lang="${escapeAttr(lang)}" data-libre-src="${b64}"></div>`;
   }
   const filenameAttr = filename
@@ -151,6 +163,13 @@ export interface RenderOptions {
   /// are wrapped in a popover trigger (first occurrence per symbol only),
   /// and glossary terms are dotted-underlined on first use.
   enrichment?: LessonEnrichment;
+  /// When `false`, ```lang playground fences render as ordinary read-only
+  /// highlighted code blocks instead of interactive Monaco+Run sandbox
+  /// markers. The mobile reader sets this: it never runs the sandbox
+  /// hydration pass, so an un-hydrated sandbox marker would leave the
+  /// code example invisible. Defaults to `true` (interactive) so the
+  /// desktop reader and all other callers keep the sandbox behavior.
+  interactiveSandboxes?: boolean;
 }
 
 export async function renderMarkdown(
@@ -163,7 +182,12 @@ export async function renderMarkdown(
   const withoutCallouts = transformCallouts(source);
 
   // Step 2 — let markdown-it render paragraphs, lists, tables, etc.
-  const initial = md.render(withoutCallouts.md);
+  // The env object threads render-time flags down to the token rules;
+  // the fence rule reads `interactiveSandboxes` to decide between an
+  // inline-sandbox marker and a plain read-only code block.
+  const initial = md.render(withoutCallouts.md, {
+    interactiveSandboxes: opts.interactiveSandboxes !== false,
+  });
 
   // Step 3 — Shiki-highlight fenced code blocks (async).
   const afterHighlight = await replaceCodeFencePlaceholders(initial);

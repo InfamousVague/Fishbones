@@ -2,42 +2,8 @@
   padding: var(--libre-space-18) var(--libre-space-16) var(--libre-space-8);
 }
 
-/* Brand wordmark sitting at the very top of the Library page —
-   the wide "Libre.academy" text-version asset rather than just the
-   squircle icon, so the mobile Library has the same hero brand
-   moment the desktop Library does. Centered, generous breathing
-   room above the section title row. */
-.m-lib__brand {
-  display: flex;
-  justify-content: center;
-  padding: var(--libre-space-4) var(--libre-space-0) var(--libre-space-14);
-}
-.m-lib__brand-img {
-  /* Source asset is libreacademy.png (350×123 ~= 2.85:1 aspect).
-     Render at FULL size — fill the available content width up to
-     the source's natural pixel width so the wordmark renders
-     pixel-perfect on phones whose content column matches or
-     exceeds 350 px. On narrower phones (iPhone SE class, ~343 px
-     content width after the .m-lib 16 px side padding) `width:
-     100%` scales the image down with `height: auto` preserving
-     the aspect ratio. The earlier 48 px height cap kept it small
-     for "breathing room" but the user wanted the brand
-     prominent — this gives the Library page a proper hero band
-     instead of a timid wordmark.
-     `max-width: 100%` over `max-width: 350px` so the image
-     doesn't get upscaled past its source pixels on larger
-     phones / tablets — staying at 350 px when the column is
-     wider keeps the letterforms crisp. */
-  width: 100%;
-  max-width: var(--libre-size-350);
-  height: auto;
-  display: block;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
 /* Segmented [My Library | Discover] toggle. Full-width pill sitting
-   between the brand wordmark and the page header — the primary way a
+   at the top of the Library page — the primary way a
    learner flips between their installed library and the catalog. Two
    equal-width segments; the active one gets the solid white fill the
    language filter pills use for their active state, so the selection

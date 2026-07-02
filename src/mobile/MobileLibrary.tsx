@@ -292,21 +292,6 @@ export default function MobileLibrary({
       }}
     >
       <PullToRefresh pullDistance={pullDistance} isRefreshing={isRefreshing} />
-      {/* Brand wordmark — the proper "Libre.academy" full-text
-          lockup (libreacademy.png, 350×123) rather than the
-          oversized libre_wide.png (1756×797) that was here before.
-          libreacademy.png is the same asset the desktop Sidebar
-          uses for the brand anchor, so the cross-platform read is
-          consistent: same word, same letterforms, same proportions.
-          Sized via CSS so the image lands at a comfortable ~200 px
-          wide above the Library section title. */}
-      <div className="m-lib__brand" aria-hidden>
-        <img
-          src={`${import.meta.env.BASE_URL}libreacademy.png`}
-          alt="Libre.academy"
-          className="m-lib__brand-img"
-        />
-      </div>
       {pane && onPaneChange && (
         <div className="m-lib__segmented" role="tablist" aria-label="Library or Discover">
           <button
