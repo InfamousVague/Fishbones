@@ -52,15 +52,21 @@ function archivePath(id) {
 function collect(course) {
   const chapters = new Map();
   const lessons = new Map();
+  // Practice review questions ride the same repack: like translations,
+  // they're generated into the extracted artifact and must be merged
+  // into the archive's course.json or the next extract wipes them.
+  const reviews = new Map();
   for (const ch of course.chapters || []) {
     if (ch.translations && Object.keys(ch.translations).length)
       chapters.set(ch.id, ch.translations);
     for (const l of ch.lessons || []) {
       if (l.translations && Object.keys(l.translations).length)
         lessons.set(`${ch.id}/${l.id}`, l.translations);
+      if (Array.isArray(l.reviewQuestions) && l.reviewQuestions.length)
+        reviews.set(`${ch.id}/${l.id}`, l.reviewQuestions);
     }
   }
-  return { course: course.translations, chapters, lessons };
+  return { course: course.translations, chapters, lessons, reviews };
 }
 
 let failures = 0;
@@ -79,8 +85,8 @@ for (const id of ids) {
   }
 
   const tr = collect(JSON.parse(readFileSync(artPath, "utf8")));
-  if (!tr.course && !tr.chapters.size && !tr.lessons.size) {
-    console.log(`– ${id}: artifact has no translations, skipping`);
+  if (!tr.course && !tr.chapters.size && !tr.lessons.size && !tr.reviews.size) {
+    console.log(`– ${id}: artifact has no translations/reviewQuestions, skipping`);
     continue;
   }
 
@@ -109,6 +115,10 @@ for (const id of ids) {
         archKeys.add(key);
         if (tr.lessons.has(key)) {
           l.translations = tr.lessons.get(key);
+          mergedLessons++;
+        }
+        if (tr.reviews.has(key)) {
+          l.reviewQuestions = tr.reviews.get(key);
           mergedLessons++;
         }
       }
