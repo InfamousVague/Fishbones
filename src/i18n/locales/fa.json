@@ -41,7 +41,9 @@
     "showSidebar": "نمایش نوار کناری",
     "hideSidebar": "پنهان کردن نوار کناری",
     "resumePrefix": "ادامه:",
-    "primaryNavigation": "ناوبری اصلی"
+    "primaryNavigation": "ناوبری اصلی",
+    "social": "اجتماعی",
+    "feedback": "بازخورد"
   },
   "sandbox": {
     "ariaLabel": "میدان آزمایش",
@@ -123,6 +125,8 @@
     "closeAria": "بستن",
     "books": "کتاب‌ها",
     "booksBlurb": "دوره‌های مفصل با فصل‌ها و تمرین‌ها.",
+    "collections": "مجموعه‌ها",
+    "collectionsBlurb": "پوشه‌های گزیده که کتاب‌ها، مسیر و چالش‌های یک موضوع را کنار هم می‌آورند.",
     "tracks": "چالش‌ها",
     "tracksBlurb": "مسیرهای زبان و بسته‌های تمرین — درس‌های مفهومی به ترتیب به همراه مسائل تمرینی.",
     "challenges": "چالش‌ها",
@@ -140,7 +144,6 @@
     "sortProgress": "پیشرفت",
     "sortLessonCount": "تعداد درس",
     "sortOrderTitle": "ترتیب مرتب‌سازی",
-    "filter": "پالایش",
     "more": "بیشتر",
     "viewMode": "حالت نمایش",
     "shelfView": "نمای قفسه",
@@ -587,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "نصب {language}",
     "probingInstallHint": "در حال بررسی راهنمای نصب {language}…",
-    "noInstallRecipe": "هیچ دستور نصبی برای {language} ارائه نشده است. راهنمای درمان بالا را امتحان کنید."
+    "noInstallRecipe": "هیچ دستور نصبی برای {language} ارائه نشده است. راهنمای درمان بالا را امتحان کنید.",
+    "languageCard": "زبان",
+    "languageSearch": "جستجوی زبان‌ها",
+    "languageSearchPlaceholder": "جستجو با نام یا کود…",
+    "languageNoResults": "هیچ زبانی با «{query}» مطابقت ندارد."
   },
   "auth": {
     "signIn": "ورود",
@@ -856,7 +863,9 @@
     "unitLessons": "درس",
     "unitDays": "روز",
     "unitLevel": "سطح",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "دوستان",
+    "leaderboard": "جدول رده‌بندی"
   },
   "notifications": {
     "title": "اطلاع‌رسانی‌ها",
@@ -935,5 +944,65 @@
     "chapterLessonsList": "درس‌های {chapter}",
     "lessonCellLabel": "درس {n}: {title}",
     "lessonCellLabelCompleted": "درس {n}: {title} (تکمیل‌شده)"
+  },
+  "friends": {
+    "close": "بستن",
+    "loadError": "دوستان شما بارگیری نشدند. اتصال خود را بررسی کنید و دوباره تلاش کنید.",
+    "anonymous": "شاگرد ناشناس",
+    "addByEmail": "افزودن دوست با ایمیل",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "ارسال درخواست",
+    "requestSent": "درخواست دوستی به {email} فرستاده شد.",
+    "noSuchUser": "هنوز هیچ حساب Libre از این ایمیل استفاده نمی‌کند.",
+    "alreadyRequested": "شما از قبل دوست هستید یا درخواستی در انتظار است.",
+    "invalidEmail": "یک آدرس ایمیل معتبر وارد کنید.",
+    "addFailed": "آن درخواست فرستاده نشد. دوباره تلاش کنید.",
+    "requestsHeading": "درخواست‌ها",
+    "accept": "پذیرفتن",
+    "reject": "رد کردن",
+    "acceptRequest": "پذیرفتن درخواست",
+    "friendsHeading": "دوستان",
+    "emptyTitle": "هنوز دوستی ندارید",
+    "emptyBody": "کسی را با ایمیل اضافه کنید و زنجیره‌ها، XP و درس‌ها را مقایسه کنید.",
+    "addFirst": "نخستین دوست خود را اضافه کنید",
+    "remove": "برداشتن دوست",
+    "add": "افزودن دوست",
+    "levelShort": "سطح {level}",
+    "chipStreak": "زنجیرهٔ {n} روزه",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} درس",
+    "streak": "زنجیره",
+    "longest": "طولانی‌ترین",
+    "lessons": "درس‌ها",
+    "xp": "XP",
+    "level": "سطح",
+    "profileTitle": "پروفایل",
+    "profileLoadError": "این پروفایل بارگیری نشد.",
+    "actionError": "مشکلی پیش آمد. دوباره تلاش کنید.",
+    "memberSince": "عضو از {date}"
+  },
+  "social": {
+    "title": "اجتماعی",
+    "subtitle": "دوستان را با ایمیل اضافه کنید و ببینید در چه جایگاهی هستید.",
+    "friendsTab": "دوستان",
+    "leaderboardTab": "جدول رده‌بندی",
+    "signedOutTitle": "برای اجتماعی شدن وارد شوید",
+    "signedOutBody": "دوستان و جدول‌های رده‌بندی از راه حساب Libre شما همگام می‌شوند. وارد شوید تا دوستان را با ایمیل اضافه کنید و ببینید در چه جایگاهی هستید."
+  },
+  "leaderboard": {
+    "title": "جدول رده‌بندی",
+    "subtitle": "ببینید در برابر دوستان و جهان در چه جایگاهی هستید.",
+    "friends": "دوستان",
+    "global": "جهانی",
+    "metricLabel": "رده‌بندی بر اساس",
+    "metricXp": "XP",
+    "metricStreak": "زنجیره",
+    "metricLessons": "درس‌ها",
+    "loadError": "جدول رده‌بندی بارگیری نشد. دوباره تلاش کنید.",
+    "emptyFriendsTitle": "هنوز کسی برای رده‌بندی نیست",
+    "emptyFriends": "چند دوست اضافه کنید تا اینجا یک جدول رده‌بندی ببینید.",
+    "emptyGlobal": "هنوز هیچ شاگرد رده‌بندی‌شده‌ای نیست — نخستین نفر باشید.",
+    "addFriendsCta": "افزودن دوستان",
+    "you": "شما"
   }
 }

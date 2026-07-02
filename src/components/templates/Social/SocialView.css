@@ -10,9 +10,20 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-primary);
+  /* Transparent on purpose: the main pane's themed backdrop shows
+     through, like Sandbox / Practice. (The bg-primary this shell
+     originally copied from ProfileView blacked the backdrop out.) */
+  background: transparent;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
+  /* Theme the kit Skeleton: the primitive paints with
+     --color-skeleton(-shimmer), which the app's themes never define,
+     so it fell back to the kit's stock tint and clashed with the
+     active theme. Map it to the same theme tokens the in-house
+     .libre-skeleton atom uses; custom properties inherit, so this
+     covers every skeleton in the page. */
+  --color-skeleton: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-05));
+  --color-skeleton-shimmer: var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-09));
 }
 
 .libre-social-scroll {

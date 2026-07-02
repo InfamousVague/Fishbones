@@ -41,7 +41,9 @@
     "showSidebar": "سائیڈ بار دکھائیں",
     "hideSidebar": "سائیڈ بار چھپائیں",
     "resumePrefix": "دوبارہ شروع کریں:",
-    "primaryNavigation": "بنیادی نیویگیشن"
+    "primaryNavigation": "بنیادی نیویگیشن",
+    "social": "سوشل",
+    "feedback": "فیڈ بیک"
   },
   "sandbox": {
     "ariaLabel": "سینڈ باکس",
@@ -123,6 +125,8 @@
     "closeAria": "بند کریں",
     "books": "کتابیں",
     "booksBlurb": "ابواب اور مشقوں کے ساتھ طویل کورسز۔",
+    "collections": "مجموعے",
+    "collectionsBlurb": "کسی موضوع کی کتابیں، ٹریک اور چیلنجز کو ایک جگہ جمع کرنے والے منتخب فولڈر۔",
     "tracks": "چیلنجز",
     "tracksBlurb": "زبان کے ٹریکس اور مشق پیک — تصوراتی اسباق ترتیب سے اور ساتھ مشقی مسائل۔",
     "challenges": "چیلنجز",
@@ -586,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "{language} انسٹال کریں",
     "probingInstallHint": "{language} انسٹال اشارہ جانچا جا رہا ہے…",
-    "noInstallRecipe": "{language} کے لیے کوئی انسٹال طریقہ فراہم نہیں کیا گیا۔ اوپر دیے گئے علاج کے اشارے کو آزمائیں۔"
+    "noInstallRecipe": "{language} کے لیے کوئی انسٹال طریقہ فراہم نہیں کیا گیا۔ اوپر دیے گئے علاج کے اشارے کو آزمائیں۔",
+    "languageCard": "زبان",
+    "languageSearch": "زبانیں تلاش کریں",
+    "languageSearchPlaceholder": "نام یا کوڈ سے تلاش کریں…",
+    "languageNoResults": "کوئی زبان “{query}” سے میل نہیں کھاتی۔"
   },
   "auth": {
     "signIn": "سائن ان کریں",
@@ -855,7 +863,9 @@
     "unitLessons": "اسباق",
     "unitDays": "دن",
     "unitLevel": "لیول",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "دوست",
+    "leaderboard": "لیڈر بورڈ"
   },
   "notifications": {
     "title": "اطلاعات",
@@ -934,5 +944,65 @@
     "chapterLessonsList": "{chapter} اسباق",
     "lessonCellLabel": "سبق {n}: {title}",
     "lessonCellLabelCompleted": "سبق {n}: {title} (مکمل)"
+  },
+  "friends": {
+    "close": "بند کریں",
+    "loadError": "آپ کے دوست لوڈ نہیں ہو سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+    "anonymous": "گمنام سیکھنے والا",
+    "addByEmail": "ای میل کے ذریعے دوست شامل کریں",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "درخواست بھیجیں",
+    "requestSent": "{email} کو دوستی کی درخواست بھیج دی گئی۔",
+    "noSuchUser": "اس ای میل پر ابھی کوئی Libre اکاؤنٹ موجود نہیں۔",
+    "alreadyRequested": "آپ پہلے ہی دوست ہیں یا درخواست زیر التوا ہے۔",
+    "invalidEmail": "درست ای میل ایڈریس درج کریں۔",
+    "addFailed": "یہ درخواست نہیں بھیجی جا سکی۔ دوبارہ کوشش کریں۔",
+    "requestsHeading": "درخواستیں",
+    "accept": "قبول کریں",
+    "reject": "مسترد کریں",
+    "acceptRequest": "درخواست قبول کریں",
+    "friendsHeading": "دوست",
+    "emptyTitle": "ابھی کوئی دوست نہیں",
+    "emptyBody": "ای میل سے کسی کو شامل کریں اور اسٹریکس، XP اور اسباق کا موازنہ کریں۔",
+    "addFirst": "اپنا پہلا دوست شامل کریں",
+    "remove": "دوست ہٹائیں",
+    "add": "دوست شامل کریں",
+    "levelShort": "لیول {level}",
+    "chipStreak": "{n} دن کی اسٹریک",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} اسباق",
+    "streak": "اسٹریک",
+    "longest": "طویل ترین",
+    "lessons": "اسباق",
+    "xp": "XP",
+    "level": "لیول",
+    "profileTitle": "پروفائل",
+    "profileLoadError": "یہ پروفائل لوڈ نہیں ہو سکا۔",
+    "actionError": "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
+    "memberSince": "{date} سے رکن"
+  },
+  "social": {
+    "title": "سوشل",
+    "subtitle": "ای میل سے دوست شامل کریں اور دیکھیں کہ آپ کہاں کھڑے ہیں۔",
+    "friendsTab": "دوست",
+    "leaderboardTab": "لیڈر بورڈ",
+    "signedOutTitle": "سوشل کے لیے سائن اِن کریں",
+    "signedOutBody": "دوست اور لیڈر بورڈز آپ کے Libre اکاؤنٹ کے ذریعے سِنک ہوتے ہیں۔ سائن اِن کریں تاکہ ای میل سے دوست شامل کر سکیں اور دیکھ سکیں کہ آپ کہاں کھڑے ہیں۔"
+  },
+  "leaderboard": {
+    "title": "لیڈر بورڈ",
+    "subtitle": "دیکھیں کہ دوستوں اور دنیا کے مقابلے میں آپ کہاں کھڑے ہیں۔",
+    "friends": "دوست",
+    "global": "عالمی",
+    "metricLabel": "درجہ بندی بلحاظ",
+    "metricXp": "XP",
+    "metricStreak": "اسٹریک",
+    "metricLessons": "اسباق",
+    "loadError": "لیڈر بورڈ لوڈ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+    "emptyFriendsTitle": "ابھی درجہ بندی کے لیے کوئی نہیں",
+    "emptyFriends": "یہاں لیڈر بورڈ دیکھنے کے لیے کچھ دوست شامل کریں۔",
+    "emptyGlobal": "ابھی کوئی درجہ بند سیکھنے والا نہیں — پہلے آپ بنیں۔",
+    "addFriendsCta": "دوست شامل کریں",
+    "you": "آپ"
   }
 }

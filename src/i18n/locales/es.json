@@ -1,4 +1,46 @@
 {
+  "collections": {
+    "rust": {
+      "title": "Rust",
+      "blurb": "Todo sobre Rust — los libros, el track de Exercism, Rustlings y el paquete de desafíos."
+    },
+    "python": {
+      "title": "Python",
+      "blurb": "Todo sobre Python — los libros propios, el track de Exercism, los koans y el paquete de desafíos."
+    },
+    "go": {
+      "title": "Go",
+      "blurb": "Todo sobre Go — el libro, el track de Exercism, Golings y el paquete de desafíos."
+    },
+    "zig": {
+      "title": "Zig",
+      "blurb": "Todo sobre Zig — el libro, el track de Exercism, Ziglings y el paquete de desafíos."
+    },
+    "web": {
+      "title": "Web",
+      "blurb": "La pila de front-end — fundamentos de JavaScript y TypeScript, los frameworks y los ejercicios de práctica."
+    },
+    "mobile": {
+      "title": "Mobile",
+      "blurb": "Desarrolla para móviles — React Native, Swift y Dart, con sus tracks y paquetes de desafíos."
+    },
+    "jvm": {
+      "title": "JVM",
+      "blurb": "La familia JVM — tracks de Java, Kotlin y Scala, koans y paquetes de desafíos."
+    },
+    "functional": {
+      "title": "Funcional",
+      "blurb": "Piensa en funciones — Haskell, Elixir, Scala, Clojure y F#, además de JavaScript funcional."
+    },
+    "systems": {
+      "title": "Sistemas",
+      "blurb": "Cerca del hardware — C, C++ y ensamblador ARM, con sus tracks y ejercicios de práctica."
+    },
+    "algorithms": {
+      "title": "Algoritmos y CS",
+      "blurb": "Fundamentos de ciencias de la computación — algoritmos, estructuras de datos, intérpretes y teoría de criptografía."
+    }
+  },
   "common": {
     "cancel": "Cancelar",
     "create": "Crear",
@@ -32,7 +74,13 @@
     "showSidebar": "Mostrar barra lateral",
     "hideSidebar": "Ocultar barra lateral",
     "resumePrefix": "Continuar:",
-    "primaryNavigation": "Navegación principal"
+    "primaryNavigation": "Navegación principal",
+    "comingSoon": "Próximamente",
+    "paths": "Itinerarios",
+    "challenges": "Retos",
+    "monkeysPaw": "Pata de Mono",
+    "social": "Social",
+    "feedback": "Comentarios"
   },
   "sandbox": {
     "ariaLabel": "Espacio de pruebas",
@@ -114,6 +162,8 @@
     "closeAria": "Cerrar",
     "books": "Libros",
     "booksBlurb": "Cursos extensos con capítulos y ejercicios.",
+    "collections": "Colecciones",
+    "collectionsBlurb": "Carpetas seleccionadas que agrupan los libros, el track y los retos de un tema.",
     "tracks": "Pistas",
     "tracksBlurb": "Currículos por lenguaje al estilo Exercism — lecciones de concepto en orden y ejercicios prácticos.",
     "challenges": "Retos",
@@ -166,7 +216,8 @@
     "lessonCount": "{done}/{total} lecciones",
     "chapterCount": "{count} capítulo",
     "chapterCountPlural": "{count} capítulos",
-    "by": "por"
+    "by": "por",
+    "clearSearch": "Borrar búsqueda"
   },
   "addCourse": {
     "primary": "Añadir curso",
@@ -208,7 +259,11 @@
     "renameGroup": "Renombrar grupo…",
     "moveToGroup": "Mover al grupo",
     "groupTitle": "Grupo: {name}",
-    "groupNamePrompt": "Nombre del grupo"
+    "groupNamePrompt": "Nombre del grupo",
+    "feedback": "Comentarios",
+    "feedbackTitle": "Envía comentarios o informa de un error",
+    "joinDiscord": "Únete al Discord de Libre",
+    "joinDiscordShort": "Únete"
   },
   "commandPalette": {
     "ariaLabel": "Paleta de comandos",
@@ -275,7 +330,9 @@
     "modeEditor": "Editor",
     "modeBlocks": "Bloques",
     "ariaExerciseMode": "Modo de ejercicio",
-    "ariaHelpOptions": "Más opciones de ayuda"
+    "ariaHelpOptions": "Más opciones de ayuda",
+    "splitSideBySide": "Disposición lado a lado (el artículo junto al editor)",
+    "splitTopBottom": "Disposición apilada (el editor debajo del artículo)"
   },
   "editorHints": {
     "label": "Pista {current} de {total}",
@@ -500,7 +557,68 @@
     "rerunEllipsis": "…",
     "installLanguage": "Instalar {language}",
     "probingInstallHint": "Sondeando consejo de instalación de {language}…",
-    "noInstallRecipe": "No se incluye receta de instalación para {language}. Prueba la sugerencia anterior."
+    "noInstallRecipe": "No se incluye receta de instalación para {language}. Prueba la sugerencia anterior.",
+    "languageCard": "Idioma",
+    "languageSearch": "Buscar idiomas",
+    "languageSearchPlaceholder": "Buscar por nombre o código…",
+    "languageNoResults": "Ningún idioma coincide con «{query}».",
+    "learningCard": "Aprendizaje",
+    "autoAdvanceLabel": "Avanzar automáticamente al aprobar",
+    "autoAdvanceSub": "Cuando apruebes las pruebas de un ejercicio de código, salta directamente a la siguiente lección.",
+    "restartNow": "Reiniciar ahora",
+    "fableLabel": "Fable 5 (más potente)",
+    "fableHint": "El modelo más capaz de Anthropic. ~$10 entrada / $50 salida por 1M tokens. El mejor razonamiento, pedagogía y diseño de pruebas.",
+    "effortLabel": "Esfuerzo",
+    "effortBlurb": "Cuánto piensa Claude en cada lección. Más esfuerzo significa un razonamiento más profundo y mejores ejercicios y diseño de pruebas — a cambio de más tokens (mayor coste, más lento). No se usa con Haiku.",
+    "effort_low": "Bajo",
+    "effort_medium": "Medio",
+    "effort_high": "Alto",
+    "effort_max": "Máximo",
+    "accentHueCard": "Tono de acento",
+    "accentHue": "Color principal",
+    "accentHueDescription": "Desplaza el acento Noir — los botones, los barridos de progreso, los brillos y la aurora se recolorean en torno a este tono.",
+    "accentHueReset": "Restablecer",
+    "scaleCard": "Escala y movimiento",
+    "scaleCardDescription": "Remodela toda la interfaz desde estos diales — cada espaciado, tamaño de letra, esquina, borde, transición y desenfoque se rige por un token global, así que un solo control los mueve todos al unísono. Las elecciones se guardan localmente.",
+    "scaleFont": "Tamaño del texto",
+    "scaleFontSub": "Amplía o reduce todo el texto de la interfaz.",
+    "scaleSpace": "Densidad",
+    "scaleSpaceSub": "Aprieta o afloja el relleno, los espacios y los márgenes en toda la app.",
+    "scaleRadius": "Redondez de las esquinas",
+    "scaleRadiusSub": "De esquinas cuadradas y afiladas a suavemente redondeadas.",
+    "scaleBorder": "Grosor de los bordes",
+    "scaleBorderSub": "Grosor de contornos, divisores y anillos de foco.",
+    "scaleMotion": "Movimiento",
+    "scaleMotionSub": "Velocidad de transiciones y animaciones. Al 0% se desactiva el movimiento.",
+    "scaleBlur": "Desenfoque de cristal",
+    "scaleBlurSub": "Intensidad del desenfoque esmerilado en paneles y superposiciones.",
+    "scaleReset": "Restablecer valores predeterminados",
+    "scaleResetSub": "Devuelve todos los diales anteriores al 100%.",
+    "scaleValue": "{percent}%",
+    "privacyCard": "Privacidad",
+    "analyticsLabel": "Analíticas de uso anónimas",
+    "analyticsBody": "Ayuda a mejorar Libre compartiendo datos de uso anónimos y sin cookies — qué funciones se usan y dónde falla algo. Sin datos personales ni rastreo entre sitios. Puedes desactivarlo cuando quieras.",
+    "analyticsFirstRun": "Libre comparte analíticas de uso anónimas y sin cookies para ayudar a mejorar la app. Desactívalo cuando quieras en Ajustes → Datos y almacenamiento.",
+    "analyticsNoticeDismiss": "Entendido",
+    "accountsTitle": "Cuentas",
+    "accountsDescription": "Inicia sesión con varias cuentas en la nube en este equipo — cada una tiene sus propios cursos, progreso, proyectos del espacio de pruebas, logros, certificados, ajustes y sesión en la nube, totalmente aislados. El cambio es instantáneo; sin relanzar la app.",
+    "accountsWebNote": "La multicuenta es una función de la app de escritorio. La versión web funciona siempre como una sola biblioteca — inicia sesión con esa cuenta directamente desde la barra superior.",
+    "accountsYours": "Tus cuentas",
+    "accountsLocalSub": "Datos locales · sin inicio de sesión",
+    "accountsCloudBound": "Sesión iniciada",
+    "accountsNotSignedIn": "Aún sin iniciar sesión",
+    "accountsAddTitle": "Añadir una cuenta",
+    "accountsAdd": "Añadir cuenta",
+    "accountsAdding": "Configurando…",
+    "accountsAddHint": "Crea una biblioteca nueva y aislada en este equipo y abre el flujo de inicio de sesión — cuando termines de iniciar sesión, esta cuenta tendrá su propio progreso, proyectos y sincronización en la nube, totalmente separados de las demás.",
+    "accountsUntitled": "Cuenta sin título",
+    "accountsRemove": "Eliminar cuenta",
+    "accountsRemoveConfirm": "Haz clic de nuevo para eliminarla — esto cierra la sesión y borra los datos locales de esta cuenta",
+    "accountsSignInBannerTitle": "Termina de iniciar sesión",
+    "accountsSignInBannerBody": "Esta cuenta aún no tiene un inicio de sesión en la nube. Inicia sesión ahora para vincularla; la cuenta se renombrará automáticamente con tu nombre visible en la nube cuando se complete.",
+    "accountsSignInBannerButton": "Iniciar sesión con esta cuenta",
+    "profilesActive": "Activa",
+    "profilesSwitch": "Cambiar"
   },
   "auth": {
     "signIn": "Iniciar sesión",
@@ -745,7 +863,9 @@
     "unitLessons": "lecciones",
     "unitDays": "días",
     "unitLevel": "nivel",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "Amigos",
+    "leaderboard": "Clasificación"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -789,7 +909,13 @@
     "toolchainInstallRuns": "Ejecuta: {command}",
     "toolchainSkip": "Omitir por ahora",
     "toolchainNoOutput": "(sin salida)",
-    "toolchainInstallFailed": "La instalación salió con un código distinto de cero.\n\n{output}"
+    "toolchainInstallFailed": "La instalación salió con un código distinto de cero.\n\n{output}",
+    "earlyAria": "Aviso de versión temprana",
+    "earlyTag": "Versión temprana",
+    "earlyWarn": "Libre está en versión temprana — parte del arte, el audio y el contenido de las lecciones es provisional o generado por IA por ahora.",
+    "earlySupport": "Tu apoyo nos ayuda a crecer hasta poder pagar a artistas, narradores, docentes y más.",
+    "earlyCta": "Apóyanos",
+    "earlyDismiss": "Descartar"
   },
   "sidebar": {
     "ariaCarousel": "Cursos recientes",
@@ -818,5 +944,152 @@
     "chapterLessonsList": "Lecciones de {chapter}",
     "lessonCellLabel": "Lección {n}: {title}",
     "lessonCellLabelCompleted": "Lección {n}: {title} (completada)"
+  },
+  "changelog": {
+    "eyebrow": "Actualizado",
+    "title": "Novedades de Libre {version}",
+    "generic": "Libre se ha actualizado a {version}. Consulta las notas completas de la versión en GitHub.",
+    "viewOnGitHub": "Notas de la versión",
+    "gotIt": "Entendido"
+  },
+  "challenges": {
+    "title": "Retos",
+    "blurbHyper": "Práctica basada en ejercicios: los tracks de lenguaje de Exercism, los koans clásicos y los packs de retos hechos a mano, todo en un mismo sitio. Desplázate por el catálogo y elige un lenguaje; los tracks de Exercism te sumergen en una ruta estructurada concepto a concepto, los koans te guían por meditaciones de rellenar huecos y los packs de retos te llevan directo al siguiente problema sin resolver.",
+    "blurbGrid": "Práctica basada en ejercicios: tracks de lenguaje de Exercism, koans clásicos y packs de retos hechos a mano, lado a lado. Elige un lenguaje y una modalidad; cada paso se corrige automáticamente, así que siempre sabes cuándo has terminado.",
+    "searchPlaceholder": "Buscar retos…",
+    "ariaSearch": "Buscar retos",
+    "ariaClear": "Borrar búsqueda"
+  },
+  "feedback": {
+    "title": "Enviar comentarios",
+    "blurb": "¿Has encontrado un error, quieres una función nueva o simplemente tienes algo que decir? Cuéntanoslo — llega directo al equipo.",
+    "typeLabel": "Tipo de comentario",
+    "typeBug": "Error",
+    "typeFeature": "Función",
+    "typeFeedback": "Comentario",
+    "messageLabel": "Tu mensaje",
+    "placeholderBug": "¿Qué ha pasado y qué esperabas que ocurriera?",
+    "placeholderFeature": "¿Qué te gustaría que hiciera Libre?",
+    "placeholderFeedback": "Cuéntanos qué tienes en mente…",
+    "emailLabel": "Correo electrónico (opcional)",
+    "emailPlaceholder": "tu@example.com",
+    "emailHint": "Sólo si quieres una respuesta — no lo usaremos para nada más.",
+    "send": "Enviar comentarios",
+    "sending": "Enviando…",
+    "sentTitle": "¡Gracias!",
+    "sentBody": "Tus comentarios se han enviado — leemos todos los mensajes.",
+    "emptyError": "Escribe primero un mensaje.",
+    "errorGeneric": "No se pudo enviar en este momento. Comprueba tu conexión e inténtalo de nuevo.",
+    "close": "Cerrar"
+  },
+  "setup": {
+    "title": "Configura la IA local",
+    "blurb": "Para que el tutor de IA integrado funcione en tu equipo, necesitaremos Homebrew y Ollama. Ambos son opcionales — Libre funciona igualmente sin ellos, y puedes usar una clave de API en la nube desde Ajustes → IA.",
+    "brewTitle": "Instalar Homebrew",
+    "brewDescription": "Gestor de paquetes que usamos para instalar Ollama. Abre brew.sh en tu navegador — pega la línea de comando en Terminal y luego vuelve y haz clic en «Volver a comprobar».",
+    "brewDescriptionDone": "Homebrew está instalado y en tu PATH.",
+    "brewInstallButton": "Abrir brew.sh",
+    "brewRecheck": "Volver a comprobar",
+    "ollamaTitle": "Instalar Ollama",
+    "ollamaDescription": "Ejecuta pequeños modelos de IA localmente para que tus chats y sugerencias de código no salgan de tu equipo. Ejecuta `brew install ollama` (~30-60 s) y luego arranca el demonio.",
+    "ollamaDescriptionDone": "Ollama está instalado. Puedes elegir un modelo en Ajustes → IA.",
+    "ollamaDescriptionNeedsBrew": "Instala Homebrew primero — este botón seguirá desactivado hasta que esté en tu PATH.",
+    "ollamaInstallButton": "Instalar Ollama",
+    "installing": "Instalando…",
+    "later": "Lo configuraré más tarde",
+    "done": "Hecho",
+    "dontShowAgain": "No volver a preguntar",
+    "close": "Cerrar"
+  },
+  "paths": {
+    "title": "Itinerarios",
+    "subtitle": "Rutas orientadas a objetivos a través del catálogo. Cada itinerario enlaza cursos, tracks de lenguaje, koans y packs de ejercicios en un orden que te lleva desde cero hasta un puesto — desarrollador junior, móvil, sistemas y más.",
+    "percentComplete": "{pct} completado",
+    "coursesInstalled": "{installed} de {total} cursos instalados",
+    "ariaPath": "Itinerario {title}, {pct} completado. Abre el mapa del itinerario.",
+    "openCourse": "Abrir {title}",
+    "findInDiscover": "Busca {title} en Descubrir para añadirlo",
+    "installCourse": "Instalar {title}",
+    "installing": "Instalando {title}…",
+    "installingShort": "Instalando…",
+    "installAll": "Instalar los {count} libros",
+    "back": "Todos los itinerarios",
+    "flowAria": "Mapa del itinerario {title} — desplázate horizontalmente para seguir la ruta por sus cursos y bifurcaciones",
+    "endGoal": "Objetivo alcanzado 🎯",
+    "endDone": "Itinerario completado ✓"
+  },
+  "rustLocal": {
+    "title": "Compila Rust localmente para ejecuciones instantáneas",
+    "blurb": "Las lecciones de Rust se compilan actualmente en un sandbox compartido en línea — funciona sin configurar nada, pero cada ejecución es un viaje de ida y vuelta por la red (unos segundos, y nada funciona sin conexión). Instalar Rust en tu equipo permite que la app compile y ejecute localmente: respuesta instantánea y totalmente sin conexión. Es un solo comando, no requiere contraseña y es completamente opcional — puedes seguir usando el sandbox en línea.",
+    "commandAria": "Comando que se ejecutará para instalar Rust",
+    "install": "Instalar Rust",
+    "installing": "Instalando Rust… (puede tardar un minuto)",
+    "installFailed": "Falló la instalación. Puedes seguir usando el sandbox en línea o probar el comando en un terminal.",
+    "installedTitle": "Rust está instalado 🦀",
+    "installedBlurb": "Genial — las lecciones de Rust ahora se compilarán y ejecutarán localmente. Tu próximo Ejecutar será instantáneo y funcionará sin conexión.",
+    "later": "Quizá más tarde",
+    "done": "Hecho",
+    "dontAskAgain": "No volver a preguntar",
+    "close": "Cerrar"
+  },
+  "friends": {
+    "close": "Cerrar",
+    "loadError": "No se pudieron cargar tus amigos. Comprueba tu conexión e inténtalo de nuevo.",
+    "anonymous": "Estudiante anónimo",
+    "addByEmail": "Añadir un amigo por correo",
+    "emailPlaceholder": "amigo@example.com",
+    "sendRequest": "Enviar solicitud",
+    "requestSent": "Solicitud de amistad enviada a {email}.",
+    "noSuchUser": "Ninguna cuenta de Libre usa ese correo todavía.",
+    "alreadyRequested": "Ya sois amigos o hay una solicitud pendiente.",
+    "invalidEmail": "Introduce una dirección de correo válida.",
+    "addFailed": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
+    "requestsHeading": "Solicitudes",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "acceptRequest": "Aceptar solicitud",
+    "friendsHeading": "Amigos",
+    "emptyTitle": "Aún no tienes amigos",
+    "emptyBody": "Añade a alguien por correo y compara rachas, XP y lecciones.",
+    "addFirst": "Añade a tu primer amigo",
+    "remove": "Eliminar amigo",
+    "add": "Añadir amigo",
+    "levelShort": "Nv {level}",
+    "chipStreak": "Racha de {n} días",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} lecciones",
+    "streak": "Racha",
+    "longest": "Más larga",
+    "lessons": "Lecciones",
+    "xp": "XP",
+    "level": "nivel",
+    "profileTitle": "Perfil",
+    "profileLoadError": "No se pudo cargar este perfil.",
+    "actionError": "Algo salió mal. Inténtalo de nuevo.",
+    "memberSince": "Miembro desde {date}"
+  },
+  "social": {
+    "title": "Social",
+    "subtitle": "Añade amigos por correo y mira cómo quedas frente a ellos.",
+    "friendsTab": "Amigos",
+    "leaderboardTab": "Clasificación",
+    "signedOutTitle": "Inicia sesión para usar Social",
+    "signedOutBody": "Los amigos y las clasificaciones se sincronizan a través de tu cuenta de Libre. Inicia sesión para añadir amigos por correo y ver cómo quedas frente a ellos."
+  },
+  "leaderboard": {
+    "title": "Clasificación",
+    "subtitle": "Mira cómo quedas frente a tus amigos y el resto del mundo.",
+    "friends": "Amigos",
+    "global": "Global",
+    "metricLabel": "Clasificar por",
+    "metricXp": "XP",
+    "metricStreak": "Racha",
+    "metricLessons": "Lecciones",
+    "loadError": "No se pudo cargar la clasificación. Inténtalo de nuevo.",
+    "emptyFriendsTitle": "Aún no hay nadie que clasificar",
+    "emptyFriends": "Añade algunos amigos para ver aquí una clasificación.",
+    "emptyGlobal": "Aún no hay estudiantes clasificados — sé el primero.",
+    "addFriendsCta": "Añadir amigos",
+    "you": "Tú"
   }
 }

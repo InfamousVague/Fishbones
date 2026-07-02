@@ -41,7 +41,9 @@
     "showSidebar": "साइडबार देखाउनुहोस्",
     "hideSidebar": "साइडबार लुकाउनुहोस्",
     "resumePrefix": "पुनः सुरु गर्नुहोस्:",
-    "primaryNavigation": "मुख्य नेभिगेसन"
+    "primaryNavigation": "मुख्य नेभिगेसन",
+    "social": "सामाजिक",
+    "feedback": "प्रतिक्रिया"
   },
   "sandbox": {
     "ariaLabel": "स्यान्डबक्स",
@@ -123,6 +125,8 @@
     "closeAria": "बन्द गर्नुहोस्",
     "books": "पुस्तकहरू",
     "booksBlurb": "अध्याय र अभ्याससहितका लामो पाठ्यक्रमहरू।",
+    "collections": "सङ्ग्रहहरू",
+    "collectionsBlurb": "कुनै विषयका पुस्तक, ट्र्याक र च्यालेन्ज एकसाथ राख्ने चयनित फोल्डरहरू।",
     "tracks": "चुनौतीहरू",
     "tracksBlurb": "भाषा ट्र्याक र अभ्यास प्याकहरू — क्रमबद्ध अवधारणा पाठहरू र अभ्यास समस्याहरू।",
     "challenges": "चुनौतीहरू",
@@ -586,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "{language} इन्स्टल गर्नुहोस्",
     "probingInstallHint": "{language} इन्स्टल सङ्केत प्रोब हुँदैछ…",
-    "noInstallRecipe": "{language} का लागि कुनै इन्स्टल विधि पठाइएको छैन। माथिको उपचार सङ्केत प्रयास गर्नुहोस्।"
+    "noInstallRecipe": "{language} का लागि कुनै इन्स्टल विधि पठाइएको छैन। माथिको उपचार सङ्केत प्रयास गर्नुहोस्।",
+    "languageCard": "भाषा",
+    "languageSearch": "भाषा खोज्नुहोस्",
+    "languageSearchPlaceholder": "नाम वा कोडबाट खोज्नुहोस्…",
+    "languageNoResults": "“{query}” सँग मिल्ने कुनै भाषा फेला परेन।"
   },
   "auth": {
     "signIn": "साइन इन गर्नुहोस्",
@@ -855,7 +863,9 @@
     "unitLessons": "पाठहरू",
     "unitDays": "दिन",
     "unitLevel": "स्तर",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "साथीहरू",
+    "leaderboard": "लिडरबोर्ड"
   },
   "notifications": {
     "title": "सूचनाहरू",
@@ -934,5 +944,65 @@
     "chapterLessonsList": "{chapter} पाठहरू",
     "lessonCellLabel": "पाठ {n}: {title}",
     "lessonCellLabelCompleted": "पाठ {n}: {title} (पूरा भयो)"
+  },
+  "friends": {
+    "close": "बन्द गर्नुहोस्",
+    "loadError": "तपाईंका साथीहरू लोड गर्न सकिएन। इन्टरनेट जडान जाँचेर फेरि प्रयास गर्नुहोस्।",
+    "anonymous": "बेनामी सिकारु",
+    "addByEmail": "इमेलबाट साथी थप्नुहोस्",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "अनुरोध पठाउनुहोस्",
+    "requestSent": "{email} लाई साथी अनुरोध पठाइयो।",
+    "noSuchUser": "यो इमेल प्रयोग गर्ने कुनै Libre खाता अहिलेसम्म छैन।",
+    "alreadyRequested": "तपाईंहरू पहिले नै साथी हुनुहुन्छ वा अनुरोध पर्खाइमा छ।",
+    "invalidEmail": "मान्य इमेल ठेगाना लेख्नुहोस्।",
+    "addFailed": "उक्त अनुरोध पठाउन सकिएन। फेरि प्रयास गर्नुहोस्।",
+    "requestsHeading": "अनुरोधहरू",
+    "accept": "स्वीकार गर्नुहोस्",
+    "reject": "अस्वीकार गर्नुहोस्",
+    "acceptRequest": "अनुरोध स्वीकार गर्नुहोस्",
+    "friendsHeading": "साथीहरू",
+    "emptyTitle": "अहिलेसम्म कुनै साथी छैनन्",
+    "emptyBody": "इमेलबाट कसैलाई थप्नुहोस् र स्ट्रिक, XP र पाठहरू तुलना गर्नुहोस्।",
+    "addFirst": "आफ्नो पहिलो साथी थप्नुहोस्",
+    "remove": "साथी हटाउनुहोस्",
+    "add": "साथी थप्नुहोस्",
+    "levelShort": "स्तर {level}",
+    "chipStreak": "{n}-दिने स्ट्रिक",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} पाठ",
+    "streak": "स्ट्रिक",
+    "longest": "सबैभन्दा लामो",
+    "lessons": "पाठहरू",
+    "xp": "XP",
+    "level": "स्तर",
+    "profileTitle": "प्रोफाइल",
+    "profileLoadError": "यो प्रोफाइल लोड गर्न सकिएन।",
+    "actionError": "केही गडबड भयो। फेरि प्रयास गर्नुहोस्।",
+    "memberSince": "{date} देखि सदस्य"
+  },
+  "social": {
+    "title": "सामाजिक",
+    "subtitle": "इमेलबाट साथीहरू थप्नुहोस् र तपाईंको स्थान कहाँ छ हेर्नुहोस्।",
+    "friendsTab": "साथीहरू",
+    "leaderboardTab": "लिडरबोर्ड",
+    "signedOutTitle": "सामाजिक हुन साइन इन गर्नुहोस्",
+    "signedOutBody": "साथीहरू र लिडरबोर्डहरू तपाईंको Libre खातामार्फत सिंक हुन्छन्। इमेलबाट साथीहरू थप्न र तपाईंको स्थान कहाँ छ हेर्न साइन इन गर्नुहोस्।"
+  },
+  "leaderboard": {
+    "title": "लिडरबोर्ड",
+    "subtitle": "साथीहरू र संसारका सिकारुहरूको तुलनामा तपाईं कहाँ हुनुहुन्छ हेर्नुहोस्।",
+    "friends": "साथीहरू",
+    "global": "विश्वव्यापी",
+    "metricLabel": "क्रमको आधार",
+    "metricXp": "XP",
+    "metricStreak": "स्ट्रिक",
+    "metricLessons": "पाठहरू",
+    "loadError": "लिडरबोर्ड लोड गर्न सकिएन। फेरि प्रयास गर्नुहोस्।",
+    "emptyFriendsTitle": "क्रम दिन अहिलेसम्म कोही छैनन्",
+    "emptyFriends": "यहाँ लिडरबोर्ड हेर्न केही साथीहरू थप्नुहोस्।",
+    "emptyGlobal": "अहिलेसम्म कुनै क्रमबद्ध सिकारु छैनन् — पहिलो बन्नुहोस्।",
+    "addFriendsCta": "साथीहरू थप्नुहोस्",
+    "you": "तपाईं"
   }
 }

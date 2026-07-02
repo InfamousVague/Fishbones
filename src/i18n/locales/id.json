@@ -41,7 +41,9 @@
     "showSidebar": "Tampilkan bilah sisi",
     "hideSidebar": "Sembunyikan bilah sisi",
     "resumePrefix": "Lanjutkan:",
-    "primaryNavigation": "Navigasi utama"
+    "primaryNavigation": "Navigasi utama",
+    "social": "Sosial",
+    "feedback": "Masukan"
   },
   "sandbox": {
     "ariaLabel": "Sandbox",
@@ -123,6 +125,8 @@
     "closeAria": "Tutup",
     "books": "Buku",
     "booksBlurb": "Kursus format panjang dengan bab dan latihan.",
+    "collections": "Koleksi",
+    "collectionsBlurb": "Folder kurasi yang mengelompokkan buku, jalur, dan tantangan dari satu topik.",
     "tracks": "Tantangan",
     "tracksBlurb": "Trek bahasa dan paket latihan — pelajaran konsep berurutan plus soal latihan.",
     "challenges": "Tantangan",
@@ -140,7 +144,6 @@
     "sortProgress": "Kemajuan",
     "sortLessonCount": "Jumlah pelajaran",
     "sortOrderTitle": "Urutan penyortiran",
-    "filter": "Filter",
     "more": "Lainnya",
     "viewMode": "Mode tampilan",
     "shelfView": "Tampilan rak",
@@ -587,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "Pasang {language}",
     "probingInstallHint": "Memeriksa petunjuk pemasangan {language}…",
-    "noInstallRecipe": "Tidak ada resep pemasangan yang disertakan untuk {language}. Coba petunjuk perbaikan di atas."
+    "noInstallRecipe": "Tidak ada resep pemasangan yang disertakan untuk {language}. Coba petunjuk perbaikan di atas.",
+    "languageCard": "Bahasa",
+    "languageSearch": "Cari bahasa",
+    "languageSearchPlaceholder": "Cari berdasarkan nama atau kode…",
+    "languageNoResults": "Tidak ada bahasa yang cocok dengan “{query}”."
   },
   "auth": {
     "signIn": "Masuk",
@@ -856,7 +863,9 @@
     "unitLessons": "pelajaran",
     "unitDays": "hari",
     "unitLevel": "level",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "Teman",
+    "leaderboard": "Papan Peringkat"
   },
   "notifications": {
     "title": "Notifikasi",
@@ -935,5 +944,65 @@
     "chapterLessonsList": "Pelajaran {chapter}",
     "lessonCellLabel": "Pelajaran {n}: {title}",
     "lessonCellLabelCompleted": "Pelajaran {n}: {title} (selesai)"
+  },
+  "friends": {
+    "close": "Tutup",
+    "loadError": "Tidak dapat memuat daftar teman Anda. Periksa koneksi Anda dan coba lagi.",
+    "anonymous": "Pelajar anonim",
+    "addByEmail": "Tambah teman lewat email",
+    "emailPlaceholder": "teman@example.com",
+    "sendRequest": "Kirim permintaan",
+    "requestSent": "Permintaan pertemanan dikirim ke {email}.",
+    "noSuchUser": "Belum ada akun Libre yang memakai email itu.",
+    "alreadyRequested": "Kalian sudah berteman atau permintaan sedang menunggu.",
+    "invalidEmail": "Masukkan alamat email yang valid.",
+    "addFailed": "Tidak dapat mengirim permintaan itu. Coba lagi.",
+    "requestsHeading": "Permintaan",
+    "accept": "Terima",
+    "reject": "Tolak",
+    "acceptRequest": "Terima permintaan",
+    "friendsHeading": "Teman",
+    "emptyTitle": "Belum ada teman",
+    "emptyBody": "Tambahkan seseorang lewat email dan bandingkan streak, XP, dan pelajaran.",
+    "addFirst": "Tambah teman pertama Anda",
+    "remove": "Hapus teman",
+    "add": "Tambah teman",
+    "levelShort": "Lv {level}",
+    "chipStreak": "Streak {n} hari",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} pelajaran",
+    "streak": "Streak",
+    "longest": "Terpanjang",
+    "lessons": "Pelajaran",
+    "xp": "XP",
+    "level": "level",
+    "profileTitle": "Profil",
+    "profileLoadError": "Tidak dapat memuat profil ini.",
+    "actionError": "Terjadi kesalahan. Coba lagi.",
+    "memberSince": "Anggota sejak {date}"
+  },
+  "social": {
+    "title": "Sosial",
+    "subtitle": "Tambah teman lewat email dan lihat posisi Anda.",
+    "friendsTab": "Teman",
+    "leaderboardTab": "Papan Peringkat",
+    "signedOutTitle": "Masuk untuk bersosialisasi",
+    "signedOutBody": "Teman dan papan peringkat disinkronkan lewat akun Libre Anda. Masuk untuk menambah teman lewat email dan melihat posisi Anda."
+  },
+  "leaderboard": {
+    "title": "Papan Peringkat",
+    "subtitle": "Lihat posisi Anda dibandingkan teman dan seluruh dunia.",
+    "friends": "Teman",
+    "global": "Global",
+    "metricLabel": "Urutkan berdasarkan",
+    "metricXp": "XP",
+    "metricStreak": "Streak",
+    "metricLessons": "Pelajaran",
+    "loadError": "Tidak dapat memuat papan peringkat. Coba lagi.",
+    "emptyFriendsTitle": "Belum ada yang bisa diberi peringkat",
+    "emptyFriends": "Tambahkan beberapa teman untuk melihat papan peringkat di sini.",
+    "emptyGlobal": "Belum ada pelajar berperingkat — jadilah yang pertama.",
+    "addFriendsCta": "Tambah teman",
+    "you": "Anda"
   }
 }

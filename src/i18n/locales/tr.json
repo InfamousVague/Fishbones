@@ -41,7 +41,9 @@
     "showSidebar": "Kenar çubuğunu göster",
     "hideSidebar": "Kenar çubuğunu gizle",
     "resumePrefix": "Kaldığın yerden devam:",
-    "primaryNavigation": "Birincil gezinme"
+    "primaryNavigation": "Birincil gezinme",
+    "social": "Sosyal",
+    "feedback": "Geri bildirim"
   },
   "sandbox": {
     "ariaLabel": "Deneme alanı",
@@ -123,6 +125,8 @@
     "closeAria": "Kapat",
     "books": "Kitaplar",
     "booksBlurb": "Bölümler ve alıştırmalar içeren uzun soluklu kurslar.",
+    "collections": "Koleksiyonlar",
+    "collectionsBlurb": "Bir konunun kitaplarını, parkurunu ve görevlerini bir araya getiren seçili klasörler.",
     "tracks": "Meydan okumalar",
     "tracksBlurb": "Dil parkurları ve alıştırma paketleri — sıralı kavram dersleri ve pratik problemler.",
     "challenges": "Meydan okumalar",
@@ -140,7 +144,6 @@
     "sortProgress": "İlerleme",
     "sortLessonCount": "Ders sayısı",
     "sortOrderTitle": "Sıralama düzeni",
-    "filter": "Filtrele",
     "more": "Daha fazla",
     "viewMode": "Görünüm modu",
     "shelfView": "Raf görünümü",
@@ -587,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "{language} kur",
     "probingInstallHint": "{language} kurulum ipucu inceleniyor…",
-    "noInstallRecipe": "{language} için kurulum reçetesi gönderilmedi. Yukarıdaki çözüm ipucunu dene."
+    "noInstallRecipe": "{language} için kurulum reçetesi gönderilmedi. Yukarıdaki çözüm ipucunu dene.",
+    "languageCard": "Dil",
+    "languageSearch": "Dil ara",
+    "languageSearchPlaceholder": "Ada veya koda göre ara…",
+    "languageNoResults": "“{query}” ile eşleşen dil yok."
   },
   "auth": {
     "signIn": "Oturum aç",
@@ -856,7 +863,9 @@
     "unitLessons": "ders",
     "unitDays": "gün",
     "unitLevel": "seviye",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "Arkadaşlar",
+    "leaderboard": "Liderlik tablosu"
   },
   "notifications": {
     "title": "Bildirimler",
@@ -935,5 +944,65 @@
     "chapterLessonsList": "{chapter} dersleri",
     "lessonCellLabel": "Ders {n}: {title}",
     "lessonCellLabelCompleted": "Ders {n}: {title} (tamamlandı)"
+  },
+  "friends": {
+    "close": "Kapat",
+    "loadError": "Arkadaşların yüklenemedi. Bağlantını kontrol edip yeniden dene.",
+    "anonymous": "Anonim öğrenci",
+    "addByEmail": "E-postayla arkadaş ekle",
+    "emailPlaceholder": "arkadas@ornek.com",
+    "sendRequest": "İstek gönder",
+    "requestSent": "{email} adresine arkadaşlık isteği gönderildi.",
+    "noSuchUser": "Bu e-postayı kullanan bir Libre hesabı henüz yok.",
+    "alreadyRequested": "Zaten arkadaşsınız ya da bekleyen bir istek var.",
+    "invalidEmail": "Geçerli bir e-posta adresi gir.",
+    "addFailed": "İstek gönderilemedi. Yeniden dene.",
+    "requestsHeading": "İstekler",
+    "accept": "Kabul et",
+    "reject": "Reddet",
+    "acceptRequest": "İsteği kabul et",
+    "friendsHeading": "Arkadaşlar",
+    "emptyTitle": "Henüz arkadaşın yok",
+    "emptyBody": "E-postayla birini ekle; serileri, XP'yi ve dersleri karşılaştır.",
+    "addFirst": "İlk arkadaşını ekle",
+    "remove": "Arkadaşlıktan çıkar",
+    "add": "Arkadaş ekle",
+    "levelShort": "Sv {level}",
+    "chipStreak": "{n} günlük seri",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} ders",
+    "streak": "Seri",
+    "longest": "En uzun",
+    "lessons": "Dersler",
+    "xp": "XP",
+    "level": "seviye",
+    "profileTitle": "Profil",
+    "profileLoadError": "Bu profil yüklenemedi.",
+    "actionError": "Bir şeyler ters gitti. Yeniden dene.",
+    "memberSince": "{date} tarihinden beri üye"
+  },
+  "social": {
+    "title": "Sosyal",
+    "subtitle": "E-postayla arkadaş ekle ve sıralamadaki yerini gör.",
+    "friendsTab": "Arkadaşlar",
+    "leaderboardTab": "Liderlik tablosu",
+    "signedOutTitle": "Sosyalleşmek için giriş yap",
+    "signedOutBody": "Arkadaşlar ve liderlik tabloları Libre hesabın üzerinden eşitlenir. E-postayla arkadaş eklemek ve sıralamadaki yerini görmek için giriş yap."
+  },
+  "leaderboard": {
+    "title": "Liderlik tablosu",
+    "subtitle": "Arkadaşlarına ve dünyaya karşı sıralamadaki yerini gör.",
+    "friends": "Arkadaşlar",
+    "global": "Küresel",
+    "metricLabel": "Sıralama ölçütü",
+    "metricXp": "XP",
+    "metricStreak": "Seri",
+    "metricLessons": "Dersler",
+    "loadError": "Liderlik tablosu yüklenemedi. Yeniden dene.",
+    "emptyFriendsTitle": "Henüz sıralanacak kimse yok",
+    "emptyFriends": "Burada bir liderlik tablosu görmek için birkaç arkadaş ekle.",
+    "emptyGlobal": "Henüz sıralamaya giren öğrenci yok — ilk sen ol.",
+    "addFriendsCta": "Arkadaş ekle",
+    "you": "Sen"
   }
 }

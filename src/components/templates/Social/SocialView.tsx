@@ -263,7 +263,8 @@ function FriendsPanel({
       const [f, r] = await Promise.all([listFriends(), listFriendRequests()]);
       setFriends(f);
       setRequests(r);
-    } catch {
+    } catch (err) {
+      console.error("[libre] friends refresh failed:", err);
       setLoadError(true);
     } finally {
       setInitialLoad(false);
@@ -299,7 +300,10 @@ function FriendsPanel({
         // should reflect — refetch quietly.
         void refresh();
       }
-    } catch {
+    } catch (err) {
+      // 404/409/400 are mapped to friendly copy above — landing here
+      // means 401 (dead session), 500, or a network failure. Surface it.
+      console.error("[libre] add friend failed:", err);
       setAddFeedback({ kind: "error", text: t("friends.addFailed") });
     } finally {
       setAdding(false);
@@ -310,7 +314,8 @@ function FriendsPanel({
     try {
       await acceptFriendRequest(userId);
       await refresh();
-    } catch {
+    } catch (err) {
+      console.error("[libre] accept request failed:", err);
       setLoadError(true);
     }
   };
@@ -320,7 +325,8 @@ function FriendsPanel({
     try {
       await removeFriend(userId);
       await refresh();
-    } catch {
+    } catch (err) {
+      console.error("[libre] reject request failed:", err);
       setLoadError(true);
     }
   };
@@ -329,7 +335,8 @@ function FriendsPanel({
     try {
       await removeFriend(userId);
       await refresh();
-    } catch {
+    } catch (err) {
+      console.error("[libre] remove friend failed:", err);
       setLoadError(true);
     }
   };
@@ -593,7 +600,8 @@ function LeaderboardPanel({
           ? await getFriendsLeaderboard(metric)
           : await getGlobalLeaderboard(50, 0);
       setRows(data);
-    } catch {
+    } catch (err) {
+      console.error("[libre] leaderboard load failed:", err);
       setError(true);
       setRows([]);
     } finally {

@@ -1,4 +1,16 @@
 {
+  "collections": {
+    "rust": { "title": "Rust", "blurb": "Rust की हर चीज़ — किताबें, Exercism ट्रैक, Rustlings, और चैलेंज पैक।" },
+    "python": { "title": "Python", "blurb": "Python की हर चीज़ — इन-हाउस किताबें, Exercism ट्रैक, koans, और चैलेंज पैक।" },
+    "go": { "title": "Go", "blurb": "Go की हर चीज़ — किताब, Exercism ट्रैक, Golings, और चैलेंज पैक।" },
+    "zig": { "title": "Zig", "blurb": "Zig की हर चीज़ — किताब, Exercism ट्रैक, Ziglings, और चैलेंज पैक।" },
+    "web": { "title": "Web", "blurb": "फ्रंट-एंड स्टैक — JavaScript और TypeScript की बुनियादी बातें, फ्रेमवर्क, और अभ्यास।" },
+    "mobile": { "title": "Mobile", "blurb": "फोन के लिए बनाएँ — React Native, Swift, और Dart, इनके ट्रैक और चैलेंज पैक के साथ।" },
+    "jvm": { "title": "JVM", "blurb": "JVM परिवार — Java, Kotlin, और Scala ट्रैक, koans, और चैलेंज पैक।" },
+    "functional": { "title": "Functional", "blurb": "फ़ंक्शन्स में सोचें — Haskell, Elixir, Scala, Clojure, और F#, साथ ही functional JavaScript।" },
+    "systems": { "title": "Systems", "blurb": "हार्डवेयर के करीब — C, C++, और ARM असेंबली, इनके ट्रैक और अभ्यास के साथ।" },
+    "algorithms": { "title": "Algorithms & CS", "blurb": "कंप्यूटर-साइंस की बुनियादी बातें — एल्गोरिद्म, डेटा स्ट्रक्चर्स, इंटरप्रेटर, और क्रिप्टो सिद्धांत।" }
+  },
   "changelog": {
     "eyebrow": "अपडेट किया गया",
     "title": "Libre {version} में क्या नया है",
@@ -41,7 +53,9 @@
     "showSidebar": "साइडबार दिखाएँ",
     "hideSidebar": "साइडबार छिपाएँ",
     "resumePrefix": "जारी रखें:",
-    "primaryNavigation": "मुख्य नेविगेशन"
+    "primaryNavigation": "मुख्य नेविगेशन",
+    "social": "सोशल",
+    "feedback": "फ़ीडबैक"
   },
   "sandbox": {
     "ariaLabel": "सैंडबॉक्स",
@@ -123,6 +137,8 @@
     "closeAria": "बंद करें",
     "books": "पुस्तकें",
     "booksBlurb": "अध्यायों और अभ्यासों वाले विस्तृत कोर्स।",
+    "collections": "संग्रह",
+    "collectionsBlurb": "किसी विषय की पुस्तकें, ट्रैक और चुनौतियाँ एक साथ रखने वाले चयनित फ़ोल्डर।",
     "tracks": "चुनौतियाँ",
     "tracksBlurb": "भाषा ट्रैक और अभ्यास पैक — क्रम में कॉन्सेप्ट पाठ और अभ्यास समस्याएँ।",
     "challenges": "चुनौतियाँ",
@@ -140,7 +156,6 @@
     "sortProgress": "प्रगति",
     "sortLessonCount": "पाठों की संख्या",
     "sortOrderTitle": "क्रम",
-    "filter": "फ़िल्टर",
     "more": "और",
     "viewMode": "व्यू मोड",
     "shelfView": "शेल्फ़ व्यू",
@@ -587,7 +602,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "{language} इंस्टॉल करें",
     "probingInstallHint": "{language} इंस्टॉल संकेत प्रोब हो रहा है…",
-    "noInstallRecipe": "{language} के लिए कोई इंस्टॉल रेसिपी नहीं भेजी गई। ऊपर दिए उपाय संकेत को आज़माएँ।"
+    "noInstallRecipe": "{language} के लिए कोई इंस्टॉल रेसिपी नहीं भेजी गई। ऊपर दिए उपाय संकेत को आज़माएँ।",
+    "languageCard": "भाषा",
+    "languageSearch": "भाषाएँ खोजें",
+    "languageSearchPlaceholder": "नाम या कोड से खोजें…",
+    "languageNoResults": "“{query}” से मेल खाती कोई भाषा नहीं मिली।"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -856,7 +875,9 @@
     "unitLessons": "पाठ",
     "unitDays": "दिन",
     "unitLevel": "लेवल",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "दोस्त",
+    "leaderboard": "लीडरबोर्ड"
   },
   "notifications": {
     "title": "सूचनाएँ",
@@ -935,5 +956,65 @@
     "chapterLessonsList": "{chapter} पाठ",
     "lessonCellLabel": "पाठ {n}: {title}",
     "lessonCellLabelCompleted": "पाठ {n}: {title} (पूर्ण)"
+  },
+  "friends": {
+    "close": "बंद करें",
+    "loadError": "आपके दोस्तों की सूची लोड नहीं हो सकी। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+    "anonymous": "अनाम शिक्षार्थी",
+    "addByEmail": "ईमेल से दोस्त जोड़ें",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "अनुरोध भेजें",
+    "requestSent": "{email} को फ्रेंड रिक्वेस्ट भेज दी गई।",
+    "noSuchUser": "इस ईमेल से अभी तक कोई Libre खाता नहीं है।",
+    "alreadyRequested": "आप पहले से ही दोस्त हैं या एक अनुरोध लंबित है।",
+    "invalidEmail": "एक मान्य ईमेल पता दर्ज करें।",
+    "addFailed": "यह अनुरोध भेजा नहीं जा सका। फिर से कोशिश करें।",
+    "requestsHeading": "अनुरोध",
+    "accept": "स्वीकारें",
+    "reject": "अस्वीकारें",
+    "acceptRequest": "अनुरोध स्वीकारें",
+    "friendsHeading": "दोस्त",
+    "emptyTitle": "अभी कोई दोस्त नहीं",
+    "emptyBody": "ईमेल से किसी को जोड़ें और स्ट्रीक, XP और पाठों की तुलना करें।",
+    "addFirst": "अपना पहला दोस्त जोड़ें",
+    "remove": "दोस्त हटाएँ",
+    "add": "दोस्त जोड़ें",
+    "levelShort": "Lv {level}",
+    "chipStreak": "{n} दिन की स्ट्रीक",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} पाठ",
+    "streak": "स्ट्रीक",
+    "longest": "सबसे लंबी",
+    "lessons": "पाठ",
+    "xp": "XP",
+    "level": "स्तर",
+    "profileTitle": "प्रोफ़ाइल",
+    "profileLoadError": "यह प्रोफ़ाइल लोड नहीं हो सकी।",
+    "actionError": "कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
+    "memberSince": "{date} से सदस्य"
+  },
+  "social": {
+    "title": "सोशल",
+    "subtitle": "ईमेल से दोस्त जोड़ें और देखें कि आप कहाँ खड़े हैं।",
+    "friendsTab": "दोस्त",
+    "leaderboardTab": "लीडरबोर्ड",
+    "signedOutTitle": "सोशल होने के लिए साइन इन करें",
+    "signedOutBody": "दोस्त और लीडरबोर्ड आपके Libre खाते के ज़रिए सिंक होते हैं। ईमेल से दोस्त जोड़ने और अपनी रैंकिंग देखने के लिए साइन इन करें।"
+  },
+  "leaderboard": {
+    "title": "लीडरबोर्ड",
+    "subtitle": "देखें कि दोस्तों और दुनिया के मुकाबले आप कहाँ खड़े हैं।",
+    "friends": "दोस्त",
+    "global": "वैश्विक",
+    "metricLabel": "रैंकिंग का आधार",
+    "metricXp": "XP",
+    "metricStreak": "स्ट्रीक",
+    "metricLessons": "पाठ",
+    "loadError": "लीडरबोर्ड लोड नहीं हो सका। फिर से कोशिश करें।",
+    "emptyFriendsTitle": "अभी रैंक करने के लिए कोई नहीं",
+    "emptyFriends": "यहाँ लीडरबोर्ड देखने के लिए कुछ दोस्त जोड़ें।",
+    "emptyGlobal": "अभी कोई रैंक किया हुआ शिक्षार्थी नहीं — सबसे पहले आप बनें।",
+    "addFriendsCta": "दोस्त जोड़ें",
+    "you": "आप"
   }
 }

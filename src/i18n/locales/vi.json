@@ -41,7 +41,9 @@
     "showSidebar": "Hiện thanh bên",
     "hideSidebar": "Ẩn thanh bên",
     "resumePrefix": "Tiếp tục:",
-    "primaryNavigation": "Điều hướng chính"
+    "primaryNavigation": "Điều hướng chính",
+    "social": "Cộng đồng",
+    "feedback": "Góp ý"
   },
   "sandbox": {
     "ariaLabel": "Sandbox",
@@ -123,6 +125,8 @@
     "closeAria": "Đóng",
     "books": "Sách",
     "booksBlurb": "Các khóa học dài với chương và bài tập.",
+    "collections": "Bộ sưu tập",
+    "collectionsBlurb": "Các thư mục tuyển chọn, gom sách, lộ trình và thử thách của một chủ đề lại với nhau.",
     "tracks": "Thử thách",
     "tracksBlurb": "Lộ trình ngôn ngữ và gói bài tập — các bài học khái niệm theo thứ tự cùng với bài toán luyện tập.",
     "challenges": "Thử thách",
@@ -140,7 +144,6 @@
     "sortProgress": "Tiến độ",
     "sortLessonCount": "Số bài học",
     "sortOrderTitle": "Thứ tự sắp xếp",
-    "filter": "Lọc",
     "more": "Thêm",
     "viewMode": "Chế độ xem",
     "shelfView": "Xem theo kệ",
@@ -587,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "Cài đặt {language}",
     "probingInstallHint": "Đang dò gợi ý cài đặt {language}…",
-    "noInstallRecipe": "Không có công thức cài đặt đi kèm cho {language}. Thử gợi ý khắc phục ở trên."
+    "noInstallRecipe": "Không có công thức cài đặt đi kèm cho {language}. Thử gợi ý khắc phục ở trên.",
+    "languageCard": "Ngôn ngữ",
+    "languageSearch": "Tìm kiếm ngôn ngữ",
+    "languageSearchPlaceholder": "Tìm theo tên hoặc mã…",
+    "languageNoResults": "Không có ngôn ngữ nào khớp với “{query}”."
   },
   "auth": {
     "signIn": "Đăng nhập",
@@ -856,7 +863,9 @@
     "unitLessons": "bài học",
     "unitDays": "ngày",
     "unitLevel": "cấp",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "Bạn bè",
+    "leaderboard": "Bảng xếp hạng"
   },
   "notifications": {
     "title": "Thông báo",
@@ -935,5 +944,65 @@
     "chapterLessonsList": "Bài học {chapter}",
     "lessonCellLabel": "Bài học {n}: {title}",
     "lessonCellLabelCompleted": "Bài học {n}: {title} (đã hoàn thành)"
+  },
+  "friends": {
+    "close": "Đóng",
+    "loadError": "Không thể tải danh sách bạn bè. Hãy kiểm tra kết nối và thử lại.",
+    "anonymous": "Người học ẩn danh",
+    "addByEmail": "Thêm bạn bằng email",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "Gửi lời mời",
+    "requestSent": "Đã gửi lời mời kết bạn tới {email}.",
+    "noSuchUser": "Chưa có tài khoản Libre nào dùng email này.",
+    "alreadyRequested": "Hai bạn đã là bạn bè hoặc lời mời đang chờ xử lý.",
+    "invalidEmail": "Hãy nhập một địa chỉ email hợp lệ.",
+    "addFailed": "Không thể gửi lời mời này. Hãy thử lại.",
+    "requestsHeading": "Lời mời",
+    "accept": "Chấp nhận",
+    "reject": "Từ chối",
+    "acceptRequest": "Chấp nhận lời mời",
+    "friendsHeading": "Bạn bè",
+    "emptyTitle": "Chưa có bạn bè",
+    "emptyBody": "Thêm ai đó bằng email và so sánh chuỗi ngày học, XP và số bài học.",
+    "addFirst": "Thêm người bạn đầu tiên",
+    "remove": "Hủy kết bạn",
+    "add": "Thêm bạn",
+    "levelShort": "Cấp {level}",
+    "chipStreak": "Chuỗi {n} ngày",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} bài học",
+    "streak": "Chuỗi ngày",
+    "longest": "Dài nhất",
+    "lessons": "Bài học",
+    "xp": "XP",
+    "level": "cấp độ",
+    "profileTitle": "Hồ sơ",
+    "profileLoadError": "Không thể tải hồ sơ này.",
+    "actionError": "Đã xảy ra lỗi. Hãy thử lại.",
+    "memberSince": "Thành viên từ {date}"
+  },
+  "social": {
+    "title": "Cộng đồng",
+    "subtitle": "Thêm bạn bè bằng email và xem bạn xếp hạng ra sao.",
+    "friendsTab": "Bạn bè",
+    "leaderboardTab": "Bảng xếp hạng",
+    "signedOutTitle": "Đăng nhập để tham gia cộng đồng",
+    "signedOutBody": "Bạn bè và bảng xếp hạng được đồng bộ qua tài khoản Libre của bạn. Hãy đăng nhập để thêm bạn bè bằng email và xem bạn xếp hạng ra sao."
+  },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "subtitle": "Xem bạn xếp hạng ra sao so với bạn bè và cả thế giới.",
+    "friends": "Bạn bè",
+    "global": "Toàn cầu",
+    "metricLabel": "Xếp hạng theo",
+    "metricXp": "XP",
+    "metricStreak": "Chuỗi ngày",
+    "metricLessons": "Bài học",
+    "loadError": "Không thể tải bảng xếp hạng. Hãy thử lại.",
+    "emptyFriendsTitle": "Chưa có ai để xếp hạng",
+    "emptyFriends": "Hãy thêm vài người bạn để thấy bảng xếp hạng ở đây.",
+    "emptyGlobal": "Chưa có người học nào được xếp hạng — hãy là người đầu tiên.",
+    "addFriendsCta": "Thêm bạn bè",
+    "you": "Bạn"
   }
 }

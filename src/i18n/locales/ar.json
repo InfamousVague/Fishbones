@@ -41,7 +41,9 @@
     "showSidebar": "إظهار الشريط الجانبي",
     "hideSidebar": "إخفاء الشريط الجانبي",
     "resumePrefix": "متابعة:",
-    "primaryNavigation": "التنقل الرئيسي"
+    "primaryNavigation": "التنقل الرئيسي",
+    "social": "التواصل",
+    "feedback": "الملاحظات"
   },
   "sandbox": {
     "ariaLabel": "بيئة التجربة",
@@ -123,6 +125,8 @@
     "closeAria": "إغلاق",
     "books": "الكتب",
     "booksBlurb": "دورات مطوَّلة تتضمن فصولًا وتمارين.",
+    "collections": "المجموعات",
+    "collectionsBlurb": "مجلدات منسّقة تجمع كتب موضوع معيّن ومساره وتحدياته في مكان واحد.",
     "tracks": "التحديات",
     "tracksBlurb": "مسارات لغوية وحزم تمارين — دروس مفاهيمية مرتّبة إضافة إلى مسائل للتدريب.",
     "challenges": "التحديات",
@@ -586,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "تثبيت {language}",
     "probingInstallHint": "جارٍ فحص تلميح تثبيت {language}…",
-    "noInstallRecipe": "لا توجد وصفة تثبيت مضمّنة لـ {language}. جرّب تلميح العلاج أعلاه."
+    "noInstallRecipe": "لا توجد وصفة تثبيت مضمّنة لـ {language}. جرّب تلميح العلاج أعلاه.",
+    "languageCard": "اللغة",
+    "languageSearch": "البحث في اللغات",
+    "languageSearchPlaceholder": "ابحث بالاسم أو الرمز…",
+    "languageNoResults": "لا توجد لغات تطابق «{query}»."
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -855,7 +863,9 @@
     "unitLessons": "دروس",
     "unitDays": "أيام",
     "unitLevel": "المستوى",
-    "unitXp": "النقاط"
+    "unitXp": "النقاط",
+    "friends": "الأصدقاء",
+    "leaderboard": "لوحة الصدارة"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -934,5 +944,65 @@
     "chapterLessonsList": "دروس {chapter}",
     "lessonCellLabel": "الدرس {n}: {title}",
     "lessonCellLabelCompleted": "الدرس {n}: {title} (مكتمل)"
+  },
+  "friends": {
+    "close": "إغلاق",
+    "loadError": "تعذّر تحميل أصدقائك. تحقّق من اتصالك وحاول مجددًا.",
+    "anonymous": "متعلّم مجهول",
+    "addByEmail": "أضف صديقًا عبر البريد الإلكتروني",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "إرسال الطلب",
+    "requestSent": "أُرسل طلب الصداقة إلى {email}.",
+    "noSuchUser": "لا يوجد حساب Libre يستخدم هذا البريد الإلكتروني بعد.",
+    "alreadyRequested": "أنتما صديقان بالفعل أو هناك طلب معلّق.",
+    "invalidEmail": "أدخل عنوان بريد إلكتروني صالحًا.",
+    "addFailed": "تعذّر إرسال هذا الطلب. حاول مجددًا.",
+    "requestsHeading": "الطلبات",
+    "accept": "قبول",
+    "reject": "رفض",
+    "acceptRequest": "قبول الطلب",
+    "friendsHeading": "الأصدقاء",
+    "emptyTitle": "لا أصدقاء بعد",
+    "emptyBody": "أضف شخصًا عبر البريد الإلكتروني وقارن السلاسل والنقاط والدروس.",
+    "addFirst": "أضف صديقك الأول",
+    "remove": "إزالة الصديق",
+    "add": "إضافة صديق",
+    "levelShort": "مستوى {level}",
+    "chipStreak": "سلسلة {n} يوم",
+    "chipXp": "{n} نقطة",
+    "chipLessons": "{n} درس",
+    "streak": "السلسلة",
+    "longest": "الأطول",
+    "lessons": "الدروس",
+    "xp": "النقاط",
+    "level": "المستوى",
+    "profileTitle": "الملف الشخصي",
+    "profileLoadError": "تعذّر تحميل هذا الملف الشخصي.",
+    "actionError": "حدث خطأ ما. حاول مجددًا.",
+    "memberSince": "عضو منذ {date}"
+  },
+  "social": {
+    "title": "التواصل",
+    "subtitle": "أضف أصدقاء عبر البريد الإلكتروني واطّلع على ترتيبك بينهم.",
+    "friendsTab": "الأصدقاء",
+    "leaderboardTab": "لوحة الصدارة",
+    "signedOutTitle": "سجّل الدخول للتواصل",
+    "signedOutBody": "يتزامن الأصدقاء ولوحات الصدارة عبر حسابك في Libre. سجّل الدخول لإضافة أصدقاء عبر البريد الإلكتروني والاطّلاع على ترتيبك بينهم."
+  },
+  "leaderboard": {
+    "title": "لوحة الصدارة",
+    "subtitle": "اطّلع على ترتيبك بين أصدقائك والعالم.",
+    "friends": "الأصدقاء",
+    "global": "عالمي",
+    "metricLabel": "الترتيب حسب",
+    "metricXp": "النقاط",
+    "metricStreak": "السلسلة",
+    "metricLessons": "الدروس",
+    "loadError": "تعذّر تحميل لوحة الصدارة. حاول مجددًا.",
+    "emptyFriendsTitle": "لا أحد للترتيب بعد",
+    "emptyFriends": "أضف بعض الأصدقاء لترى لوحة صدارة هنا.",
+    "emptyGlobal": "لا يوجد متعلّمون مصنَّفون بعد — كن الأول.",
+    "addFriendsCta": "إضافة أصدقاء",
+    "you": "أنت"
   }
 }

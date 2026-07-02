@@ -11,6 +11,11 @@
   border: var(--libre-bw-1) solid var(--color-border-default, var(--libre-c-rgba-255-255-255-0-06));
   border-radius: var(--libre-radius-lg);
   padding: var(--libre-space-20);
+  /* Theme the kit Skeleton (see SocialView.css) — the overlay variant
+     portals to <body>, outside .libre-social's scope, so the token
+     mapping has to live here too. */
+  --color-skeleton: var(--color-bg-tertiary, var(--libre-c-rgba-255-255-255-0-05));
+  --color-skeleton-shimmer: var(--color-bg-elevated, var(--libre-c-rgba-255-255-255-0-09));
 }
 
 .libre-profile-card--overlay {

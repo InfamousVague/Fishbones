@@ -41,7 +41,9 @@
     "showSidebar": "সাইডবার দেখান",
     "hideSidebar": "সাইডবার লুকান",
     "resumePrefix": "চালিয়ে যান:",
-    "primaryNavigation": "প্রধান নেভিগেশন"
+    "primaryNavigation": "প্রধান নেভিগেশন",
+    "social": "সোশ্যাল",
+    "feedback": "মতামত"
   },
   "sandbox": {
     "ariaLabel": "স্যান্ডবক্স",
@@ -123,6 +125,8 @@
     "closeAria": "বন্ধ করুন",
     "books": "বই",
     "booksBlurb": "অধ্যায় ও অনুশীলনসহ দীর্ঘ কোর্স।",
+    "collections": "সংগ্রহ",
+    "collectionsBlurb": "কোনো বিষয়ের বই, ট্র্যাক ও চ্যালেঞ্জ একসাথে জড়ো করা নির্বাচিত ফোল্ডার।",
     "tracks": "চ্যালেঞ্জ",
     "tracksBlurb": "ভাষার ট্র্যাক ও অনুশীলন প্যাক — ক্রমানুসারে ধারণা পাঠ এবং অনুশীলন সমস্যা।",
     "challenges": "চ্যালেঞ্জ",
@@ -586,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "{language} ইনস্টল করুন",
     "probingInstallHint": "{language} ইনস্টল ইঙ্গিত প্রোব করা হচ্ছে…",
-    "noInstallRecipe": "{language}-এর জন্য কোনো ইনস্টল রেসিপি নেই। উপরের প্রতিকার ইঙ্গিত চেষ্টা করুন।"
+    "noInstallRecipe": "{language}-এর জন্য কোনো ইনস্টল রেসিপি নেই। উপরের প্রতিকার ইঙ্গিত চেষ্টা করুন।",
+    "languageCard": "ভাষা",
+    "languageSearch": "ভাষা খুঁজুন",
+    "languageSearchPlaceholder": "নাম বা কোড দিয়ে খুঁজুন…",
+    "languageNoResults": "“{query}”-এর সাথে মেলে এমন কোনো ভাষা নেই।"
   },
   "auth": {
     "signIn": "সাইন ইন",
@@ -855,7 +863,9 @@
     "unitLessons": "পাঠ",
     "unitDays": "দিন",
     "unitLevel": "লেভেল",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "বন্ধুরা",
+    "leaderboard": "লিডারবোর্ড"
   },
   "notifications": {
     "title": "বিজ্ঞপ্তি",
@@ -934,5 +944,65 @@
     "chapterLessonsList": "{chapter} পাঠ",
     "lessonCellLabel": "পাঠ {n}: {title}",
     "lessonCellLabelCompleted": "পাঠ {n}: {title} (সম্পন্ন)"
+  },
+  "friends": {
+    "close": "বন্ধ করুন",
+    "loadError": "আপনার বন্ধুদের তালিকা লোড করা যায়নি। সংযোগ যাচাই করে আবার চেষ্টা করুন।",
+    "anonymous": "বেনামী শিক্ষার্থী",
+    "addByEmail": "ইমেইল দিয়ে বন্ধু যোগ করুন",
+    "emailPlaceholder": "friend@example.com",
+    "sendRequest": "অনুরোধ পাঠান",
+    "requestSent": "{email}-এ বন্ধুত্বের অনুরোধ পাঠানো হয়েছে।",
+    "noSuchUser": "এই ইমেইল দিয়ে এখনো কোনো Libre অ্যাকাউন্ট নেই।",
+    "alreadyRequested": "আপনারা ইতিমধ্যে বন্ধু, অথবা একটি অনুরোধ অপেক্ষমাণ রয়েছে।",
+    "invalidEmail": "একটি বৈধ ইমেইল ঠিকানা লিখুন।",
+    "addFailed": "অনুরোধটি পাঠানো গেল না। আবার চেষ্টা করুন।",
+    "requestsHeading": "অনুরোধ",
+    "accept": "গ্রহণ করুন",
+    "reject": "প্রত্যাখ্যান করুন",
+    "acceptRequest": "অনুরোধ গ্রহণ করুন",
+    "friendsHeading": "বন্ধুরা",
+    "emptyTitle": "এখনো কোনো বন্ধু নেই",
+    "emptyBody": "ইমেইল দিয়ে কাউকে যোগ করুন এবং স্ট্রিক, XP ও পাঠের তুলনা করুন।",
+    "addFirst": "আপনার প্রথম বন্ধু যোগ করুন",
+    "remove": "বন্ধু সরান",
+    "add": "বন্ধু যোগ করুন",
+    "levelShort": "লেভেল {level}",
+    "chipStreak": "{n} দিনের স্ট্রিক",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n}টি পাঠ",
+    "streak": "স্ট্রিক",
+    "longest": "দীর্ঘতম",
+    "lessons": "পাঠ",
+    "xp": "XP",
+    "level": "লেভেল",
+    "profileTitle": "প্রোফাইল",
+    "profileLoadError": "এই প্রোফাইলটি লোড করা যায়নি।",
+    "actionError": "কিছু একটা গোলমাল হয়েছে। আবার চেষ্টা করুন।",
+    "memberSince": "{date} থেকে সদস্য"
+  },
+  "social": {
+    "title": "সোশ্যাল",
+    "subtitle": "ইমেইল দিয়ে বন্ধু যোগ করুন এবং দেখুন আপনি কোথায় দাঁড়িয়ে।",
+    "friendsTab": "বন্ধুরা",
+    "leaderboardTab": "লিডারবোর্ড",
+    "signedOutTitle": "সোশ্যালে যোগ দিতে সাইন ইন করুন",
+    "signedOutBody": "বন্ধু ও লিডারবোর্ড আপনার Libre অ্যাকাউন্টের মাধ্যমে সিঙ্ক হয়। ইমেইল দিয়ে বন্ধু যোগ করতে এবং আপনার অবস্থান দেখতে সাইন ইন করুন।"
+  },
+  "leaderboard": {
+    "title": "লিডারবোর্ড",
+    "subtitle": "বন্ধুদের ও সারা বিশ্বের সাথে আপনার অবস্থান তুলনা করুন।",
+    "friends": "বন্ধুরা",
+    "global": "গ্লোবাল",
+    "metricLabel": "র‍্যাঙ্কের ভিত্তি",
+    "metricXp": "XP",
+    "metricStreak": "স্ট্রিক",
+    "metricLessons": "পাঠ",
+    "loadError": "লিডারবোর্ড লোড করা যায়নি। আবার চেষ্টা করুন।",
+    "emptyFriendsTitle": "র‍্যাঙ্ক করার মতো কেউ নেই",
+    "emptyFriends": "এখানে লিডারবোর্ড দেখতে কিছু বন্ধু যোগ করুন।",
+    "emptyGlobal": "এখনো কোনো র‍্যাঙ্কধারী শিক্ষার্থী নেই — আপনিই প্রথম হোন।",
+    "addFriendsCta": "বন্ধু যোগ করুন",
+    "you": "আপনি"
   }
 }

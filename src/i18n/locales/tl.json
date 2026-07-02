@@ -41,7 +41,9 @@
     "showSidebar": "Ipakita ang sidebar",
     "hideSidebar": "Itago ang sidebar",
     "resumePrefix": "Ituloy:",
-    "primaryNavigation": "Pangunahing nabigasyon"
+    "primaryNavigation": "Pangunahing nabigasyon",
+    "social": "Social",
+    "feedback": "Feedback"
   },
   "sandbox": {
     "ariaLabel": "Sandbox",
@@ -123,6 +125,8 @@
     "closeAria": "Isara",
     "books": "Mga Aklat",
     "booksBlurb": "Mahahabang kurso na may mga kabanata at ehersisyo.",
+    "collections": "Mga Koleksyon",
+    "collectionsBlurb": "Mga piling folder na pinagsasama ang mga aklat, track, at hamon ng isang paksa.",
     "tracks": "Mga Hamon",
     "tracksBlurb": "Mga language track at exercise pack — magkakasunod na aral sa konsepto kasama ang mga problema para mag-ensayo.",
     "challenges": "Mga Hamon",
@@ -140,7 +144,6 @@
     "sortProgress": "Progreso",
     "sortLessonCount": "Bilang ng aral",
     "sortOrderTitle": "Pagkakasunod-sunod",
-    "filter": "Salain",
     "more": "Higit pa",
     "viewMode": "Mode ng view",
     "shelfView": "View ng estante",
@@ -587,7 +590,11 @@
     "rerunEllipsis": "…",
     "installLanguage": "I-install ang {language}",
     "probingInstallHint": "Sinusuri ang install hint para sa {language}…",
-    "noInstallRecipe": "Walang install recipe na inihatid para sa {language}. Subukan ang remedy hint sa itaas."
+    "noInstallRecipe": "Walang install recipe na inihatid para sa {language}. Subukan ang remedy hint sa itaas.",
+    "languageCard": "Wika",
+    "languageSearch": "Maghanap ng wika",
+    "languageSearchPlaceholder": "Maghanap ayon sa pangalan o code…",
+    "languageNoResults": "Walang wikang tumutugma sa “{query}”."
   },
   "auth": {
     "signIn": "Mag-sign in",
@@ -856,7 +863,9 @@
     "unitLessons": "aral",
     "unitDays": "araw",
     "unitLevel": "level",
-    "unitXp": "XP"
+    "unitXp": "XP",
+    "friends": "Mga Kaibigan",
+    "leaderboard": "Leaderboard"
   },
   "notifications": {
     "title": "Mga Abiso",
@@ -935,5 +944,65 @@
     "chapterLessonsList": "Mga aral sa {chapter}",
     "lessonCellLabel": "Aral {n}: {title}",
     "lessonCellLabelCompleted": "Aral {n}: {title} (tapos na)"
+  },
+  "friends": {
+    "close": "Isara",
+    "loadError": "Hindi ma-load ang mga kaibigan mo. Suriin ang koneksyon mo at subukan ulit.",
+    "anonymous": "Anonimong mag-aaral",
+    "addByEmail": "Magdagdag ng kaibigan gamit ang email",
+    "emailPlaceholder": "kaibigan@example.com",
+    "sendRequest": "Ipadala ang request",
+    "requestSent": "Naipadala ang friend request sa {email}.",
+    "noSuchUser": "Wala pang Libre account na gumagamit ng email na iyan.",
+    "alreadyRequested": "Magkaibigan na kayo o may nakabinbing request.",
+    "invalidEmail": "Maglagay ng wastong email address.",
+    "addFailed": "Hindi naipadala ang request. Subukan ulit.",
+    "requestsHeading": "Mga Request",
+    "accept": "Tanggapin",
+    "reject": "Tanggihan",
+    "acceptRequest": "Tanggapin ang request",
+    "friendsHeading": "Mga Kaibigan",
+    "emptyTitle": "Wala pang kaibigan",
+    "emptyBody": "Magdagdag ng kaibigan gamit ang email at ikumpara ang streak, XP, at mga aralin.",
+    "addFirst": "Idagdag ang una mong kaibigan",
+    "remove": "Alisin ang kaibigan",
+    "add": "Magdagdag ng kaibigan",
+    "levelShort": "Lv {level}",
+    "chipStreak": "{n} araw na streak",
+    "chipXp": "{n} XP",
+    "chipLessons": "{n} aralin",
+    "streak": "Streak",
+    "longest": "Pinakamahaba",
+    "lessons": "Mga Aralin",
+    "xp": "XP",
+    "level": "level",
+    "profileTitle": "Profile",
+    "profileLoadError": "Hindi ma-load ang profile na ito.",
+    "actionError": "May nagkaproblema. Subukan ulit.",
+    "memberSince": "Miyembro mula {date}"
+  },
+  "social": {
+    "title": "Social",
+    "subtitle": "Magdagdag ng mga kaibigan gamit ang email at tingnan kung sino ang nangunguna.",
+    "friendsTab": "Mga Kaibigan",
+    "leaderboardTab": "Leaderboard",
+    "signedOutTitle": "Mag-sign in para maging social",
+    "signedOutBody": "Nagsi-sync ang mga kaibigan at leaderboard sa pamamagitan ng iyong Libre account. Mag-sign in para magdagdag ng mga kaibigan gamit ang email at tingnan kung sino ang nangunguna."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Tingnan ang ranggo mo kumpara sa mga kaibigan at sa buong mundo.",
+    "friends": "Mga Kaibigan",
+    "global": "Global",
+    "metricLabel": "I-rank ayon sa",
+    "metricXp": "XP",
+    "metricStreak": "Streak",
+    "metricLessons": "Mga Aralin",
+    "loadError": "Hindi ma-load ang leaderboard. Subukan ulit.",
+    "emptyFriendsTitle": "Wala pang mai-rank",
+    "emptyFriends": "Magdagdag ng mga kaibigan para makakita ng leaderboard dito.",
+    "emptyGlobal": "Wala pang naka-rank na mag-aaral — ikaw ang mauna.",
+    "addFriendsCta": "Magdagdag ng mga kaibigan",
+    "you": "Ikaw"
   }
 }
