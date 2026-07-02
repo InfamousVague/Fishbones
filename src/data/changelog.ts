@@ -21,6 +21,17 @@ export interface ChangelogEntry {
 /// Newest first.
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "2.7.0",
+    date: "2026-07-02",
+    highlights: [
+      "Practice is here! A full review system built from the lessons you've completed — spaced repetition keeps what you learned fresh.",
+      "Two new exercise types: Fill the Gap (complete the missing token) and Memory Rebuild (study the code, then rebuild it — watch out for decoy lines).",
+      "A practice dashboard with your daily goal, streak, accuracy, and a two-week activity chart — plus three rotating daily challenges.",
+      "Practice only quizzes you on lessons you've actually finished. Not enough yet? It'll tell you to go learn a bit more first.",
+      "Rust books now include review questions for every code lesson, and more course translations are live.",
+    ],
+  },
+  {
     version: "2.6.0",
     date: "2026-07-01",
     highlights: [
