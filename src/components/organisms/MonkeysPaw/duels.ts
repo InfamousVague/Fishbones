@@ -94,16 +94,33 @@ import { RUST_DUELS } from "./duels/rust";
 import { GO_DUELS } from "./duels/go";
 import { JAVASCRIPT_DUELS } from "./duels/javascript";
 import { PYTHON_DUELS } from "./duels/python";
+import { RUST_DUELS_VOL2 } from "./duels/rust-vol2";
+import { RUST_DUELS_VOL3 } from "./duels/rust-vol3";
+import { GO_DUELS_VOL2 } from "./duels/go-vol2";
+import { GO_DUELS_VOL3 } from "./duels/go-vol3";
+import { JAVASCRIPT_DUELS_VOL2 } from "./duels/javascript-vol2";
+import { JAVASCRIPT_DUELS_VOL3 } from "./duels/javascript-vol3";
+import { PYTHON_DUELS_VOL2 } from "./duels/python-vol2";
+import { PYTHON_DUELS_VOL3 } from "./duels/python-vol3";
 
 export { RUST_DUELS, GO_DUELS, JAVASCRIPT_DUELS, PYTHON_DUELS };
 
 /// Every duel in the catalog, all languages, sorted by rank so a
-/// flat render is already a difficulty ladder.
+/// flat render is already a difficulty ladder. Volumes 2 and 3 grew
+/// each language's ladder from 10 to 30 duels (three per rank).
 export const ALL_DUELS: readonly PawDuel[] = [
   ...RUST_DUELS,
+  ...RUST_DUELS_VOL2,
+  ...RUST_DUELS_VOL3,
   ...GO_DUELS,
+  ...GO_DUELS_VOL2,
+  ...GO_DUELS_VOL3,
   ...JAVASCRIPT_DUELS,
+  ...JAVASCRIPT_DUELS_VOL2,
+  ...JAVASCRIPT_DUELS_VOL3,
   ...PYTHON_DUELS,
+  ...PYTHON_DUELS_VOL2,
+  ...PYTHON_DUELS_VOL3,
 ].sort((a, b) => a.rank - b.rank || a.title.localeCompare(b.title));
 
 /// Browse metadata per language — display order, label, and the id
