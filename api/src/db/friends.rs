@@ -332,7 +332,7 @@ impl Database {
         let conn = self.conn_lock();
         let base = conn
             .query_row(
-                "SELECT id, display_name, email, created_at FROM users WHERE id = ?1",
+                "SELECT id, display_name, email, created_at, leaderboard_name FROM users WHERE id = ?1",
                 params![subject_id],
                 |r| {
                     Ok((
@@ -343,11 +343,12 @@ impl Database {
                         // post-migration, '') created_at — a missing
                         // member-since date must never 500 the profile.
                         r.get::<_, Option<String>>(3)?.unwrap_or_default(),
+                        r.get::<_, Option<String>>(4)?,
                     ))
                 },
             )
             .optional()?;
-        let (id, display_name, email, created_at) = match base {
+        let (id, display_name, email, created_at, leaderboard_name) = match base {
             Some(v) => v,
             None => return Ok(None),
         };
@@ -364,9 +365,26 @@ impl Database {
         // Email is private: only the user themselves or an accepted
         // friend gets to see it.
         let email_out = if is_self || is_friend { email } else { None };
+        // PRIVACY: `display_name` is usually the user's REAL name (OAuth
+        // populates it from the Google/Apple account). Only self +
+        // accepted friends may see it; every other caller gets the SAME
+        // public identity the leaderboard serves — the explicitly-claimed
+        // `leaderboard_name`, or a deterministic alias when unclaimed.
+        // Without this, any account holder could page /leaderboard/global
+        // for user ids and fan them out to /users/:id/profile to dump the
+        // whole userbase's real names. Mirrors `leaderboard_global`.
+        let display_out = if is_self || is_friend {
+            display_name
+        } else {
+            Some(
+                leaderboard_name
+                    .filter(|n| !n.trim().is_empty())
+                    .unwrap_or_else(|| crate::alias::alias_for(&id)),
+            )
+        };
         Ok(Some(ProfileView {
             id,
-            display_name,
+            display_name: display_out,
             email: email_out,
             created_at,
             stats,
@@ -481,13 +499,36 @@ impl Database {
 
     /// Claim / update the leaderboard name. Caller validates first
     /// (`alias::validate_name`). Backs `PUT /leaderboard/name`.
-    pub fn set_leaderboard_name(&self, user_id: &str, name: &str) -> anyhow::Result<()> {
+    /// Claim a public leaderboard handle. Returns `Ok(false)` when the
+    /// name (case-insensitively) is already held by ANOTHER user, so the
+    /// caller can surface a 409 instead of silently letting two accounts
+    /// share a handle (which would let anyone impersonate a known player
+    /// on the global board). Uniqueness is enforced in-app rather than
+    /// via a UNIQUE index so an existing prod DB carrying legacy
+    /// duplicates can't fail the migration on restart; the check + write
+    /// run under the same connection lock, so two simultaneous claims of
+    /// the same name can't both win.
+    pub fn set_leaderboard_name(&self, user_id: &str, name: &str) -> anyhow::Result<bool> {
         let conn = self.conn_lock();
+        let taken = conn
+            .query_row(
+                "SELECT 1 FROM users \
+                 WHERE leaderboard_name IS NOT NULL \
+                   AND lower(leaderboard_name) = lower(?1) \
+                   AND id != ?2 LIMIT 1",
+                params![name, user_id],
+                |_| Ok(()),
+            )
+            .optional()?
+            .is_some();
+        if taken {
+            return Ok(false);
+        }
         conn.execute(
             "UPDATE users SET leaderboard_name = ?1, updated_at = datetime('now') WHERE id = ?2",
             params![name, user_id],
         )?;
-        Ok(())
+        Ok(true)
     }
 }
 

@@ -33,6 +33,20 @@ impl Database {
     /// model (there's no per-field merge to do; the client already
     /// reconciled from its local progress + habit data).
     pub fn upsert_stats(&self, user_id: &str, s: &Stats) -> anyhow::Result<()> {
+        // Stats are client-supplied (PUT /me/stats) and feed the public
+        // leaderboards, so a malicious client could otherwise push
+        // negatives or i64::MAX to occupy rank 1 / render garbage. Clamp
+        // every counter to [0, sane-max] on the way in. These bounds are
+        // far above any legitimate value (years of daily use) but block
+        // overflow-adjacent and negative spoofing. NOTE: this only stops
+        // absurd values — full anti-cheat needs server-derived scores
+        // from the progress table (tracked follow-up).
+        let clamp = |v: i64, max: i64| v.clamp(0, max);
+        let total_xp = clamp(s.total_xp, 1_000_000_000);
+        let current_streak_days = clamp(s.current_streak_days, 100_000);
+        let longest_streak_days = clamp(s.longest_streak_days, 100_000);
+        let lessons_completed = clamp(s.lessons_completed, 10_000_000);
+        let level = clamp(s.level, 100_000);
         let conn = self.conn_lock();
         conn.execute(
             "INSERT INTO stats \
@@ -48,11 +62,11 @@ impl Database {
                  updated_at = excluded.updated_at",
             params![
                 user_id,
-                s.total_xp,
-                s.current_streak_days,
-                s.longest_streak_days,
-                s.lessons_completed,
-                s.level,
+                total_xp,
+                current_streak_days,
+                longest_streak_days,
+                lessons_completed,
+                level,
             ],
         )?;
         Ok(())

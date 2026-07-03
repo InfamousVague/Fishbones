@@ -116,14 +116,14 @@ pub async fn set_name(
     if let Err(code) = crate::alias::validate_name(&body.name) {
         return Err((StatusCode::BAD_REQUEST, Json(NameError { error: code })));
     }
-    state
-        .db
-        .set_leaderboard_name(&user_id, &body.name)
-        .map(|_| StatusCode::NO_CONTENT)
-        .map_err(|_| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(NameError { error: "internal" }),
-            )
-        })
+    match state.db.set_leaderboard_name(&user_id, &body.name) {
+        Ok(true) => Ok(StatusCode::NO_CONTENT),
+        // Name already claimed by another account (case-insensitive) —
+        // 409 so the UI can prompt for a different handle.
+        Ok(false) => Err((StatusCode::CONFLICT, Json(NameError { error: "name_taken" }))),
+        Err(_) => Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(NameError { error: "internal" }),
+        )),
+    }
 }

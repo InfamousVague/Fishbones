@@ -74,9 +74,10 @@ pub struct AddFriendBody {
 /// Send a friend request to the account with `email`. Resolves the
 /// target by email, then creates a pending `caller → target` edge.
 ///
-///   201 — request created
-///   400 — you tried to add yourself
-///   404 — no user with that email
+///   201 — request created — OR an anti-enumeration no-op: an unknown
+///         email or a self-add returns the same 201 and creates nothing,
+///         so a caller can't probe which emails have accounts
+///   400 — malformed email (empty / no `@`)
 ///   409 — already related (pending or accepted, either direction)
 pub async fn add_friend(
     State(state): State<Arc<AppState>>,
@@ -84,17 +85,24 @@ pub async fn add_friend(
     Json(body): Json<AddFriendBody>,
 ) -> Result<StatusCode, StatusCode> {
     let email = body.email.trim().to_lowercase();
-    if email.is_empty() {
-        return Err(StatusCode::NOT_FOUND);
+    if email.is_empty() || !email.contains('@') {
+        return Err(StatusCode::BAD_REQUEST);
     }
-    let target_id = state
+    // ANTI-ENUMERATION: an email that resolves to no account returns the
+    // SAME 201 a real request does (and creates nothing), so an
+    // authenticated caller can't probe which emails have Libre accounts
+    // by diffing 404-vs-201. Mirrors the enumeration-safe posture of the
+    // password-reset / verify-email endpoints. A self-add is likewise a
+    // silent no-op 201 (you already know your own email; keep the
+    // response shape uniform).
+    let target_id = match state
         .db
         .find_user_id_by_email(&email)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
-    if target_id == user_id {
-        return Err(StatusCode::BAD_REQUEST);
-    }
+    {
+        Some(id) if id != user_id => id,
+        _ => return Ok(StatusCode::CREATED),
+    };
     // Pre-flight the relationship so an already-related pair 409s without
     // touching the table; `add_request` re-checks under the lock to close
     // the race, so this is a cheap fast-path, not the sole guard.
