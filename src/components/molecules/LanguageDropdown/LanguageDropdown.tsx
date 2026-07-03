@@ -97,29 +97,30 @@ export default function LanguageDropdown({
   /// Measure the trigger and compute where the menu should sit.
   /// Called when the menu opens, on resize, and on scroll inside
   /// any ancestor (so scrolling the settings dialog's body
-  /// doesn't detach the menu from the trigger). Compact-variant
-  /// anchors the menu's RIGHT edge to the trigger's right edge —
-  /// matches the pre-portal CSS rule that read `right: 0`. Field
-  /// variant just aligns left edges.
+  /// doesn't detach the menu from the trigger). The menu LEFT-aligns
+  /// under the trigger (both variants) so its options line up beneath
+  /// the trigger label; it's only nudged left when it would otherwise
+  /// spill off the right edge of the viewport. (The compact variant
+  /// used to right-anchor for a top-bar trigger, but the only compact
+  /// consumer is the lesson reader's per-book picker, which sits in the
+  /// content column — right-anchoring pushed the menu left of its
+  /// trigger.)
   const measure = () => {
     const trigger = triggerRef.current;
     if (!trigger) return;
     const rect = trigger.getBoundingClientRect();
-    // Menu width upper bound from CSS — also caps how far the
-    // "right-align" math has to look ahead. Keep in sync with
-    // the `max-width` on `.libre-langdrop__menu`.
+    // Menu width upper bound from CSS — keep in sync with the
+    // `max-width` on `.libre-langdrop__menu`. Used as the worst-case
+    // width for the right-edge overflow check.
     const menuMaxWidth = 240;
     const minWidth = Math.max(rect.width, 0);
+    const margin = 8;
+    const menuWidth = Math.max(minWidth, menuMaxWidth);
+    // Left edges aligned; shift left just enough to stay on-screen.
     let left = rect.left;
-    if (variant === "compact") {
-      // Right-anchor: the menu's right edge sits at the trigger's
-      // right edge. If the menu hits its max width, this
-      // resolves to `trigger.right - menuMaxWidth`.
-      left = rect.right - Math.max(menuMaxWidth, minWidth);
-      // Clamp to viewport so a menu near the left edge doesn't
-      // negative-left into the chrome.
-      left = Math.max(8, left);
-    }
+    const overflowRight = left + menuWidth - (window.innerWidth - margin);
+    if (overflowRight > 0) left -= overflowRight;
+    left = Math.max(margin, left);
     setMenuPos({
       top: rect.bottom + 6, // matches the previous `top: calc(100% + 6px)`
       left,
