@@ -75,6 +75,34 @@
   min-width: 0;
 }
 
+/* Match the per-book language picker's trigger to the narration pill
+   (`.libre-tts-pill`) sitting next to it, so the two chips in the meta
+   row read as one family — same height, fill, text weight and hover.
+   Scoped to the reader (via the langpicker className) + doubled with
+   `--compact` so it outweighs the base compact-trigger rule regardless
+   of stylesheet import order. */
+.libre-reader-meta-langpicker.libre-langdrop--compact .libre-langdrop__trigger {
+  height: var(--libre-size-36);
+  box-sizing: border-box;
+  padding: var(--libre-space-0) var(--libre-space-14);
+  gap: var(--libre-space-9);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  letter-spacing: var(--libre-ls-0-01em);
+  border-radius: var(--libre-radius-pill);
+}
+
+.libre-reader-meta-langpicker.libre-langdrop--compact
+  .libre-langdrop__trigger:hover,
+.libre-reader-meta-langpicker.libre-langdrop--compact
+  .libre-langdrop__trigger:focus-visible {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
 .libre-reader-meta-time {
   font-size: var(--libre-fs-10-5);
   font-weight: var(--libre-fw-600);
