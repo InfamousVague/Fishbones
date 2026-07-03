@@ -336,6 +336,54 @@ impl Database {
         Ok(ranked)
     }
 
+    /// The caller's OWN global-leaderboard row, carrying their TRUE
+    /// global rank even when they're outside the visible top-N page.
+    /// The `/leaderboard/global` handler appends this (when the caller
+    /// isn't already on the page) so a signed-in learner ALWAYS sees
+    /// their own row + chosen name on the board instead of vanishing
+    /// when they haven't earned enough XP to crack the top 50. Same
+    /// privacy fold as the global query — the claimed name or a
+    /// deterministic alias, never the raw display_name.
+    pub fn leaderboard_self_row(
+        &self,
+        user_id: &str,
+    ) -> anyhow::Result<Option<LeaderboardRow>> {
+        let conn = self.conn_lock();
+        let row = conn
+            .query_row(
+                "SELECT u.id, u.leaderboard_name, \
+                        COALESCE(s.total_xp, 0), \
+                        COALESCE(s.current_streak_days, 0), \
+                        COALESCE(s.longest_streak_days, 0), \
+                        COALESCE(s.lessons_completed, 0), \
+                        COALESCE(s.level, 0), \
+                        COALESCE(u.early_access, 0) \
+                 FROM users u LEFT JOIN stats s ON s.user_id = u.id \
+                 WHERE u.id = ?1",
+                params![user_id],
+                leaderboard_row_from,
+            )
+            .optional()?;
+        let mut row = match row {
+            Some(r) => r,
+            None => return Ok(None),
+        };
+        // True global rank = (# users ranked strictly above me) + 1,
+        // matching the global ORDER BY (xp DESC, then id ASC as the
+        // tiebreak).
+        row.rank = conn.query_row(
+            "SELECT COUNT(*) + 1 FROM users u LEFT JOIN stats s ON s.user_id = u.id \
+             WHERE COALESCE(s.total_xp, 0) > ?2 \
+                OR (COALESCE(s.total_xp, 0) = ?2 AND u.id < ?1)",
+            params![user_id, row.total_xp],
+            |r| r.get(0),
+        )?;
+        if row.display_name.as_deref().map_or(true, |n| n.is_empty()) {
+            row.display_name = Some(crate::alias::alias_for(&row.user_id));
+        }
+        Ok(Some(row))
+    }
+
     /// Fetch the raw profile fields + stats for a user, plus the
     /// viewer-relative flags. The handler decides whether to null out
     /// the email; this returns everything and lets the caller redact.

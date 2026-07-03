@@ -1,17 +1,14 @@
-import { Icon } from "@base/primitives/icon";
+import { Badge } from "@base/primitives/badge";
 import { crown } from "@base/primitives/icon/icons/crown";
-import "@base/primitives/icon/icon.css";
+import "@base/primitives/badge/badge.css";
 import { useT } from "@/i18n/i18n";
-import "./EarlyBadge.css";
 
 /// Small crown "EARLY" pill shown next to an early-access supporter's
 /// name — everywhere a name renders (leaderboard rows, friend lists,
-/// friend requests, profile card, profile page). Purely decorative +
-/// aria-labelled; render it ONLY when the account's `early_access` flag
-/// is true (the caller gates it).
-///
-/// `size="sm"` (default) fits inline beside a name; `size="md"` is a
-/// touch bigger for the profile headers.
+/// friend requests, profile card, profile page). Renders as the app's
+/// standard `Badge` primitive so it matches every other pill on the
+/// site (same radius / padding / accent token); render it ONLY when the
+/// account's `early_access` flag is true (the caller gates it).
 export default function EarlyBadge({
   size = "sm",
   className = "",
@@ -20,15 +17,15 @@ export default function EarlyBadge({
   className?: string;
 }) {
   const t = useT();
-  const label = t("supporter.badge");
   return (
-    <span
-      className={`libre-early-badge libre-early-badge--${size} ${className}`.trim()}
-      title={t("supporter.badgeTitle")}
-      aria-label={t("supporter.badgeTitle")}
+    <Badge
+      color="accent"
+      variant="solid"
+      size={size}
+      icon={crown}
+      className={className}
     >
-      <Icon icon={crown} size="xs" color="currentColor" />
-      <span className="libre-early-badge__text">{label}</span>
-    </span>
+      {t("supporter.badge")}
+    </Badge>
   );
 }

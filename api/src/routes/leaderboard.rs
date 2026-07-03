@@ -58,16 +58,26 @@ const MAX_LIMIT: i64 = 200;
 /// [1, 200]; `offset` floors at 0. Ranks are absolute (offset-aware).
 pub async fn global(
     State(state): State<Arc<AppState>>,
-    Extension(UserId(_user_id)): Extension<UserId>,
+    Extension(UserId(user_id)): Extension<UserId>,
     Query(q): Query<GlobalQuery>,
 ) -> Result<Json<Vec<LeaderboardRow>>, StatusCode> {
     let limit = q.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
     let offset = q.offset.unwrap_or(0).max(0);
-    state
+    let mut rows = state
         .db
         .leaderboard_global(limit, offset)
-        .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // Pin the caller's OWN row onto the first page when they're not
+    // already in it — so a signed-in learner always sees their row +
+    // chosen name even when ranked below the top-N cut. Only on
+    // offset 0 (the "self" row belongs with the head of the board,
+    // not repeated on every paginated slice).
+    if offset == 0 && !rows.iter().any(|r| r.user_id == user_id) {
+        if let Ok(Some(self_row)) = state.db.leaderboard_self_row(&user_id) {
+            rows.push(self_row);
+        }
+    }
+    Ok(Json(rows))
 }
 
 // ── GET/PUT /leaderboard/name — the caller's public leaderboard identity ──
