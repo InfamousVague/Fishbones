@@ -15,6 +15,7 @@
 //! initial `dotenvy::dotenv()` is sync so its failure mode (file
 //! missing) doesn't even surface as a tracing line.
 
+mod alias;
 mod auth;
 mod db;
 mod mailer;

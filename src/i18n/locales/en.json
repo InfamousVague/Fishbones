@@ -1049,7 +1049,17 @@
     "friendsTab": "Friends",
     "leaderboardTab": "Leaderboard",
     "signedOutTitle": "Sign in to go social",
-    "signedOutBody": "Friends and leaderboards sync through your Libre account. Sign in to add friends by email and see how you stack up."
+    "signedOutBody": "Friends and leaderboards sync through your Libre account. Sign in to add friends by email and see how you stack up.",
+    "claimTitle": "You appear as {alias}",
+    "claimBody": "The global leaderboard shows everyone under a generated name. Want to claim your spot with a name you pick?",
+    "claimPlaceholder": "Pick a leaderboard name",
+    "claimSave": "Claim",
+    "claimDismiss": "Maybe later",
+    "claimSuccess": "You're on the board as {name}!",
+    "claimErrorLength": "3–24 characters, no leading or trailing spaces.",
+    "claimErrorChars": "Letters, numbers, spaces, - and _ only.",
+    "claimErrorProfanity": "That name isn't allowed — try something else.",
+    "claimErrorNetwork": "Couldn't save right now — try again in a moment."
   },
   "leaderboard": {
     "title": "Leaderboard",

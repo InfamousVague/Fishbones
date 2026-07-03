@@ -69,3 +69,61 @@ pub async fn global(
         .map(Json)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
+
+// ── GET/PUT /leaderboard/name — the caller's public leaderboard identity ──
+
+#[derive(serde::Serialize)]
+pub struct NameResponse {
+    /// What the global board currently shows for this user — the claimed
+    /// name, or the deterministic pseudonym when unclaimed.
+    pub name: String,
+    pub claimed: bool,
+}
+
+/// The viewer's own leaderboard identity. Drives the "claim your spot"
+/// prompt: `claimed: false` → the client offers the claim flow.
+pub async fn get_name(
+    State(state): State<Arc<AppState>>,
+    Extension(UserId(user_id)): Extension<UserId>,
+) -> Result<Json<NameResponse>, StatusCode> {
+    state
+        .db
+        .leaderboard_name(&user_id)
+        .map(|(name, claimed)| Json(NameResponse { name, claimed }))
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+#[derive(Deserialize)]
+pub struct SetNameBody {
+    pub name: String,
+}
+
+#[derive(serde::Serialize)]
+pub struct NameError {
+    /// One of `invalid_length` | `invalid_chars` | `profanity` —
+    /// mirrored by the client's validator for instant feedback.
+    pub error: &'static str,
+}
+
+/// Claim / update the leaderboard name. Server-side validation is the
+/// enforcement layer (the client mirrors it only for UX): 3–24 chars,
+/// [A-Za-z0-9 _-], no leading/trailing space, basic profanity filter.
+pub async fn set_name(
+    State(state): State<Arc<AppState>>,
+    Extension(UserId(user_id)): Extension<UserId>,
+    Json(body): Json<SetNameBody>,
+) -> Result<StatusCode, (StatusCode, Json<NameError>)> {
+    if let Err(code) = crate::alias::validate_name(&body.name) {
+        return Err((StatusCode::BAD_REQUEST, Json(NameError { error: code })));
+    }
+    state
+        .db
+        .set_leaderboard_name(&user_id, &body.name)
+        .map(|_| StatusCode::NO_CONTENT)
+        .map_err(|_| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(NameError { error: "internal" }),
+            )
+        })
+}

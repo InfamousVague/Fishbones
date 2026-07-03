@@ -280,8 +280,12 @@ impl Database {
         offset: i64,
     ) -> anyhow::Result<Vec<LeaderboardRow>> {
         let conn = self.conn_lock();
+        // PRIVACY: the global board serves the explicitly-claimed
+        // `leaderboard_name` — NEVER `display_name` (OAuth often puts the
+        // user's real name there). NULL (unclaimed) folds to a
+        // deterministic pseudonym in the mapper below.
         let mut stmt = conn.prepare(
-            "SELECT u.id, u.display_name, \
+            "SELECT u.id, u.leaderboard_name, \
                     COALESCE(s.total_xp, 0), \
                     COALESCE(s.current_streak_days, 0), \
                     COALESCE(s.longest_streak_days, 0), \
@@ -294,7 +298,15 @@ impl Database {
         )?;
         let rows = stmt
             .query_map(params![limit, offset], leaderboard_row_from)?
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|mut row: LeaderboardRow| {
+                if row.display_name.as_deref().map_or(true, |n| n.is_empty()) {
+                    row.display_name = Some(crate::alias::alias_for(&row.user_id));
+                }
+                row
+            })
+            .collect::<Vec<_>>();
         // Offset-aware absolute ranking: first row on page N is
         // `offset + 1`, not 1.
         let ranked = rows
@@ -448,6 +460,34 @@ impl Database {
         }
         tx.commit()?;
         Ok(ids.len())
+    }
+
+    /// The viewer's own leaderboard identity: the claimed name (if any)
+    /// or the deterministic pseudonym. Backs `GET /leaderboard/name`.
+    pub fn leaderboard_name(&self, user_id: &str) -> anyhow::Result<(String, bool)> {
+        let conn = self.conn_lock();
+        let claimed: Option<String> = conn
+            .query_row(
+                "SELECT leaderboard_name FROM users WHERE id = ?1",
+                params![user_id],
+                |r| r.get(0),
+            )
+            .unwrap_or(None);
+        match claimed.filter(|n| !n.is_empty()) {
+            Some(n) => Ok((n, true)),
+            None => Ok((crate::alias::alias_for(user_id), false)),
+        }
+    }
+
+    /// Claim / update the leaderboard name. Caller validates first
+    /// (`alias::validate_name`). Backs `PUT /leaderboard/name`.
+    pub fn set_leaderboard_name(&self, user_id: &str, name: &str) -> anyhow::Result<()> {
+        let conn = self.conn_lock();
+        conn.execute(
+            "UPDATE users SET leaderboard_name = ?1, updated_at = datetime('now') WHERE id = ?2",
+            params![name, user_id],
+        )?;
+        Ok(())
     }
 }
 

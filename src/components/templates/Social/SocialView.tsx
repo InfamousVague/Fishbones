@@ -25,6 +25,11 @@ import "@base/primitives/button/button.css";
 import "@base/primitives/chip/chip.css";
 import "@base/primitives/skeleton/skeleton.css";
 import "@base/primitives/spinner/spinner.css";
+import { useLeaderboardName } from "@/hooks/useLeaderboardName";
+import {
+  validateLeaderboardName,
+  type NameError,
+} from "@/lib/leaderboardName";
 import ProfileCard, {
   initialsOf,
 } from "@/components/molecules/ProfileCard/ProfileCard";
@@ -591,6 +596,10 @@ function LeaderboardPanel({
   const [rows, setRows] = useState<LeaderboardEntry[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState(false);
+  // Public leaderboard identity — drives the "claim your spot" banner.
+  // Everyone appears under a generated pseudonym until they claim a
+  // handle (the global board never shows account display names).
+  const lbName = useLeaderboardName(!!currentUserId);
 
   const load = useCallback(async () => {
     setError(false);
@@ -624,6 +633,16 @@ function LeaderboardPanel({
 
   return (
     <div className="libre-social-panel">
+      {/* "Claim your spot" — shows while the user is still on their
+          generated pseudonym. Refreshes the board after a successful
+          claim so the new name paints immediately. */}
+      {!lbName.claimed && lbName.alias ? (
+        <ClaimSpotBanner
+          alias={lbName.alias}
+          claim={lbName.claim}
+          onClaimed={() => void load()}
+        />
+      ) : null}
       {/* Scope + metric controls, one row. */}
       <div className="libre-social-lb-controls">
         <SegmentedControl
@@ -866,6 +885,121 @@ function RankRowSkeleton() {
         <Skeleton size="text-sm" width="42%" />
       </span>
       <Skeleton size="xs" shape="pill" width={110} />
+    </div>
+  );
+}
+
+/// ── "Claim your spot" banner ──────────────────────────────────────
+/// Shown at the top of the leaderboard while the viewer is still on
+/// their generated pseudonym. Inline claim: name input with instant
+/// client-side validation (mirrors the relay's rules; the relay
+/// re-validates on PUT), Save → hide + refresh. "Maybe later" latches
+/// per-session (sessionStorage) so it returns next launch without
+/// nagging within the session.
+const CLAIM_DISMISS_KEY = "libre:lb-claim-dismissed";
+
+function ClaimSpotBanner({
+  alias,
+  claim,
+  onClaimed,
+}: {
+  alias: string;
+  claim: (name: string) => Promise<NameError | "network" | null>;
+  onClaimed: () => void;
+}) {
+  const t = useT();
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem(CLAIM_DISMISS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [name, setName] = useState(alias);
+  const [saving, setSaving] = useState(false);
+  const [errorCode, setErrorCode] = useState<NameError | "network" | null>(
+    null,
+  );
+
+  if (dismissed) return null;
+
+  // Live validation for the current input — drives the inline hint
+  // without waiting for the round-trip. Skip while pristine (== alias,
+  // which is always valid).
+  const liveError = name === alias ? null : validateLeaderboardName(name);
+
+  const errorText = (code: NameError | "network"): string =>
+    code === "invalid_length"
+      ? t("social.claimErrorLength")
+      : code === "invalid_chars"
+        ? t("social.claimErrorChars")
+        : code === "profanity"
+          ? t("social.claimErrorProfanity")
+          : t("social.claimErrorNetwork");
+
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    setErrorCode(null);
+    const err = await claim(name);
+    setSaving(false);
+    if (err) {
+      setErrorCode(err);
+      return;
+    }
+    onClaimed();
+  };
+
+  const dismiss = () => {
+    try {
+      sessionStorage.setItem(CLAIM_DISMISS_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    setDismissed(true);
+  };
+
+  const shownError = errorCode ?? liveError;
+
+  return (
+    <div className="libre-social-claim" role="region" aria-label={t("social.claimTitle", { alias })}>
+      <div className="libre-social-claim__text">
+        <strong>{t("social.claimTitle", { alias })}</strong>
+        <span>{t("social.claimBody")}</span>
+      </div>
+      <div className="libre-social-claim__form">
+        <input
+          className="libre-social-claim__input"
+          value={name}
+          maxLength={24}
+          placeholder={t("social.claimPlaceholder")}
+          onChange={(e) => {
+            setName(e.target.value);
+            setErrorCode(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !liveError) void save();
+          }}
+        />
+        <button
+          type="button"
+          className="libre-social-claim__save"
+          disabled={saving || !!liveError || name.trim().length === 0}
+          onClick={() => void save()}
+        >
+          {t("social.claimSave")}
+        </button>
+        <button
+          type="button"
+          className="libre-social-claim__later"
+          onClick={dismiss}
+        >
+          {t("social.claimDismiss")}
+        </button>
+      </div>
+      {shownError ? (
+        <span className="libre-social-claim__error">{errorText(shownError)}</span>
+      ) : null}
     </div>
   );
 }

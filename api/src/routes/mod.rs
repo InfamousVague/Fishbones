@@ -211,6 +211,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
                 get(leaderboard::friends),
             )
             .route("/leaderboard/global", get(leaderboard::global))
+            .route(
+                "/leaderboard/name",
+                get(leaderboard::get_name).put(leaderboard::set_name),
+            )
             .route("/users/:id/profile", get(friends::get_profile))
             .route_layer(axum_middleware::from_fn_with_state(
                 state.clone(),

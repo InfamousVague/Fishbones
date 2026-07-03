@@ -111,6 +111,20 @@ impl Database {
                 ))?;
             }
         }
+        // Probe-and-add `leaderboard_name` (2026-07 privacy change: the
+        // global leaderboard stopped serving `display_name` — often the
+        // user's REAL name via OAuth — and instead shows this explicitly
+        // claimed handle, or a deterministic pseudonym when NULL. NULL
+        // for every pre-existing row = the public "reset": nobody's
+        // account name is exposed unless they re-claim one).
+        let has_lb: bool = conn
+            .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'leaderboard_name'")?
+            .query_row([], |_| Ok(()))
+            .map(|_| true)
+            .unwrap_or(false);
+        if !has_lb {
+            conn.execute_batch("ALTER TABLE users ADD COLUMN leaderboard_name TEXT;")?;
+        }
         Ok(())
     }
 

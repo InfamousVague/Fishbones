@@ -425,3 +425,79 @@
     display: none;
   }
 }
+
+/* ── "Claim your spot" banner (leaderboard tab) ─────────────────── */
+.libre-social-claim {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-10, 10px);
+  margin-bottom: var(--libre-space-14, 14px);
+  padding: var(--libre-space-14, 14px) var(--libre-space-16, 16px);
+  border-radius: var(--libre-radius-12, 12px);
+  background: color-mix(in srgb, var(--gg-accent, #e88f68) 10%, var(--color-bg-secondary, #18181b));
+  border: var(--libre-bw-1, 1px) solid
+    color-mix(in srgb, var(--gg-accent, #e88f68) 28%, var(--color-border-default, rgba(255, 255, 255, 0.1)));
+}
+.libre-social-claim__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.libre-social-claim__text strong {
+  font-size: 14px;
+  color: var(--color-text-primary, #fafafa);
+}
+.libre-social-claim__text span {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary, #a4a4ad);
+}
+.libre-social-claim__form {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-8, 8px);
+  flex-wrap: wrap;
+}
+.libre-social-claim__input {
+  flex: 1 1 200px;
+  min-width: 160px;
+  padding: var(--libre-space-8, 8px) var(--libre-space-12, 12px);
+  border-radius: var(--libre-radius-8, 8px);
+  border: var(--libre-bw-1, 1px) solid var(--color-border-default, rgba(255, 255, 255, 0.12));
+  background: var(--color-bg-primary, #0e0e11);
+  color: var(--color-text-primary, #fafafa);
+  font-size: 13.5px;
+}
+.libre-social-claim__input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--gg-accent, #e88f68) 55%, transparent);
+}
+.libre-social-claim__save {
+  padding: var(--libre-space-8, 8px) var(--libre-space-16, 16px);
+  border: 0;
+  border-radius: var(--libre-radius-pill, 999px);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gg-on-accent, #fff);
+  background: var(--gg-accent, #e88f68);
+  cursor: pointer;
+}
+.libre-social-claim__save:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.libre-social-claim__later {
+  padding: var(--libre-space-8, 8px) var(--libre-space-10, 10px);
+  border: 0;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--color-text-tertiary, #71717a);
+  cursor: pointer;
+}
+.libre-social-claim__later:hover {
+  color: var(--color-text-secondary, #a4a4ad);
+}
+.libre-social-claim__error {
+  font-size: 12px;
+  color: var(--color-danger, #f87171);
+}
