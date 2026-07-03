@@ -78,4 +78,8 @@ pub struct AppState {
     /// Notion database id the feedback pages are created under. Not a
     /// secret (it's in the page URL); paired with `notion_token`.
     pub notion_database_id: Option<String>,
+    /// Notion database id for early-access email signups from the
+    /// marketing site — a separate contact list from feedback. Paired
+    /// with `notion_token`; `None` makes `POST /early-access` return 503.
+    pub notion_early_access_database_id: Option<String>,
 }

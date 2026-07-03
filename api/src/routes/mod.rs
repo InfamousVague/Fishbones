@@ -46,6 +46,7 @@
 //!   GET    /courses                        — own courses
 //!   GET    /courses/public                 — public feed
 //!   POST   /feedback                        — in-app feedback → Notion
+//!   POST   /early-access                    — marketing email → Notion
 //!   GET    /courses/:id                    — download archive
 //!   DELETE /courses/:id                    — delete
 //!   GET    /health                         — liveness
@@ -53,6 +54,7 @@
 
 mod auth;
 mod courses;
+mod early_access;
 mod feedback;
 mod friends;
 mod leaderboard;
@@ -147,6 +149,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             // handler relays each submission to Notion with a
             // server-side token. See routes/feedback.rs.
             .route("/feedback", post(feedback::submit))
+            // Early-access email capture from the marketing site. Public
+            // + unauthenticated; relays each email to a SEPARATE Notion
+            // database (a contact list, not feedback). See
+            // routes/early_access.rs.
+            .route("/early-access", post(early_access::submit))
             // Real-time sync WebSocket. Auth lives in the `?token=…`
             // query param (browsers can't set headers on a WS upgrade)
             // so this route stays in the public group; the handler

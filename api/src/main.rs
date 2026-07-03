@@ -81,11 +81,19 @@ async fn main() -> anyhow::Result<()> {
     // work (it returns 503 otherwise).
     let notion_token = read_env("NOTION_TOKEN");
     let notion_database_id = read_env("NOTION_DATABASE_ID");
+    let notion_early_access_database_id = read_env("NOTION_EARLY_ACCESS_DATABASE_ID");
     if notion_token.is_some() && notion_database_id.is_some() {
         tracing::info!("Feedback → Notion enabled");
     } else {
         tracing::info!(
             "Feedback → Notion disabled (NOTION_TOKEN / NOTION_DATABASE_ID unset)"
+        );
+    }
+    if notion_token.is_some() && notion_early_access_database_id.is_some() {
+        tracing::info!("Early-access → Notion enabled");
+    } else {
+        tracing::info!(
+            "Early-access → Notion disabled (NOTION_TOKEN / NOTION_EARLY_ACCESS_DATABASE_ID unset)"
         );
     }
 
@@ -191,6 +199,7 @@ async fn main() -> anyhow::Result<()> {
         apple_domain_association_file,
         notion_token,
         notion_database_id,
+        notion_early_access_database_id,
     });
 
     // ── Router ──────────────────────────────────────────────────
