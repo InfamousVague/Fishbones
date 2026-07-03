@@ -275,3 +275,103 @@
     transition: none;
   }
 }
+
+/* ── Shiki dual-theme palette mapping ──────────────────────────────
+   markdown.ts emits code with `defaultColor: false` — every token
+   carries `--shiki-light` / `--shiki-dark` variables and NO color of
+   its own. Desktop maps the active palette in LessonReader.css; the
+   mobile reader never loads that stylesheet, so code rendered as a
+   monochrome slab. Same mapping, scoped to the mobile prose. */
+[data-theme="light"] .m-reader__prose .libre-code-block .shiki span {
+  color: var(--shiki-light);
+  background-color: transparent !important;
+  font-style: var(--shiki-light-font-style, normal);
+  font-weight: var(--shiki-light-font-weight, normal);
+  text-decoration: var(--shiki-light-text-decoration, none);
+}
+
+[data-theme="light"] .m-reader__prose .libre-code-block .shiki,
+[data-theme="light"] .m-reader__prose .libre-code-block .shiki code {
+  color: var(--shiki-light);
+  background-color: var(--color-glass-bg, var(--color-bg-secondary)) !important;
+}
+
+[data-theme="dark"] .m-reader__prose .libre-code-block .shiki span,
+.m-reader__prose .libre-code-block .shiki span {
+  color: var(--shiki-dark);
+  background-color: transparent !important;
+  font-style: var(--shiki-dark-font-style, normal);
+  font-weight: var(--shiki-dark-font-weight, normal);
+  text-decoration: var(--shiki-dark-text-decoration, none);
+}
+
+[data-theme="dark"] .m-reader__prose .libre-code-block .shiki,
+[data-theme="dark"] .m-reader__prose .libre-code-block .shiki code,
+.m-reader__prose .libre-code-block .shiki,
+.m-reader__prose .libre-code-block .shiki code {
+  color: var(--shiki-dark);
+  background-color: var(--color-glass-bg, var(--color-bg-secondary)) !important;
+}
+
+/* ── GFM tables ────────────────────────────────────────────────────
+   Same soft-card treatment the desktop reader gives tables (outer
+   ring + quiet inner hairlines), adapted for a phone column: the
+   table becomes its own horizontal scroller so wide data never
+   drags the page sideways (the app main clips overflow-x). */
+.m-reader__prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: var(--libre-space-16) var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+}
+
+.m-reader__prose thead {
+  background: var(--color-bg-tertiary, var(--color-bg-secondary));
+}
+
+.m-reader__prose th,
+.m-reader__prose td {
+  border-right: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--color-border-default) 70%, transparent);
+  border-bottom: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--color-border-default) 70%, transparent);
+  padding: var(--libre-space-7) var(--libre-space-10);
+  text-align: left;
+  vertical-align: top;
+  color: var(--color-text-primary);
+  /* Long identifiers shouldn't force a mile-wide column — wrap
+     inside cells first, scroll the whole table second. */
+  overflow-wrap: break-word;
+}
+
+.m-reader__prose th:last-child,
+.m-reader__prose td:last-child {
+  border-right: 0;
+}
+
+.m-reader__prose tbody tr:last-child td,
+.m-reader__prose thead:last-child tr:last-child th {
+  border-bottom: 0;
+}
+
+.m-reader__prose th {
+  font-weight: var(--libre-fw-600);
+}
+
+.m-reader__prose td {
+  color: var(--color-text-secondary);
+}
+
+/* Inline code inside table cells is the most common overflow source
+   in lesson tables — let it wrap. */
+.m-reader__prose td code,
+.m-reader__prose th code {
+  white-space: normal;
+  word-break: break-word;
+}

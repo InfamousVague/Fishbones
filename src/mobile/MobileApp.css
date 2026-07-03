@@ -173,3 +173,14 @@
 .m-paths > .m-lib__segmented {
   margin: var(--libre-space-18) var(--libre-space-16) var(--libre-space-0);
 }
+
+/* Paths content gutters — the page ships desktop padding (48/32);
+   match the 16px side gutter and tighter top rhythm every other
+   mobile pane uses. */
+.m-paths .libre-paths-page {
+  padding: var(--libre-space-16) var(--libre-space-16) var(--libre-space-64);
+}
+
+.m-paths .libre-path-detail {
+  padding: var(--libre-space-16) var(--libre-space-16) var(--libre-space-64);
+}
