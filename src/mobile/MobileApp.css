@@ -164,3 +164,12 @@
   align-items: stretch;
   gap: var(--libre-space-10);
 }
+
+/* ── Paths pane wrapper ────────────────────────────────────────────
+   Library/Discover get the gutter above their segmented toggle from
+   .m-lib's own padding; the Paths pane hosts the toggle directly, so
+   mirror the same top/side spacing here (PathsPage below brings its
+   own content gutters — padding the whole wrapper would double up). */
+.m-paths > .m-lib__segmented {
+  margin: var(--libre-space-18) var(--libre-space-16) var(--libre-space-0);
+}
