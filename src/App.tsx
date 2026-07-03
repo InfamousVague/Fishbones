@@ -2709,12 +2709,13 @@ export default function App() {
           onPaths={() => { setPendingPathId(null); setView("paths"); }}
           onCertificates={() => setView("certificates")}
           onSandbox={() => setView("sandbox")}
-          // Social (Friends + Leaderboard) — cloud-gated: only wired
-          // when signed in, since every friends/leaderboard call needs
-          // a bearer token. Signed-out learners see the Sign-in CTA in
-          // the stats dropdown instead. Lives in the rail's bottom
-          // cluster with Feedback + Settings.
-          onSocial={cloud.signedIn ? () => setView("social") : undefined}
+          // Social (Friends + Leaderboard) — always visible. It was
+          // originally cloud-gated (hidden signed-out), but that made
+          // the icon silently VANISH when a stale session got cleared
+          // by the boot-time /me check — "where did friends go?".
+          // SocialView renders its own signed-out empty state with a
+          // Sign-in CTA, so the entry point should persist.
+          onSocial={() => setView("social")}
           // Feedback — relocated here from the top bar. Works signed-in
           // or not (posts to the relay's /feedback → Notion).
           onFeedback={() => setFeedbackOpen(true)}
