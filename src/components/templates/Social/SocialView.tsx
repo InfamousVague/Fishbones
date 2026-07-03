@@ -59,7 +59,10 @@ interface Props {
   /// Cloud methods, threaded from `useLibreCloud` at the app level so
   /// this view stays free of the hook + its auth state. Each is a
   /// stable `useCallback` identity, so the effects below don't loop.
-  listFriends: () => Promise<FriendInfo[]>;
+  listFriends: (
+    limit?: number,
+    offset?: number,
+  ) => Promise<{ friends: FriendInfo[]; total: number }>;
   addFriend: (email: string) => Promise<AddFriendResult>;
   listFriendRequests: () => Promise<FriendRequest[]>;
   acceptFriendRequest: (userId: string) => Promise<void>;
@@ -227,6 +230,10 @@ export default function SocialView({
 /// re-fetches after a mutation so the UI reflects the server. Uses
 /// `initialLoad` (not a plain `loading` flag) so a refetch after a
 /// mutation swaps data in place instead of flashing back to skeletons.
+/// Friends load one page at a time; the total comes from the relay's
+/// X-Total-Count header so the count + range read the grand total.
+const FRIENDS_PAGE_SIZE = 20;
+
 function FriendsPanel({
   listFriends,
   addFriend,
@@ -238,7 +245,10 @@ function FriendsPanel({
   currentUserId,
   emailInputRef,
 }: {
-  listFriends: () => Promise<FriendInfo[]>;
+  listFriends: (
+    limit?: number,
+    offset?: number,
+  ) => Promise<{ friends: FriendInfo[]; total: number }>;
   addFriend: (email: string) => Promise<AddFriendResult>;
   listFriendRequests: () => Promise<FriendRequest[]>;
   acceptFriendRequest: (userId: string) => Promise<void>;
@@ -251,6 +261,11 @@ function FriendsPanel({
   const t = useT();
   const [friends, setFriends] = useState<FriendInfo[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
+  // Pagination: `friends` holds the CURRENT page; `total` is the grand
+  // count from the relay's X-Total-Count header (drives "N friends" +
+  // the "X–Y of N" range even though only a page is loaded).
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
   // First-load flag only. Mutations refetch silently (see `refresh`),
   // so we never toggle back to skeletons once we've shown real data.
   const [initialLoad, setInitialLoad] = useState(true);
@@ -266,20 +281,34 @@ function FriendsPanel({
   const refresh = useCallback(async () => {
     setLoadError(false);
     try {
-      const [f, r] = await Promise.all([listFriends(), listFriendRequests()]);
-      setFriends(f);
+      const [f, r] = await Promise.all([
+        listFriends(FRIENDS_PAGE_SIZE, page * FRIENDS_PAGE_SIZE),
+        listFriendRequests(),
+      ]);
       setRequests(r);
+      setTotal(f.total);
+      // If a removal emptied a non-first page, step back a page — the
+      // effect re-runs on `page` change and fetches the now-last page.
+      if (f.friends.length === 0 && page > 0) {
+        setPage((p) => Math.max(0, p - 1));
+        return;
+      }
+      setFriends(f.friends);
     } catch (err) {
       console.error("[libre] friends refresh failed:", err);
       setLoadError(true);
     } finally {
       setInitialLoad(false);
     }
-  }, [listFriends, listFriendRequests]);
+  }, [listFriends, listFriendRequests, page]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const pageCount = Math.max(1, Math.ceil(total / FRIENDS_PAGE_SIZE));
+  const rangeStart = total === 0 ? 0 : page * FRIENDS_PAGE_SIZE + 1;
+  const rangeEnd = page * FRIENDS_PAGE_SIZE + friends.length;
 
   const submitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -477,7 +506,7 @@ function FriendsPanel({
           {t("friends.friendsHeading")}
           {!initialLoad && (
             <Badge color="neutral" variant="outline" size="sm">
-              {friends.length}
+              {total}
             </Badge>
           )}
         </h2>
@@ -563,6 +592,42 @@ function FriendsPanel({
               </li>
             ))}
           </ul>
+        )}
+        {/* Pager — only when there's more than one page. Shows the
+            visible range out of the grand total and steps pages. */}
+        {!initialLoad && total > FRIENDS_PAGE_SIZE && (
+          <div className="libre-social-pager">
+            <span className="libre-social-pager__range">
+              {t("friends.pageRange", {
+                start: rangeStart,
+                end: rangeEnd,
+                total,
+              })}
+            </span>
+            <div className="libre-social-pager__controls">
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                {t("friends.prevPage")}
+              </Button>
+              <span className="libre-social-pager__pageno">
+                {t("friends.pageOf", { page: page + 1, pages: pageCount })}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={page + 1 >= pageCount}
+                onClick={() =>
+                  setPage((p) => Math.min(pageCount - 1, p + 1))
+                }
+              >
+                {t("friends.nextPage")}
+              </Button>
+            </div>
+          </div>
         )}
       </section>
     </div>

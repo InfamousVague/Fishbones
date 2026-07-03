@@ -17,7 +17,6 @@ import { describe, expect, it, vi } from "vitest";
 import SocialView from "@/components/templates/Social/SocialView";
 import ProfileCard from "@/components/molecules/ProfileCard/ProfileCard";
 import type {
-  FriendInfo,
   FriendRequest,
   LeaderboardEntry,
   PublicProfile,
@@ -47,7 +46,7 @@ function renderSocial(
   overrides: Partial<React.ComponentProps<typeof SocialView>> = {},
 ) {
   const props: React.ComponentProps<typeof SocialView> = {
-    listFriends: async (): Promise<FriendInfo[]> => [],
+    listFriends: async () => ({ friends: [], total: 0 }),
     addFriend: async () => "sent",
     listFriendRequests: async (): Promise<FriendRequest[]> => [],
     acceptFriendRequest: async () => {},
@@ -64,7 +63,7 @@ function renderSocial(
 
 describe("Social + profile UI smoke", () => {
   it("SocialView renders the Friends tab empty state with its CTA", async () => {
-    const listFriends = vi.fn(async (): Promise<FriendInfo[]> => []);
+    const listFriends = vi.fn(async () => ({ friends: [], total: 0 }));
     const listFriendRequests = vi.fn(
       async (): Promise<FriendRequest[]> => [],
     );
@@ -79,6 +78,41 @@ describe("Social + profile UI smoke", () => {
     expect(
       screen.getByRole("button", { name: /Add your first friend/i }),
     ).toBeTruthy();
+  });
+
+  it("SocialView paginates the friends list and shows the total", async () => {
+    const mk = (i: number) => ({
+      id: `f${i}`,
+      email: `f${i}@example.com`,
+      display_name: `Friend ${i}`,
+      stats: {
+        total_xp: 0,
+        current_streak_days: 0,
+        longest_streak_days: 0,
+        lessons_completed: 0,
+        level: 1,
+      },
+      early_access: false,
+    });
+    const page0 = Array.from({ length: 20 }, (_, i) => mk(i));
+    // 21 friends total → 2 pages; page 0 has 20, page 1 has 1.
+    const listFriends = vi.fn(async (_limit?: number, offset?: number) => ({
+      friends: (offset ?? 0) === 0 ? page0 : [mk(20)],
+      total: 21,
+    }));
+    await act(async () => {
+      renderSocial({ listFriends });
+    });
+    await waitFor(() => expect(screen.getByText("Friend 0")).toBeTruthy());
+    // Count badge reflects the GRAND total (21), not the page length (20).
+    expect(screen.getByText("21")).toBeTruthy();
+    expect(screen.getByText("Showing 1–20 of 21")).toBeTruthy();
+    // Next page fetches offset 20 and swaps in the last friend.
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    });
+    await waitFor(() => expect(screen.getByText("Friend 20")).toBeTruthy());
+    expect(listFriends).toHaveBeenCalledWith(20, 20);
   });
 
   it("SocialView renders the signed-in user's own hero card", async () => {

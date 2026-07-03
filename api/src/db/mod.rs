@@ -14,9 +14,7 @@ mod friends;
 mod stats;
 mod users;
 
-pub use friends::{
-    FriendRequest, FriendSummary, LeaderboardRow, ProfileView, Relation,
-};
+pub use friends::{FriendRequest, LeaderboardRow, ProfileView, Relation};
 pub use stats::Stats;
 pub use users::{CourseMeta, ProgressRow, SettingRow, SolutionRow, User};
 

@@ -6,15 +6,16 @@
 //! state in a body.
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
+    response::IntoResponse,
     Extension, Json,
 };
 use serde::Deserialize;
 use std::sync::Arc;
 
 use super::middleware::UserId;
-use crate::db::{FriendRequest, FriendSummary, Relation, Stats};
+use crate::db::{FriendRequest, Relation, Stats};
 use crate::state::AppState;
 
 // ── PUT /me/stats ─────────────────────────────────────────────────
@@ -53,15 +54,35 @@ pub async fn get_my_stats(
 
 /// The caller's accepted friends (including the seeded owner) with each
 /// friend's latest stats.
+#[derive(Deserialize)]
+pub struct FriendsListQuery {
+    /// Page size. Absent → return the WHOLE list (backward-compatible
+    /// with pre-pagination clients). Present → one page via LIMIT/OFFSET.
+    pub limit: Option<i64>,
+    pub offset: Option<i64>,
+}
+
 pub async fn list_friends(
     State(state): State<Arc<AppState>>,
     Extension(UserId(user_id)): Extension<UserId>,
-) -> Result<Json<Vec<FriendSummary>>, StatusCode> {
-    state
+    Query(q): Query<FriendsListQuery>,
+) -> Result<impl IntoResponse, StatusCode> {
+    // The total accepted-friend count always rides in `X-Total-Count`
+    // (CorsLayer is permissive, so the webview JS can read it) — it
+    // drives the paginator's "N friends" + "X–Y of N" without a second
+    // request. The body stays a plain array so older clients that
+    // ignore the header keep working unchanged.
+    let total = state
         .db
-        .list_accepted_with_stats(&user_id)
-        .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .count_accepted_friends(&user_id)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let limit = q.limit.map(|l| l.clamp(1, 200));
+    let offset = q.offset.unwrap_or(0).max(0);
+    let friends = state
+        .db
+        .list_accepted_with_stats(&user_id, limit, offset)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(([("x-total-count", total.to_string())], Json(friends)))
 }
 
 // ── POST /friends/add ─────────────────────────────────────────────

@@ -510,3 +510,31 @@
   gap: 6px;
   min-width: 0;
 }
+
+/* Friends pager — visible range + prev/next, shown only when the
+   total exceeds one page. */
+.libre-social-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--libre-space-8, 8px);
+  margin-top: var(--libre-space-12, 12px);
+  padding-top: var(--libre-space-12, 12px);
+  border-top: var(--libre-bw-1, 1px) solid var(--color-border-subtle, rgba(255, 255, 255, 0.07));
+}
+.libre-social-pager__range {
+  font-size: var(--libre-fs-12, 12px);
+  color: var(--color-text-secondary, #a4a4ad);
+}
+.libre-social-pager__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-6, 6px);
+}
+.libre-social-pager__pageno {
+  font-size: var(--libre-fs-12, 12px);
+  color: var(--color-text-tertiary, #71717a);
+  min-width: 5.5em;
+  text-align: center;
+}

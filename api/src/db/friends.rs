@@ -183,10 +183,11 @@ impl Database {
     pub fn list_accepted_with_stats(
         &self,
         user_id: &str,
+        limit: Option<i64>,
+        offset: i64,
     ) -> anyhow::Result<Vec<FriendSummary>> {
         let conn = self.conn_lock();
-        let mut stmt = conn.prepare(
-            "SELECT u.id, u.email, u.display_name, \
+        const BASE: &str = "SELECT u.id, u.email, u.display_name, \
                     COALESCE(s.total_xp, 0), \
                     COALESCE(s.current_streak_days, 0), \
                     COALESCE(s.longest_streak_days, 0), \
@@ -197,26 +198,41 @@ impl Database {
              JOIN users u ON u.id = f.friend_id \
              LEFT JOIN stats s ON s.user_id = f.friend_id \
              WHERE f.user_id = ?1 AND f.status = 'accepted' \
-             ORDER BY u.display_name IS NULL, u.display_name, u.id",
-        )?;
-        let rows = stmt
-            .query_map(params![user_id], |r| {
-                Ok(FriendSummary {
-                    id: r.get(0)?,
-                    email: r.get(1)?,
-                    display_name: r.get(2)?,
-                    stats: Stats {
-                        total_xp: r.get(3)?,
-                        current_streak_days: r.get(4)?,
-                        longest_streak_days: r.get(5)?,
-                        lessons_completed: r.get(6)?,
-                        level: r.get(7)?,
-                    },
-                    early_access: r.get::<_, i64>(8)? != 0,
-                })
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
+             ORDER BY u.display_name IS NULL, u.display_name, u.id";
+        // `None` limit → whole list (the pre-pagination behaviour old
+        // clients still rely on). `Some` → one page via LIMIT/OFFSET.
+        let rows = match limit {
+            Some(l) => {
+                let mut stmt = conn.prepare(&format!("{BASE} LIMIT ?2 OFFSET ?3"))?;
+                // Bind before the block ends so the query_map temporary
+                // drops before `stmt` (else E0597).
+                let page = stmt
+                    .query_map(params![user_id, l, offset], friend_summary_from)?
+                    .collect::<Result<Vec<_>, _>>()?;
+                page
+            }
+            None => {
+                let mut stmt = conn.prepare(BASE)?;
+                let all = stmt
+                    .query_map(params![user_id], friend_summary_from)?
+                    .collect::<Result<Vec<_>, _>>()?;
+                all
+            }
+        };
         Ok(rows)
+    }
+
+    /// Total accepted friends for pagination's "X of N". Counts the
+    /// forward directed edges (`user_id → friend_id`, accepted), which
+    /// is exactly what `list_accepted_with_stats` pages over.
+    pub fn count_accepted_friends(&self, user_id: &str) -> anyhow::Result<i64> {
+        let conn = self.conn_lock();
+        let n = conn.query_row(
+            "SELECT COUNT(*) FROM friends WHERE user_id = ?1 AND status = 'accepted'",
+            params![user_id],
+            |r| r.get(0),
+        )?;
+        Ok(n)
     }
 
     /// List pending requests INCOMING to the caller (rows where someone
@@ -641,6 +657,25 @@ fn metric_column(metric: &str) -> &'static str {
 
 /// Row mapper shared by the two leaderboard queries. Leaves `rank = 0`;
 /// the caller assigns ranks after ordering.
+/// Row mapper for `list_accepted_with_stats` (shared by its paged +
+/// unpaged branches). Column order must match the SELECT: id, email,
+/// display_name, xp, streak, longest, lessons, level, early_access.
+fn friend_summary_from(r: &rusqlite::Row<'_>) -> rusqlite::Result<FriendSummary> {
+    Ok(FriendSummary {
+        id: r.get(0)?,
+        email: r.get(1)?,
+        display_name: r.get(2)?,
+        stats: Stats {
+            total_xp: r.get(3)?,
+            current_streak_days: r.get(4)?,
+            longest_streak_days: r.get(5)?,
+            lessons_completed: r.get(6)?,
+            level: r.get(7)?,
+        },
+        early_access: r.get::<_, i64>(8)? != 0,
+    })
+}
+
 fn leaderboard_row_from(r: &rusqlite::Row<'_>) -> rusqlite::Result<LeaderboardRow> {
     Ok(LeaderboardRow {
         rank: 0,

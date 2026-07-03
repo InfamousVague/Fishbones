@@ -348,7 +348,10 @@ export interface UseLibreCloud {
   pushStats: (stats: CloudStats) => Promise<void>;
   /// List the signed-in user's confirmed friends with their latest
   /// stats. Empty array when they have none.
-  listFriends: () => Promise<FriendInfo[]>;
+  listFriends: (
+    limit?: number,
+    offset?: number,
+  ) => Promise<{ friends: FriendInfo[]; total: number }>;
   /// Send a friend request by email. Returns a discriminated result
   /// (`sent` / `not_found` / `duplicate` / `invalid`) instead of
   /// throwing on the expected 4xx cases, so the UI can render a
@@ -1195,11 +1198,28 @@ export function useLibreCloud(): UseLibreCloud {
     [token, authFetch],
   );
 
-  const listFriends = useCallback(async (): Promise<FriendInfo[]> => {
-    const res = await authFetch("/friends");
-    if (!res.ok) throw new Error(`list-friends failed (${res.status})`);
-    return (await res.json()) as FriendInfo[];
-  }, [authFetch]);
+  const listFriends = useCallback(
+    async (
+      limit?: number,
+      offset?: number,
+    ): Promise<{ friends: FriendInfo[]; total: number }> => {
+      const qs =
+        limit != null
+          ? `?limit=${limit}&offset=${offset ?? 0}`
+          : "";
+      const res = await authFetch(`/friends${qs}`);
+      if (!res.ok) throw new Error(`list-friends failed (${res.status})`);
+      const friends = (await res.json()) as FriendInfo[];
+      // The relay returns the grand total in X-Total-Count (permissive
+      // CORS exposes it). Fall back to the page length for an older
+      // relay that doesn't send the header, so the UI degrades to
+      // "the count we can see" rather than showing 0.
+      const header = res.headers.get("x-total-count");
+      const total = header != null ? Number(header) : friends.length;
+      return { friends, total: Number.isFinite(total) ? total : friends.length };
+    },
+    [authFetch],
+  );
 
   const addFriend = useCallback(
     async (email: string): Promise<AddFriendResult> => {
