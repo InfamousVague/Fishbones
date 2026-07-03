@@ -559,6 +559,8 @@
     "privacyCard": "Privacy",
     "analyticsLabel": "Anonymous usage analytics",
     "analyticsBody": "Help improve Libre by sharing anonymous, cookieless usage data — which features get used and where things break. No personal data, no cross-site tracking. Turn this off anytime.",
+    "leaderboardLabel": "Appear on leaderboards",
+    "leaderboardBody": "Publish your XP, streak and lessons to the Friends + Global leaderboards (only ever when you're signed in). Turn this off and you still sync your progress across devices — you just won't appear in the rankings.",
     "analyticsFirstRun": "Libre shares anonymous, cookieless usage analytics to help improve the app. Turn it off anytime in Settings → Data & storage.",
     "analyticsNoticeDismiss": "Got it",
     "syncCard": "Sync",

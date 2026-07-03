@@ -14,6 +14,8 @@ const duel: PawDuel = {
   signature: "fn f()",
   conceptTags: [],
   difficulty: "apprentice",
+  language: "rust",
+  rank: 1,
   starterTests: "starter",
   cheats: [
     { id: "c0", title: "C0", monologue: "", lesson: "", code: "cheat0" },

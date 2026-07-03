@@ -6,9 +6,11 @@
 /// the suite kills the entire ladder AND passes the hidden reference
 /// (see engine.ts for the dual-oracle rules, duels.ts for content).
 ///
-/// Runs through `runtimes/rust.ts` — local rustc on the desktop
-/// build, the Rust Playground API fallback on web — so the duel is
-/// fully playable on both targets.
+/// The catalog is multi-language: each duel names its language and the
+/// view wires the matching runtime runner (local toolchain on the
+/// desktop build, playground/worker fallbacks on web). The browse
+/// layer is a difficulty ladder — language tabs, tier sections
+/// (novice → grandmaster), and a search over titles + concept tags.
 
 // Side-effect import: configures @monaco-editor/react's loader for
 // offline worker spawning (same import EditorPane / InlineSandbox use;
@@ -19,14 +21,81 @@ import Editor from "@monaco-editor/react";
 import { useActiveTheme } from "@/theme/useActiveTheme";
 import { MONACO_THEME_BY_APP_THEME } from "@/theme/monaco-themes/index";
 import { runRust } from "@/runtimes/rust";
-import { RUST_DUELS, findDuel } from "./duels";
+import { runGo } from "@/runtimes/go";
+import { runJavaScript } from "@/runtimes/javascript";
+import { runPython } from "@/runtimes/python";
+import {
+  ALL_DUELS,
+  PAW_LANGUAGES,
+  duelsForLanguage,
+  findDuel,
+  type PawDuel,
+  type PawDifficulty,
+  type PawLanguage,
+} from "./duels";
 import {
   summon,
   loadProgress,
   saveProgress,
+  type PawRunner,
   type SummonOutcome,
 } from "./engine";
 import "./MonkeysPaw.css";
+
+/// One runner per duel language. All share the same
+/// `(code, testCode?) => Promise<RunResult>` contract the engine
+/// expects, so the summon loop is language-agnostic.
+const RUNNERS: Record<PawLanguage, PawRunner> = {
+  rust: runRust,
+  go: runGo,
+  javascript: runJavaScript,
+  python: runPython,
+};
+
+/// Test idiom hint shown over the contract editor — the shape a test
+/// must take in this duel's language (mirrors what each runtime's
+/// joinCodeAndTests / harness actually executes).
+const TEST_IDIOM: Record<PawLanguage, string> = {
+  rust: "#[test] fns",
+  go: "func TestXxx(t *testing.T)",
+  javascript: "test() + expect()",
+  python: "test() + expect()",
+};
+
+/// Ladder tiers in ascending order; `ranks` is the display hint for
+/// the rank range each tier conventionally spans.
+const TIERS: ReadonlyArray<{ id: PawDifficulty; label: string; ranks: string }> = [
+  { id: "novice", label: "Novice", ranks: "ranks 1–2" },
+  { id: "apprentice", label: "Apprentice", ranks: "ranks 3–4" },
+  { id: "journeyman", label: "Journeyman", ranks: "ranks 5–6" },
+  { id: "master", label: "Master", ranks: "ranks 7–8" },
+  { id: "grandmaster", label: "Grandmaster", ranks: "ranks 9–10" },
+];
+
+/// Browse tab = a language or the whole catalog.
+type BrowseTab = PawLanguage | "all";
+
+/// Last-viewed tab, device-local. Distinct from the engine's
+/// `paw:<duelId>` progress keys.
+const TAB_STORAGE_KEY = "paw:browse:lang";
+
+function isPawLanguage(v: string): v is PawLanguage {
+  return PAW_LANGUAGES.some((l) => l.id === v);
+}
+
+function loadSavedTab(): BrowseTab {
+  try {
+    const raw = localStorage.getItem(TAB_STORAGE_KEY);
+    if (raw === "all" || (raw && isPawLanguage(raw))) return raw;
+  } catch {
+    // Private mode / quota — fall through to the default.
+  }
+  return "all";
+}
+
+function languageLabel(id: PawLanguage): string {
+  return PAW_LANGUAGES.find((l) => l.id === id)?.label ?? id;
+}
 
 /// Curled-finger tracker: one finger per cheat in the ladder plus a
 /// thumb for the reference. Slain cheats curl their finger; the thumb
@@ -65,6 +134,82 @@ function Fingers({
   );
 }
 
+/// 1–10 rank meter — ten notches, `rank` of them lit.
+function RankNotches({ rank }: { rank: number }) {
+  return (
+    <span
+      className="libre-paw__rank"
+      title={`rank ${rank} of 10`}
+      aria-label={`rank ${rank} of 10`}
+    >
+      {Array.from({ length: 10 }, (_, i) => (
+        <span
+          key={i}
+          className={
+            "libre-paw__rank-notch" +
+            (i < rank ? " libre-paw__rank-notch--lit" : "")
+          }
+        />
+      ))}
+    </span>
+  );
+}
+
+/// One catalog card. Reads per-duel progress straight from
+/// localStorage on every render (parent bumps a counter after a duel
+/// closes, so win stamps stay fresh).
+function DuelCard({
+  duel,
+  showLanguage,
+  onOpen,
+}: {
+  duel: PawDuel;
+  showLanguage: boolean;
+  onOpen: (id: string) => void;
+}) {
+  const saved = loadProgress(duel.id);
+  const won = saved?.won ?? false;
+  return (
+    <button
+      type="button"
+      className={"libre-paw__card" + (won ? " libre-paw__card--won" : "")}
+      onClick={() => onOpen(duel.id)}
+    >
+      <div className="libre-paw__card-top">
+        <span className="libre-paw__card-meta">
+          {showLanguage && (
+            <span className="libre-paw__card-lang">
+              {languageLabel(duel.language)}
+            </span>
+          )}
+          <RankNotches rank={duel.rank} />
+        </span>
+        <Fingers
+          slain={saved?.slain ?? 0}
+          total={duel.cheats.length}
+          won={won}
+        />
+      </div>
+      <h3 className="libre-paw__card-title">{duel.title}</h3>
+      <p className="libre-paw__card-wish">&ldquo;{duel.wish}&rdquo;</p>
+      <div className="libre-paw__tags">
+        {duel.conceptTags.map((tag) => (
+          <span key={tag} className="libre-paw__tag">
+            {tag}
+          </span>
+        ))}
+      </div>
+      <div className="libre-paw__card-foot">
+        <span>
+          {duel.cheats.length} {duel.cheats.length === 1 ? "cheat" : "cheats"}{" "}
+          in the ladder
+        </span>
+      </div>
+      {won && <span className="libre-paw__won-stamp">✓ FULFILLED</span>}
+    </button>
+  );
+}
+
 interface MonkeysPawViewProps {
   /// Return to the Practice page — the Paw lives under Practice as a
   /// practice type (no rail chip of its own), so the landing header
@@ -78,6 +223,10 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
 
   const [openDuelId, setOpenDuelId] = useState<string | null>(null);
   const duel = findDuel(openDuelId);
+
+  // Browse state: active language tab (persisted) + catalog search.
+  const [tab, setTab] = useState<BrowseTab>(loadSavedTab);
+  const [query, setQuery] = useState("");
 
   // Per-duel state, hydrated from localStorage when a duel opens.
   const [suite, setSuite] = useState("");
@@ -101,6 +250,15 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
   progressRef.current = { slain, rounds, won };
   const openIdRef = useRef(openDuelId);
   openIdRef.current = openDuelId;
+
+  const selectTab = useCallback((next: BrowseTab) => {
+    setTab(next);
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, next);
+    } catch {
+      // Non-fatal — the tab just won't be remembered.
+    }
+  }, []);
 
   const openDuel = useCallback((id: string) => {
     const d = findDuel(id);
@@ -148,16 +306,21 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
     setSummoning(true);
     setProgressLabel("The Paw stirs…");
     try {
-      const result = await summon(duel, suiteRef.current, runRust, {
-        startAt: slain,
-        onProgress: ({ phase, index, total }) => {
-          setProgressLabel(
-            phase === "reference"
-              ? "Weighing your contract against the true artifact…"
-              : `Testing your contract against grant ${index + 1} of ${total}…`,
-          );
+      const result = await summon(
+        duel,
+        suiteRef.current,
+        RUNNERS[duel.language],
+        {
+          startAt: slain,
+          onProgress: ({ phase, index, total }) => {
+            setProgressLabel(
+              phase === "reference"
+                ? "Weighing your contract against the true artifact…"
+                : `Testing your contract against grant ${index + 1} of ${total}…`,
+            );
+          },
         },
-      });
+      );
       const nextRounds = rounds + 1;
       const nextSlain =
         result.kind === "cheat" ? result.slain : duel.cheats.length;
@@ -180,6 +343,26 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
 
   // ── Landing ──────────────────────────────────────────────────
   if (!duel) {
+    const pool: readonly PawDuel[] =
+      tab === "all" ? ALL_DUELS : duelsForLanguage(tab);
+    const q = query.trim().toLowerCase();
+    const shown = q
+      ? pool.filter(
+          (d) =>
+            d.title.toLowerCase().includes(q) ||
+            d.conceptTags.some((t) => t.toLowerCase().includes(q)),
+        )
+      : pool;
+    const fulfilled = pool.filter((d) => loadProgress(d.id)?.won).length;
+    const tabs: Array<{ id: BrowseTab; label: string; count: number }> = [
+      { id: "all", label: "All", count: ALL_DUELS.length },
+      ...PAW_LANGUAGES.map((l) => ({
+        id: l.id,
+        label: l.label,
+        count: duelsForLanguage(l.id).length,
+      })),
+    ];
+
     return (
       <div className="libre-paw">
         <header className="libre-paw__header">
@@ -193,11 +376,10 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
             </button>
           )}
           <h1 className="libre-paw__title">The Monkey&rsquo;s Paw</h1>
-          <span className="libre-paw__lang-chip">RUST</span>
         </header>
         <p className="libre-paw__blurb">
           You write only the tests. The Paw grants each wish with the
-          laziest Rust that satisfies them — exactly, literally,
+          laziest code that satisfies them — exactly, literally,
           maliciously. Corner it until the cheapest code left standing
           is the real thing.
         </p>
@@ -207,8 +389,8 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
             <span className="libre-paw__pact-num">1</span>
             <p>
               <strong>Write the contract</strong>
-              Real <code>#[test]</code> functions in real Rust — your
-              suite is the only language the Paw understands.
+              Real tests in the duel&rsquo;s own tongue — your suite is
+              the only language the Paw understands.
             </p>
           </div>
           <div className="libre-paw__pact-step">
@@ -230,49 +412,97 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
           </div>
         </div>
 
-        <div className="libre-paw__grid">
-          {RUST_DUELS.map((d) => {
-            const saved = loadProgress(d.id);
-            return (
+        <nav
+          className="libre-paw__tabs"
+          role="tablist"
+          aria-label="Duel language"
+        >
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={
+                "libre-paw__tab" +
+                (tab === t.id ? " libre-paw__tab--active" : "")
+              }
+              onClick={() => selectTab(t.id)}
+            >
+              {t.label}
+              <span className="libre-paw__tab-count">{t.count}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="libre-paw__toolbar">
+          <input
+            type="search"
+            className="libre-paw__search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search wishes and concepts…"
+            aria-label="Search duels by title or concept tag"
+          />
+          {pool.length > 0 && (
+            <span className="libre-paw__tally">
+              {fulfilled} of {pool.length} wishes fulfilled
+            </span>
+          )}
+        </div>
+
+        {pool.length === 0 ? (
+          <div className="libre-paw__empty">
+            <strong>
+              {tab === "all"
+                ? "The ladders are still being forged."
+                : `The Paw has not yet learned ${languageLabel(tab)}.`}
+            </strong>
+            New wishes arrive soon — try another language meanwhile.
+          </div>
+        ) : shown.length === 0 ? (
+          <div className="libre-paw__empty">
+            <strong>No wishes match &ldquo;{query.trim()}&rdquo;.</strong>
+            The Paw keeps what it grants well hidden — try another word.
+            <div>
               <button
-                key={d.id}
                 type="button"
-                className="libre-paw__card"
-                onClick={() => openDuel(d.id)}
+                className="libre-paw__empty-clear"
+                onClick={() => setQuery("")}
               >
-                <div className="libre-paw__card-top">
-                  <span
-                    className={
-                      "libre-paw__difficulty" +
-                      (d.difficulty === "master"
-                        ? " libre-paw__difficulty--master"
-                        : "")
-                    }
-                  >
-                    {d.difficulty}
-                  </span>
-                  <Fingers
-                    slain={saved?.slain ?? 0}
-                    total={d.cheats.length}
-                    won={saved?.won ?? false}
-                  />
+                Clear search
+              </button>
+            </div>
+          </div>
+        ) : (
+          TIERS.map((tier) => {
+            const group = shown.filter((d) => d.difficulty === tier.id);
+            if (group.length === 0) return null;
+            return (
+              <section
+                key={tier.id}
+                className={`libre-paw__tier libre-paw__tier--${tier.id}`}
+                aria-label={tier.label}
+              >
+                <div className="libre-paw__tier-head">
+                  <h2 className="libre-paw__tier-title">{tier.label}</h2>
+                  <span className="libre-paw__tier-ranks">{tier.ranks}</span>
+                  <span className="libre-paw__tier-rule" aria-hidden="true" />
                 </div>
-                <h2 className="libre-paw__card-title">{d.title}</h2>
-                <p className="libre-paw__card-wish">&ldquo;{d.wish}&rdquo;</p>
-                <div className="libre-paw__tags">
-                  {d.conceptTags.map((tag) => (
-                    <span key={tag} className="libre-paw__tag">
-                      {tag}
-                    </span>
+                <div className="libre-paw__grid">
+                  {group.map((d) => (
+                    <DuelCard
+                      key={d.id}
+                      duel={d}
+                      showLanguage={tab === "all"}
+                      onOpen={openDuel}
+                    />
                   ))}
                 </div>
-                {saved?.won && (
-                  <span className="libre-paw__won-stamp">FULFILLED</span>
-                )}
-              </button>
+              </section>
             );
-          })}
-        </div>
+          })
+        )}
       </div>
     );
   }
@@ -288,7 +518,11 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
           ← All wishes
         </button>
         <h1 className="libre-paw__duel-title">{duel.title}</h1>
+        <span className="libre-paw__lang-chip">
+          {languageLabel(duel.language)}
+        </span>
         <span className="libre-paw__rounds">
+          <RankNotches rank={duel.rank} />
           <Fingers slain={slain} total={duel.cheats.length} won={won} />
           {rounds > 0 && <span>round {rounds}</span>}
         </span>
@@ -308,12 +542,12 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
         <section className="libre-paw__pane" aria-label="Your contract">
           <div className="libre-paw__pane-head">
             <span>Your contract</span>
-            <span>tests only</span>
+            <span>tests only · {TEST_IDIOM[duel.language]}</span>
           </div>
           <div className="libre-paw__editor">
             <Editor
               height="100%"
-              language="rust"
+              language={duel.language}
               value={suite}
               theme={monacoTheme}
               onMount={(editor) => {

@@ -150,6 +150,11 @@
   line-height: var(--libre-lh-1-5);
   color: var(--color-text-secondary);
   font-style: italic;
+  /* Teaser, not the whole wish — long wishes clamp to three lines. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .libre-paw__tags {
@@ -179,6 +184,217 @@
   border-radius: var(--libre-radius-4);
   color: var(--paw-accent);
   transform: rotate(6deg);
+  background: var(--color-bg-secondary);
+}
+
+/* ─── Browse layer: language tabs / search / difficulty ladder ── */
+
+.libre-paw__tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--libre-space-8);
+  margin-bottom: var(--libre-space-14);
+  overflow-x: auto;
+  padding-bottom: var(--libre-space-4);
+  scrollbar-width: none;
+}
+.libre-paw__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.libre-paw__tab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--libre-space-8);
+  font: inherit;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-600);
+  white-space: nowrap;
+  padding: var(--libre-space-6) var(--libre-space-16);
+  min-height: var(--libre-size-36);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    color var(--libre-dur-150) var(--libre-ease-ease),
+    border-color var(--libre-dur-150) var(--libre-ease-ease),
+    background var(--libre-dur-150) var(--libre-ease-ease);
+}
+.libre-paw__tab:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-card-strong);
+}
+.libre-paw__tab--active {
+  color: var(--paw-accent);
+  border-color: var(--paw-accent-dim);
+  background: color-mix(in srgb, var(--paw-accent) 8%, transparent);
+}
+
+.libre-paw__tab-count {
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-tertiary);
+  padding: var(--libre-space-1) var(--libre-space-6);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-bg-tertiary);
+}
+.libre-paw__tab--active .libre-paw__tab-count {
+  color: var(--paw-accent);
+  background: color-mix(in srgb, var(--paw-accent) 14%, transparent);
+}
+
+.libre-paw__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  flex-wrap: wrap;
+  margin-bottom: var(--libre-space-20);
+}
+
+.libre-paw__search {
+  font: inherit;
+  font-size: var(--libre-fs-13);
+  flex: 1 1 var(--libre-size-220);
+  max-width: var(--libre-size-320);
+  padding: var(--libre-space-8) var(--libre-space-14);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+.libre-paw__search::placeholder {
+  color: var(--color-text-tertiary);
+}
+.libre-paw__search:focus {
+  outline: none;
+  border-color: var(--paw-accent-dim);
+}
+
+.libre-paw__tally {
+  margin-left: auto;
+  font-size: var(--libre-fs-12);
+  color: var(--color-text-tertiary);
+}
+
+/* Tier sections (novice → grandmaster). */
+.libre-paw__tier {
+  margin-bottom: var(--libre-space-26);
+}
+
+.libre-paw__tier-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--libre-space-10);
+  margin-bottom: var(--libre-space-12);
+}
+
+.libre-paw__tier-title {
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-08em);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+.libre-paw__tier--master .libre-paw__tier-title,
+.libre-paw__tier--grandmaster .libre-paw__tier-title {
+  color: var(--paw-accent);
+}
+
+.libre-paw__tier-ranks {
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary);
+}
+
+.libre-paw__tier-rule {
+  flex: 1;
+  align-self: center;
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+}
+
+/* 1–10 rank meter on cards and the duel bar. */
+.libre-paw__rank {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--libre-space-2);
+}
+
+.libre-paw__rank-notch {
+  width: var(--libre-size-4);
+  height: var(--libre-size-8);
+  border-radius: var(--libre-radius-2);
+  background: var(--color-bg-tertiary);
+}
+.libre-paw__rank-notch--lit {
+  background: var(--paw-accent);
+}
+
+/* Card extras: language chip (All tab), meta row, cheat-count foot. */
+.libre-paw__card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--libre-space-8);
+  min-width: var(--libre-size-0);
+}
+
+.libre-paw__card-lang {
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-08em);
+  text-transform: uppercase;
+  padding: var(--libre-space-2) var(--libre-space-8);
+  border: var(--libre-bw-1) solid var(--paw-accent-dim);
+  border-radius: var(--libre-radius-pill);
+  color: var(--paw-accent);
+}
+
+.libre-paw__card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--libre-space-8);
+  font-size: var(--libre-fs-11);
+  color: var(--color-text-tertiary);
+}
+
+.libre-paw__card--won {
+  border-color: var(--paw-accent-dim);
+}
+
+/* Empty tab / empty search states. */
+.libre-paw__empty {
+  border: var(--libre-bw-1) dashed var(--color-border-default);
+  border-radius: var(--libre-radius-lg);
+  padding: var(--libre-space-40) var(--libre-space-24);
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--libre-fs-13);
+  line-height: var(--libre-lh-1-6);
+}
+.libre-paw__empty strong {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: var(--libre-fs-14);
+  margin-bottom: var(--libre-space-6);
+}
+
+.libre-paw__empty-clear {
+  font: inherit;
+  font-size: var(--libre-fs-12-5);
+  margin-top: var(--libre-space-14);
+  padding: var(--libre-space-6) var(--libre-space-16);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.libre-paw__empty-clear:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-card-strong);
 }
 
 /* ─── Finger tracker (cheats slain → fingers curled) ──────────── */
@@ -525,4 +741,29 @@
 .libre-paw__back:hover {
   border-color: var(--color-border-card-strong);
   background: var(--color-bg-secondary);
+}
+
+/* ─── Mobile (≤480px): single-column cards, ≥44px tap targets, the
+   tab strip already scrolls horizontally. ─────────────────────── */
+@media (max-width: 480px) {
+  .libre-paw {
+    padding: var(--libre-space-16) var(--libre-space-14) var(--libre-space-40);
+  }
+  .libre-paw__grid {
+    grid-template-columns: 1fr;
+  }
+  .libre-paw__tab,
+  .libre-paw__back,
+  .libre-paw__empty-clear,
+  .libre-paw__summon {
+    min-height: var(--libre-size-44);
+  }
+  .libre-paw__search {
+    min-height: var(--libre-size-44);
+    max-width: none;
+    flex-basis: var(--libre-size-160);
+  }
+  .libre-paw__tally {
+    margin-left: var(--libre-space-0);
+  }
 }
