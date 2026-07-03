@@ -6,6 +6,14 @@
 .libre-paw {
   --paw-accent: var(--libre-c-d99a4e);
   --paw-accent-dim: color-mix(in srgb, var(--paw-accent) 55%, transparent);
+  /* Victory green — the pass/fail signal for beaten duels. A green
+     family (not the amber accent) so "fulfilled" reads instantly as
+     PASS while scanning, distinct from every other chip on the card.
+     color-mixed against theme tokens so light themes stay legible. */
+  --paw-win: #3ecf7a;
+  --paw-win-strong: color-mix(in srgb, var(--paw-win) 82%, var(--color-text-primary));
+  --paw-win-wash: color-mix(in srgb, var(--paw-win) 9%, transparent);
+  --paw-win-border: color-mix(in srgb, var(--paw-win) 55%, var(--color-border-default));
   height: 100%;
   overflow-y: auto;
   padding: var(--libre-space-28) var(--libre-space-32) var(--libre-space-48);
@@ -172,19 +180,47 @@
   color: var(--color-text-tertiary);
 }
 
+/* Solid-fill victory stamp — high contrast against the green-washed
+   card so beaten duels can't be missed while scanning the grid. */
 .libre-paw__won-stamp {
   position: absolute;
   top: var(--libre-space-12);
   right: var(--libre-space-14);
-  font-size: var(--libre-fs-10);
+  font-size: var(--libre-fs-11);
   font-weight: var(--libre-fw-800);
   letter-spacing: var(--libre-ls-0-12em);
-  padding: var(--libre-space-3) var(--libre-space-8);
-  border: var(--libre-bw-1-5) solid var(--paw-accent);
+  padding: var(--libre-space-4) var(--libre-space-10);
   border-radius: var(--libre-radius-4);
-  color: var(--paw-accent);
+  color: var(--color-bg-primary, #0b0b0e);
   transform: rotate(6deg);
-  background: var(--color-bg-secondary);
+  background: var(--paw-win);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--paw-win) 45%, transparent);
+}
+
+/* Oversized translucent check behind the card content — visible in a
+   half-second scan even at grid density, without hiding the text. */
+.libre-paw__won-mark {
+  position: absolute;
+  right: var(--libre-space-8);
+  bottom: calc(-1 * var(--libre-space-16));
+  font-size: 96px;
+  line-height: 1;
+  font-weight: var(--libre-fw-800);
+  color: color-mix(in srgb, var(--paw-win) 16%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* "Beaten" chip in the card foot — the textual twin of the stamp for
+   anyone scanning the foot row (and for narrow cards where the stamp
+   overlaps the title less gracefully). */
+.libre-paw__card-beaten {
+  margin-left: auto;
+  font-size: var(--libre-fs-10);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-0-08em);
+  text-transform: uppercase;
+  color: var(--paw-win-strong);
 }
 
 /* ─── Browse layer: language tabs / search / difficulty ladder ── */
@@ -244,6 +280,11 @@
 .libre-paw__tab--active .libre-paw__tab-count {
   color: var(--paw-accent);
   background: color-mix(in srgb, var(--paw-accent) 14%, transparent);
+}
+/* Every duel in this tab beaten — the badge itself goes green. */
+.libre-paw__tab-count--done {
+  color: var(--paw-win-strong) !important;
+  background: var(--paw-win-wash) !important;
 }
 
 .libre-paw__toolbar {
@@ -309,6 +350,21 @@
   color: var(--color-text-tertiary);
 }
 
+/* Per-tier fulfilled tally ("✓ 2/6") — green once the tier is swept. */
+.libre-paw__tier-won {
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-text-tertiary);
+  padding: var(--libre-space-1) var(--libre-space-8);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-bg-tertiary);
+  white-space: nowrap;
+}
+.libre-paw__tier-won--complete {
+  color: var(--paw-win-strong);
+  background: var(--paw-win-wash);
+}
+
 .libre-paw__tier-rule {
   flex: 1;
   align-self: center;
@@ -360,8 +416,21 @@
   color: var(--color-text-tertiary);
 }
 
+/* Beaten duel: green border + wash + slightly receded content, so
+   unbeaten cards stay vivid and the "what's left to fight" scan is
+   instant. The stamp/watermark/foot chip stay at full strength. */
 .libre-paw__card--won {
-  border-color: var(--paw-accent-dim);
+  border-color: var(--paw-win-border);
+  background:
+    linear-gradient(180deg, var(--paw-win-wash), transparent 65%),
+    var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.libre-paw__card--won .libre-paw__card-title,
+.libre-paw__card--won .libre-paw__card-wish,
+.libre-paw__card--won .libre-paw__tags {
+  opacity: 0.72;
 }
 
 /* Empty tab / empty search states. */

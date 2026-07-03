@@ -174,6 +174,7 @@ function DuelCard({
       type="button"
       className={"libre-paw__card" + (won ? " libre-paw__card--won" : "")}
       onClick={() => onOpen(duel.id)}
+      aria-label={`${duel.title}${won ? " — fulfilled" : ""}`}
     >
       <div className="libre-paw__card-top">
         <span className="libre-paw__card-meta">
@@ -204,8 +205,18 @@ function DuelCard({
           {duel.cheats.length} {duel.cheats.length === 1 ? "cheat" : "cheats"}{" "}
           in the ladder
         </span>
+        {won && <span className="libre-paw__card-beaten">Beaten</span>}
       </div>
-      {won && <span className="libre-paw__won-stamp">✓ FULFILLED</span>}
+      {won && (
+        <>
+          {/* Big translucent check watermark — the unmissable "you
+              beat this one" signal while scanning the grid. */}
+          <span className="libre-paw__won-mark" aria-hidden>
+            ✓
+          </span>
+          <span className="libre-paw__won-stamp">✓ FULFILLED</span>
+        </>
+      )}
     </button>
   );
 }
@@ -354,13 +365,23 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
         )
       : pool;
     const fulfilled = pool.filter((d) => loadProgress(d.id)?.won).length;
-    const tabs: Array<{ id: BrowseTab; label: string; count: number }> = [
-      { id: "all", label: "All", count: ALL_DUELS.length },
-      ...PAW_LANGUAGES.map((l) => ({
-        id: l.id,
-        label: l.label,
-        count: duelsForLanguage(l.id).length,
-      })),
+    // Won-per-scope counts drive the tab badges ("4/30") and tier
+    // chips — the at-a-glance "what have I beaten" signal. Recomputed
+    // per landing render, which is exactly when it can change (the
+    // landing re-renders on every return from a duel).
+    const wonCount = (ds: readonly PawDuel[]): number =>
+      ds.filter((d) => loadProgress(d.id)?.won).length;
+    const tabs: Array<{
+      id: BrowseTab;
+      label: string;
+      count: number;
+      won: number;
+    }> = [
+      { id: "all", label: "All", count: ALL_DUELS.length, won: wonCount(ALL_DUELS) },
+      ...PAW_LANGUAGES.map((l) => {
+        const ds = duelsForLanguage(l.id);
+        return { id: l.id, label: l.label, count: ds.length, won: wonCount(ds) };
+      }),
     ];
 
     return (
@@ -430,7 +451,17 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
               onClick={() => selectTab(t.id)}
             >
               {t.label}
-              <span className="libre-paw__tab-count">{t.count}</span>
+              <span
+                className={
+                  "libre-paw__tab-count" +
+                  (t.won > 0 && t.won === t.count
+                    ? " libre-paw__tab-count--done"
+                    : "")
+                }
+                title={`${t.won} of ${t.count} fulfilled`}
+              >
+                {t.won}/{t.count}
+              </span>
             </button>
           ))}
         </nav>
@@ -478,6 +509,7 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
           TIERS.map((tier) => {
             const group = shown.filter((d) => d.difficulty === tier.id);
             if (group.length === 0) return null;
+            const groupWon = wonCount(group);
             return (
               <section
                 key={tier.id}
@@ -487,6 +519,16 @@ export default function MonkeysPawView({ onBack }: MonkeysPawViewProps = {}) {
                 <div className="libre-paw__tier-head">
                   <h2 className="libre-paw__tier-title">{tier.label}</h2>
                   <span className="libre-paw__tier-ranks">{tier.ranks}</span>
+                  <span
+                    className={
+                      "libre-paw__tier-won" +
+                      (groupWon === group.length
+                        ? " libre-paw__tier-won--complete"
+                        : "")
+                    }
+                  >
+                    ✓ {groupWon}/{group.length}
+                  </span>
                   <span className="libre-paw__tier-rule" aria-hidden="true" />
                 </div>
                 <div className="libre-paw__grid">
