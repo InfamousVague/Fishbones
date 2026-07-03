@@ -190,6 +190,13 @@ RESEND_FROM_NAME=${RESEND_FROM_NAME:-}
 # database id is not a secret.
 NOTION_TOKEN=${NOTION_TOKEN:-}
 NOTION_DATABASE_ID=${NOTION_DATABASE_ID:-b19f429c29af4384b2dd8696a8a1404f}
+
+# ── Early access → Notion ────────────────────────────────────
+# POST /early-access files marketing-site email signups into a
+# SEPARATE Notion database (a contact list, not feedback). Same
+# NOTION_TOKEN as above; the id is not a secret. Unset -> the
+# route returns 503.
+NOTION_EARLY_ACCESS_DATABASE_ID=${NOTION_EARLY_ACCESS_DATABASE_ID:-c69deb5d1ea6421fa3aa3327ff0eaa05}
 EOF
 
 # ── systemd unit ──────────────────────────────────────────────────
