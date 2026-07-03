@@ -1266,6 +1266,36 @@ export default function App() {
     null,
   );
 
+  // Early-access supporter flag for the signed-in learner's OWN
+  // profile page. `cloud.user` is the account object only when signed
+  // in (it's `false` when logged out, `null` while booting), so we key
+  // the fetch off `signedInUserId` and re-run whenever it changes —
+  // sign-in, sign-out, or an account switch. The one-shot fetch reads
+  // `early_access` off the public profile; errors and unmounts leave
+  // the flag false so the Supporter card just doesn't appear.
+  const signedInUserId =
+    typeof cloud.user === "object" && cloud.user ? cloud.user.id : null;
+  const [isSupporter, setIsSupporter] = useState(false);
+  const cloudGetProfile = cloud.getProfile;
+  useEffect(() => {
+    if (!signedInUserId) {
+      setIsSupporter(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const p = await cloudGetProfile(signedInUserId);
+        if (!cancelled) setIsSupporter(!!p.early_access);
+      } catch {
+        if (!cancelled) setIsSupporter(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [signedInUserId, cloudGetProfile]);
+
   // Deep-link target for the Paths page — set when a collection's
   // "Learning path" card routes there, consumed as PathsPage's
   // initial selection, cleared when Paths is opened normally.
@@ -2795,6 +2825,7 @@ export default function App() {
               history={history}
               stats={stats}
               onOpenLesson={selectLesson}
+              isSupporter={isSupporter}
             />
           ) : view === "social" ? (
             <SocialView

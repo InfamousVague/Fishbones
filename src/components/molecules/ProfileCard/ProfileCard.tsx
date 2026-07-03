@@ -22,6 +22,8 @@ import "@base/primitives/skeleton/skeleton.css";
 import "@base/primitives/spinner/spinner.css";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
 import { ProgressRing } from "@/components/atoms/ProgressRing/ProgressRing";
+import SupporterCard from "@/components/molecules/SupporterCard/SupporterCard";
+import EarlyBadge from "@/components/molecules/EarlyBadge/EarlyBadge";
 import { useT } from "@/i18n/i18n";
 import type { PublicProfile } from "@/hooks/useLibreCloud";
 import "./ProfileCard.css";
@@ -176,6 +178,7 @@ export default function ProfileCard({
             <div className="libre-profile-card-head-text">
               <div className="libre-profile-card-name">
                 <span className="libre-profile-card-name-text">{name}</span>
+                {profile.early_access && <EarlyBadge size="md" />}
                 {embedded && (
                   <Badge color="accent" variant="solid" size="sm">
                     {t("leaderboard.you")}
@@ -200,6 +203,13 @@ export default function ProfileCard({
               hideCheckOnComplete
             />
           </div>
+
+          {/* Early-access supporter badge — a compact full-width row
+              just under the head, above the stats/chips. Gated on the
+              account's `early_access` flag so only supporters see it. */}
+          {profile.early_access && (
+            <SupporterCard className="libre-profile-card-supporter" />
+          )}
 
           {embedded ? (
             /* Own-profile hero — compact chip row instead of the 2×2

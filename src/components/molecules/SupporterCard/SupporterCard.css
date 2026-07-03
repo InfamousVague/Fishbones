@@ -1,0 +1,88 @@
+/* Supporter card — a celebratory full-width badge for early-access
+   accounts. Self-contained and token-driven: the gradient is built
+   from the app's accent hue (`--gg-hue`, which also backs
+   `--gg-accent`) plus two complementary hue-shifted stops, so it
+   tracks the learner's chosen accent while still reading as its own
+   festive surface. The rounded-card radius matches the profile cards
+   (`--libre-radius-lg`, as used by .libre-profile-card). */
+
+.libre-supporter-card {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  width: 100%;
+  padding: var(--libre-space-14) var(--libre-space-16);
+  border-radius: var(--libre-radius-lg);
+  border: var(--libre-bw-1) solid var(--libre-c-rgba-255-255-255-0-06);
+  /* Multi-stop diagonal gradient across the accent hue and two
+     complementary hues (±deg on --gg-hue). Sized larger than the box
+     (200% 200%) so the animation has room to drift the position. */
+  background-image: linear-gradient(
+    115deg,
+    hsl(var(--gg-hue) 78% 60%) 0%,
+    hsl(calc(var(--gg-hue) + 40) 74% 58%) 28%,
+    hsl(calc(var(--gg-hue) - 44) 70% 56%) 60%,
+    hsl(calc(var(--gg-hue) + 18) 80% 62%) 100%
+  );
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  /* Slow, subtle drift of the gradient position — never fully cycles
+     to a jarring seam because the keyframes ease back to the start. */
+  animation: libre-supporter-shift 14s var(--libre-ease-ease-in-out, ease-in-out)
+    infinite;
+  /* Soft accent glow to lift the card off the page background. */
+  box-shadow: 0 var(--libre-space-2) var(--libre-space-16)
+    hsl(var(--gg-hue) 60% 50% / 0.22);
+  color: var(--libre-c-white);
+}
+
+@keyframes libre-supporter-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Respect the OS "reduce motion" preference — hold the gradient still
+   (no position drift) rather than animating it. */
+@media (prefers-reduced-motion: reduce) {
+  .libre-supporter-card {
+    animation: none;
+  }
+}
+
+.libre-supporter-card-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--libre-size-40);
+  height: var(--libre-size-40);
+  border-radius: var(--libre-radius-pill);
+  background: var(--libre-c-rgba-255-255-255-0-18);
+  color: var(--libre-c-white);
+  /* Keep the glyph crisp over the busy gradient. */
+  filter: drop-shadow(0 var(--libre-space-1) var(--libre-space-2)
+    rgba(0, 0, 0, 0.35));
+}
+
+.libre-supporter-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-2);
+  min-width: 0;
+}
+
+.libre-supporter-card-title {
+  font-size: var(--libre-fs-16);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1-1, 1.15);
+  color: var(--libre-c-white);
+  /* Soft shadow for contrast against the light gradient. */
+  text-shadow: 0 var(--libre-space-1) var(--libre-space-4) rgba(0, 0, 0, 0.42);
+}
+
+.libre-supporter-card-body {
+  font-size: var(--libre-fs-12-5);
+  line-height: var(--libre-lh-1-4, 1.4);
+  color: var(--libre-c-rgba-255-255-255-0-92);
+  text-shadow: 0 var(--libre-space-1) var(--libre-space-4) rgba(0, 0, 0, 0.42);
+}

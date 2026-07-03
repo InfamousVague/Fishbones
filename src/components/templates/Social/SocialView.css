@@ -501,3 +501,12 @@
   font-size: 12px;
   color: var(--color-danger, #f87171);
 }
+
+/* Name + EARLY badge on one line (friend / request rows). The name
+   still ellipsizes; the badge holds its size beside it. */
+.libre-social-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}

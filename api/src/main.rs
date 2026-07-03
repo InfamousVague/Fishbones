@@ -18,6 +18,7 @@
 mod alias;
 mod auth;
 mod db;
+mod early_access_sync;
 mod mailer;
 mod routes;
 mod state;
@@ -202,6 +203,20 @@ async fn main() -> anyhow::Result<()> {
         notion_database_id,
         notion_early_access_database_id,
     });
+
+    // ── Early-access → supporter poller ─────────────────────────
+    // When the Notion early-access config is present, spawn a
+    // background task that periodically reads the signup list and
+    // grants the `early_access` supporter flag to matching accounts.
+    // Absent config → never spawned (the write route already logged
+    // the disabled state above).
+    if let (Some(token), Some(db_id)) = (
+        state.notion_token.clone(),
+        state.notion_early_access_database_id.clone(),
+    ) {
+        let poll_state = Arc::clone(&state);
+        tokio::spawn(early_access_sync::poll_loop(poll_state, token, db_id));
+    }
 
     // ── Router ──────────────────────────────────────────────────
     let app = routes::build_router(Arc::clone(&state));

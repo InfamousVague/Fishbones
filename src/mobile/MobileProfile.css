@@ -954,3 +954,11 @@
   color: var(--color-text-tertiary);
   display: inline-flex;
 }
+
+/* Hero name + EARLY badge inline. */
+.m-prof__hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}

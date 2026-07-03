@@ -1076,5 +1076,11 @@
     "emptyGlobal": "No ranked learners yet — be the first.",
     "addFriendsCta": "Add friends",
     "you": "You"
+  },
+  "supporter": {
+    "title": "Supporter",
+    "body": "Thanks for backing Libre's early access — you're helping keep it free and open.",
+    "badge": "EARLY",
+    "badgeTitle": "Early-access supporter"
   }
 }

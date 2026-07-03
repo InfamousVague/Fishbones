@@ -12,6 +12,7 @@ import type { Course, LanguageId } from "@/data/types";
 import { isExerciseKind } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
 import type { StreakAndXp } from "@/hooks/useStreakAndXp";
+import SupporterCard from "@/components/molecules/SupporterCard/SupporterCard";
 import "./ProfileView.css";
 
 /// Per-lesson XP — MUST stay in sync with useStreakAndXp + MobileProfile.
@@ -85,6 +86,11 @@ interface Props {
   /// Called when the learner clicks a recent-activity row — jumps back
   /// to that lesson in courses view.
   onOpenLesson: (courseId: string, lessonId: string) => void;
+  /// True when the signed-in account is an early-access supporter
+  /// (`early_access` on its cloud profile). When set, a celebratory
+  /// full-width Supporter card renders at the top of the page. Fetched
+  /// + wired by App.tsx; defaults false so the card is opt-in.
+  isSupporter?: boolean;
 }
 
 /// Profile / stats page.
@@ -120,6 +126,7 @@ export default function ProfileView({
   history,
   stats,
   onOpenLesson,
+  isSupporter = false,
 }: Props) {
   // Show-all toggles for the two sections that historically grew
   // unbounded. Default closed; clicking the chevron flips to true
@@ -374,6 +381,12 @@ export default function ProfileView({
               </span>
             </div>
           </header>
+
+          {/* ── Supporter card ──────────────────────────────────
+              Early-access thank-you badge, full-width across the
+              dashboard. Sits under the header strip and above the
+              stat strip; only rendered for supporter accounts. */}
+          {isSupporter && <SupporterCard />}
 
           {/* ── Stats strip ─────────────────────────────────────
               Six compact tiles, single row. Density vs. the old

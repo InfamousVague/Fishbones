@@ -47,6 +47,8 @@ import { users as usersIcon } from "@base/primitives/icon/icons/users";
 import { chevronRight } from "@base/primitives/icon/icons/chevron-right";
 import { award } from "@base/primitives/icon/icons/award";
 import { swords } from "@base/primitives/icon/icons/swords";
+import SupporterCard from "@/components/molecules/SupporterCard/SupporterCard";
+import EarlyBadge from "@/components/molecules/EarlyBadge/EarlyBadge";
 import PullToRefresh from "./PullToRefresh";
 import { usePullToRefresh } from "./usePullToRefresh";
 import "./MobileProfile.css";
@@ -64,6 +66,11 @@ interface Props {
   /// identity hero (avatar initials + display name); anonymous
   /// learners get a "sign in to sync" affordance instead.
   user?: LibreCloudUser | null;
+  /// True when the signed-in account is an early-access supporter
+  /// (`early_access` on its cloud profile). Renders a celebratory
+  /// Supporter card under the identity hero. Fetched + wired by
+  /// MobileApp; defaults false so the card is opt-in.
+  isSupporter?: boolean;
   /// Opens the sign-in dialog (hosted by MobileApp).
   onRequestSignIn?: () => void;
   /// Opens the Friends & Leaderboard view (hosted by MobileApp).
@@ -203,6 +210,7 @@ export default function MobileProfile({
   completed,
   shields,
   user,
+  isSupporter,
   onRequestSignIn,
   onOpenSocial,
   onOpenCerts,
@@ -405,8 +413,11 @@ export default function MobileProfile({
           )}
         </span>
         <div className="m-prof__hero-text">
-          <span className="m-prof__hero-name">
-            {user ? (user.display_name || user.email || "Learner") : "Learning locally"}
+          <span className="m-prof__hero-name-row">
+            <span className="m-prof__hero-name">
+              {user ? (user.display_name || user.email || "Learner") : "Learning locally"}
+            </span>
+            {isSupporter && <EarlyBadge />}
           </span>
           <span className="m-prof__hero-sub">
             {user
@@ -427,6 +438,10 @@ export default function MobileProfile({
           </button>
         )}
       </section>
+
+      {/* Early-access supporter badge — thank-you card under the
+          identity hero, gated on the account's `early_access` flag. */}
+      {isSupporter && <SupporterCard className="m-prof__supporter" />}
 
       {/* Friends & Leaderboard entry — one tap into the social view.
           Same glass family as the hero so the top of the page reads

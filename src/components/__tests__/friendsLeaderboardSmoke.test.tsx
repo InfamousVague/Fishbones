@@ -36,6 +36,7 @@ const ME: PublicProfile = {
     lessons_completed: 30,
     level: 8,
   },
+  early_access: false,
   is_friend: false,
   friend_request_pending: false,
 };
@@ -126,6 +127,7 @@ describe("Social + profile UI smoke", () => {
         longest_streak_days: 20,
         lessons_completed: 60,
         level: 12,
+        early_access: true,
       },
     ];
     await act(async () => {
@@ -141,6 +143,8 @@ describe("Social + profile UI smoke", () => {
     // Highlighted "You" badge for the current user's own row (the
     // Friends-tab hero renders one too, hence getAllByText).
     expect(screen.getAllByText("You").length).toBeGreaterThan(0);
+    // Early-access supporter → the crown "EARLY" pill next to the name.
+    expect(screen.getAllByText("EARLY").length).toBeGreaterThan(0);
   });
 
   it("SocialView explains and offers sign-in when signed out", async () => {
@@ -168,6 +172,7 @@ describe("Social + profile UI smoke", () => {
         lessons_completed: 15,
         level: 5,
       },
+      early_access: false,
       is_friend: false,
       friend_request_pending: false,
     };

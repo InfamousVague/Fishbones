@@ -28,6 +28,8 @@ pub struct FriendSummary {
     pub email: Option<String>,
     pub display_name: Option<String>,
     pub stats: Stats,
+    /// Early-access supporter — drives the "EARLY" crown pill.
+    pub early_access: bool,
 }
 
 /// An incoming pending friend request. Backs `GET /friends/requests`.
@@ -36,6 +38,8 @@ pub struct FriendRequest {
     pub id: String,
     pub email: Option<String>,
     pub display_name: Option<String>,
+    /// Early-access supporter — drives the "EARLY" crown pill.
+    pub early_access: bool,
 }
 
 /// One leaderboard entry. Flat (stats inlined, not nested) to match the
@@ -50,6 +54,9 @@ pub struct LeaderboardRow {
     pub longest_streak_days: i64,
     pub lessons_completed: i64,
     pub level: i64,
+    /// Early-access supporter — drives the "EARLY" crown pill. Shown on
+    /// the global board too (the pill isn't private, unlike the name).
+    pub early_access: bool,
 }
 
 /// A public-ish profile view. `email` is only populated when the
@@ -65,6 +72,10 @@ pub struct ProfileView {
     pub stats: Stats,
     pub is_friend: bool,
     pub friend_request_pending: bool,
+    /// True when the account is an early-access supporter (email on the
+    /// early-access list, granted by the Notion poller). Public — it's a
+    /// celebratory badge shown to every viewer, not private like email.
+    pub early_access: bool,
 }
 
 /// The directed relationship state between two users, from the
@@ -180,7 +191,8 @@ impl Database {
                     COALESCE(s.current_streak_days, 0), \
                     COALESCE(s.longest_streak_days, 0), \
                     COALESCE(s.lessons_completed, 0), \
-                    COALESCE(s.level, 0) \
+                    COALESCE(s.level, 0), \
+                    COALESCE(u.early_access, 0) \
              FROM friends f \
              JOIN users u ON u.id = f.friend_id \
              LEFT JOIN stats s ON s.user_id = f.friend_id \
@@ -200,6 +212,7 @@ impl Database {
                         lessons_completed: r.get(6)?,
                         level: r.get(7)?,
                     },
+                    early_access: r.get::<_, i64>(8)? != 0,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -215,7 +228,7 @@ impl Database {
     ) -> anyhow::Result<Vec<FriendRequest>> {
         let conn = self.conn_lock();
         let mut stmt = conn.prepare(
-            "SELECT u.id, u.email, u.display_name \
+            "SELECT u.id, u.email, u.display_name, COALESCE(u.early_access, 0) \
              FROM friends f \
              JOIN users u ON u.id = f.user_id \
              WHERE f.friend_id = ?1 AND f.status = 'pending' \
@@ -227,6 +240,7 @@ impl Database {
                     id: r.get(0)?,
                     email: r.get(1)?,
                     display_name: r.get(2)?,
+                    early_access: r.get::<_, i64>(3)? != 0,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -253,7 +267,8 @@ impl Database {
                     COALESCE(s.current_streak_days, 0), \
                     COALESCE(s.longest_streak_days, 0), \
                     COALESCE(s.lessons_completed, 0), \
-                    COALESCE(s.level, 0) \
+                    COALESCE(s.level, 0), \
+                    COALESCE(u.early_access, 0) \
              FROM users u \
              LEFT JOIN stats s ON s.user_id = u.id \
              WHERE u.id = ?1 \
@@ -290,7 +305,8 @@ impl Database {
                     COALESCE(s.current_streak_days, 0), \
                     COALESCE(s.longest_streak_days, 0), \
                     COALESCE(s.lessons_completed, 0), \
-                    COALESCE(s.level, 0) \
+                    COALESCE(s.level, 0), \
+                    COALESCE(u.early_access, 0) \
              FROM users u \
              LEFT JOIN stats s ON s.user_id = u.id \
              ORDER BY COALESCE(s.total_xp, 0) DESC, u.id ASC \
@@ -332,7 +348,8 @@ impl Database {
         let conn = self.conn_lock();
         let base = conn
             .query_row(
-                "SELECT id, display_name, email, created_at, leaderboard_name FROM users WHERE id = ?1",
+                "SELECT id, display_name, email, created_at, leaderboard_name, \
+                        COALESCE(early_access, 0) FROM users WHERE id = ?1",
                 params![subject_id],
                 |r| {
                     Ok((
@@ -344,11 +361,12 @@ impl Database {
                         // member-since date must never 500 the profile.
                         r.get::<_, Option<String>>(3)?.unwrap_or_default(),
                         r.get::<_, Option<String>>(4)?,
+                        r.get::<_, i64>(5)? != 0,
                     ))
                 },
             )
             .optional()?;
-        let (id, display_name, email, created_at, leaderboard_name) = match base {
+        let (id, display_name, email, created_at, leaderboard_name, early_access) = match base {
             Some(v) => v,
             None => return Ok(None),
         };
@@ -390,7 +408,36 @@ impl Database {
             stats,
             is_friend,
             friend_request_pending,
+            early_access,
         }))
+    }
+
+    /// Grant the early-access supporter flag to every account whose email
+    /// (case-insensitive) is in `emails`. Idempotent + cheap on re-runs:
+    /// the `AND early_access = 0` guard means already-granted rows are
+    /// skipped, so the returned count is the number of NEWLY granted
+    /// supporters this pass (drives the "granted N new" log). Emails not
+    /// matching any account are silently ignored — someone can join the
+    /// early-access list before ever creating an account, and the next
+    /// poll after they sign up will pick them up.
+    pub fn grant_early_access(&self, emails: &[String]) -> anyhow::Result<usize> {
+        if emails.is_empty() {
+            return Ok(0);
+        }
+        let conn = self.conn_lock();
+        let mut granted = 0usize;
+        for email in emails {
+            let e = email.trim();
+            if e.is_empty() {
+                continue;
+            }
+            granted += conn.execute(
+                "UPDATE users SET early_access = 1, updated_at = datetime('now') \
+                 WHERE lower(email) = lower(?1) AND early_access = 0",
+                params![e],
+            )?;
+        }
+        Ok(granted)
     }
 
     // ── Default-friend seeding + backfill ─────────────────────────
@@ -556,6 +603,7 @@ fn leaderboard_row_from(r: &rusqlite::Row<'_>) -> rusqlite::Result<LeaderboardRo
         longest_streak_days: r.get(4)?,
         lessons_completed: r.get(5)?,
         level: r.get(6)?,
+        early_access: r.get::<_, i64>(7)? != 0,
     })
 }
 

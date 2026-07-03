@@ -125,6 +125,21 @@ impl Database {
         if !has_lb {
             conn.execute_batch("ALTER TABLE users ADD COLUMN leaderboard_name TEXT;")?;
         }
+        // Probe-and-add `early_access` (2026-07 supporter flag). Set to 1
+        // by the Notion early-access poller (see `early_access_sync.rs`)
+        // for accounts whose email appears on the early-access list; the
+        // app surfaces it as a "Supporter" badge. DEFAULT 0 = not a
+        // supporter until the poller (or a manual grant) flips it.
+        let has_ea: bool = conn
+            .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'early_access'")?
+            .query_row([], |_| Ok(()))
+            .map(|_| true)
+            .unwrap_or(false);
+        if !has_ea {
+            conn.execute_batch(
+                "ALTER TABLE users ADD COLUMN early_access INTEGER NOT NULL DEFAULT 0;",
+            )?;
+        }
         Ok(())
     }
 

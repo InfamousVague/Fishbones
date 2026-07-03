@@ -97,6 +97,16 @@
   color: var(--color-text-tertiary);
 }
 
+/* Early-access supporter badge, slotted between the head and the
+   stats/chips. The head block only carries a bottom margin in the
+   overlay variant, so give the badge its own breathing room here. */
+.libre-profile-card-supporter {
+  margin-bottom: var(--libre-space-16);
+}
+.libre-profile-card--embedded .libre-profile-card-supporter {
+  margin-top: var(--libre-space-14);
+}
+
 /* Own-profile hero — kit Chip row (streak / XP / lessons). */
 .libre-profile-card-chips {
   display: flex;

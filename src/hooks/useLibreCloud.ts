@@ -144,6 +144,8 @@ export interface FriendInfo {
   email: string | null;
   display_name: string | null;
   stats: CloudStats;
+  /// Early-access supporter — drives the "EARLY" crown pill.
+  early_access: boolean;
 }
 
 /// One row of a friends- or global-leaderboard response. The stats are
@@ -159,6 +161,9 @@ export interface LeaderboardEntry {
   longest_streak_days: number;
   lessons_completed: number;
   level: number;
+  /// Early-access supporter — drives the "EARLY" crown pill (shown on
+  /// the global board too; the pill isn't privacy-sensitive).
+  early_access: boolean;
 }
 
 /// A public profile card, as returned by `GET /users/:id/profile`.
@@ -171,6 +176,9 @@ export interface PublicProfile {
   /// ISO 8601 timestamp of account creation — powers "member since".
   created_at: string;
   stats: CloudStats;
+  /// True when the account is an early-access supporter (joined the
+  /// early-access list). Surfaced as the celebratory "Supporter" card.
+  early_access: boolean;
   is_friend: boolean;
   /// True when there's an outstanding friend request between the two
   /// users (either direction — the relay collapses both into this flag).
@@ -183,6 +191,8 @@ export interface FriendRequest {
   id: string;
   email: string | null;
   display_name: string | null;
+  /// Early-access supporter — drives the "EARLY" crown pill.
+  early_access: boolean;
 }
 
 /// The metric a friends-leaderboard is ranked by. Maps 1:1 to the

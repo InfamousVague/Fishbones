@@ -107,6 +107,35 @@ export default function MobileApp() {
   } = useProgress();
   const cloud = useLibreCloud();
 
+  // Early-access supporter flag for the signed-in learner's OWN
+  // profile. `cloud.user` is the account object only when signed in
+  // (`false` when logged out, `null` while booting), so we key the
+  // one-shot `early_access` fetch off the account id and re-run on
+  // sign-in / sign-out / account switch. Errors + unmounts leave the
+  // flag false, so the Supporter card simply doesn't appear.
+  const signedInUserId =
+    typeof cloud.user === "object" && cloud.user ? cloud.user.id : null;
+  const [isSupporter, setIsSupporter] = useState(false);
+  const cloudGetProfile = cloud.getProfile;
+  useEffect(() => {
+    if (!signedInUserId) {
+      setIsSupporter(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const p = await cloudGetProfile(signedInUserId);
+        if (!cancelled) setIsSupporter(!!p.early_access);
+      } catch {
+        if (!cancelled) setIsSupporter(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [signedInUserId, cloudGetProfile]);
+
   /// Cross-device library allowlist. Hydrated from localStorage on
   /// mount (so a cold-start before the cloud round-trips still shows
   /// the right set), updated by the realtime settings sync, and used
@@ -1302,6 +1331,9 @@ export default function MobileApp() {
             // Identity hero: signed-in account (avatar + name) or a
             // "sign in to sync" affordance when anonymous.
             user={cloud.user || null}
+            // Early-access supporter badge (thank-you card under the
+            // hero), fetched from the account's `early_access` flag.
+            isSupporter={isSupporter}
             onRequestSignIn={() => setSignInOpen(true)}
             onOpenLesson={openLesson}
             onOpenSearch={() => setSearchOpen(true)}

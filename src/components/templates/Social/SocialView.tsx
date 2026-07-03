@@ -25,6 +25,7 @@ import "@base/primitives/button/button.css";
 import "@base/primitives/chip/chip.css";
 import "@base/primitives/skeleton/skeleton.css";
 import "@base/primitives/spinner/spinner.css";
+import EarlyBadge from "@/components/molecules/EarlyBadge/EarlyBadge";
 import { useLeaderboardName } from "@/hooks/useLeaderboardName";
 import {
   validateLeaderboardName,
@@ -429,10 +430,13 @@ function FriendsPanel({
                     alt=""
                   />
                   <span className="libre-social-identity">
-                    <span className="libre-social-name">
-                      {r.display_name?.trim() ||
-                        r.email ||
-                        t("friends.anonymous")}
+                    <span className="libre-social-name-row">
+                      <span className="libre-social-name">
+                        {r.display_name?.trim() ||
+                          r.email ||
+                          t("friends.anonymous")}
+                      </span>
+                      {r.early_access && <EarlyBadge />}
                     </span>
                     {r.display_name?.trim() && r.email && (
                       <span className="libre-social-email">{r.email}</span>
@@ -515,10 +519,13 @@ function FriendsPanel({
                     alt=""
                   />
                   <span className="libre-social-identity">
-                    <span className="libre-social-name">
-                      {f.display_name?.trim() ||
-                        f.email ||
-                        t("friends.anonymous")}
+                    <span className="libre-social-name-row">
+                      <span className="libre-social-name">
+                        {f.display_name?.trim() ||
+                          f.email ||
+                          t("friends.anonymous")}
+                      </span>
+                      {f.early_access && <EarlyBadge />}
                     </span>
                     {f.display_name?.trim() && f.email && (
                       <span className="libre-social-email">{f.email}</span>
@@ -796,6 +803,7 @@ function LeaderboardPanel({
                     <span className="libre-social-rank-name-text">
                       {r.display_name?.trim() || t("friends.anonymous")}
                     </span>
+                    {r.early_access && <EarlyBadge />}
                     {isMe && (
                       <Badge color="accent" variant="solid" size="sm">
                         {t("leaderboard.you")}
