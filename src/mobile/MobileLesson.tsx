@@ -19,6 +19,9 @@ import MobileReader from "./MobileReader";
 import MobileQuiz from "./MobileQuiz";
 import MobileOutline from "./MobileOutline";
 import BlocksView from "@/components/organisms/Blocks/BlocksView";
+import QuickCheckView, {
+  pickExerciseMode,
+} from "@/components/organisms/Blocks/QuickCheckView";
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@base/primitives/icon";
 import { chevronLeft } from "@base/primitives/icon/icons/chevron-left";
@@ -151,14 +154,32 @@ export default function MobileLesson({
         {isQuiz(lesson) && (
           <MobileQuiz key={lesson.id} lesson={lesson} onComplete={onComplete} />
         )}
-        {isExerciseKind(lesson) && (
-          // Mobile is always blocks-only — typing on a 6" screen is
-          // brutal, so the editor mode never renders here. Lessons
-          // without authored blocks data render an in-place note
-          // (BlocksView shows the "not authored yet" message); the
-          // generator pipeline will fill them in.
-          <BlocksView key={lesson.id} lesson={lesson} onComplete={onComplete} />
-        )}
+        {isExerciseKind(lesson) &&
+          (() => {
+            // Mobile never renders the Monaco editor — typing on a
+            // phone is brutal. Instead the exercise rotates between
+            // three tap-first mechanics (deterministic per lesson, so
+            // a lesson always renders the same way):
+            //   - blocks: full assembly, compile-verified (default,
+            //     weighted ~half; also the fallback for lessons whose
+            //     data can't support the quick checks)
+            //   - cloze: one gap, pick the missing block
+            //   - bug:   one decoy planted, tap the wrong line
+            // Mechanic variety keeps a chapter of exercises from
+            // reading as grind — every high-completion mobile
+            // learning app rotates interaction types per session.
+            const renderMode = pickExerciseMode(lesson);
+            return renderMode === "blocks" ? (
+              <BlocksView key={lesson.id} lesson={lesson} onComplete={onComplete} />
+            ) : (
+              <QuickCheckView
+                key={lesson.id}
+                lesson={lesson}
+                mode={renderMode}
+                onComplete={onComplete}
+              />
+            );
+          })()}
         {lesson.kind === "reading" && (
           <MobileReader
             key={lesson.id}

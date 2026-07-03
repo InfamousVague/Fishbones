@@ -1,0 +1,101 @@
+/* Quick-check modes (cloze / bug hunt) — see QuickCheckView.tsx.
+   Leans on BlocksView.css for the template / line / chip base look;
+   this file only adds the interaction states the quick checks need. */
+
+.libre-qc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-12);
+}
+
+.libre-qc__template {
+  /* Static chips render inline in the code flow; keep lines readable
+     when a placed chip wraps on a narrow phone. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The one empty gap in cloze mode — pulse gently so the eye lands
+   on it without reading the whole snippet first. */
+.libre-qc__gap {
+  animation: libre-qc-pulse var(--libre-dur-1300) var(--libre-ease-ease) infinite;
+}
+
+@keyframes libre-qc-pulse {
+  0%,
+  100% {
+    border-color: var(--color-border-strong, var(--libre-c-rgba-255-255-255-0-14));
+  }
+  50% {
+    border-color: var(--gg-accent, var(--libre-c-f2a93b));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .libre-qc__gap {
+    animation: none;
+  }
+}
+
+/* Choice row — wraps on narrow screens; chips are the same visual
+   as pool chips so the vocabulary carries over from assembly mode. */
+.libre-qc__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--libre-space-8);
+}
+
+.libre-qc__choice {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.libre-qc__choice--wrong {
+  opacity: var(--libre-opacity-0-4);
+  border-color: var(--libre-c-rgba-239-68-68-0-5);
+  animation: libre-qc-shake var(--libre-dur-280) var(--libre-ease-ease);
+}
+
+.libre-qc__choice--right {
+  border-color: var(--libre-c-rgba-124-217-124-0-85);
+  box-shadow: 0 0 0 2px var(--libre-c-rgba-124-217-124-0-22);
+}
+
+@keyframes libre-qc-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Bug-hunt lines: slot-bearing lines are tap targets. */
+.libre-qc__line--tappable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--libre-radius-5);
+}
+
+.libre-qc__line--tappable:active {
+  background: var(--libre-c-rgba-255-255-255-0-06);
+}
+
+.libre-qc__line--miss {
+  opacity: var(--libre-opacity-0-55);
+}
+
+.libre-qc__line--fixed {
+  background: var(--libre-c-rgba-124-217-124-0-08);
+  border-radius: var(--libre-radius-5);
+}
+
+/* Fixed chip (correct answer landed / bug swapped for the fix). */
+.libre-qc__chip--fixed {
+  border-color: var(--libre-c-rgba-124-217-124-0-85);
+  box-shadow: 0 0 0 2px var(--libre-c-rgba-124-217-124-0-22);
+}
+
+.libre-qc__done {
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  color: var(--libre-c-7cd97c);
+}
