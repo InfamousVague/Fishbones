@@ -20,6 +20,7 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { rotateCcw } from "@base/primitives/icon/icons/rotate-ccw";
 import { barChart2 } from "@base/primitives/icon/icons/bar-chart-2";
+import { award } from "@base/primitives/icon/icons/award";
 
 import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
@@ -27,6 +28,7 @@ import SettingsToggle from "./SettingsToggle";
 import DiagnosticsPanel from "./DiagnosticsPanel";
 import SyncDebugPanel from "./SyncDebugPanel";
 import { useAnalyticsSetting } from "@/hooks/useAnalyticsSetting";
+import { useLeaderboardSetting } from "@/hooks/useLeaderboardSetting";
 import type { UseLibreCloud } from "@/hooks/useLibreCloud";
 import type { RealtimeSyncHandle } from "@/hooks/useRealtimeSync";
 import type { Completion } from "@/hooks/useProgress";
@@ -48,6 +50,7 @@ export default function DataPane({
 }: Props) {
   const t = useT();
   const analytics = useAnalyticsSetting();
+  const leaderboard = useLeaderboardSetting();
   // Sync-courses state — moved here from the inline JSX that used
   // to live in SettingsDialog under `section === "data"`. The Rust
   // `refresh_bundled_courses` command re-runs the seed routine in
@@ -116,6 +119,18 @@ export default function DataPane({
               checked={analytics.enabled}
               onChange={analytics.setEnabled}
               label={t("settings.analyticsLabel")}
+            />
+          }
+        />
+        <SettingsRow
+          icon={award}
+          label={t("settings.leaderboardLabel")}
+          sub={t("settings.leaderboardBody")}
+          control={
+            <SettingsToggle
+              checked={leaderboard.enabled}
+              onChange={leaderboard.setEnabled}
+              label={t("settings.leaderboardLabel")}
             />
           }
         />

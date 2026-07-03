@@ -316,14 +316,27 @@ export default function NavigationRail({
               3. Challenges   — exercise-driven content beside the
                                books it complements
               4. Sandbox      — open-ended editor + project workspace
-              5. Discover     — catalog browser
-              6. Practice     — the review umbrella (spaced-repetition
+              5. Practice     — the review umbrella (spaced-repetition
                                deck + Monkey's Paw duels — the Paw's
                                rail chip folded in here in the V30
                                practice rework)
-              7. Certificates — permanent / shareable artefacts of
+              6. Certificates — permanent / shareable artefacts of
                                course completion
+           (Discover sits ABOVE this whole cluster — very top of the
+            rail, before Resume — per the 2026-07 direction to lead
+            with the catalog browser.)
         */}
+        {/* Discover leads the rail — the catalog browser is the
+            acquisition surface (find your next book), so it sits
+            above even Resume per 2026-07 direction. */}
+        {onDiscover && (
+          <RailItem
+            icon={compassIcon}
+            label={t("nav.discover")}
+            onClick={onDiscover}
+            active={activeView === "discover"}
+          />
+        )}
         {onResume && resumeLabel && (
           <RailItem
             icon={playIcon}
@@ -372,14 +385,6 @@ export default function NavigationRail({
             label={t("nav.sandbox")}
             onClick={onSandbox}
             active={activeView === "sandbox"}
-          />
-        )}
-        {onDiscover && (
-          <RailItem
-            icon={compassIcon}
-            label={t("nav.discover")}
-            onClick={onDiscover}
-            active={activeView === "discover"}
           />
         )}
         {onPractice && (

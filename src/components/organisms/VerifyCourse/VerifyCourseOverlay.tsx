@@ -63,6 +63,18 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
     null,
   );
 
+  // Clear the export-button flash ~1.5s after it appears. Keyed on the
+  // current flash so each new flash restarts the timer, and the prior
+  // timer is torn down before it can clear a newer flash.
+  //
+  // MUST stay above the `!session` early return: hooks have to run in
+  // the same order on every render, and this component mounts with
+  // session === null before a verify run starts — a hook below the
+  // early return appears "new" on the first non-null render and React
+  // throws "Rendered more hooks than during the previous render"
+  // (crashed the app when Verify this course was clicked).
+  useTimeout(() => setFlash(null), flash ? 1500 : null);
+
   if (!session) return null;
 
   const courseId = session.results[0]?.target.courseId;
@@ -71,11 +83,6 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
   const showFeedback = (key: string, label: string) => {
     setFlash({ key, label });
   };
-
-  // Clear the export-button flash ~1.5s after it appears. Keyed on the
-  // current flash so each new flash restarts the timer, and the prior
-  // timer is torn down before it can clear a newer flash.
-  useTimeout(() => setFlash(null), flash ? 1500 : null);
 
   const copyAsPrompt = async () => {
     const md = formatFixPrompt(session.results, exportOpts);

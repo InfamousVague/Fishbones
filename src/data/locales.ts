@@ -43,7 +43,8 @@ export type Locale =
   | "ne"
   | "vi"
   | "id"
-  | "sw";
+  | "sw"
+  | "zh";
 
 export const SUPPORTED_LOCALES: readonly Locale[] = [
   // Sorted by our user base (largest country cohorts first): India (hi),
@@ -66,6 +67,7 @@ export const SUPPORTED_LOCALES: readonly Locale[] = [
   "jp",
   "ru",
   "kr",
+  "zh",
 ] as const;
 
 /// Right-to-left locales. When one of these is active the app sets
@@ -100,6 +102,7 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   vi: "Tiếng Việt",
   id: "Bahasa Indonesia",
   sw: "Kiswahili",
+  zh: "中文",
 };
 
 /// Country-flag emoji per locale. Region flags are single-codepoint
@@ -127,6 +130,7 @@ export const LOCALE_FLAGS: Record<Locale, string> = {
   vi: "🇻🇳",
   id: "🇮🇩",
   sw: "🇰🇪",
+  zh: "🇨🇳",
 };
 
 /// Used by the script + the runtime to send "translate INTO X" prompts.
@@ -150,6 +154,7 @@ export const LOCALE_ENGLISH_NAMES: Record<Locale, string> = {
   vi: "Vietnamese",
   id: "Indonesian",
   sw: "Swahili",
+  zh: "Chinese (Simplified)",
 };
 
 /// Shape of the per-locale translation overlay attached to a Course.
@@ -243,6 +248,8 @@ export function detectLocale(): Locale {
       return "id";
     case "sw":
       return "sw";
+    case "zh":
+      return "zh";
     default:
       return "en";
   }

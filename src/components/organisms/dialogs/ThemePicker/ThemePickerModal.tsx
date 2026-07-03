@@ -20,6 +20,7 @@ import {
 } from "@/theme/themes";
 import { THEME_PREVIEW } from "@/theme/themePreviews";
 import { themeThumb } from "./themeThumbs";
+import { shouldShowOnboarding } from "@/lib/onboarding";
 import "./ThemePicker.css";
 
 const PICKED_KEY = "libre:theme-picked-v1";
@@ -44,7 +45,13 @@ function markPicked(): void {
 /// just as the bootloader fades. Mount this (not the bare modal) near the top
 /// of the app tree. Renders nothing once a theme has been picked.
 export function ThemePickerFirstLaunch() {
-  const [open, setOpen] = useState(() => !hasPickedTheme());
+  // Superseded by the OnboardingWizard for genuinely-new users (it owns the
+  // theme step). Only render standalone if theme was never picked AND the
+  // wizard isn't going to run — in practice this stays dormant, since
+  // finishing the wizard stamps the theme-picked latch.
+  const [open, setOpen] = useState(
+    () => !hasPickedTheme() && !shouldShowOnboarding(),
+  );
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!open) return;

@@ -108,12 +108,18 @@ import {
 import { useProgress } from "@/hooks/useProgress";
 import { useChainActivity } from "@/hooks/useChainActivity";
 import { useLibreCloud, type CloudStats } from "@/hooks/useLibreCloud";
+import { readLeaderboardEnabled } from "@/lib/leaderboardSettings";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 const FirstLaunchPrompt = lazy(() => import("@/components/organisms/dialogs/SignInDialog/FirstLaunchPrompt"));
 const SetupWizard = lazy(() => import("@/components/organisms/dialogs/SetupWizard/SetupWizard"));
 const ThemePickerFirstLaunch = lazy(() =>
   import("@/components/organisms/dialogs/ThemePicker/ThemePickerModal").then((m) => ({
     default: m.ThemePickerFirstLaunch,
+  })),
+);
+const OnboardingWizard = lazy(() =>
+  import("@/components/organisms/dialogs/OnboardingWizard/OnboardingWizard").then((m) => ({
+    default: m.OnboardingWizard,
   })),
 );
 const SignInDialog = lazy(() => import("@/components/organisms/dialogs/SignInDialog/SignInDialog"));
@@ -983,6 +989,11 @@ export default function App() {
   const lastPushedStatsRef = useRef<string | null>(null);
   useEffect(() => {
     if (!cloud.signedIn || !statsReady) return;
+    // Leaderboard opt-out gate: the user's own progress still syncs (completions
+    // + pullProgress run in their own effects), but we never publish an
+    // aggregate snapshot the relay would rank. Read live so opting out mid-
+    // session takes effect on the next stats change.
+    if (!readLeaderboardEnabled()) return;
     const snapshot: CloudStats = {
       total_xp: stats.xp,
       current_streak_days: stats.streakDays,
@@ -3362,6 +3373,13 @@ export default function App() {
           `libre://` deep-link callback). Email + password worked
           unchanged on web all along — the dialog just wasn't being
           rendered. */}
+      {/* First-launch onboarding wizard (welcome → theme → privacy →
+          basics → done). Self-gates on `shouldShowOnboarding()`; shows once
+          for genuinely-new users and OWNS theme selection, so the standalone
+          theme picker below stays dormant while it runs. Finishing it stamps
+          the theme-picked latch, letting FirstLaunchPrompt open next. */}
+      <OnboardingWizard />
+
       {/* First-launch theme picker. Shows once (gated on
           `libre:theme-picked-v1`) BEFORE the sign-in nudge — picking a
           theme recolours the whole app live, so it's the welcoming

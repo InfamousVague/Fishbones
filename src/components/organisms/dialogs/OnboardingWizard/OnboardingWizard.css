@@ -1,0 +1,246 @@
+/* First-launch onboarding wizard. Built from the app's design tokens so it
+   tracks theme + the Appearance scale knobs the wizard itself configures. */
+
+.libre-onb {
+  width: min(var(--libre-size-560), 92vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-16);
+  box-shadow: var(--libre-space-0) var(--libre-space-8) var(--libre-space-32)
+    var(--color-glass-shadow);
+  overflow: hidden;
+}
+
+/* ── Progress dots ─────────────────────────────────────────────────── */
+.libre-onb__dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-18) var(--libre-space-20) var(--libre-space-4);
+}
+.libre-onb__dot {
+  width: var(--libre-size-7);
+  height: var(--libre-size-7);
+  border-radius: var(--libre-radius-circle);
+  background: var(--color-border-strong);
+  transition: background var(--libre-dur-200) var(--libre-ease-ease),
+    width var(--libre-dur-200) var(--libre-ease-ease);
+}
+.libre-onb__dot--done {
+  background: var(--gg-accent, var(--color-accent));
+}
+.libre-onb__dot--active {
+  width: var(--libre-size-20);
+  border-radius: var(--libre-radius-pill);
+  background: var(--gg-fill-white, var(--color-text-primary));
+}
+
+/* ── Body ──────────────────────────────────────────────────────────── */
+.libre-onb__body {
+  flex: 1;
+  min-height: var(--libre-size-260, var(--libre-size-240));
+  overflow-y: auto;
+  padding: var(--libre-space-16) var(--libre-space-24) var(--libre-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-10);
+}
+
+.libre-onb__title {
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-22);
+  font-weight: var(--libre-fw-700);
+  letter-spacing: var(--libre-ls-neg-0-01em);
+  color: var(--color-text-primary);
+}
+.libre-onb__blurb {
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-13-5, var(--libre-fs-13));
+  line-height: var(--libre-lh-1-5);
+  color: var(--color-text-secondary);
+}
+
+/* ── Welcome / Done hero ───────────────────────────────────────────── */
+.libre-onb__hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-24) var(--libre-space-8);
+}
+.libre-onb__hero .libre-onb__blurb {
+  max-width: 46ch;
+}
+.libre-onb__mark {
+  font-size: var(--libre-fs-56, var(--libre-fs-48));
+  line-height: var(--libre-lh-1);
+}
+/* Brand wordmark on the welcome step (replaces the generic emoji). The
+   cursive Libre.academy logo — transparent orange+white, reads on the dark
+   modal. Width via a token; height auto keeps its aspect ratio. */
+.libre-onb__logo {
+  width: min(var(--libre-size-240), 62%);
+  height: auto;
+}
+
+/* ── Theme grid (cards styled by ThemePicker.css) ──────────────────── */
+.libre-onb__theme-grid {
+  display: grid;
+  /* Single column: the reused .libre-theme-card is a horizontal card
+     (squircle + mini-preview + label) that needs the full modal width so the
+     theme names don't truncate. The body scrolls through the ~10 themes. */
+  grid-template-columns: 1fr;
+  gap: var(--libre-space-10);
+  padding-top: var(--libre-space-4);
+}
+
+/* ── Privacy / basics rows ─────────────────────────────────────────── */
+.libre-onb__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-12);
+  padding-top: var(--libre-space-4);
+}
+.libre-onb__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--libre-space-14);
+  padding: var(--libre-space-14) var(--libre-space-16);
+  background: var(--color-bg-tertiary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-12);
+}
+.libre-onb__row-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-3);
+  flex: 1;
+  min-width: 0;
+}
+.libre-onb__row-label {
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary);
+}
+.libre-onb__row-sub {
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-45, var(--libre-lh-1-4));
+  color: var(--color-text-secondary);
+}
+
+.libre-onb__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-6);
+  padding: var(--libre-space-14) var(--libre-space-16);
+  background: var(--color-bg-tertiary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-12);
+}
+.libre-onb__slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--libre-space-8);
+}
+.libre-onb__slider-val {
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-600);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+/* Range slider — dogfoods the tokens, matching Settings' scale sliders. */
+.libre-onb__slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: var(--libre-size-4);
+  border-radius: var(--libre-radius-pill);
+  background: var(--color-border-default);
+  outline: none;
+  cursor: pointer;
+  margin-top: var(--libre-space-2);
+}
+.libre-onb__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
+  border-radius: var(--libre-radius-circle);
+  background: var(--gg-fill-white, var(--color-text-primary));
+  border: var(--libre-bw-1) solid var(--color-border-strong);
+  cursor: pointer;
+}
+.libre-onb__slider::-moz-range-thumb {
+  width: var(--libre-size-18);
+  height: var(--libre-size-18);
+  border-radius: var(--libre-radius-circle);
+  background: var(--gg-fill-white, var(--color-text-primary));
+  border: var(--libre-bw-1) solid var(--color-border-strong);
+  cursor: pointer;
+}
+
+/* ── Footer nav ────────────────────────────────────────────────────── */
+.libre-onb__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-14) var(--libre-space-24) var(--libre-space-20);
+  border-top: var(--libre-bw-1) solid var(--color-border-default);
+}
+.libre-onb__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-8);
+}
+.libre-onb__skip,
+.libre-onb__back,
+.libre-onb__next {
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--libre-radius-8);
+  transition: background var(--libre-dur-120) var(--libre-ease-ease),
+    color var(--libre-dur-120) var(--libre-ease-ease),
+    border-color var(--libre-dur-120) var(--libre-ease-ease);
+}
+.libre-onb__skip {
+  background: transparent;
+  border: 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--libre-fs-13);
+  padding: var(--libre-space-8) var(--libre-space-8);
+}
+.libre-onb__skip:hover {
+  color: var(--color-text-secondary);
+}
+.libre-onb__back {
+  background: transparent;
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-500);
+  padding: var(--libre-space-8) var(--libre-space-16);
+}
+.libre-onb__back:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+.libre-onb__next {
+  background: var(--gg-fill-white, var(--color-text-primary));
+  color: var(--color-bg-primary);
+  border: var(--libre-bw-1) solid transparent;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
+  padding: var(--libre-space-8) var(--libre-space-24);
+}
+.libre-onb__next:hover {
+  background: var(--gg-accent, var(--color-accent-hover, var(--color-accent)));
+}

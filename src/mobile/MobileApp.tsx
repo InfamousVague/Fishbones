@@ -64,6 +64,8 @@ import { mintCertificate } from "@/data/certificates";
 import { notifyCertificatesChanged } from "@/hooks/useCertificates";
 import MobileSearchPalette from "./MobileSearchPalette";
 import SignInDialog from "@/components/organisms/dialogs/SignInDialog/SignInDialog";
+import { OnboardingWizard } from "@/components/organisms/dialogs/OnboardingWizard/OnboardingWizard";
+import { readLeaderboardEnabled } from "@/lib/leaderboardSettings";
 import MobileTabBar, { type MobileTab } from "@/components/molecules/MobileTabBar/MobileTabBar";
 import AiAssistant from "@/components/organisms/AiAssistant/AiAssistant";
 import LibreLoader from "@/components/molecules/LibreLoader/LibreLoader";
@@ -267,6 +269,9 @@ export default function MobileApp() {
   const lastPushedStatsRef = useRef<string | null>(null);
   useEffect(() => {
     if (!cloud.signedIn || !statsReady) return;
+    // Leaderboard opt-out gate — see App.tsx: own progress still syncs, but no
+    // aggregate snapshot is published for the relay to rank.
+    if (!readLeaderboardEnabled()) return;
     const snapshot: CloudStats = {
       total_xp: stats.xp,
       current_streak_days: stats.streakDays,
@@ -1433,6 +1438,11 @@ export default function MobileApp() {
           onClose={() => setSignInOpen(false)}
         />
       )}
+
+      {/* First-launch onboarding wizard — self-gates on shouldShowOnboarding().
+          Mobile has no standalone theme picker, so this is the phone's entire
+          first-run configure flow (theme → privacy → basics). */}
+      <OnboardingWizard />
 
       {/* Public profile popup — opened from leaderboard / friends
           rows. Same overlay + cloud wiring as desktop App.tsx. */}

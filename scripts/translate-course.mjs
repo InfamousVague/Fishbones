@@ -75,6 +75,7 @@ const LOCALE_ENGLISH_NAMES = {
   vi: "Vietnamese",
   id: "Indonesian",
   sw: "Swahili",
+  zh: "Simplified Chinese",
 };
 const ALL_NON_EN = Object.keys(LOCALE_ENGLISH_NAMES);
 
