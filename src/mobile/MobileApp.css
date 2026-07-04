@@ -184,3 +184,32 @@
 .m-paths .libre-path-detail {
   padding: var(--libre-space-16) var(--libre-space-16) var(--libre-space-64);
 }
+
+/* Leaderboard controls at phone width: the scope + metric segmented
+   controls shared one squeezed row with 36px/13px kit sizing — too
+   small for thumbs. Stack each control on its own full-width line
+   and bump the hit targets to tab-bar scale. */
+.m-social .libre-social-lb-controls > * {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.m-social .libre-social-lb-controls {
+  gap: var(--libre-space-10);
+}
+
+.m-social .seg {
+  width: 100%;
+}
+
+.m-social .seg--lg {
+  min-height: var(--libre-size-44);
+}
+
+.m-social .seg--lg .seg__option {
+  flex: 1 1 0;
+  justify-content: center;
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-600);
+  padding: var(--libre-space-10) var(--libre-space-8);
+}
