@@ -651,7 +651,15 @@ async function highlightCode(
 function shikiLang(lang: string): string {
   switch (lang.toLowerCase()) {
     case "reactnative":
+    case "react":
+    case "solid":
+      // JSX-based — the tsx grammar covers JSX + TS supersets.
       return "tsx";
+    case "web":
+    case "htmx":
+      return "html";
+    case "tauri":
+      return "typescript";
     case "threejs":
       return "javascript";
     case "vyper":

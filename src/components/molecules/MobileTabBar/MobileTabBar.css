@@ -90,7 +90,10 @@
   background: transparent;
   border: 0;
   border-radius: var(--libre-radius-pill);
-  color: var(--color-text-tertiary, var(--libre-c-9b9ba7));
+  /* White at rest (was tertiary gray) — the active tab still reads
+     via its pill-background highlight, and the labels stay legible
+     against the dark bar. */
+  color: var(--color-text-primary, var(--libre-c-fafafa));
   font-size: var(--libre-fs-10-5);
   font-weight: var(--libre-fw-600);
   letter-spacing: var(--libre-ls-0-02em);

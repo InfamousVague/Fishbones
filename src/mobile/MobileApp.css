@@ -213,3 +213,10 @@
   font-weight: var(--libre-fw-600);
   padding: var(--libre-space-10) var(--libre-space-8);
 }
+
+/* Segmented pills: unselected option labels were the kit's muted
+   gray — hard to read at phone size on the dark track. White at
+   rest; the sliding indicator still marks the active option. */
+.m-social .seg__option:not(.seg__option--active) {
+  color: var(--color-text-primary);
+}
