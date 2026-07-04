@@ -21,6 +21,14 @@ export interface ChangelogEntry {
 /// Newest first.
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "2.10.0",
+    date: "2026-07-04",
+    highlights: [
+      "New here? The welcome flow now asks what you want to learn — Python, JavaScript, Rust, or Go — and drops you straight into that language's guided path.",
+      "A gentle nudge on the Discover and Paths tabs points you toward your first course, and disappears the moment you open your first lesson.",
+    ],
+  },
+  {
     version: "2.9.0",
     date: "2026-07-03",
     highlights: [
