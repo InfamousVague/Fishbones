@@ -1049,5 +1049,11 @@
     "emptyGlobal": "Aucun apprenant classé pour l'instant — sois le premier.",
     "addFriendsCta": "Ajouter des amis",
     "you": "Toi"
+  },
+  "supporter": {
+    "title": "Soutien",
+    "body": "Merci de nous rejoindre au début de cette aventure — vous aidez Libre à rester gratuit et ouvert.",
+    "badge": "PIONNIER",
+    "badgeTitle": "Soutien de la première heure"
   }
 }

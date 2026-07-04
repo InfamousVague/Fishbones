@@ -1064,5 +1064,11 @@
     "emptyGlobal": "还没有上榜的学习者——来当第一个吧。",
     "addFriendsCta": "添加好友",
     "you": "你"
+  },
+  "supporter": {
+    "title": "支持者",
+    "body": "感谢你在旅程之初就加入我们 — 你正在帮助 Libre 保持免费与开放。",
+    "badge": "早期",
+    "badgeTitle": "早期支持者"
   }
 }

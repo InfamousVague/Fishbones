@@ -1004,5 +1004,11 @@
     "emptyGlobal": "Belum ada pelajar berperingkat — jadilah yang pertama.",
     "addFriendsCta": "Tambah teman",
     "you": "Anda"
+  },
+  "supporter": {
+    "title": "Pendukung",
+    "body": "Terima kasih telah bergabung bersama kami sejak awal perjalanan ini — kamu membantu Libre tetap gratis dan terbuka.",
+    "badge": "AWAL",
+    "badgeTitle": "Pendukung akses awal"
   }
 }

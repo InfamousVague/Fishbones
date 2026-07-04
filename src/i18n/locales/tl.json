@@ -1004,5 +1004,11 @@
     "emptyGlobal": "Wala pang naka-rank na mag-aaral — ikaw ang mauna.",
     "addFriendsCta": "Magdagdag ng mga kaibigan",
     "you": "Ikaw"
+  },
+  "supporter": {
+    "title": "Tagasuporta",
+    "body": "Salamat sa pagsama sa amin sa simula pa lang ng paglalakbay na ito — tumutulong kang panatilihing libre at bukás ang Libre.",
+    "badge": "EARLY",
+    "badgeTitle": "Early-access na tagasuporta"
   }
 }

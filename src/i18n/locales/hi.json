@@ -7,16 +7,46 @@
     "cancel": "रद्द करें"
   },
   "collections": {
-    "rust": { "title": "Rust", "blurb": "Rust की हर चीज़ — किताबें, Exercism ट्रैक, Rustlings, और चैलेंज पैक।" },
-    "python": { "title": "Python", "blurb": "Python की हर चीज़ — इन-हाउस किताबें, Exercism ट्रैक, koans, और चैलेंज पैक।" },
-    "go": { "title": "Go", "blurb": "Go की हर चीज़ — किताब, Exercism ट्रैक, Golings, और चैलेंज पैक।" },
-    "zig": { "title": "Zig", "blurb": "Zig की हर चीज़ — किताब, Exercism ट्रैक, Ziglings, और चैलेंज पैक।" },
-    "web": { "title": "Web", "blurb": "फ्रंट-एंड स्टैक — JavaScript और TypeScript की बुनियादी बातें, फ्रेमवर्क, और अभ्यास।" },
-    "mobile": { "title": "Mobile", "blurb": "फोन के लिए बनाएँ — React Native, Swift, और Dart, इनके ट्रैक और चैलेंज पैक के साथ।" },
-    "jvm": { "title": "JVM", "blurb": "JVM परिवार — Java, Kotlin, और Scala ट्रैक, koans, और चैलेंज पैक।" },
-    "functional": { "title": "Functional", "blurb": "फ़ंक्शन्स में सोचें — Haskell, Elixir, Scala, Clojure, और F#, साथ ही functional JavaScript।" },
-    "systems": { "title": "Systems", "blurb": "हार्डवेयर के करीब — C, C++, और ARM असेंबली, इनके ट्रैक और अभ्यास के साथ।" },
-    "algorithms": { "title": "Algorithms & CS", "blurb": "कंप्यूटर-साइंस की बुनियादी बातें — एल्गोरिद्म, डेटा स्ट्रक्चर्स, इंटरप्रेटर, और क्रिप्टो सिद्धांत।" }
+    "rust": {
+      "title": "Rust",
+      "blurb": "Rust की हर चीज़ — किताबें, Exercism ट्रैक, Rustlings, और चैलेंज पैक।"
+    },
+    "python": {
+      "title": "Python",
+      "blurb": "Python की हर चीज़ — इन-हाउस किताबें, Exercism ट्रैक, koans, और चैलेंज पैक।"
+    },
+    "go": {
+      "title": "Go",
+      "blurb": "Go की हर चीज़ — किताब, Exercism ट्रैक, Golings, और चैलेंज पैक।"
+    },
+    "zig": {
+      "title": "Zig",
+      "blurb": "Zig की हर चीज़ — किताब, Exercism ट्रैक, Ziglings, और चैलेंज पैक।"
+    },
+    "web": {
+      "title": "Web",
+      "blurb": "फ्रंट-एंड स्टैक — JavaScript और TypeScript की बुनियादी बातें, फ्रेमवर्क, और अभ्यास।"
+    },
+    "mobile": {
+      "title": "Mobile",
+      "blurb": "फोन के लिए बनाएँ — React Native, Swift, और Dart, इनके ट्रैक और चैलेंज पैक के साथ।"
+    },
+    "jvm": {
+      "title": "JVM",
+      "blurb": "JVM परिवार — Java, Kotlin, और Scala ट्रैक, koans, और चैलेंज पैक।"
+    },
+    "functional": {
+      "title": "Functional",
+      "blurb": "फ़ंक्शन्स में सोचें — Haskell, Elixir, Scala, Clojure, और F#, साथ ही functional JavaScript।"
+    },
+    "systems": {
+      "title": "Systems",
+      "blurb": "हार्डवेयर के करीब — C, C++, और ARM असेंबली, इनके ट्रैक और अभ्यास के साथ।"
+    },
+    "algorithms": {
+      "title": "Algorithms & CS",
+      "blurb": "कंप्यूटर-साइंस की बुनियादी बातें — एल्गोरिद्म, डेटा स्ट्रक्चर्स, इंटरप्रेटर, और क्रिप्टो सिद्धांत।"
+    }
   },
   "changelog": {
     "eyebrow": "अपडेट किया गया",
@@ -1023,5 +1053,11 @@
     "emptyGlobal": "अभी कोई रैंक किया हुआ शिक्षार्थी नहीं — सबसे पहले आप बनें।",
     "addFriendsCta": "दोस्त जोड़ें",
     "you": "आप"
+  },
+  "supporter": {
+    "title": "समर्थक",
+    "body": "इस सफ़र में शुरुआत से हमारे साथ जुड़ने के लिए धन्यवाद — आपकी बदौलत Libre मुफ़्त और ओपन बना हुआ है।",
+    "badge": "शुरुआती",
+    "badgeTitle": "शुरुआती समर्थक"
   }
 }

@@ -1004,5 +1004,11 @@
     "emptyGlobal": "Henüz sıralamaya giren öğrenci yok — ilk sen ol.",
     "addFriendsCta": "Arkadaş ekle",
     "you": "Sen"
+  },
+  "supporter": {
+    "title": "Destekçi",
+    "body": "Bu yolculuğa en başından katıldığın için teşekkürler — Libre'nin ücretsiz ve açık kalmasına yardımcı oluyorsun.",
+    "badge": "ERKEN",
+    "badgeTitle": "Erken erişim destekçisi"
   }
 }

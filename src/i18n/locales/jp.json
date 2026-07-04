@@ -7,16 +7,46 @@
     "cancel": "キャンセル"
   },
   "collections": {
-    "rust": { "title": "Rust", "blurb": "Rustのすべて — 書籍、Exercismトラック、Rustlings、チャレンジパック。" },
-    "python": { "title": "Python", "blurb": "Pythonのすべて — 自社制作の書籍、Exercismトラック、koans、チャレンジパック。" },
-    "go": { "title": "Go", "blurb": "Goのすべて — 書籍、Exercismトラック、Golings、チャレンジパック。" },
-    "zig": { "title": "Zig", "blurb": "Zigのすべて — 書籍、Exercismトラック、Ziglings、チャレンジパック。" },
-    "web": { "title": "Web", "blurb": "フロントエンドスタック — JavaScriptとTypeScriptの基礎、各種フレームワーク、演習問題。" },
-    "mobile": { "title": "Mobile", "blurb": "スマートフォン向け開発 — React Native、Swift、Dartと、それぞれのトラック・チャレンジパック。" },
-    "jvm": { "title": "JVM", "blurb": "JVMファミリー — Java、Kotlin、Scalaのトラック、koans、チャレンジパック。" },
-    "functional": { "title": "Functional", "blurb": "関数で考える — Haskell、Elixir、Scala、Clojure、F#、そして関数型JavaScript。" },
-    "systems": { "title": "Systems", "blurb": "ハードウェアに近い領域 — C、C++、ARMアセンブリと、それぞれのトラック・演習問題。" },
-    "algorithms": { "title": "Algorithms & CS", "blurb": "計算機科学の基礎 — アルゴリズム、データ構造、インタプリタ、暗号理論。" }
+    "rust": {
+      "title": "Rust",
+      "blurb": "Rustのすべて — 書籍、Exercismトラック、Rustlings、チャレンジパック。"
+    },
+    "python": {
+      "title": "Python",
+      "blurb": "Pythonのすべて — 自社制作の書籍、Exercismトラック、koans、チャレンジパック。"
+    },
+    "go": {
+      "title": "Go",
+      "blurb": "Goのすべて — 書籍、Exercismトラック、Golings、チャレンジパック。"
+    },
+    "zig": {
+      "title": "Zig",
+      "blurb": "Zigのすべて — 書籍、Exercismトラック、Ziglings、チャレンジパック。"
+    },
+    "web": {
+      "title": "Web",
+      "blurb": "フロントエンドスタック — JavaScriptとTypeScriptの基礎、各種フレームワーク、演習問題。"
+    },
+    "mobile": {
+      "title": "Mobile",
+      "blurb": "スマートフォン向け開発 — React Native、Swift、Dartと、それぞれのトラック・チャレンジパック。"
+    },
+    "jvm": {
+      "title": "JVM",
+      "blurb": "JVMファミリー — Java、Kotlin、Scalaのトラック、koans、チャレンジパック。"
+    },
+    "functional": {
+      "title": "Functional",
+      "blurb": "関数で考える — Haskell、Elixir、Scala、Clojure、F#、そして関数型JavaScript。"
+    },
+    "systems": {
+      "title": "Systems",
+      "blurb": "ハードウェアに近い領域 — C、C++、ARMアセンブリと、それぞれのトラック・演習問題。"
+    },
+    "algorithms": {
+      "title": "Algorithms & CS",
+      "blurb": "計算機科学の基礎 — アルゴリズム、データ構造、インタプリタ、暗号理論。"
+    }
   },
   "common": {
     "cancel": "キャンセル",
@@ -1068,5 +1098,11 @@
     "emptyGlobal": "ランク入りした学習者はまだいません — 一番乗りになりましょう。",
     "addFriendsCta": "フレンドを追加",
     "you": "あなた"
+  },
+  "supporter": {
+    "title": "サポーター",
+    "body": "この旅の始まりから参加してくれてありがとう — Libre が無料でオープンであり続ける力になっています。",
+    "badge": "アーリー",
+    "badgeTitle": "アーリーアクセス・サポーター"
   }
 }

@@ -1004,5 +1004,11 @@
     "emptyGlobal": "Chưa có người học nào được xếp hạng — hãy là người đầu tiên.",
     "addFriendsCta": "Thêm bạn bè",
     "you": "Bạn"
+  },
+  "supporter": {
+    "title": "Người ủng hộ",
+    "body": "Cảm ơn bạn đã đồng hành cùng chúng tôi từ những ngày đầu của hành trình này — bạn đang giúp Libre luôn miễn phí và rộng mở.",
+    "badge": "TIÊN PHONG",
+    "badgeTitle": "Người ủng hộ từ sớm"
   }
 }

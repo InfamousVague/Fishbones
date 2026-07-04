@@ -7,16 +7,46 @@
     "cancel": "취소"
   },
   "collections": {
-    "rust": { "title": "Rust", "blurb": "Rust에 관한 모든 것 — 서적, Exercism 트랙, Rustlings, 그리고 챌린지 팩." },
-    "python": { "title": "Python", "blurb": "Python에 관한 모든 것 — 자체 제작 서적, Exercism 트랙, koans, 그리고 챌린지 팩." },
-    "go": { "title": "Go", "blurb": "Go에 관한 모든 것 — 서적, Exercism 트랙, Golings, 그리고 챌린지 팩." },
-    "zig": { "title": "Zig", "blurb": "Zig에 관한 모든 것 — 서적, Exercism 트랙, Ziglings, 그리고 챌린지 팩." },
-    "web": { "title": "Web", "blurb": "프론트엔드 스택 — JavaScript & TypeScript 기초, 프레임워크, 그리고 연습 문제." },
-    "mobile": { "title": "Mobile", "blurb": "모바일을 위한 개발 — React Native, Swift, Dart와 각 트랙 및 챌린지 팩." },
-    "jvm": { "title": "JVM", "blurb": "JVM 계열 — Java, Kotlin, Scala 트랙, koans, 그리고 챌린지 팩." },
-    "functional": { "title": "Functional", "blurb": "함수형으로 사고하기 — Haskell, Elixir, Scala, Clojure, F#, 그리고 함수형 JavaScript." },
-    "systems": { "title": "Systems", "blurb": "하드웨어에 가까운 영역 — C, C++, ARM 어셈블리와 각 트랙 및 연습 문제." },
-    "algorithms": { "title": "Algorithms & CS", "blurb": "컴퓨터 과학 기초 — 알고리즘, 자료구조, 인터프리터, 그리고 암호학 이론." }
+    "rust": {
+      "title": "Rust",
+      "blurb": "Rust에 관한 모든 것 — 서적, Exercism 트랙, Rustlings, 그리고 챌린지 팩."
+    },
+    "python": {
+      "title": "Python",
+      "blurb": "Python에 관한 모든 것 — 자체 제작 서적, Exercism 트랙, koans, 그리고 챌린지 팩."
+    },
+    "go": {
+      "title": "Go",
+      "blurb": "Go에 관한 모든 것 — 서적, Exercism 트랙, Golings, 그리고 챌린지 팩."
+    },
+    "zig": {
+      "title": "Zig",
+      "blurb": "Zig에 관한 모든 것 — 서적, Exercism 트랙, Ziglings, 그리고 챌린지 팩."
+    },
+    "web": {
+      "title": "Web",
+      "blurb": "프론트엔드 스택 — JavaScript & TypeScript 기초, 프레임워크, 그리고 연습 문제."
+    },
+    "mobile": {
+      "title": "Mobile",
+      "blurb": "모바일을 위한 개발 — React Native, Swift, Dart와 각 트랙 및 챌린지 팩."
+    },
+    "jvm": {
+      "title": "JVM",
+      "blurb": "JVM 계열 — Java, Kotlin, Scala 트랙, koans, 그리고 챌린지 팩."
+    },
+    "functional": {
+      "title": "Functional",
+      "blurb": "함수형으로 사고하기 — Haskell, Elixir, Scala, Clojure, F#, 그리고 함수형 JavaScript."
+    },
+    "systems": {
+      "title": "Systems",
+      "blurb": "하드웨어에 가까운 영역 — C, C++, ARM 어셈블리와 각 트랙 및 연습 문제."
+    },
+    "algorithms": {
+      "title": "Algorithms & CS",
+      "blurb": "컴퓨터 과학 기초 — 알고리즘, 자료구조, 인터프리터, 그리고 암호학 이론."
+    }
   },
   "common": {
     "cancel": "취소",
@@ -1068,5 +1098,11 @@
     "emptyGlobal": "아직 순위에 오른 학습자가 없습니다 — 첫 주인공이 되어보세요.",
     "addFriendsCta": "친구 추가",
     "you": "나"
+  },
+  "supporter": {
+    "title": "서포터",
+    "body": "이 여정의 시작부터 함께해 주셔서 감사합니다 — 덕분에 Libre가 무료로, 열린 채로 유지됩니다.",
+    "badge": "얼리",
+    "badgeTitle": "얼리 액세스 서포터"
   }
 }

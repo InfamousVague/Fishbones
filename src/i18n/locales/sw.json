@@ -7,16 +7,46 @@
     "cancel": "Ghairi"
   },
   "collections": {
-    "rust": { "title": "Rust", "blurb": "Kila kitu cha Rust — vitabu, njia ya Exercism, Rustlings, na kifurushi cha changamoto." },
-    "python": { "title": "Python", "blurb": "Kila kitu cha Python — vitabu vya ndani, njia ya Exercism, koans, na kifurushi cha changamoto." },
-    "go": { "title": "Go", "blurb": "Kila kitu cha Go — kitabu, njia ya Exercism, Golings, na kifurushi cha changamoto." },
-    "zig": { "title": "Zig", "blurb": "Kila kitu cha Zig — kitabu, njia ya Exercism, Ziglings, na kifurushi cha changamoto." },
-    "web": { "title": "Wavuti", "blurb": "Teknolojia za upande wa mbele — misingi ya JavaScript na TypeScript, mifumo, na mazoezi." },
-    "mobile": { "title": "Simu", "blurb": "Jenga kwa ajili ya simu — React Native, Swift, na Dart, pamoja na njia zao na vifurushi vya changamoto." },
-    "jvm": { "title": "JVM", "blurb": "Familia ya JVM — njia za Java, Kotlin, na Scala, koans, na vifurushi vya changamoto." },
-    "functional": { "title": "Kiutendakazi", "blurb": "Fikiri kwa vitendakazi — Haskell, Elixir, Scala, Clojure, na F#, pamoja na JavaScript ya kiutendakazi." },
-    "systems": { "title": "Mifumo", "blurb": "Karibu na chuma — C, C++, na assembly ya ARM, pamoja na njia zao na mazoezi." },
-    "algorithms": { "title": "Algoriti na CS", "blurb": "Misingi ya sayansi ya kompyuta — algoriti, miundo ya data, wakalimani, na nadharia ya kriptografia." }
+    "rust": {
+      "title": "Rust",
+      "blurb": "Kila kitu cha Rust — vitabu, njia ya Exercism, Rustlings, na kifurushi cha changamoto."
+    },
+    "python": {
+      "title": "Python",
+      "blurb": "Kila kitu cha Python — vitabu vya ndani, njia ya Exercism, koans, na kifurushi cha changamoto."
+    },
+    "go": {
+      "title": "Go",
+      "blurb": "Kila kitu cha Go — kitabu, njia ya Exercism, Golings, na kifurushi cha changamoto."
+    },
+    "zig": {
+      "title": "Zig",
+      "blurb": "Kila kitu cha Zig — kitabu, njia ya Exercism, Ziglings, na kifurushi cha changamoto."
+    },
+    "web": {
+      "title": "Wavuti",
+      "blurb": "Teknolojia za upande wa mbele — misingi ya JavaScript na TypeScript, mifumo, na mazoezi."
+    },
+    "mobile": {
+      "title": "Simu",
+      "blurb": "Jenga kwa ajili ya simu — React Native, Swift, na Dart, pamoja na njia zao na vifurushi vya changamoto."
+    },
+    "jvm": {
+      "title": "JVM",
+      "blurb": "Familia ya JVM — njia za Java, Kotlin, na Scala, koans, na vifurushi vya changamoto."
+    },
+    "functional": {
+      "title": "Kiutendakazi",
+      "blurb": "Fikiri kwa vitendakazi — Haskell, Elixir, Scala, Clojure, na F#, pamoja na JavaScript ya kiutendakazi."
+    },
+    "systems": {
+      "title": "Mifumo",
+      "blurb": "Karibu na chuma — C, C++, na assembly ya ARM, pamoja na njia zao na mazoezi."
+    },
+    "algorithms": {
+      "title": "Algoriti na CS",
+      "blurb": "Misingi ya sayansi ya kompyuta — algoriti, miundo ya data, wakalimani, na nadharia ya kriptografia."
+    }
   },
   "changelog": {
     "eyebrow": "Imesasishwa",
@@ -1064,5 +1094,11 @@
     "emptyGlobal": "Hakuna wanafunzi waliopangwa bado — kuwa wa kwanza.",
     "addFriendsCta": "Ongeza marafiki",
     "you": "Wewe"
+  },
+  "supporter": {
+    "title": "Muunga mkono",
+    "body": "Asante kwa kujiunga nasi mapema katika safari hii — unasaidia Libre kubaki bure na wazi.",
+    "badge": "MAPEMA",
+    "badgeTitle": "Muunga mkono wa mapema"
   }
 }
