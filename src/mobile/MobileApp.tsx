@@ -699,6 +699,8 @@ export default function MobileApp() {
   /// and the install handler below can flip back to "library" after a
   /// course lands.
   const [libraryPane, setLibraryPane] = useState<LibraryPane>("library");
+  // Guided path to auto-open (from the onboarding "what to learn" pick).
+  const [pendingPathId, setPendingPathId] = useState<string | null>(null);
   /// Catalog ids with a download in flight. Drives the per-tile
   /// spinner in Discover; cleared in the install handler's `finally`.
   const [installingIds, setInstallingIds] = useState<Set<string>>(new Set());
@@ -1227,6 +1229,7 @@ export default function MobileApp() {
               ))}
             </div>
             <PathsPage
+              initialSelectedId={pendingPathId}
               courses={courses}
               completed={completed}
               onOpenCourse={(courseId) => void openCourseById(courseId)}
@@ -1474,7 +1477,13 @@ export default function MobileApp() {
       {/* First-launch onboarding wizard — self-gates on shouldShowOnboarding().
           Mobile has no standalone theme picker, so this is the phone's entire
           first-run configure flow (theme → privacy → basics). */}
-      <OnboardingWizard />
+      <OnboardingWizard
+        onPickLearningPath={(pathId) => {
+          setPendingPathId(pathId);
+          setView("library");
+          setLibraryPane("paths");
+        }}
+      />
 
       {/* Public profile popup — opened from leaderboard / friends
           rows. Same overlay + cloud wiring as desktop App.tsx. */}

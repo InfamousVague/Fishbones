@@ -109,6 +109,11 @@ import { useProgress } from "@/hooks/useProgress";
 import { useChainActivity } from "@/hooks/useChainActivity";
 import { useLibreCloud, type CloudStats } from "@/hooks/useLibreCloud";
 import { readLeaderboardEnabled } from "@/lib/leaderboardSettings";
+import {
+  hasStartedLearningLatch,
+  markStartedLearning,
+  STARTED_LEARNING_EVENT,
+} from "@/lib/startedLearning";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 const FirstLaunchPrompt = lazy(() => import("@/components/organisms/dialogs/SignInDialog/FirstLaunchPrompt"));
 const SetupWizard = lazy(() => import("@/components/organisms/dialogs/SetupWizard/SetupWizard"));
@@ -1300,6 +1305,18 @@ export default function App() {
   // "Learning path" card routes there, consumed as PathsPage's
   // initial selection, cleared when Paths is opened normally.
   const [pendingPathId, setPendingPathId] = useState<string | null>(null);
+  // Activation nudge: a pulsing dot on the Discover + Paths rail items until
+  // the learner opens their first lesson. Latched via `markStartedLearning`
+  // in `selectLesson`; the event keeps this reactive without a reload. A
+  // returning learner with any completion is treated as already-started.
+  const [startedLatch, setStartedLatch] = useState(() =>
+    hasStartedLearningLatch(),
+  );
+  useEffect(() => {
+    const onStarted = () => setStartedLatch(true);
+    window.addEventListener(STARTED_LEARNING_EVENT, onStarted);
+    return () => window.removeEventListener(STARTED_LEARNING_EVENT, onStarted);
+  }, []);
 
   /// `useTransition` lets us mark the view-switch state update as
   /// non-urgent. React then renders the NEW view in the background
@@ -1977,6 +1994,9 @@ export default function App() {
   }, [coursesLoaded, progressLoaded, revealMainIfReady]);
 
   function selectLesson(courseId: string, lessonId: string) {
+    // Opening any lesson counts as "started learning" — clears the
+    // Discover/Paths activation nudge (idempotent; only fires the first time).
+    markStartedLearning();
     // Cancel any pending auto-advance — if a manual navigation
     // beats the timer to the punch (sidebar click, command palette,
     // Prev/Next button), respect it. When the auto-advance callback
@@ -2732,6 +2752,9 @@ export default function App() {
       <div className="libre__body">
         <NavigationRail
           activeView={view === "monkeyspaw" ? "practice" : view}
+          // Activation nudge on Discover + Paths until the learner opens their
+          // first lesson (a returning learner with any completion is exempt).
+          startCta={!startedLatch && completed.size === 0}
           onLibrary={() => setView("library")}
           // Resume chip — drops the learner back into their most-
           // recently-focused course at the first uncompleted lesson.
@@ -3409,7 +3432,12 @@ export default function App() {
           for genuinely-new users and OWNS theme selection, so the standalone
           theme picker below stays dormant while it runs. Finishing it stamps
           the theme-picked latch, letting FirstLaunchPrompt open next. */}
-      <OnboardingWizard />
+      <OnboardingWizard
+        onPickLearningPath={(pathId) => {
+          setPendingPathId(pathId);
+          setView("paths");
+        }}
+      />
 
       {/* First-launch theme picker. Shows once (gated on
           `libre:theme-picked-v1`) BEFORE the sign-in nudge — picking a

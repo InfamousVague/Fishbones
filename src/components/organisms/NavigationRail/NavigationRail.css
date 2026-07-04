@@ -319,3 +319,36 @@
 [data-theme-name="cipher-light"] .libre-nav-rail__item--active {
   color: var(--libre-c-white);
 }
+
+/* Activation nudge — a small pulsing accent dot in the icon's top-right
+   corner (same corner as the count badge, but attention-only, no number).
+   Drives brand-new learners toward Discover + Paths until they start a
+   course. Respects reduced-motion. */
+.libre-nav-rail__cta {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent, #e88f68);
+  box-shadow: 0 0 0 2px var(--color-bg-primary, #0a0a0a);
+  pointer-events: none;
+}
+.libre-nav-rail__cta::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--color-accent, #e88f68);
+  opacity: 0.55;
+  animation: libre-nav-cta-pulse 1.8s ease-out infinite;
+}
+@keyframes libre-nav-cta-pulse {
+  0% { transform: scale(1); opacity: 0.55; }
+  70% { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .libre-nav-rail__cta::after { animation: none; opacity: 0; }
+}

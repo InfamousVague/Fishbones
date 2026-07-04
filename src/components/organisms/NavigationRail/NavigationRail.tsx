@@ -59,6 +59,10 @@ export interface NavigationRailProps {
     | "paths"
     | "certificates"
     | "social";
+  /// First-run activation nudge: when true, a pulsing dot rides the
+  /// Discover + Paths items to draw a brand-new learner toward starting a
+  /// course. The host clears it once the learner opens their first lesson.
+  startCta?: boolean;
   onLibrary: () => void;
   /// Resume-most-recent affordance. When present, surfaces a play
   /// chip at the very top of the rail (above Library) that drops
@@ -158,6 +162,9 @@ interface RailItemProps {
   /// Optional count badge (e.g. spaced-repetition reviews due). Shown
   /// top-right of the icon when > 0; capped at "9+".
   badge?: number;
+  /// Activation nudge: a small pulsing accent dot (no number) drawing a
+  /// brand-new learner toward this route until they start a course.
+  cta?: boolean;
   /// Marks the route as not-yet-shipped: the button is visually dimmed,
   /// non-interactive (no onClick, `aria-disabled`), and wears a small
   /// lock badge. We use `aria-disabled` rather than the native
@@ -177,6 +184,7 @@ function RailItem({
   activeStandalone,
   pressed,
   badge,
+  cta,
   comingSoon,
   comingSoonLabel,
 }: RailItemProps) {
@@ -209,13 +217,14 @@ function RailItem({
           <span className="libre-nav-rail__lock" aria-hidden>
             <Icon icon={lock} size="xs" color="currentColor" />
           </span>
+        ) : badge !== undefined && badge > 0 ? (
+          <span className="libre-nav-rail__badge" aria-hidden>
+            {badge > 9 ? "9+" : badge}
+          </span>
         ) : (
-          badge !== undefined &&
-          badge > 0 && (
-            <span className="libre-nav-rail__badge" aria-hidden>
-              {badge > 9 ? "9+" : badge}
-            </span>
-          )
+          // Activation nudge — a pulsing dot, only when no count badge is
+          // competing for the same corner.
+          cta && <span className="libre-nav-rail__cta" aria-hidden />
         )}
       </button>
     </Tooltip>
@@ -224,6 +233,7 @@ function RailItem({
 
 export default function NavigationRail({
   activeView,
+  startCta,
   onLibrary,
   onResume,
   resumeLabel,
@@ -335,6 +345,7 @@ export default function NavigationRail({
             label={t("nav.discover")}
             onClick={onDiscover}
             active={activeView === "discover"}
+            cta={startCta}
           />
         )}
         {onResume && resumeLabel && (
@@ -350,6 +361,7 @@ export default function NavigationRail({
             label={t("nav.paths")}
             onClick={onPaths}
             active={activeView === "paths"}
+            cta={startCta}
           />
         )}
         <RailItem

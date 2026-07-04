@@ -39,13 +39,35 @@ import { shouldShowOnboarding, markOnboarded } from "@/lib/onboarding";
 import "@/components/organisms/dialogs/ThemePicker/ThemePicker.css";
 import "./OnboardingWizard.css";
 
-const STEP_COUNT = 5;
+const STEP_COUNT = 6;
+
+/// "What do you want to learn?" options → the guided Path they open. Each
+/// pathId matches a single-language path in `src/data/paths.ts`. Kept to the
+/// four most beginner-approachable routes so the choice isn't overwhelming;
+/// everything else stays discoverable in Discover / Paths.
+const LEARN_OPTIONS: {
+  pathId: string;
+  label: string;
+  blurb: string;
+  glyph: string;
+}[] = [
+  { pathId: "python", label: "Python", blurb: "Beginner-friendly, used everywhere", glyph: "🐍" },
+  { pathId: "javascript", label: "JavaScript", blurb: "The language of the web", glyph: "🟨" },
+  { pathId: "rust", label: "Rust", blurb: "Fast, safe systems programming", glyph: "🦀" },
+  { pathId: "go", label: "Go", blurb: "Simple, fast backend services", glyph: "🐹" },
+];
 
 /// Self-gating first-launch mount. Renders the wizard once for a genuinely new
 /// user, after a short delay so it lands as the bootloader fades. Mount THIS
 /// (not the bare modal) near the top of the app tree; renders nothing once the
 /// user has onboarded (or is a pre-existing user).
-export function OnboardingWizard() {
+export function OnboardingWizard({
+  onPickLearningPath,
+}: {
+  /// Called on finish when the learner chose a language in the "what do you
+  /// want to learn" step — the host opens that guided Path.
+  onPickLearningPath?: (pathId: string) => void;
+} = {}) {
   const [open, setOpen] = useState(() => shouldShowOnboarding());
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -54,15 +76,24 @@ export function OnboardingWizard() {
     return () => window.clearTimeout(id);
   }, [open]);
   if (!open || !ready) return null;
-  return <OnboardingWizardModal onClose={() => setOpen(false)} />;
+  return (
+    <OnboardingWizardModal
+      onClose={() => setOpen(false)}
+      onPickLearningPath={onPickLearningPath}
+    />
+  );
 }
 
 interface Props {
   onClose: () => void;
+  onPickLearningPath?: (pathId: string) => void;
 }
 
-function OnboardingWizardModal({ onClose }: Props) {
+function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
   const [step, setStep] = useState(0);
+  // Chosen guided path from the "what do you want to learn" step (null = they
+  // skipped it). Opened on finish.
+  const [learnPathId, setLearnPathId] = useState<string | null>(null);
 
   // Theme — applies live (applyTheme write-through persists immediately).
   const [theme, setTheme] = useState<ThemeName>(() => readActiveTheme());
@@ -93,6 +124,9 @@ function OnboardingWizardModal({ onClose }: Props) {
     markAnalyticsNoticeSeen();
     markOnboarded();
     onClose();
+    // Route into the chosen guided path AFTER closing so the learner lands
+    // straight on their path instead of the default view.
+    if (learnPathId) onPickLearningPath?.(learnPathId);
   };
 
   const last = STEP_COUNT - 1;
@@ -331,6 +365,49 @@ function OnboardingWizardModal({ onClose }: Props) {
           )}
 
           {step === 4 && (
+            <>
+              <h2 id="libre-onb-title" className="libre-onb__title">
+                What do you want to learn?
+              </h2>
+              <p className="libre-onb__blurb">
+                Pick a language and we'll open its guided path — a structured
+                route from the basics to real projects. Not sure yet? Skip it
+                and browse everything in Discover.
+              </p>
+              <div className="libre-onb__learn-grid">
+                {LEARN_OPTIONS.map((opt) => {
+                  const active = learnPathId === opt.pathId;
+                  return (
+                    <button
+                      key={opt.pathId}
+                      type="button"
+                      className={`libre-onb__learn-card ${active ? "is-active" : ""}`}
+                      aria-pressed={active}
+                      onClick={() =>
+                        setLearnPathId((cur) =>
+                          cur === opt.pathId ? null : opt.pathId,
+                        )
+                      }
+                    >
+                      <span className="libre-onb__learn-glyph" aria-hidden>
+                        {opt.glyph}
+                      </span>
+                      <span className="libre-onb__learn-text">
+                        <span className="libre-onb__learn-label">
+                          {opt.label}
+                        </span>
+                        <span className="libre-onb__learn-blurb">
+                          {opt.blurb}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {step === 5 && (
             <div className="libre-onb__hero">
               <div className="libre-onb__mark" aria-hidden>
                 🎉
@@ -339,9 +416,11 @@ function OnboardingWizardModal({ onClose }: Props) {
                 You're all set
               </h2>
               <p className="libre-onb__blurb">
-                The {current.label} theme is applied and ready. Open the Library
-                and start your first book — remember, everything here lives in
-                Settings if you want to change it.
+                {learnPathId
+                  ? `Your ${
+                      LEARN_OPTIONS.find((o) => o.pathId === learnPathId)?.label
+                    } path is ready — hit Start learning to jump straight in.`
+                  : `The ${current.label} theme is applied and ready. Open the Library and start your first book — everything here lives in Settings if you want to change it.`}
               </p>
             </div>
           )}

@@ -244,3 +244,55 @@
 .libre-onb__next:hover {
   background: var(--gg-accent, var(--color-accent-hover, var(--color-accent)));
 }
+
+/* ── "What do you want to learn?" step ─────────────────────────── */
+.libre-onb__learn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--libre-space-10, 10px);
+  margin-top: var(--libre-space-14, 14px);
+}
+.libre-onb__learn-card {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12, 12px);
+  padding: var(--libre-space-12, 12px) var(--libre-space-14, 14px);
+  border-radius: var(--libre-radius-12, 12px);
+  border: var(--libre-bw-1, 1px) solid var(--color-border-default, rgba(255, 255, 255, 0.12));
+  background: var(--color-bg-secondary, rgba(255, 255, 255, 0.04));
+  color: var(--color-text-primary, #fafafa);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.06s ease;
+}
+.libre-onb__learn-card:hover {
+  border-color: color-mix(in srgb, var(--color-accent, #e88f68) 40%, var(--color-border-default, rgba(255, 255, 255, 0.12)));
+}
+.libre-onb__learn-card:active {
+  transform: translateY(1px);
+}
+.libre-onb__learn-card.is-active {
+  border-color: var(--color-accent, #e88f68);
+  background: color-mix(in srgb, var(--color-accent, #e88f68) 12%, transparent);
+  box-shadow: 0 0 0 1px var(--color-accent, #e88f68) inset;
+}
+.libre-onb__learn-glyph {
+  font-size: 24px;
+  line-height: 1;
+  flex: none;
+}
+.libre-onb__learn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.libre-onb__learn-label {
+  font-size: var(--libre-fs-14, 14px);
+  font-weight: var(--libre-fw-600, 600);
+}
+.libre-onb__learn-blurb {
+  font-size: var(--libre-fs-12, 12px);
+  color: var(--color-text-secondary, #a4a4ad);
+  line-height: 1.3;
+}
