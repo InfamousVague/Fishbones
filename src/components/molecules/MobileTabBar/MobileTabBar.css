@@ -123,7 +123,10 @@
 /* Reviews-due count bubble on the Practice tab — desktop nav-rail
    parity. Anchored to the button's top-right; accent-tinted so it
    reads as "action available", not an error. */
-.libre-mtab__badge {
+/* `.libre-mtab__btn span { display:block }` above outranks a bare
+   class selector — scope under the button so the flex centering
+   actually wins and the digit sits centered in the pill. */
+.libre-mtab__btn .libre-mtab__badge {
   position: absolute;
   top: var(--libre-space-2);
   left: 50%;
