@@ -1,0 +1,183 @@
+/* Mobile Practice shell — hero strip, reminder card, Paw entry.
+   See MobilePractice.tsx. The shared PracticeView below brings its
+   own styles; this file only owns the wrapper chrome. */
+
+.m-practice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-16) var(--libre-space-16) var(--libre-space-0);
+}
+
+/* ── Hero strip ── */
+.m-practice__hero {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  border-radius: var(--libre-radius-16);
+  background: var(--gg-glass-card, var(--color-bg-secondary));
+  border: var(--libre-bw-1) solid var(--gg-glass-brd, var(--color-border-default));
+  box-shadow: inset 0 1px 0 var(--gg-glass-rim, transparent);
+  backdrop-filter: blur(var(--gg-blur, var(--libre-blur-20)));
+  -webkit-backdrop-filter: blur(var(--gg-blur, var(--libre-blur-20)));
+}
+
+
+
+
+
+
+
+
+
+.m-practice__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.m-practice__hero-title {
+  font-size: var(--libre-fs-15);
+  font-weight: var(--libre-fw-800);
+  color: var(--color-text-primary);
+}
+
+.m-practice__hero-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--libre-space-4);
+  font-size: var(--libre-fs-12);
+  color: var(--color-text-secondary);
+  font-feature-settings: "tnum";
+}
+
+
+
+
+
+
+.m-practice__bell {
+  width: var(--libre-size-36);
+  height: var(--libre-size-36);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--libre-radius-md);
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--libre-motion-quick), border-color var(--libre-motion-quick);
+}
+
+.m-practice__bell--on {
+  color: var(--gg-accent, var(--libre-c-f2a93b));
+  border-color: color-mix(in srgb, var(--gg-accent, var(--libre-c-f2a93b)) 45%, var(--color-border-default));
+}
+
+/* ── Reminder card ── */
+.m-practice__reminder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-8);
+  padding: var(--libre-space-12) var(--libre-space-14);
+  border-radius: var(--libre-radius-16);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+}
+
+.m-practice__reminder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--libre-space-12);
+}
+
+.m-practice__reminder-label {
+  font-size: var(--libre-fs-13-5);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary);
+}
+
+.m-practice__time {
+  font: inherit;
+  font-size: var(--libre-fs-14);
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated, var(--libre-c-19191d));
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-md);
+  padding: var(--libre-space-6) var(--libre-space-10);
+  color-scheme: dark;
+}
+
+
+
+
+.m-practice__reminder-hint {
+  margin: var(--libre-space-0);
+  font-size: var(--libre-fs-12);
+  line-height: var(--libre-lh-1-4);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Monkey's Paw entry ── */
+.m-practice__paw {
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-12);
+  width: 100%;
+  padding: var(--libre-space-12) var(--libre-space-14);
+  border-radius: var(--libre-radius-16);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  background:
+    radial-gradient(
+      120% 160% at 100% 0%,
+      color-mix(in srgb, var(--libre-c-c79bff) 16%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--libre-c-c79bff) 35%, var(--color-border-default));
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--libre-motion-quick);
+}
+
+.m-practice__paw:active {
+  background: var(--color-bg-elevated);
+}
+
+.m-practice__paw-icon {
+  width: var(--libre-size-32);
+  height: var(--libre-size-32);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--libre-radius-md);
+  background: color-mix(in srgb, var(--libre-c-c79bff) 22%, transparent);
+  color: var(--libre-c-c79bff);
+}
+
+.m-practice__paw-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-1);
+  min-width: 0;
+}
+
+.m-practice__paw-title {
+  font-size: var(--libre-fs-14);
+  font-weight: var(--libre-fw-700);
+}
+
+.m-practice__paw-sub {
+  font-size: var(--libre-fs-11-5);
+  color: var(--color-text-tertiary);
+}

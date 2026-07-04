@@ -54,7 +54,9 @@ import MobileLesson from "./MobileLesson";
 import MobilePlayground from "./MobilePlayground";
 import MobileProfile from "./MobileProfile";
 import MobileSettings from "./MobileSettings";
-import PracticeView from "@/components/templates/Practice/PracticeView";
+import MobilePractice from "./MobilePractice";
+import MonkeysPawView from "@/components/organisms/MonkeysPaw/MonkeysPawView";
+import { usePracticeReminder } from "./usePracticeReminder";
 import SocialView from "@/components/templates/Social/SocialView";
 import ProfileCard from "@/components/molecules/ProfileCard/ProfileCard";
 import CertificatesPage from "@/components/organisms/Certificates/CertificatesPage";
@@ -83,6 +85,7 @@ type View =
   | "social"
   | "certs"
   | "challenges"
+  | "monkeyspaw"
   | "settings";
 
 interface ActiveLesson {
@@ -336,13 +339,33 @@ export default function MobileApp() {
     window.addEventListener("libre:practice-graded", bump);
     return () => window.removeEventListener("libre:practice-graded", bump);
   }, []);
-  const practiceDue = useMemo(() => {
+  const practiceStats = useMemo(() => {
     const items = harvestPracticeItems(courses, completed);
-    return summariseStats(items, loadAllRecords()).dueCount;
+    return summariseStats(items, loadAllRecords());
     // practiceRecordsVersion is the re-pull trigger; loadAllRecords()
     // reads localStorage so it isn't a reactive dep by itself.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courses, completed, practiceRecordsVersion]);
+  const practiceDue = practiceStats.dueCount;
+
+  // Daily practice reminder — settings owned here so the engine runs
+  // app-wide (the nudge should fire no matter which tab is open).
+  const practiceReminder = usePracticeReminder(
+    practiceDue,
+    practiceStats.attemptsToday,
+  );
+
+  // Installed-PWA app badge: mirror the due count onto the home-screen
+  // icon where the platform supports it (Chromium PWAs; iOS 16.4+
+  // installed). Silent no-op elsewhere.
+  useEffect(() => {
+    const nav = navigator as Navigator & {
+      setAppBadge?: (n: number) => Promise<void>;
+      clearAppBadge?: () => Promise<void>;
+    };
+    if (practiceDue > 0) void nav.setAppBadge?.(practiceDue).catch(() => {});
+    else void nav.clearAppBadge?.().catch(() => {});
+  }, [practiceDue]);
 
   // ── Certificate minting on book completion ─────────────────────────
   // Ported from desktop App.tsx: watch the completed set for NEW keys
@@ -1160,7 +1183,7 @@ export default function MobileApp() {
       ? "courses"
       : view === "playground"
         ? "playground"
-        : view === "practice"
+        : view === "practice" || view === "monkeyspaw"
           ? "practice"
           : view === "profile" || view === "social" || view === "certs" || view === "challenges"
             ? "profile"
@@ -1186,6 +1209,8 @@ export default function MobileApp() {
           <MobileLibrary
             courses={courses}
             completed={completed}
+            practiceDue={practiceDue}
+            onOpenPractice={() => setView("practice")}
             onUninstall={uninstallCourse}
             // `history` threads through so the library can sort by
             // most-recent activity (last lesson completion per
@@ -1283,11 +1308,18 @@ export default function MobileApp() {
           />
         )}
         {view === "playground" && <MobilePlayground />}
+        {view === "monkeyspaw" && (
+          <MonkeysPawView onBack={() => setView("practice")} />
+        )}
         {view === "practice" && (
-          <PracticeView
+          <MobilePractice
             courses={courses}
             completed={completed}
             history={history}
+            dueCount={practiceDue}
+            reminder={practiceReminder.settings}
+            onReminderChange={practiceReminder.setSettings}
+            onMonkeysPaw={() => setView("monkeyspaw")}
             onOpenLesson={(courseId, lessonId) => {
               // Practice uses (courseId, lessonId) string keys; the
               // mobile openLesson wants (course, chapterIndex,
@@ -1503,6 +1535,36 @@ export default function MobileApp() {
       {/* Floating "+N XP" reward bursts — portaled to <body>, fired
           from onComplete on fresh completions. */}
       <XpBurst />
+
+      {/* Practice-reminder nudge — fires once a day when the chosen
+          time passes with reviews still due (see usePracticeReminder). */}
+      {practiceReminder.nudge && (
+        <div className="m-app__nudge" role="status">
+          <span className="m-app__nudge-text">
+            Time to practice — {practiceReminder.nudge.dueCount} review
+            {practiceReminder.nudge.dueCount === 1 ? "" : "s"} due
+          </span>
+          <button
+            type="button"
+            className="m-app__nudge-go"
+            onClick={() => {
+              practiceReminder.dismissNudge();
+              void haptics.selection();
+              setView("practice");
+            }}
+          >
+            Practice
+          </button>
+          <button
+            type="button"
+            className="m-app__nudge-later"
+            onClick={() => practiceReminder.dismissNudge()}
+            aria-label="Dismiss"
+          >
+            Later
+          </button>
+        </div>
+      )}
 
       {/* Chapter / book completion summary — desktop component,
           desktop behavior: chapter card slides up, book completion is

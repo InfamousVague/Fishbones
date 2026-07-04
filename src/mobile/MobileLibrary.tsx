@@ -62,6 +62,11 @@ interface Props {
   /// → untouched → completed).
   history?: readonly Completion[];
   onOpenLesson: (course: Course, chapterIndex: number, lessonIndex: number) => void;
+  /// Optional — spaced-repetition reviews due right now. When >0 the
+  /// library shows a compact practice nudge card under the toggle
+  /// (tap → Practice tab via onOpenPractice).
+  practiceDue?: number;
+  onOpenPractice?: () => void;
   /// Optional — long-pressing a course card opens a manage sheet with
   /// "Remove from library". The heavy lifting (storage delete + sync
   /// bookkeeping) lives in MobileApp; omitting the prop disables the
@@ -136,6 +141,8 @@ export default function MobileLibrary({
   pane,
   onPaneChange,
   onOpenLesson,
+  practiceDue,
+  onOpenPractice,
   onUninstall,
   onOpenSearch,
   onRefresh,
@@ -391,6 +398,24 @@ export default function MobileLibrary({
           </button>
         </div>
       )}
+      {(practiceDue ?? 0) > 0 && onOpenPractice && (
+        <button
+          type="button"
+          className="m-lib__practice-nudge"
+          onClick={() => {
+            void haptics.selection();
+            onOpenPractice();
+          }}
+        >
+          <span className="m-lib__practice-nudge-dot" aria-hidden />
+          <span className="m-lib__practice-nudge-text">
+            {practiceDue} review{practiceDue === 1 ? "" : "s"} due — a quick
+            session keeps the chain alive
+          </span>
+          <span className="m-lib__practice-nudge-go" aria-hidden>→</span>
+        </button>
+      )}
+
       <header className="m-lib__head">
         <div className="m-lib__head-text">
           <h1 className="m-lib__title">Library</h1>
