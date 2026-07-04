@@ -35,7 +35,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "Meet the Social tab: add friends by email, accept requests, and climb Friends + Global leaderboards ranked by XP, streak, or lessons — every profile shows level, streak, and recent activity.",
       "Claim your leaderboard name. Pick how you show up on the global board; until you do, everyone appears under a private auto-generated alias, so real names are never exposed. A basic profanity filter keeps names tasteful.",
       "You now always see yourself on the global leaderboard — with your true rank — even when you're outside the top of the board.",
-      "Early-access supporters get the spotlight: a gradient “Supporter” card on your profile and a crown EARLY pill next to your name everywhere it appears. Thanks for backing Libre.",
+      "Early-access supporters get the spotlight: a gradient “Supporter” card on your profile and a crown EARLY pill next to your name everywhere it appears. Thanks for joining us on the journey.",
       "Friends load in fast pages now, with your total friend count shown and page controls when your list gets long.",
       "Polish: the Updates panel moved to the top of Settings → General, a fix for a crash when verifying a course, and the leaderboard/supporter pills now match the rest of the app.",
     ],
