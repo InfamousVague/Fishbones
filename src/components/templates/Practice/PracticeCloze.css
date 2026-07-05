@@ -143,3 +143,32 @@
   place-items: center;
   color: var(--libre-c-43b581);
 }
+
+/* ── Monaco host ─────────────────────────────────────────────────── */
+/* The read-only editor renders the snippet in the app's editor theme;
+   height is computed from the line count so the card never scrolls
+   vertically. */
+.libre-cloze__editor {
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  border-radius: var(--libre-radius-10);
+  overflow: hidden;
+}
+
+/* Gap decoration — a dashed amber hole punched into the code while
+   the card is open. Monaco inline decorations take a plain class, so
+   these two live at global scope (same convention as the Workbench's
+   own decorations). */
+.libre-cloze-deco--gap {
+  background: color-mix(in srgb, var(--gg-accent, var(--libre-c-f2a93b)) 16%, transparent);
+  border-bottom: 2px dashed var(--gg-accent, var(--libre-c-f2a93b));
+  border-radius: var(--libre-radius-3);
+  /* Hide the underscore placeholders — the decoration IS the visual;
+     the text is just there to hold layout width for real tokens. */
+  color: transparent !important;
+}
+
+.libre-cloze-deco--filled {
+  background: var(--libre-c-rgba-124-217-124-0-22);
+  border-radius: var(--libre-radius-3);
+  box-shadow: 0 0 0 1px var(--libre-c-rgba-124-217-124-0-55);
+}

@@ -337,6 +337,7 @@ export default function PracticeSession({
               <PracticeCloze
                 key={current.id}
                 cloze={current.cloze}
+                language={current.language}
                 committed={cardOutcome?.status !== "open"}
                 result={
                   cardOutcome?.status === "correct"
