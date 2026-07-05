@@ -20,7 +20,6 @@
 /// option order arrives pre-shuffled (seeded in `makeClozePuzzle`),
 /// so re-renders never reshuffle mid-attempt.
 
-import "@/lib/monaco/setup";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { Icon } from "@base/primitives/icon";
@@ -108,6 +107,27 @@ export default function PracticeCloze({
   const monacoRef = useRef<Parameters<OnMount>[1] | null>(null);
   const decorationsRef = useRef<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  // Monaco's loader wiring (bundled instance + workers) lives in
+  // @/lib/monaco/setup. Imported LAZILY: its `?worker` URL imports
+  // are vite-only syntax that vitest's resolver rejects, so a static
+  // import would break every suite that renders this card. In jsdom
+  // the dynamic import rejects (caught) and the card permanently
+  // renders the plain fallback — which is exactly what UI tests
+  // assert against. In the app it resolves from cache instantly.
+  const [setupReady, setSetupReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    import("@/lib/monaco/setup")
+      .then(() => {
+        if (!cancelled) setSetupReady(true);
+      })
+      .catch(() => {
+        /* test env / failed chunk — plain fallback stays up */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function pick(opt: string) {
     if (committed) return;
@@ -202,6 +222,9 @@ export default function PracticeCloze({
     <div className="libre-cloze">
       <div className="libre-cloze__hint">{t("practice.clozePrompt")}</div>
       <div className="libre-cloze__editor" style={{ height: `${height}px` }}>
+        {!setupReady ? (
+          plainFallback
+        ) : (
         <Editor
           height="100%"
           language={
@@ -245,6 +268,7 @@ export default function PracticeCloze({
             automaticLayout: true,
           }}
         />
+        )}
       </div>
       <div className="libre-cloze__options">
         {options.map((opt) => {
