@@ -617,3 +617,129 @@
   font-weight: var(--libre-fw-800);
   color: var(--gg-accent, var(--libre-c-f2a93b));
 }
+
+/* ── Discover: language-first entry ──────────────────────────────── */
+/* Brand-tinted language tiles, 3-up. Each tile owns a --m-disc-brand
+   custom prop (set inline from LANGUAGE_META) that drives its tint,
+   icon colour and active ring. */
+
+.m-disc__langs-section {
+  margin-bottom: var(--libre-space-18);
+}
+
+.m-disc__langs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--libre-space-8);
+}
+
+.m-disc__lang {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--libre-space-4);
+  padding: var(--libre-space-10) var(--libre-space-6) var(--libre-space-8);
+  border-radius: var(--libre-radius-12);
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--m-disc-brand, #888) 10%, var(--color-bg-secondary));
+  border: var(--libre-bw-1) solid
+    color-mix(in srgb, var(--m-disc-brand, #888) 28%, var(--color-border-default));
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--libre-motion-quick), background var(--libre-motion-quick);
+}
+
+.m-disc__lang--active {
+  background: color-mix(in srgb, var(--m-disc-brand, #888) 22%, var(--color-bg-secondary));
+  border-color: var(--m-disc-brand, #888);
+  box-shadow: 0 0 0 1px var(--m-disc-brand, #888);
+}
+
+.m-disc__lang-icon {
+  width: var(--libre-size-26);
+  height: var(--libre-size-26);
+  display: grid;
+  place-items: center;
+  color: var(--m-disc-brand, var(--color-text-secondary));
+}
+
+.m-disc__lang-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.m-disc__lang-name {
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  line-height: var(--libre-lh-1-1);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.m-disc__lang-count {
+  font-size: var(--libre-fs-10-5);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-tertiary);
+  font-feature-settings: "tnum";
+}
+
+.m-disc__langs-clear {
+  font: inherit;
+  font-size: var(--libre-fs-12);
+  font-weight: var(--libre-fw-700);
+  color: var(--gg-accent, var(--libre-c-f2a93b));
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: var(--libre-space-2) var(--libre-space-4);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Discover: Start-here rail ── */
+.m-disc__start {
+  margin-bottom: var(--libre-space-18);
+}
+
+.m-disc__rail {
+  display: flex;
+  gap: var(--libre-space-10);
+  list-style: none;
+  margin: var(--libre-space-0);
+  padding: var(--libre-space-2) var(--libre-space-2) var(--libre-space-6);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.m-disc__rail::-webkit-scrollbar {
+  display: none;
+}
+
+.m-disc__rail-cell {
+  flex: 0 0 clamp(120px, 34vw, 150px);
+  scroll-snap-align: start;
+}
+
+.m-disc__langs-more {
+  width: 100%;
+  margin-top: var(--libre-space-8);
+  padding: var(--libre-space-9) var(--libre-space-12);
+  border-radius: var(--libre-radius-10);
+  font: inherit;
+  font-size: var(--libre-fs-13);
+  font-weight: var(--libre-fw-700);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-disc__langs-more:active {
+  background: var(--color-bg-elevated);
+}
