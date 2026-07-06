@@ -165,7 +165,7 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // `course.images` map (bodies use `asset://<hash>` refs); re-seed
 // rewrites the installed course from ~25MB to ~4.4MB + fully
 // translated image captions.
-const SEED_VERSION: u32 = 35;
+const SEED_VERSION: u32 = 36;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes

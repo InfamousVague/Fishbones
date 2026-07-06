@@ -549,7 +549,7 @@ function starterUrl(path: string): string {
 // `course.images` map (bodies now use `asset://<hash>` refs), shrinking
 // the seed from ~25MB to ~4.4MB and fully translating every image
 // caption/alt. Bump forces clients to re-fetch the slimmer course.
-const SEED_VERSION = 39;
+const SEED_VERSION = 40;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +
