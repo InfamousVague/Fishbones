@@ -137,7 +137,7 @@ const SignInDialog = lazy(() => import("@/components/organisms/dialogs/SignInDia
 const FeedbackDialog = lazy(() => import("@/components/organisms/dialogs/Feedback/FeedbackDialog"));
 import { useCourses } from "@/hooks/useCourses";
 import { useRecentCourses } from "@/hooks/useRecentCourses";
-import { useStreakAndXp } from "@/hooks/useStreakAndXp";
+import { useStreakAndXp, xpForLessonKind } from "@/hooks/useStreakAndXp";
 import { useStreakShields } from "@/hooks/useStreakShields";
 import {
   LIBRARY_INSTALLED_IDS_KEY,
@@ -160,20 +160,6 @@ import {
 /// profile). Null on first launch / cleared storage.
 const bootTabsSnapshot = loadPersistedTabs();
 import "./App.css";
-
-/// XP value for a given lesson kind. Mirrors the XP_PER_KIND map
-/// inside useStreakAndXp.ts (kept module-private there); copying the
-/// values is cheaper than re-exporting + re-typing the constant.
-function xpForLessonKind(kind: string | undefined): number {
-  switch (kind) {
-    case "reading": return 5;
-    case "quiz": return 10;
-    case "exercise":
-    case "mixed":
-      return 20;
-    default: return 0;
-  }
-}
 
 /// Wrapper that resolves the currently-selected sidebar variant id
 /// to its component and renders it with the standard sidebar Props.

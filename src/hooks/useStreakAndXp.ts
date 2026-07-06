@@ -4,13 +4,32 @@ import type { Completion } from "./useProgress";
 
 /// XP award per lesson kind. Readings are cheap; quizzes take more effort;
 /// exercises (passing tests) are the biggest win. These numbers are V1 —
-/// tune based on pacing feedback.
+/// tune based on pacing feedback. They're also the values the public
+/// docs advertise (Reading 5 / Quiz 10 / Exercise 20 / Mixed 20), so a
+/// change here needs a matching docs update.
 const XP_PER_KIND: Record<string, number> = {
   reading: 5,
   quiz: 10,
   exercise: 20,
   mixed: 20,
+  // Retired lesson kinds — kept for backward compat with completion
+  // records logged before the blocks-mode migration, and so the
+  // profile per-language breakdowns (which share this table) stay
+  // consistent with the headline total.
+  cloze: 10,
+  micropuzzle: 10,
+  puzzle: 15,
 };
+
+/// Canonical per-kind XP lookup — the ONE source of truth for lesson
+/// XP values. The celebration "+N XP" bursts (App.tsx, MobileApp.tsx)
+/// and the profile per-language breakdowns (ProfileView, MobileProfile)
+/// all import this so they can never drift from the derived totals
+/// computed below. Unknown / missing kinds fall back to the reading
+/// award so a completion never counts for zero.
+export function xpForLessonKind(kind: string | undefined): number {
+  return XP_PER_KIND[kind ?? "reading"] ?? XP_PER_KIND.reading;
+}
 
 export interface StreakAndXp {
   /// Total XP earned across all courses.
@@ -55,7 +74,8 @@ export function useStreakAndXp(
   );
 }
 
-function computeStreakAndXp(
+/// Exported for unit tests — the hook above is just this + useMemo.
+export function computeStreakAndXp(
   history: Completion[],
   courses: Course[],
   frozenDays?: ReadonlySet<string>,
@@ -72,8 +92,7 @@ function computeStreakAndXp(
 
   let xp = 0;
   for (const c of history) {
-    const kind = kindByKey.get(`${c.course_id}:${c.lesson_id}`) ?? "reading";
-    xp += XP_PER_KIND[kind] ?? XP_PER_KIND.reading;
+    xp += xpForLessonKind(kindByKey.get(`${c.course_id}:${c.lesson_id}`));
   }
 
   const { current: streakDays, longest: longestStreakDays } = computeStreaks(

@@ -11,26 +11,13 @@ import "@base/primitives/icon/icon.css";
 import type { Course, LanguageId } from "@/data/types";
 import { isExerciseKind } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
-import type { StreakAndXp } from "@/hooks/useStreakAndXp";
+import { xpForLessonKind, type StreakAndXp } from "@/hooks/useStreakAndXp";
 import SupporterCard from "@/components/molecules/SupporterCard/SupporterCard";
 import "./ProfileView.css";
 
-/// Per-lesson XP — MUST stay in sync with useStreakAndXp + MobileProfile.
-/// Kept duplicated (not imported) because the hook only exports computed
-/// totals, not the per-kind map. If we ever add a kind, update all three
-/// in the same commit. (Legacy `cloze` / `micropuzzle` / `puzzle` kinds
-/// are retired — their XP values stay only as no-op fallbacks for
-/// completion records that pre-date the migration.)
-const XP_PER_KIND = {
-  reading: 5,
-  quiz: 10,
-  exercise: 20,
-  mixed: 20,
-  // Retained for backward-compat with already-recorded completions.
-  cloze: 10,
-  micropuzzle: 10,
-  puzzle: 15,
-} as const;
+// Per-lesson XP comes from `xpForLessonKind` (imported above) — the
+// same canonical table useStreakAndXp derives the headline total from,
+// so this breakdown can never drift from `stats.xp`.
 
 /// A full year (52 weeks) of activity, GitHub-contribution-graph style.
 /// The Activity card spans the full dashboard width (see
@@ -243,8 +230,7 @@ export default function ProfileView({
     for (const h of history) {
       const lang = langByCourse.get(h.course_id);
       if (!lang) continue;
-      const kind = kindByKey.get(`${h.course_id}:${h.lesson_id}`) ?? "reading";
-      const xp = XP_PER_KIND[kind as keyof typeof XP_PER_KIND] ?? XP_PER_KIND.reading;
+      const xp = xpForLessonKind(kindByKey.get(`${h.course_id}:${h.lesson_id}`));
       xpByLang.set(lang, (xpByLang.get(lang) ?? 0) + xp);
       lessonsByLang.set(lang, (lessonsByLang.get(lang) ?? 0) + 1);
     }

@@ -22,7 +22,7 @@ import { useCatalog } from "@/hooks/useCatalog";
 import { useProgress } from "@/hooks/useProgress";
 import { useLibreCloud } from "@/hooks/useLibreCloud";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
-import { useStreakAndXp } from "@/hooks/useStreakAndXp";
+import { useStreakAndXp, xpForLessonKind } from "@/hooks/useStreakAndXp";
 import { useStreakShields } from "@/hooks/useStreakShields";
 import type { CloudStats } from "@/hooks/useLibreCloud";
 import { harvestPracticeItems } from "@/components/templates/Practice/practiceHarvest";
@@ -255,7 +255,14 @@ export default function MobileApp() {
   // count as phantom completions, so the streak number, celebration
   // trigger, profile rings and widget snapshot all honor freezes.
   const shields = useStreakShields();
-  const stats = useStreakAndXp(history, courses, shields.frozenDays);
+  // Stats use the UNFILTERED course list — desktop parity (see the
+  // matching comment in App.tsx). The visible `courses` memo above
+  // drops hidden courses and anything outside the synced library,
+  // and a completion whose course isn't in the list passed here
+  // falls back to the reading award (5 XP) instead of its real
+  // kind — so filtering would silently shrink exercise/quiz XP and
+  // make mobile's pushed `total_xp` disagree with desktop's.
+  const stats = useStreakAndXp(history, coursesAll, shields.frozenDays);
   // Stats are "ready" once BOTH stores hydrated — never push (or
   // celebrate) the 0 → real placeholder transition.
   const statsReady = loaded && progressLoaded;
@@ -1126,18 +1133,12 @@ export default function MobileApp() {
     // lesson, so the sound + floating "+N XP" burst fire only when
     // this key isn't already in the completed set (re-passing a
     // lesson deliberately shouldn't re-reward). Mirrors the desktop
-    // markCompletedAndCelebrate flow; the XP-per-kind values mirror
-    // useStreakAndXp's private table.
+    // markCompletedAndCelebrate flow; the XP value comes from the
+    // same canonical table useStreakAndXp derives totals from, so
+    // the burst always matches what the headline number gains.
     const isFresh = !completed.has(`${active.course.id}:${lesson.id}`);
     if (isFresh) {
-      const xp =
-        lesson.kind === "reading"
-          ? 5
-          : lesson.kind === "quiz"
-            ? 10
-            : lesson.kind === "exercise" || lesson.kind === "mixed"
-              ? 20
-              : 0;
+      const xp = xpForLessonKind(lesson.kind);
       playSound("xp-pop", { volume: 0.7 });
       fireXpBurst(xp);
       // Web-only analytics event (coarse ids, no PII) — same event

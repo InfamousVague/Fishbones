@@ -26,7 +26,7 @@
 import { useMemo } from "react";
 import type { Course, LanguageId } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
-import type { StreakAndXp } from "@/hooks/useStreakAndXp";
+import { xpForLessonKind, type StreakAndXp } from "@/hooks/useStreakAndXp";
 import type { StreakShieldsState } from "@/hooks/useStreakShields";
 import { useFreezeAffordance } from "@/hooks/useFreezeAffordance";
 import type { LibreCloudUser } from "@/hooks/useLibreCloud";
@@ -142,21 +142,9 @@ const LANG_LABELS: Partial<Record<LanguageId, string>> = {
   tauri: "Tauri",
 };
 
-/// XP awards mirror `useStreakAndXp`. Re-declared here (rather than
-/// imported) because the hook's table is private — when XP rules
-/// change, both tables get bumped. Tested informally by checking
-/// that the per-language breakdown sums to the headline `stats.xp`.
-const XP_PER_KIND: Record<string, number> = {
-  reading: 5,
-  quiz: 10,
-  exercise: 20,
-  mixed: 20,
-  // Retired lesson kinds — kept for backward compat with completion
-  // records logged before the blocks-mode migration.
-  cloze: 10,
-  micropuzzle: 10,
-  puzzle: 15,
-};
+// Per-lesson XP comes from `xpForLessonKind` (imported above) — the
+// same canonical table useStreakAndXp derives the headline total from,
+// so the per-language breakdown always sums to `stats.xp`.
 
 function timeAgo(unixSeconds: number): string {
   const diff = Math.floor(Date.now() / 1000) - unixSeconds;
@@ -343,8 +331,7 @@ export default function MobileProfile({
     for (const h of history) {
       const lang = langByCourse.get(h.course_id);
       if (!lang) continue;
-      const kind = kindByKey.get(`${h.course_id}:${h.lesson_id}`) ?? "reading";
-      const xp = XP_PER_KIND[kind] ?? XP_PER_KIND.reading;
+      const xp = xpForLessonKind(kindByKey.get(`${h.course_id}:${h.lesson_id}`));
       xpByLang.set(lang, (xpByLang.get(lang) ?? 0) + xp);
     }
     const total = Array.from(xpByLang.values()).reduce((a, b) => a + b, 0);
