@@ -72,6 +72,22 @@ export default function UpdaterSplash() {
       }
     }
 
+    // Tell the (hidden) main window that an update is downloading in THIS
+    // small splash window, so its boot-time safety-reveal timer (main.tsx)
+    // backs off instead of popping the large main window mid-download —
+    // the update must stay in the small splash. Emitted when the update is
+    // detected AND again once bytes start flowing, to cover the race where
+    // the main window's listener isn't registered yet at the first emit.
+    async function emitUpdating() {
+      if (isWeb) return;
+      try {
+        const { emit } = await import("@tauri-apps/api/event");
+        await emit("splash://updating").catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    }
+
     // Listen EARLY for the main window finishing its load (App.tsx reveals it
     // once courses load + it has heard splash://proceed, then emits this).
     // Closing the splash on that is the normal hand-off — but NEVER while
@@ -128,6 +144,7 @@ export default function UpdaterSplash() {
         // An update — keep the main window hidden (no proceed) and download +
         // install it, then relaunch into the new version.
         downloading = true;
+        void emitUpdating(); // hold the main window's safety-reveal timer
         setStatus(`Downloading update ${update.version}…`);
         setProgress(0);
         let downloaded = 0;
@@ -152,6 +169,7 @@ export default function UpdaterSplash() {
           };
           if (e.event === "Started") {
             total = e.data?.contentLength ?? 0;
+            void emitUpdating(); // re-assert in case the first emit raced
             setProgress(pct(0, total));
           } else if (e.event === "Progress") {
             downloaded += e.data?.chunkLength ?? 0;

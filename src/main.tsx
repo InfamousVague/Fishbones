@@ -148,10 +148,31 @@ if (!popoutMode && !isWeb) {
     try {
       const { getCurrentWindow } = await import("@tauri-apps/api/window");
       const w = getCurrentWindow();
-      setTimeout(() => {
+      const reveal = () => {
         void w.show().catch(() => {});
         void w.setFocus().catch(() => {});
-      }, 12_000);
+      };
+      // Safety net: if the splash never hands off (App.tsx normally reveals
+      // this window on `splash://proceed` + data-loaded), reveal after a
+      // short beat so a wedged splash can't strand the app on a hidden
+      // window. BUT an update download runs far longer than this, and the
+      // splash keeps this (large) window hidden while it downloads in the
+      // small splash window. Blindly revealing here at 12s popped the LARGE
+      // window mid-update — the reported bug. So when the splash tells us
+      // it's updating, cancel the short net and fall back to a long backstop
+      // that only fires if the splash dies without ever relaunching (a
+      // successful update relaunches long before it, and a stalled download
+      // is revealed by the splash's own watchdog).
+      let timer = window.setTimeout(reveal, 12_000);
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        await listen("splash://updating", () => {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(reveal, 150_000);
+        });
+      } catch {
+        /* not Tauri — the bare 12s net above still applies */
+      }
     } catch {
       /* not Tauri */
     }
