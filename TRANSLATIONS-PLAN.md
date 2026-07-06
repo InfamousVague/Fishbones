@@ -98,3 +98,11 @@ re-upload. Not started.
 Remaining fleets ≈ 8–10M agent-tokens (278 batches ≈ 6–7M; i18n phases ≈ 2–3M).
 Two session limits were hit at ~12M/window — run the two resumes in SEPARATE
 windows, course batches first.
+
+### 9. TRPL course-description refresh (found 2026-07-06)
+The archive's EN description was the pre-rebrand placeholder ("Auto-generated
+by Fishbones' AI pipeline") and had been faithfully translated into 11 locales.
+Fixed: EN replaced with the editorial description; translated placeholder
+descriptions dropped (EN fallback shows). TODO: one tiny __course__-description
+batch × 11 locales. Also audit other archives' in-archive descriptions for the
+same placeholder (manifest/Discover is clean — editorial overrides win there).

@@ -161,7 +161,11 @@ pub fn courses_dir(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
 // final "JavaScript for Beginners" chapter -> "Final".
 // V34 — baked 114/116 per-lesson images into ziglings (2 pending art);
 // re-seed rewrites the installed course so the art shows offline.
-const SEED_VERSION: u32 = 34;
+// V35 — de-duplicated the Rust book's images into a shared
+// `course.images` map (bodies use `asset://<hash>` refs); re-seed
+// rewrites the installed course from ~25MB to ~4.4MB + fully
+// translated image captions.
+const SEED_VERSION: u32 = 35;
 
 /// Ids that previously shipped via `resources/bundled-packs/` but have
 /// since been retired. On a SEED_VERSION bump, ensure_seed deletes
