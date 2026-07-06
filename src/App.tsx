@@ -361,6 +361,11 @@ export default function App() {
       localeSizes?: Partial<Record<Locale, number>>;
     };
     locales: Locale[];
+    /// Pre-checked locales. Used by the "Additional languages" flow on an
+    /// already-installed book to seed the picker with what's already
+    /// downloaded; omitted on a fresh Discover install (which falls back
+    /// to the app-language default).
+    preselected?: Locale[];
   } | null>(null);
   // Pending delete request queued by the library / sidebar context menu.
   // Kept in state rather than firing window.confirm() directly so we can
@@ -3044,6 +3049,7 @@ export default function App() {
                 onAddCourse={isWeb ? undefined : handleAddCourse}
                 onBrowseCatalog={() => setView("discover")}
                 onInstallCatalogEntry={handleInstallCatalogEntry}
+                onAdditionalLanguages={openCourseLanguages}
               />
             </div>
           ) : courses.length === 0 && coursesLoaded ? (
@@ -3124,6 +3130,7 @@ export default function App() {
                 onAddCourse={isWeb ? undefined : handleAddCourse}
                 onBrowseCatalog={() => setView("discover")}
                 onInstallCatalogEntry={handleInstallCatalogEntry}
+                onAdditionalLanguages={openCourseLanguages}
               />
             </DeferredMount>
           ) : activeLesson && activeCourse ? (
@@ -3586,6 +3593,7 @@ export default function App() {
           title={installPrompt.entry.title}
           locales={installPrompt.locales}
           localeSizes={installPrompt.entry.localeSizes}
+          preselected={installPrompt.preselected}
           onCancel={() => setInstallPrompt(null)}
           onConfirm={(selected) => {
             const { entry } = installPrompt;
@@ -3882,6 +3890,50 @@ export default function App() {
     // Path-driven installs skip the language prompt (there's no browse
     // context to pause into) and download every available language.
     await installEntryWithLocales(entry);
+  }
+
+  /// "Additional languages" — opened from a book's right-click menu on an
+  /// ALREADY-installed course. Resolves the book against the catalog; if it
+  /// ships more than one language, reopens the same install-languages picker
+  /// seeded with the locales already downloaded, so the learner can add (or
+  /// drop) languages after the fact. Confirming re-installs the book with the
+  /// chosen set — progress is keyed separately, so nothing is lost. Books
+  /// that only ship English get a gentle notice instead of an empty picker.
+  async function openCourseLanguages(courseId: string, courseTitle: string) {
+    try {
+      const { fetchCatalog } = await import("@/lib/catalog");
+      const entries = await fetchCatalog();
+      const entry = entries.find((e) => e.id === courseId);
+      if (!entry?.translationLocales || entry.translationLocales.length <= 1) {
+        setAppToast({
+          tone: "success",
+          message: `“${courseTitle}” is only available in English.`,
+        });
+        return;
+      }
+      // Seed the picker with what's already on disk for this book: English
+      // plus any locale the installed course carries a translation overlay
+      // for. Falls back to just English if the course isn't loaded yet.
+      const installed = coursesAll.find((c) => c.id === courseId);
+      const have: Locale[] = ["en"];
+      const overlays = installed?.translations;
+      if (overlays) {
+        for (const loc of Object.keys(overlays) as Locale[]) {
+          if (entry.translationLocales.includes(loc)) have.push(loc);
+        }
+      }
+      setInstallPrompt({
+        entry,
+        locales: entry.translationLocales,
+        preselected: have,
+      });
+    } catch (e) {
+      console.error("[libre] additional-languages lookup failed:", e);
+      setAppToast({
+        tone: "error",
+        message: `Couldn't load languages for “${courseTitle}”.`,
+      });
+    }
   }
 
   /// Unified "Add course" handler — replaces the four separate

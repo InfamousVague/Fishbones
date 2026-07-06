@@ -120,6 +120,10 @@ interface Props {
   /// from its `bundleSha`. Click → run this handler. Optional —
   /// hidden cleanly when the host doesn't wire it (e.g. tests).
   onUpdateCourse?: (courseId: string) => Promise<void> | void;
+  /// Open the install-languages picker for an installed book (right-click
+  /// → "Additional languages"). Resolves availability against the catalog
+  /// and no-ops with a notice for English-only books.
+  onAdditionalLanguages?: (courseId: string, courseTitle: string) => void;
   /// Smart "Add course" entry point. Opens an OS file picker with
   /// all supported formats (.pdf, .epub, .libre, .kata, .zip,
   /// .json) and dispatches each picked file to the right pipeline.
@@ -175,6 +179,7 @@ export default function CourseLibrary({
   onExport,
   onDelete,
   onDeleteCourseDirect,
+  onAdditionalLanguages,
   onOpenPath,
   onSettings,
   onBulkExport,
@@ -1553,6 +1558,7 @@ export default function CourseLibrary({
                 }
               : undefined
           }
+          onAdditionalLanguages={onAdditionalLanguages}
           onDelete={onDelete}
         />
         {/* Collection context menu — right-click on a folder tile or the

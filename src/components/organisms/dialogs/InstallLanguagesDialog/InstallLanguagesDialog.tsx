@@ -21,6 +21,11 @@ interface Props {
   locales: Locale[];
   /// Per-locale download-overlay sizes (bytes), for the "+X KB" hint.
   localeSizes?: Partial<Record<Locale, number>>;
+  /// Locales to pre-check. Passed by the "Additional languages" flow on an
+  /// already-installed book (the locales already on disk). When omitted (a
+  /// fresh Discover install) we fall back to the app's download-language
+  /// default. English is always added regardless.
+  preselected?: Locale[];
   onCancel: () => void;
   onConfirm: (selected: Locale[]) => void;
 }
@@ -34,16 +39,20 @@ export default function InstallLanguagesDialog({
   title,
   locales,
   localeSizes,
+  preselected,
   onCancel,
   onConfirm,
 }: Props) {
   const t = useT();
   const [downloadLocales] = useDownloadLocales();
-  // English always kept; pre-check the learner's default download languages
-  // (Settings → General) wherever this book offers them.
+  // English always kept. Seed the checkboxes with the explicit `preselected`
+  // set when given (the "Additional languages" flow passes the book's
+  // already-installed locales); otherwise fall back to the app's
+  // download-language default. Only ever pre-check locales the book offers.
   const [selected, setSelected] = useState<Set<Locale>>(() => {
     const init = new Set<Locale>(["en"]);
-    for (const l of downloadLocales) if (locales.includes(l)) init.add(l);
+    const seed = preselected ?? downloadLocales;
+    for (const l of seed) if (locales.includes(l)) init.add(l);
     return init;
   });
 

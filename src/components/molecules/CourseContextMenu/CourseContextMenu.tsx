@@ -6,6 +6,7 @@ import { useT } from "@/i18n/i18n";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import { arrowDownToLine } from "@base/primitives/icon/icons/arrow-down-to-line";
+import { languages as languagesIcon } from "@base/primitives/icon/icons/languages";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 
@@ -33,6 +34,11 @@ interface Props {
   /// installed copy. Replaces the in-cover badge that used to live
   /// at the bottom-right of every installed tile.
   onUpdate?: (courseId: string, courseTitle: string) => void;
+  /// Open the install-languages picker for this book so the learner can
+  /// download additional languages (for books that ship translations).
+  /// The handler resolves availability against the catalog and shows a
+  /// notice for English-only books, so it's safe to always wire.
+  onAdditionalLanguages?: (courseId: string, courseTitle: string) => void;
   onDelete?: (courseId: string, courseTitle: string) => void;
 }
 
@@ -42,6 +48,7 @@ export default function CourseContextMenu({
   onSettings,
   onExport,
   onUpdate,
+  onAdditionalLanguages,
   onDelete,
 }: Props) {
   const t = useT();
@@ -53,7 +60,8 @@ export default function CourseContextMenu({
   useDismiss(menuRef, onDismiss, { event: "click", enabled: !!menu });
 
   if (!menu) return null;
-  if (!onSettings && !onExport && !onUpdate && !onDelete) return null;
+  if (!onSettings && !onExport && !onUpdate && !onAdditionalLanguages && !onDelete)
+    return null;
 
   // Portal to body so we escape any ancestor that creates a containing
   // block for fixed positioning (sidebars / modals with `backdrop-filter`,
@@ -114,6 +122,20 @@ export default function CourseContextMenu({
           {menu.hasUpdate
             ? t("library.updateAvailableMenu")
             : t("library.reinstallCourse")}
+        </button>
+      )}
+      {onAdditionalLanguages && (
+        <button
+          className="libre__context-menu-item"
+          onClick={() => {
+            onAdditionalLanguages(menu.courseId, menu.courseTitle);
+            onDismiss();
+          }}
+        >
+          <span className="libre__context-menu-icon" aria-hidden>
+            <Icon icon={languagesIcon} size="xs" color="currentColor" />
+          </span>
+          {t("library.additionalLanguages")}
         </button>
       )}
       {onDelete && (

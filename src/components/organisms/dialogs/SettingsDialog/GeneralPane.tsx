@@ -9,7 +9,6 @@ import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
 import LanguageSelect from "./LanguageSelect";
-import DownloadLocalesSelect from "./DownloadLocalesSelect";
 import { useT } from "@/i18n/i18n";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { track } from "@/lib/track";
@@ -301,19 +300,10 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
         <LanguageSelect />
       </SettingsCard>
 
-      <SettingsCard title={t("settings.downloadLanguagesCard")}>
-        <div className="libre-settings-row libre-settings-row--no-icon">
-          <div className="libre-settings-row__body">
-            <span className="libre-settings-row__label">
-              {t("settings.downloadLanguages")}
-            </span>
-            <span className="libre-settings-row__sub">
-              {t("settings.downloadLanguagesDescription")}
-            </span>
-          </div>
-        </div>
-        <DownloadLocalesSelect />
-      </SettingsCard>
+      {/* Per-book language downloads live where the choice is made now: the
+          install-languages picker on Discover install, and the book's
+          right-click "Additional languages" menu — not a global Settings
+          list. (Removed the "Download languages" card.) */}
 
       <SettingsCard title={t("settings.learningCard")}>
         <SettingsRow

@@ -253,6 +253,7 @@
     "by": "by",
     "updateAvailableMenu": "Update available…",
     "reinstallCourse": "Reinstall course…",
+    "additionalLanguages": "Additional languages…",
     "verify": {
       "copied": "prompt Copied! showFeedback(\"prompt\", \"Copied!\");",
       "savedClipboardBlocked": "prompt Saved (clipboard blocked) showFeedback(\"prompt\", \"Saved (clipboard blocked)\");",
