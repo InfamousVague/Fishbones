@@ -21,6 +21,7 @@
 import { isWeb } from "./platform";
 import { profileDbName } from "./profileStore";
 import type { Course } from "@/data/types";
+import { ensureChapterIds } from "@/data/chapterIds";
 
 export interface Completion {
   course_id: string;
@@ -126,13 +127,14 @@ const tauriStorage: LibreStorage = {
     await invoke("clear_completions");
   },
   async listCoursesSummary() {
-    return invoke<Course[]>("list_courses_summary");
+    const courses = await invoke<Course[]>("list_courses_summary");
+    return courses.map(ensureChapterIds);
   },
   async loadCourse(courseId) {
-    return invoke<Course>("load_course", { courseId });
+    return ensureChapterIds(await invoke<Course>("load_course", { courseId }));
   },
   async saveCourse(courseId, body) {
-    await invoke("save_course", { courseId, body });
+    await invoke("save_course", { courseId, body: ensureChapterIds(body) });
   },
   async deleteCourse(courseId) {
     await invoke("delete_course", { courseId });
@@ -378,7 +380,11 @@ const webStorage: LibreStorage = {
     const courses = await reqToPromise(
       tx.objectStore(STORE_COURSES).getAll() as IDBRequest<Course[]>,
     );
-    return courses.map(summarise);
+    // ensureChapterIds runs on the READ side (here + loadCourse) as
+    // well as the write side so records seeded before the backfill
+    // existed — still cached in returning visitors' IndexedDB — come
+    // out repaired without a SEED_VERSION re-fetch.
+    return courses.map((c) => summarise(ensureChapterIds(c)));
   },
 
   async loadCourse(courseId) {
@@ -395,16 +401,18 @@ const webStorage: LibreStorage = {
           `Run the starter-course seed or open the desktop app to ingest one.`,
       );
     }
-    return course;
+    return ensureChapterIds(course);
   },
 
   async saveCourse(courseId, body) {
     const db = await openDb();
     const tx = db.transaction(STORE_COURSES, "readwrite");
+    const normalized = ensureChapterIds(body);
     // The Course's id is the keyPath, but we accept courseId as a
     // separate arg for parity with the Tauri command. They should
     // match; if not, the courseId arg wins so callers can rename.
-    const stored = courseId === body.id ? body : { ...body, id: courseId };
+    const stored =
+      courseId === normalized.id ? normalized : { ...normalized, id: courseId };
     tx.objectStore(STORE_COURSES).put(stored);
     await txDone(tx);
   },

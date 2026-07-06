@@ -108,7 +108,12 @@ export default function ChapterTree({
         if (node.kind === "flat") {
           return (
             <ChapterBlock
-              key={node.chapter.id}
+              // Several imported books (e.g. Select Star SQL) ship
+              // chapters without ids despite the Chapter type claiming
+              // `id: string` — `key={undefined}` counts as keyless to
+              // React. Chapters never reorder within a course, so the
+              // index fallback is stable.
+              key={node.chapter.id ?? `${courseId}:chapter:${i}`}
               chapter={node.chapter}
               courseId={courseId}
               activeLessonId={activeLessonId}
@@ -254,9 +259,10 @@ function SectionGroup({
       </button>
       {open && (
         <div className="libre__section-children">
-          {entries.map(({ chapter, displayTitle }) => (
+          {entries.map(({ chapter, displayTitle }, i) => (
             <ChapterBlock
-              key={chapter.id}
+              // Same id-less-chapter fallback as the flat branch above.
+              key={chapter.id ?? `${courseId}:${label}:${i}`}
               chapter={chapter}
               displayTitle={displayTitle}
               courseId={courseId}
