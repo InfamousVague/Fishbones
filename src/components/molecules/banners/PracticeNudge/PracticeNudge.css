@@ -87,3 +87,36 @@
   color: var(--color-text-secondary, #a4a4ad);
   background: var(--libre-c-rgba-255-255-255-0-06, rgba(255, 255, 255, 0.06));
 }
+
+/* Recent-chapter chips — the "what you'll review" scope, shown on the
+   tailored welcome-back variant. Chapter name leads; course name
+   trails in a muted italic so two chips stay scannable. */
+.libre-practice-nudge__chapters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--libre-space-6);
+  margin-top: var(--libre-space-6);
+}
+
+.libre-practice-nudge__chapter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--libre-space-6);
+  max-width: 100%;
+  padding: var(--libre-space-2) var(--libre-space-10);
+  border-radius: var(--libre-radius-pill);
+  border: var(--libre-bw-1) solid var(--color-border-default);
+  background: var(--color-bg-tertiary);
+  font-size: var(--libre-fs-11);
+  font-weight: var(--libre-fw-600);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.libre-practice-nudge__chapter em {
+  font-style: normal;
+  font-weight: var(--libre-fw-400);
+  color: var(--color-text-tertiary);
+}

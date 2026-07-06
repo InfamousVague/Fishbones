@@ -85,6 +85,7 @@ import XpBurst, { fireXpBurst } from "@/components/atoms/XpBurst/XpBurst";
 import AppToast, { type AppToastData } from "@/components/molecules/AppToast/AppToast";
 import { harvestPracticeItems } from "@/components/templates/Practice/practiceHarvest";
 import { loadAllRecords, summariseStats } from "@/components/templates/Practice/practiceStore";
+import { buildRecentReviewScope } from "@/components/templates/Practice/recentReview";
 import { InstallBanner } from "@/components/molecules/banners/InstallBanner/InstallBanner";
 import { UpdateBanner } from "@/components/molecules/banners/UpdateBanner/UpdateBanner";
 import { EarlyReleaseBanner } from "@/components/molecules/banners/EarlyReleaseBanner/EarlyReleaseBanner";
@@ -879,16 +880,31 @@ export default function App() {
     courseId?: string;
     lessonId?: string;
   } | null>(null);
+  // The tailored scope: the 1-2 chapters the learner studied most
+  // recently ("let's review what you learned last time you were
+  // here"), with the completed-lesson keys the auto-session drills.
+  // Null until history hydrates or when there's too little material.
+  const recentReview = useMemo(
+    () => buildRecentReviewScope(courses, completed, history),
+    [courses, completed, history],
+  );
+  /// Scope handed to PracticeView when the nudge is ACCEPTED — a ref
+  /// (like practiceReturn) because it only matters on the render the
+  /// accept triggers, and must not re-fire the nudge effect.
+  const autoStartScope = useRef<Set<string> | null>(null);
   const practiceNudgeChecked = useRef(false);
   useEffect(() => {
     if (practiceNudgeChecked.current || !coursesLoaded) return;
-    if (practiceDue <= 0) return; // wait until due items are known non-zero
+    // Prefer the tailored recent-chapters review; fall back to the
+    // generic due-count nudge. Neither ready yet → keep waiting
+    // (history + practice records hydrate async).
+    if (!recentReview && practiceDue <= 0) return;
     practiceNudgeChecked.current = true;
     if (shouldShowPracticeNudge()) {
       setShowPracticeNudge(true);
       markPracticeNudged();
     }
-  }, [practiceDue, coursesLoaded]);
+  }, [practiceDue, recentReview, coursesLoaded]);
 
   function markCompletedAndCelebrate(courseId: string, lessonId: string) {
     const key = `${courseId}:${lessonId}`;
@@ -2906,9 +2922,11 @@ export default function App() {
               completed={completed}
               history={history}
               autoStart={autoStartPractice}
+              autoStartLessonKeys={autoStartScope.current ?? undefined}
               onAutoSessionExit={() => {
                 // Nudge round-trip: the auto-started review ended — put
                 // the learner back exactly where they were.
+                autoStartScope.current = null;
                 setAutoStartPractice(false);
                 const back = practiceReturn.current;
                 practiceReturn.current = null;
@@ -3436,6 +3454,7 @@ export default function App() {
       {showPracticeNudge && (
         <PracticeNudge
           due={practiceDue}
+          chapters={recentReview?.chapters}
           onPractice={() => {
             setShowPracticeNudge(false);
             const tab = openTabs[activeTabIndex];
@@ -3444,6 +3463,7 @@ export default function App() {
               courseId: tab?.courseId,
               lessonId: tab?.lessonId,
             };
+            autoStartScope.current = recentReview?.lessonKeys ?? null;
             setAutoStartPractice(true);
             setView("practice");
           }}

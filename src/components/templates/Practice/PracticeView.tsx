@@ -95,6 +95,12 @@ interface Props {
   /// banner routes here with this set). Skipped when the learned-
   /// material gate isn't met — the page then just shows normally.
   autoStart?: boolean;
+  /// Optional scope for the auto-started session: `${courseId}:${lessonId}`
+  /// keys (the recent-review chapters' completed lessons — see
+  /// recentReview.ts). When set, the session drills ONLY those atoms —
+  /// "review what you learned last time", not the whole multi-language
+  /// deck. Falls back to the full deck if the scope is too thin.
+  autoStartLessonKeys?: ReadonlySet<string>;
   /// Fired when an AUTO-STARTED session exits (finish or leave) — the
   /// host uses it to return the learner to where they were before the
   /// nudge. Manual sessions never fire it.
@@ -145,6 +151,7 @@ export default function PracticeView({
   onOpenLesson,
   onMonkeysPaw,
   autoStart,
+  autoStartLessonKeys,
   onAutoSessionExit,
 }: Props) {
   const t = useT();
@@ -291,6 +298,28 @@ export default function PracticeView({
     if (items.length < GATE_MIN_ITEMS) return;
     autoStartFired.current = true;
     setWasAutoStarted(true);
+    // Scoped nudge ("review what you learned last time"): drill only
+    // the recent chapters' atoms. Smart mode, no stale customize
+    // filters — this is the tailored on-ramp, not a saved session.
+    // Thin scopes (course uninstalled since the scope was computed)
+    // fall back to the ordinary full-deck session.
+    const scoped = autoStartLessonKeys
+      ? items.filter((i) =>
+          autoStartLessonKeys.has(`${i.courseId}:${i.lessonId}`),
+        )
+      : null;
+    if (scoped && scoped.length >= 3) {
+      const queue = buildQueue("smart", scoped, records, {
+        limit: Math.min(sessionLength, 10),
+        seed: Date.now(),
+        now: Date.now(),
+      });
+      if (queue.length > 0) {
+        setActiveWarmup([]);
+        setActiveQueue(queue);
+        return;
+      }
+    }
     startSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, items]);

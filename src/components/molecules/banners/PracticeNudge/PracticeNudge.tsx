@@ -15,15 +15,23 @@ import "./PracticeNudge.css";
 /// placement so alerts share one visual language.
 export default function PracticeNudge({
   due,
+  chapters,
   onPractice,
   onDismiss,
 }: {
-  /// Number of due review items — drives the banner copy.
+  /// Number of due review items — drives the fallback banner copy
+  /// when no recent-chapter scope is available.
   due: number;
+  /// The 1-2 most recently studied chapters (see recentReview.ts).
+  /// When present the banner becomes the tailored "let's review what
+  /// you learned last time" prompt with chapter chips, and accepting
+  /// starts a session scoped to exactly those chapters.
+  chapters?: ReadonlyArray<{ chapterTitle: string; courseTitle: string }>;
   onPractice: () => void;
   onDismiss: () => void;
 }) {
   const t = useT();
+  const tailored = !!chapters && chapters.length > 0;
   return (
     <div
       className="libre-practice-nudge"
@@ -38,10 +46,26 @@ export default function PracticeNudge({
           {t("practiceNudge.title")}
         </div>
         <div className="libre-practice-nudge__sub">
-          {t(due === 1 ? "practiceNudge.body" : "practiceNudge.bodyPlural", {
-            count: due,
-          })}
+          {tailored
+            ? t("practiceNudge.reviewBody")
+            : t(due === 1 ? "practiceNudge.body" : "practiceNudge.bodyPlural", {
+                count: due,
+              })}
         </div>
+        {tailored && (
+          <div className="libre-practice-nudge__chapters">
+            {chapters!.map((c) => (
+              <span
+                key={`${c.courseTitle}:${c.chapterTitle}`}
+                className="libre-practice-nudge__chapter"
+                title={`${c.chapterTitle} — ${c.courseTitle}`}
+              >
+                {c.chapterTitle}
+                <em>{c.courseTitle}</em>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <div className="libre-practice-nudge__actions">
         <button
@@ -49,7 +73,7 @@ export default function PracticeNudge({
           className="libre-practice-nudge__go"
           onClick={onPractice}
         >
-          {t("practiceNudge.practice")}
+          {t(tailored ? "practiceNudge.review" : "practiceNudge.practice")}
         </button>
         <button
           type="button"

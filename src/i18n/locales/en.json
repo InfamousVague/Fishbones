@@ -1085,6 +1085,8 @@
     "title": "Welcome back!",
     "body": "{count} lesson is ready for a quick review — a minute now locks it in.",
     "bodyPlural": "{count} lessons are ready for a quick review — a few minutes now locks them in.",
+    "reviewBody": "Let's review what you learned last time you were here.",
+    "review": "Review now",
     "practice": "Practice now",
     "dismiss": "Not now"
   },
