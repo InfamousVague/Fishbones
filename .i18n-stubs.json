@@ -92,5 +92,16 @@
   "import.docsKicker": "Docs kicker",
   "import.language": "Language",
   "import.model": "Model",
-  "import.bookTitle": "Book title"
+  "import.bookTitle": "Book title",
+  "lesson.allBlocksPlaced": "All blocks placed",
+  "settings.syncConnection": "Sync connection",
+  "settings.syncRelay": "Sync relay",
+  "settings.syncPendingPush": "Sync pending push",
+  "settings.syncAndMore": "Sync and more",
+  "practice.xpCount": "Xp count",
+  "practice.pairsCount": "Pairs count",
+  "practice.correctOrder": "Correct order",
+  "practice.shouldBe": "Should be",
+  "tradeDock.envHint": "Env hint",
+  "onboarding.languageLabel": "Language label"
 }

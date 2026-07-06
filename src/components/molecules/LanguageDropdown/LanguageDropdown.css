@@ -150,3 +150,19 @@
   color: var(--color-accent-warm, var(--libre-c-e8954a));
   font-weight: var(--libre-fw-700);
 }
+
+/* Endonym + English name stacked in the menu — mirrors the Settings
+   language picker so both selectors read identically. */
+.libre-langdrop__names {
+  display: flex;
+  flex-direction: column;
+  gap: var(--libre-space-1, 1px);
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+.libre-langdrop__english {
+  font-size: var(--libre-fs-12, 12px);
+  color: var(--color-text-secondary, #a4a4ad);
+  line-height: var(--libre-lh-tight, 1.1);
+}

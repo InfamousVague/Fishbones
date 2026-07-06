@@ -28,6 +28,7 @@ import "@base/primitives/icon/icon.css";
 import {
   LOCALE_FLAGS,
   LOCALE_NAMES,
+  LOCALE_ENGLISH_NAMES,
   SUPPORTED_LOCALES,
   type Locale,
 } from "@/data/locales";
@@ -257,8 +258,17 @@ export default function LanguageDropdown({
                     <span className="libre-langdrop__flag" aria-hidden>
                       {LOCALE_FLAGS[l]}
                     </span>
-                    <span className="libre-langdrop__label">
-                      {LOCALE_NAMES[l]}
+                    {/* Endonym + muted English name, stacked — same
+                        vocabulary as the Settings language picker so a
+                        learner who can't read the endonym still finds
+                        their language. */}
+                    <span className="libre-langdrop__names">
+                      <span className="libre-langdrop__label">
+                        {LOCALE_NAMES[l]}
+                      </span>
+                      <span className="libre-langdrop__english">
+                        {LOCALE_ENGLISH_NAMES[l]}
+                      </span>
                     </span>
                     {active && (
                       <span className="libre-langdrop__check" aria-hidden>
