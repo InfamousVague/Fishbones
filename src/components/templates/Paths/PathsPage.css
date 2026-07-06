@@ -252,9 +252,15 @@
   align-self: flex-start;
   margin-bottom: var(--libre-space-18);
   padding: var(--libre-space-7) var(--libre-space-14);
-  border: var(--libre-bw-1) solid var(--color-border-card);
+  /* Frosted glass — same recipe as the library's glass chrome
+     (--gg-glass tokens + blur) so the floating back affordance reads
+     as part of the app's glass family instead of a flat solid card. */
+  border: var(--libre-bw-1) solid var(--gg-glass-brd, var(--color-border-card));
   border-radius: var(--libre-radius-sm);
-  background: var(--color-bg-primary);
+  background: var(--gg-glass-card, var(--color-bg-primary));
+  box-shadow: inset 0 1px 0 var(--gg-glass-rim, transparent);
+  -webkit-backdrop-filter: blur(var(--gg-blur, var(--libre-size-24))) saturate(150%);
+  backdrop-filter: blur(var(--gg-blur, var(--libre-size-24))) saturate(150%);
   color: var(--color-text-primary);
   font-size: var(--libre-fs-13);
   font-weight: var(--libre-fw-500);
@@ -265,7 +271,7 @@
 }
 .libre-path-detail__back:hover {
   border-color: var(--color-border-card-strong);
-  background: var(--color-bg-secondary);
+  background: var(--gg-glass-elevated, var(--color-bg-secondary));
 }
 
 .libre-path-detail__head-row {
@@ -533,6 +539,9 @@
   gap: var(--libre-space-8);
   align-self: flex-start;
   margin-top: var(--libre-space-14);
+  /* Breathing room before the first difficulty-section header below —
+     without it the pill sat flush against "BEGINNER". */
+  margin-bottom: var(--libre-space-20);
   padding: var(--libre-space-9) var(--libre-space-18);
   border-radius: var(--libre-radius-pill, var(--libre-radius-pill));
   border: var(--libre-bw-1) solid color-mix(in srgb, var(--libre-c-f2a93b) 50%, transparent);

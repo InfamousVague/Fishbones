@@ -375,7 +375,12 @@ export default function PathDetail({
             <span>
               {anyInstalling
                 ? t("paths.installingShort")
-                : t("paths.installAll", { count: notInstalledIds.length })}
+                : t(
+                    notInstalledIds.length === 1
+                      ? "paths.installAll"
+                      : "paths.installAllPlural",
+                    { count: notInstalledIds.length },
+                  )}
             </span>
           </button>
         )}

@@ -287,7 +287,7 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
     id: "rust-developer",
     title: "Rust Developer",
     blurb:
-      "The complete Rust shelf, walked in order of difficulty. Start with the book that defines the language, drill it until ownership is reflex, learn to test like an engineer, then go async and finally under the hood with unsafe — or fork on-chain at the end.",
+      "The complete Rust shelf, walked in order of difficulty. Start with the book that defines the language, drill it until ownership is reflex, learn to test like an engineer, then go async and finally under the hood with unsafe.",
     language: "rust",
     icon: "cpu",
     stages: [
@@ -339,22 +339,6 @@ export const LEARNING_PATHS: readonly LearningPath[] = [
           courseId: "rustonomicon",
           note: "The dark arts: unsafe, raw pointers, and what the guarantees cost.",
         },
-      },
-      {
-        kind: "fork",
-        label: "Specialise",
-        branches: [
-          {
-            id: "on-chain",
-            label: "On-chain Rust",
-            steps: [
-              {
-                courseId: "solana-programs",
-                note: "Put your Rust on the SVM — accounts, programs, and CPIs.",
-              },
-            ],
-          },
-        ],
       },
     ],
   },
