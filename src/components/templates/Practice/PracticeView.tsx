@@ -28,7 +28,7 @@
 /// pattern, same `--color-*` tokens, same color-toned stat tiles
 /// and section-title vocabulary.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { dumbbell } from "@base/primitives/icon/icons/dumbbell";
 import { hand } from "@base/primitives/icon/icons/hand";
@@ -91,6 +91,14 @@ interface Props {
   /// lives under Practice as a practice TYPE (its rail chip was
   /// retired); the mode cards at the top of this page route there.
   onMonkeysPaw?: () => void;
+  /// Auto-start a review session on mount (the "welcome back" nudge
+  /// banner routes here with this set). Skipped when the learned-
+  /// material gate isn't met — the page then just shows normally.
+  autoStart?: boolean;
+  /// Fired when an AUTO-STARTED session exits (finish or leave) — the
+  /// host uses it to return the learner to where they were before the
+  /// nudge. Manual sessions never fire it.
+  onAutoSessionExit?: () => void;
 }
 
 const SESSION_LIMITS = [5, 10, 25] as const;
@@ -136,6 +144,8 @@ export default function PracticeView({
   completed,
   onOpenLesson,
   onMonkeysPaw,
+  autoStart,
+  onAutoSessionExit,
 }: Props) {
   const t = useT();
   // Harvest is cheap; rerun whenever the inputs change so author
@@ -269,6 +279,22 @@ export default function PracticeView({
     setActiveMatch(pool.slice(0, 6));
   }
 
+  // ── Nudge auto-start ──────────────────────────────────────────
+  // When the "welcome back" banner routed here with `autoStart`, kick a
+  // review session as soon as the harvested deck is ready. One-shot per
+  // mount (ref), and only past the learned-material gate — a learner
+  // without enough atoms just sees the normal page.
+  const [wasAutoStarted, setWasAutoStarted] = useState(false);
+  const autoStartFired = useRef(false);
+  useEffect(() => {
+    if (!autoStart || autoStartFired.current) return;
+    if (items.length < GATE_MIN_ITEMS) return;
+    autoStartFired.current = true;
+    setWasAutoStarted(true);
+    startSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, items]);
+
   function startSession() {
     const queue = buildQueue(mode, items, records, {
       limit: sessionLength,
@@ -310,7 +336,15 @@ export default function PracticeView({
         warmup={activeWarmup}
         mode={mode}
         onOpenLesson={onOpenLesson}
-        onExit={() => setActiveQueue(null)}
+        onExit={() => {
+          setActiveQueue(null);
+          // An auto-started (nudge-initiated) session hands control back
+          // to the host on exit so the learner lands where they were.
+          if (wasAutoStarted) {
+            setWasAutoStarted(false);
+            onAutoSessionExit?.();
+          }
+        }}
       />
     );
   }

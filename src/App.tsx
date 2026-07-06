@@ -114,6 +114,12 @@ import {
   markStartedLearning,
   STARTED_LEARNING_EVENT,
 } from "@/lib/startedLearning";
+import {
+  markPracticeNudged,
+  shouldShowPracticeNudge,
+  startActivityHeartbeat,
+} from "@/lib/practiceNudge";
+import PracticeNudge from "@/components/molecules/banners/PracticeNudge/PracticeNudge";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 const FirstLaunchPrompt = lazy(() => import("@/components/organisms/dialogs/SignInDialog/FirstLaunchPrompt"));
 const SetupWizard = lazy(() => import("@/components/organisms/dialogs/SetupWizard/SetupWizard"));
@@ -872,6 +878,31 @@ export default function App() {
     return summariseStats(items, loadAllRecords()).dueCount;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courses, completed, practiceRecordsVersion]);
+
+  // ── "Welcome back" practice nudge ────────────────────────────
+  // Heartbeat records when this sitting was last active; on the next
+  // launch after a few hours away, offer a review session in the alert
+  // banner — but only when something is actually due. `practiceReturn`
+  // remembers where the learner was so an accepted nudge round-trips:
+  // banner → auto-started session → right back to their lesson.
+  useEffect(() => startActivityHeartbeat(), []);
+  const [showPracticeNudge, setShowPracticeNudge] = useState(false);
+  const [autoStartPractice, setAutoStartPractice] = useState(false);
+  const practiceReturn = useRef<{
+    view: string;
+    courseId?: string;
+    lessonId?: string;
+  } | null>(null);
+  const practiceNudgeChecked = useRef(false);
+  useEffect(() => {
+    if (practiceNudgeChecked.current || !coursesLoaded) return;
+    if (practiceDue <= 0) return; // wait until due items are known non-zero
+    practiceNudgeChecked.current = true;
+    if (shouldShowPracticeNudge()) {
+      setShowPracticeNudge(true);
+      markPracticeNudged();
+    }
+  }, [practiceDue, coursesLoaded]);
 
   function markCompletedAndCelebrate(courseId: string, lessonId: string) {
     const key = `${courseId}:${lessonId}`;
@@ -2888,6 +2919,19 @@ export default function App() {
               courses={courses}
               completed={completed}
               history={history}
+              autoStart={autoStartPractice}
+              onAutoSessionExit={() => {
+                // Nudge round-trip: the auto-started review ended — put
+                // the learner back exactly where they were.
+                setAutoStartPractice(false);
+                const back = practiceReturn.current;
+                practiceReturn.current = null;
+                if (back?.courseId && back.lessonId) {
+                  selectLesson(back.courseId, back.lessonId);
+                } else if (back) {
+                  setView(back.view as typeof view);
+                }
+              }}
               onOpenLesson={(courseId, lessonId) => {
                 selectLesson(courseId, lessonId);
                 setView("courses");
@@ -3398,6 +3442,28 @@ export default function App() {
           component self-gates on `isWeb` and a 30-day localStorage
           dismissal, so on desktop this is a no-op render. */}
       <InstallBanner />
+
+      {/* "Welcome back" practice nudge — shown once per return after a
+          few hours away when reviews are due. Accepting saves the
+          current spot, auto-starts a session, and the session's exit
+          returns the learner there. */}
+      {showPracticeNudge && (
+        <PracticeNudge
+          due={practiceDue}
+          onPractice={() => {
+            setShowPracticeNudge(false);
+            const tab = openTabs[activeTabIndex];
+            practiceReturn.current = {
+              view,
+              courseId: tab?.courseId,
+              lessonId: tab?.lessonId,
+            };
+            setAutoStartPractice(true);
+            setView("practice");
+          }}
+          onDismiss={() => setShowPracticeNudge(false)}
+        />
+      )}
 
       {/* OTA update toast — desktop-only. Self-gates on `isDesktop`
           + the result of a Tauri-updater check. Idle state renders

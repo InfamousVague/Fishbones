@@ -1,0 +1,89 @@
+/* "Welcome back" practice nudge — same floating-card family as the
+   UpdateBanner (bottom-right, glass card) so alert banners share one
+   visual language. Sits at a slightly lower z so an update prompt wins
+   if both ever fire in the same sitting. */
+.libre-practice-nudge {
+  position: fixed;
+  right: var(--libre-space-16, 16px);
+  bottom: var(--libre-space-16, 16px);
+  z-index: calc(var(--libre-z-200, 200) - 1);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--libre-space-12, 12px);
+  padding: var(--libre-space-12, 12px) var(--libre-space-14, 14px);
+  width: var(--libre-size-360, 360px);
+  max-width: calc(100vw - var(--libre-size-32, 32px));
+  background: var(--color-bg-secondary, #16161c);
+  border: var(--libre-bw-1, 1px) solid var(--color-border-default, rgba(255, 255, 255, 0.12));
+  border-radius: var(--libre-radius-12, 12px);
+  box-shadow: var(--libre-shadow-66, 0 12px 32px rgba(0, 0, 0, 0.5));
+  animation: libre-practice-nudge-in 0.28s var(--libre-ease-ease, ease) both;
+}
+@keyframes libre-practice-nudge-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .libre-practice-nudge { animation: none; }
+}
+
+.libre-practice-nudge__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--libre-size-32, 32px);
+  height: var(--libre-size-32, 32px);
+  border-radius: var(--libre-radius-8, 8px);
+  color: var(--color-accent, #d4c5a1);
+  background: color-mix(in srgb, var(--color-accent, #d4c5a1) 14%, transparent);
+}
+
+.libre-practice-nudge__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.libre-practice-nudge__title {
+  font-size: var(--libre-fs-13, 13px);
+  font-weight: var(--libre-fw-600, 600);
+  color: var(--color-text-primary, #fafafa);
+}
+.libre-practice-nudge__sub {
+  font-size: var(--libre-fs-12, 12px);
+  line-height: 1.45;
+  color: var(--color-text-secondary, #a4a4ad);
+}
+
+.libre-practice-nudge__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--libre-space-6, 6px);
+}
+.libre-practice-nudge__go {
+  border: 0;
+  padding: var(--libre-space-6, 6px) var(--libre-space-12, 12px);
+  border-radius: var(--libre-radius-pill, 999px);
+  font-size: var(--libre-fs-12, 12px);
+  font-weight: var(--libre-fw-600, 600);
+  color: var(--gg-on-accent, #14110a);
+  background: var(--color-accent, #d4c5a1);
+  cursor: pointer;
+}
+.libre-practice-nudge__dismiss {
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  width: var(--libre-size-24, 24px);
+  height: var(--libre-size-24, 24px);
+  border-radius: var(--libre-radius-pill, 999px);
+  color: var(--color-text-tertiary, #71717a);
+  cursor: pointer;
+}
+.libre-practice-nudge__dismiss:hover {
+  color: var(--color-text-secondary, #a4a4ad);
+  background: var(--libre-c-rgba-255-255-255-0-06, rgba(255, 255, 255, 0.06));
+}
