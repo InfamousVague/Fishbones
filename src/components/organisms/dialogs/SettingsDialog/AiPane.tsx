@@ -17,6 +17,7 @@ import QrScanner from "@/components/molecules/QrScanner/QrScanner";
 import { useT } from "@/i18n/i18n";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { useTimeout } from "@/hooks/useTimeout";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 const MODEL_OPTIONS: Array<{ id: string; labelKey: string; hintKey: string }> = [
   {
@@ -166,8 +167,7 @@ export default function AiPane({
         <span className="libre-settings-label">{t("settings.effortLabel")}</span>
         <p className="libre-settings-blurb">{t("settings.effortBlurb")}</p>
         <div className="libre-settings-effort">
-          <input
-            type="range"
+          <RangeSlider
             className="libre-settings-effort-range"
             min={0}
             max={EFFORT_STEPS.length - 1}

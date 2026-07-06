@@ -38,6 +38,7 @@ import { shouldShowOnboarding, markOnboarded } from "@/lib/onboarding";
 // Reuse the first-launch theme picker's card styling for the theme step.
 import "@/components/organisms/dialogs/ThemePicker/ThemePicker.css";
 import "./OnboardingWizard.css";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 const STEP_COUNT = 6;
 
@@ -327,8 +328,7 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                       {Math.round(fontScale * 100)}%
                     </span>
                   </div>
-                  <input
-                    type="range"
+                  <RangeSlider
                     className="libre-onb__slider"
                     min={SCALE_BOUNDS.font[0]}
                     max={SCALE_BOUNDS.font[1]}
@@ -347,8 +347,7 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                       {Math.round(spaceScale * 100)}%
                     </span>
                   </div>
-                  <input
-                    type="range"
+                  <RangeSlider
                     className="libre-onb__slider"
                     min={SCALE_BOUNDS.space[0]}
                     max={SCALE_BOUNDS.space[1]}

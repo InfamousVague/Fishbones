@@ -26,6 +26,7 @@ import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
 import { useT } from "@/i18n/i18n";
 import { track } from "@/lib/track";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 export default function SoundPane() {
   const t = useT();
@@ -96,8 +97,7 @@ export default function SoundPane() {
           label={t("settings.volumeLabel")}
           sub={t("settings.volumeSub", { percent: Math.round(volume * 100) })}
           control={
-            <input
-              type="range"
+            <RangeSlider
               min={0}
               max={1}
               step={0.01}

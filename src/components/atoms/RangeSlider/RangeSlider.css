@@ -1,0 +1,69 @@
+/* Shared range slider — filled leading track + accent thumb.
+   Sizing (width/margins) stays with each call site's legacy class; this
+   atom owns APPEARANCE. The `input.libre-range[type="range"]` selector
+   out-specifies the single-class legacy rules (e.g.
+   `.libre-settings-cue-slider { background: … }`) so the fill gradient
+   reliably wins the cascade without editing every old stylesheet. */
+
+input.libre-range[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  height: var(--libre-size-4, 4px);
+  border-radius: var(--libre-radius-pill, 999px);
+  cursor: pointer;
+  outline: none;
+  /* The fill: accent up to the thumb, faint rail after. Driven by
+     --libre-range-fill (set inline by RangeSlider.tsx on every render). */
+  background: linear-gradient(
+    to right,
+    var(--color-accent, var(--libre-c-d4c5a1, #d4c5a1)) 0%,
+    var(--color-accent, var(--libre-c-d4c5a1, #d4c5a1)) var(--libre-range-fill, 0%),
+    var(--libre-c-rgba-255-255-255-0-1, rgba(255, 255, 255, 0.1)) var(--libre-range-fill, 0%),
+    var(--libre-c-rgba-255-255-255-0-1, rgba(255, 255, 255, 0.1)) 100%
+  );
+  transition: opacity var(--libre-dur-140, 140ms) var(--libre-ease-ease, ease);
+}
+
+[data-theme="light"] input.libre-range[type="range"] {
+  background: linear-gradient(
+    to right,
+    var(--color-accent, #8a6d3b) 0%,
+    var(--color-accent, #8a6d3b) var(--libre-range-fill, 0%),
+    var(--libre-c-rgba-0-0-0-0-1, rgba(0, 0, 0, 0.1)) var(--libre-range-fill, 0%),
+    var(--libre-c-rgba-0-0-0-0-1, rgba(0, 0, 0, 0.1)) 100%
+  );
+}
+
+input.libre-range[type="range"]:disabled {
+  opacity: var(--libre-opacity-0-4, 0.4);
+  cursor: not-allowed;
+}
+
+input.libre-range[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--libre-size-16, 16px);
+  height: var(--libre-size-16, 16px);
+  border-radius: var(--libre-radius-pill, 999px);
+  background: var(--color-accent, var(--libre-c-d4c5a1, #d4c5a1));
+  border: var(--libre-bw-2, 2px) solid var(--color-bg-primary, var(--libre-c-1a1427, #1a1427));
+  box-shadow: var(--libre-shadow-66, 0 1px 4px rgba(0, 0, 0, 0.4));
+  cursor: pointer;
+}
+
+input.libre-range[type="range"]::-moz-range-thumb {
+  width: var(--libre-size-16, 16px);
+  height: var(--libre-size-16, 16px);
+  border-radius: var(--libre-radius-pill, 999px);
+  background: var(--color-accent, var(--libre-c-d4c5a1, #d4c5a1));
+  border: var(--libre-bw-2, 2px) solid var(--color-bg-primary, var(--libre-c-1a1427, #1a1427));
+  cursor: pointer;
+}
+
+/* Firefox has a native progress pseudo-element — use it and let the
+   gradient act as the rail only. */
+input.libre-range[type="range"]::-moz-range-progress {
+  background: var(--color-accent, var(--libre-c-d4c5a1, #d4c5a1));
+  height: var(--libre-size-4, 4px);
+  border-radius: var(--libre-radius-pill, 999px);
+}

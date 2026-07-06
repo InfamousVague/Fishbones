@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { LanguageId } from "@/data/types";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
 import "./DocsImportDialog.css";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 /// Rough per-page token budget. Each page's lesson call sends the
 /// ~2k-token system prompt + the page's markdown (capped at ~15k
@@ -257,8 +258,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
                 Max pages
                 <span className="libre-docs-section-value">{maxPages}</span>
               </label>
-              <input
-                type="range"
+              <RangeSlider
                 className="libre-docs-slider"
                 min={MIN_MAX_PAGES}
                 max={MAX_MAX_PAGES}
@@ -276,8 +276,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
                 Max depth
                 <span className="libre-docs-section-value">{maxDepth}</span>
               </label>
-              <input
-                type="range"
+              <RangeSlider
                 className="libre-docs-slider"
                 min={1}
                 max={5}

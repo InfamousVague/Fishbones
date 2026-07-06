@@ -74,6 +74,7 @@ import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
 import { track } from "@/lib/track";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 interface IntentMeta {
   intent: HapticIntent;
@@ -221,8 +222,7 @@ export default function HapticsPane() {
           label="Intensity"
           sub={`Scales every pattern's duration. Currently ${Math.round(intensity * 100)}%.`}
           control={
-            <input
-              type="range"
+            <RangeSlider
               min={0}
               max={1}
               step={0.05}
@@ -346,8 +346,7 @@ export default function HapticsPane() {
                 label="Dampen factor"
                 sub={`Intensity multiplier inside the window. ${Math.round(quiet.dampenFactor * 100)}%.`}
                 control={
-                  <input
-                    type="range"
+                  <RangeSlider
                     min={0.05}
                     max={1}
                     step={0.05}

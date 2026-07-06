@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { LanguageId } from "@/data/types";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
 import "./GeneratePackDialog.css";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 /// Rough per-challenge token budget. Each challenge call sends a
 /// ~1.5k-token system prompt + a ~300-token user prompt and asks for
@@ -139,8 +140,7 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
               Count
               <span className="libre-genpack-section-value">{count}</span>
             </label>
-            <input
-              type="range"
+            <RangeSlider
               className="libre-genpack-slider"
               min={MIN_COUNT}
               max={MAX_COUNT}

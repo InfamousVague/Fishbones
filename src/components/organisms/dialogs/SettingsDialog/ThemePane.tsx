@@ -20,6 +20,7 @@ import { VARIANTS, type VariantId } from "@/components/organisms/Sidebar/variant
 import { useSidebarVariant } from "@/components/organisms/Sidebar/variants/useSidebarVariant";
 import { useT } from "@/i18n/i18n";
 import { track } from "@/lib/track";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 interface ThemePaneProps {
   theme: ThemeName;
@@ -194,8 +195,7 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
                   style={{ background: `hsl(${hue} 74% 66%)` }}
                   aria-hidden
                 />
-                <input
-                  type="range"
+                <RangeSlider
                   min={0}
                   max={359}
                   step={1}
@@ -274,8 +274,7 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
               </div>
               <div className="libre-settings-row__control">
                 <div className="libre-settings-scale">
-                  <input
-                    type="range"
+                  <RangeSlider
                     min={min}
                     max={max}
                     step={0.05}

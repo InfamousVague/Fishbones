@@ -39,6 +39,7 @@ import { getSfxSettings, setSfxSettings, playSound } from "@/lib/sfx";
 import { readHapticSettings, writeHapticSettings, haptics } from "@/lib/haptics";
 import { THEME_PREVIEW } from "@/theme/themePreviews";
 import "./MobileSettings.css";
+import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 /// Appearance scale knobs (same set as the desktop ThemePane). Plain
 /// English labels — MobileSettings doesn't route through i18n.
@@ -322,8 +323,7 @@ export default function MobileSettings({
                 <span className="m-set__row-meta">{row.sub}</span>
               </div>
               <div className="m-set__scale-control">
-                <input
-                  type="range"
+                <RangeSlider
                   min={min}
                   max={max}
                   step={0.05}
@@ -375,8 +375,7 @@ export default function MobileSettings({
               <span className="m-set__row-title">Volume</span>
             </div>
             <div className="m-set__scale-control">
-              <input
-                type="range"
+              <RangeSlider
                 min={0}
                 max={1}
                 step={0.05}
@@ -417,8 +416,7 @@ export default function MobileSettings({
               <span className="m-set__row-title">Intensity</span>
             </div>
             <div className="m-set__scale-control">
-              <input
-                type="range"
+              <RangeSlider
                 min={0.1}
                 max={1}
                 step={0.05}
