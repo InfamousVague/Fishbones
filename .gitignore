@@ -105,3 +105,4 @@ vite.config.js
 
 # Audio-embedded course archives (generated at release time; never committed)
 src-tauri/resources/bundled-packs-full/
+.rust7-work/

@@ -322,25 +322,20 @@ function SetupBanner({
     return (
       <div className="libre-ai-panel-setup">
         <div className="libre-ai-panel-setup-title">
-          Install the local assistant
+          {t("ai.setupInstallTitle")}
         </div>
-        <p>
-          Libre uses Ollama to run a small coding model on your own
-          machine. No API keys, no usage fees — but it has to be
-          installed once.
-        </p>
+        <p>{t("ai.setupInstallBody")}</p>
         {!installStatus.homebrewInstalled ? (
           <>
             <p className="libre-ai-panel-setup-note">
-              Homebrew isn't installed yet. Paste this into Terminal,
-              then come back:
+              {t("ai.setupHomebrewNote")}
             </p>
             <pre className="libre-ai-panel-setup-cmd">{`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`}</pre>
             <button
               className="libre-ai-panel-setup-retry"
               onClick={onRetry}
             >
-              I've installed Homebrew
+              {t("ai.setupHomebrewDone")}
             </button>
           </>
         ) : (
@@ -351,7 +346,7 @@ function SetupBanner({
               onClick={() => void wrap(onInstallOllama)}
               disabled={busy}
             >
-              {busy ? "Installing…" : "Install Ollama"}
+              {busy ? t("setup.installing") : t("setup.ollamaInstallButton")}
             </button>
           </>
         )}
@@ -365,27 +360,23 @@ function SetupBanner({
     return (
       <div className="libre-ai-panel-setup">
         <div className="libre-ai-panel-setup-title">
-          Start the local assistant
+          {t("ai.setupStartTitle")}
         </div>
-        <p>
-          Ollama is installed but isn't running yet. Libre can
-          start it as a background service so it stays up across
-          restarts.
-        </p>
+        <p>{t("ai.setupStartBody")}</p>
         <pre className="libre-ai-panel-setup-cmd">brew services start ollama</pre>
         <button
           className="libre-ai-panel-setup-primary"
           onClick={() => void wrap(onStartOllama)}
           disabled={busy}
         >
-          {busy ? "Starting…" : "Start Ollama"}
+          {busy ? t("ai.starting") : t("ai.startOllama")}
         </button>
         {probe.error && (
           <p className="libre-ai-panel-setup-err">{probe.error}</p>
         )}
         <ResultLog result={lastResult} />
         <button className="libre-ai-panel-setup-retry" onClick={onRetry}>
-          Retry probe
+          {t("ai.retryProbe")}
         </button>
       </div>
     );
@@ -395,33 +386,27 @@ function SetupBanner({
   // size come from the model the header dropdown actually chose, not
   // a hardcoded default (a custom tag falls back to a generic size).
   const meta = findModelMeta(model);
-  const sizeStr = meta ? `~${meta.sizeGb} GB` : "a few GB";
+  const sizeStr = meta ? `~${meta.sizeGb} GB` : t("ai.aFewGb");
   return (
     <div className="libre-ai-panel-setup">
       <div className="libre-ai-panel-setup-title">
-        Download {meta ? meta.label : model}
+        {t("ai.setupDownloadTitle", { model: meta ? meta.label : model })}
       </div>
-      <p>
-        One-time {sizeStr} download. You can keep using Libre in the
-        meantime — the button below kicks off the pull and the panel
-        unlocks when it finishes.
-      </p>
+      <p>{t("ai.setupDownloadBody", { size: sizeStr })}</p>
       <pre className="libre-ai-panel-setup-cmd">ollama pull {model}</pre>
       <button
         className="libre-ai-panel-setup-primary"
         onClick={() => void wrap(onPullModel)}
         disabled={busy}
       >
-        {busy ? "Downloading…" : "Download model"}
+        {busy ? t("ai.downloading") : t("ai.downloadModel")}
       </button>
       <p className="libre-ai-panel-setup-note">
-        Want something lighter? Pick a smaller model from the{" "}
-        <strong>model dropdown</strong> in the panel header (e.g.{" "}
-        <code>qwen2.5-coder:3b</code>) for a faster, lower-RAM variant.
+        {t("ai.setupLighterNote")}
       </p>
       <ResultLog result={lastResult} />
       <button className="libre-ai-panel-setup-retry" onClick={onRetry}>
-        Retry probe
+        {t("ai.retryProbe")}
       </button>
     </div>
   );
@@ -450,20 +435,18 @@ function ResultLog({ result }: { result: InstallResult | null }) {
 }
 
 function EmptyHint({ onPick }: { onPick: (prompt: string) => void }) {
+  const t = useT();
   const prompts = [
-    "Explain this lesson in one paragraph.",
-    "I'm stuck — can you give me a nudge?",
-    "Walk me through the solution step by step.",
+    t("ai.suggestExplainLesson"),
+    t("ai.suggestStuckNudge"),
+    t("ai.suggestWalkSolution"),
   ];
   return (
     <div className="libre-ai-panel-empty">
       <div className="libre-ai-panel-empty-title">
-        Hi — I'm your local tutor.
+        {t("ai.emptyGreeting")}
       </div>
-      <p>
-        I run entirely on your machine and know the lesson you're on. Try
-        one of these, or ask anything:
-      </p>
+      <p>{t("ai.emptyBody")}</p>
       <div className="libre-ai-panel-empty-chips">
         {prompts.map((p) => (
           <button

@@ -359,8 +359,8 @@ export default function TopBar({
             className="libre__topbar-navbtn"
             onClick={onBack}
             disabled={!canGoBack}
-            aria-label="Back"
-            title="Back"
+            aria-label={t("common.back")}
+            title={t("common.back")}
             data-tauri-drag-region={false}
           >
             <svg
@@ -382,8 +382,8 @@ export default function TopBar({
             className="libre__topbar-navbtn"
             onClick={onForward}
             disabled={!canGoForward}
-            aria-label="Forward"
-            title="Forward"
+            aria-label={t("common.forward")}
+            title={t("common.forward")}
             data-tauri-drag-region={false}
           >
             <svg

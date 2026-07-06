@@ -35,6 +35,7 @@ import type {
   MixedLesson,
 } from "@/data/types";
 import { fireHaptic } from "@/lib/haptics";
+import { useT } from "@/i18n/i18n";
 import {
   highlightChip,
   highlightTemplate,
@@ -201,6 +202,7 @@ interface Props {
 }
 
 export default function QuickCheckView({ lesson, mode }: Props) {
+  const t = useT();
   const data = blocksOf(lesson);
   const language = lesson.language as LanguageId;
   const seed = useMemo(() => hashString(lesson.id), [lesson.id]);
@@ -301,7 +303,7 @@ export default function QuickCheckView({ lesson, mode }: Props) {
     return (
       <div className="libre-qc">
         <p className="libre-blocks__prompt">
-          {data.prompt ?? "Fill the missing piece."}
+          {data.prompt ?? t("lesson.qcFillMissing")}
         </p>
         <pre className="libre-blocks__template libre-qc__template">
           <code>
@@ -331,7 +333,11 @@ export default function QuickCheckView({ lesson, mode }: Props) {
             ))}
           </code>
         </pre>
-        <div className="libre-qc__choices" role="group" aria-label="Choices">
+        <div
+          className="libre-qc__choices"
+          role="group"
+          aria-label={t("lesson.qcChoices")}
+        >
           {cloze.choices.map((c) => (
             <button
               key={c.id}
@@ -350,7 +356,7 @@ export default function QuickCheckView({ lesson, mode }: Props) {
         </div>
         {solved && (
           <p className="libre-qc__done" role="status">
-            Correct — tap Next to continue.
+            {t("lesson.qcCorrectNext")}
           </p>
         )}
       </div>
@@ -380,7 +386,7 @@ export default function QuickCheckView({ lesson, mode }: Props) {
     return (
       <div className="libre-qc">
         <p className="libre-blocks__prompt">
-          One line is wrong — tap it to fix it.
+          {t("lesson.qcBugPrompt")}
         </p>
         <pre className="libre-blocks__template libre-qc__template">
           <code>
@@ -428,7 +434,7 @@ export default function QuickCheckView({ lesson, mode }: Props) {
         </pre>
         {solved && (
           <p className="libre-qc__done" role="status">
-            Fixed — tap Next to continue.
+            {t("lesson.qcFixedNext")}
           </p>
         )}
       </div>

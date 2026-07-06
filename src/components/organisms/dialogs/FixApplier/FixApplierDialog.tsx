@@ -13,6 +13,7 @@ import {
   type LessonFixPatch,
 } from "@/lib/courseSync";
 import { isDesktop } from "@/lib/platform";
+import { useT } from "@/i18n/i18n";
 import { upload } from "@base/primitives/icon/icons/upload";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
 import "./FixApplierDialog.css";
@@ -47,6 +48,7 @@ export default function FixApplierDialog({
   onClose,
   onApplied,
 }: Props) {
+  const t = useT();
   const [courseId, setCourseId] = useState(
     initialCourseId ?? courses[0]?.id ?? "",
   );
@@ -158,12 +160,12 @@ export default function FixApplierDialog({
             id="libre-fixapplier-title"
             className="libre-fixapplier-title"
           >
-            Apply fix patches
+            {t("import.fixTitle")}
           </h2>
           <button
             className="libre-fixapplier-icon-btn"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <Icon icon={xIcon} size="sm" color="currentColor" />
           </button>
@@ -171,16 +173,11 @@ export default function FixApplierDialog({
 
         <div className="libre-fixapplier-body">
           <p className="libre-fixapplier-help">
-            Paste the LLM's reply to a "Copy fix prompt" export. Each
-            fenced JSON block becomes one lesson patch. Patches apply
-            to the installed copy of the course; to ship them in the
-            bundled starter, click <em>Download updated</em> after
-            applying and drop the file into
-            <code> public/starter-courses/&lt;id&gt;.json</code>.
+            {t("import.fixHelp")}
           </p>
 
           <label className="libre-fixapplier-label">
-            Course
+            {t("import.courseLabel")}
             <select
               className="libre-fixapplier-select"
               value={courseId}
@@ -196,12 +193,12 @@ export default function FixApplierDialog({
           </label>
 
           <label className="libre-fixapplier-label">
-            LLM reply
+            {t("import.llmReplyLabel")}
             <textarea
               className="libre-fixapplier-textarea"
               value={pasted}
               onChange={(e) => setPasted(e.target.value)}
-              placeholder='Paste the model&apos;s JSON reply here. Each ```json { "id": ..., "solution": ..., "tests": ... } ``` block becomes one patch.'
+              placeholder={t("import.pastePlaceholder")}
               rows={10}
               spellCheck={false}
               disabled={applying}
@@ -211,11 +208,21 @@ export default function FixApplierDialog({
           {parsed.length > 0 && (
             <div className="libre-fixapplier-preview">
               <div className="libre-fixapplier-preview-head">
-                Parsed {parsed.length} patch{parsed.length === 1 ? "" : "es"}
+                {t(
+                  parsed.length === 1
+                    ? "import.parsedN"
+                    : "import.parsedNPlural",
+                  { count: parsed.length },
+                )}
                 {preview.notFound.length > 0 && (
                   <span className="libre-fixapplier-warn">
-                    · {preview.notFound.length} unknown id
-                    {preview.notFound.length === 1 ? "" : "s"}
+                    ·{" "}
+                    {t(
+                      preview.notFound.length === 1
+                        ? "import.unknownIdsN"
+                        : "import.unknownIdsNPlural",
+                      { count: preview.notFound.length },
+                    )}
                   </span>
                 )}
               </div>
@@ -243,7 +250,7 @@ export default function FixApplierDialog({
                   >
                     <Icon icon={circleX} size="xs" color="currentColor" />
                     <span className="libre-fixapplier-preview-title">
-                      <code>{id}</code> — not in this course
+                      <code>{id}</code> {t("import.notInCourse")}
                     </span>
                   </li>
                 ))}
@@ -253,10 +260,19 @@ export default function FixApplierDialog({
 
           {result && (
             <div className="libre-fixapplier-success">
-              ✓ Applied {result.applied.length} patch
-              {result.applied.length === 1 ? "" : "es"}
+              {t(
+                result.applied.length === 1
+                  ? "import.appliedN"
+                  : "import.appliedNPlural",
+                { count: result.applied.length },
+              )}
               {result.notFound.length > 0
-                ? ` · ${result.notFound.length} unknown id${result.notFound.length === 1 ? "" : "s"}`
+                ? ` · ${t(
+                    result.notFound.length === 1
+                      ? "import.unknownIdsN"
+                      : "import.unknownIdsNPlural",
+                    { count: result.notFound.length },
+                  )}`
                 : ""}
               .
             </div>
@@ -264,13 +280,15 @@ export default function FixApplierDialog({
 
           {promoteResult?.ok && (
             <div className="libre-fixapplier-success">
-              ✓ Wrote bundled starter to <code>{promoteResult.path}</code>
+              {t("import.wroteBundled")} <code>{promoteResult.path}</code>
             </div>
           )}
           {promoteResult && !promoteResult.ok && (
             <div className="libre-fixapplier-error">
               <Icon icon={circleX} size="xs" color="currentColor" />
-              <span>Promote failed: {promoteResult.error}</span>
+              <span>
+                {t("import.promoteFailed", { error: promoteResult.error })}
+              </span>
             </div>
           )}
 
@@ -287,20 +305,20 @@ export default function FixApplierDialog({
             <button
               className="libre-fixapplier-btn"
               onClick={() => void promoteToBundled()}
-              title="(Dev only) Write the patched course straight to public/starter-courses/<id>.json"
+              title={t("import.promoteToBundledTooltip")}
             >
               <Icon icon={upload} size="xs" color="currentColor" />
-              <span>Promote to bundled</span>
+              <span>{t("import.promoteToBundled")}</span>
             </button>
           )}
           {result && (
             <button
               className="libre-fixapplier-btn"
               onClick={downloadCoursePromote}
-              title="Download the updated course.json so you can ship the fixes back into the bundled starter"
+              title={t("import.downloadUpdatedTooltip")}
             >
               <Icon icon={download} size="xs" color="currentColor" />
-              <span>Download updated</span>
+              <span>{t("import.downloadUpdated")}</span>
             </button>
           )}
           <span className="libre-fixapplier-spacer" />
@@ -309,7 +327,7 @@ export default function FixApplierDialog({
             onClick={onClose}
             disabled={applying}
           >
-            {result ? "Close" : "Cancel"}
+            {result ? t("common.close") : t("common.cancel")}
           </button>
           {!result && (
             <button
@@ -320,8 +338,13 @@ export default function FixApplierDialog({
               }
             >
               {applying
-                ? "Applying…"
-                : `Apply ${preview.matched.length} patch${preview.matched.length === 1 ? "" : "es"}`}
+                ? t("import.applying")
+                : t(
+                    preview.matched.length === 1
+                      ? "import.applyN"
+                      : "import.applyNPlural",
+                    { count: preview.matched.length },
+                  )}
             </button>
           )}
         </footer>

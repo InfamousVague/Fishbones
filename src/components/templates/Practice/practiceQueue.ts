@@ -222,24 +222,24 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/// Human-readable label for each mode. Used by the mode pill row
-/// AND the session header so the language stays consistent.
+/// i18n key of the human-readable label for each mode. Consumers
+/// resolve via `t()`. Used by the mode pill row AND the session
+/// header so the language stays consistent.
 export const MODE_LABELS: Record<PracticeMode, string> = {
-  smart: "Smart mix",
-  due: "Due now",
-  weak: "Weak spots",
-  recent: "Recent",
-  random: "Shuffle",
+  smart: "practice.modeSmart",
+  due: "practice.modeDue",
+  weak: "practice.modeWeak",
+  recent: "practice.modeRecent",
+  random: "practice.modeRandom",
 };
 
-/// One-liner explainer for each mode. Shown under the mode pill
-/// when it's selected — gives the learner confidence about what
-/// they're about to drill.
+/// i18n key of the one-liner explainer for each mode. Shown under
+/// the mode pill when it's selected — gives the learner confidence
+/// about what they're about to drill.
 export const MODE_BLURBS: Record<PracticeMode, string> = {
-  smart:
-    "Weighted draw that prioritises items due for review and weak spots, with a sprinkle of unseen content.",
-  due: "Only items past their next-review date. Empty when you're all caught up.",
-  weak: "Items where your accuracy has dropped below 60%. Sorted worst-first.",
-  recent: "Things you've seen in the last week. Cement what you just learned.",
-  random: "Uniform shuffle across the entire deck. For when you just want variety.",
+  smart: "practice.modeSmartBlurb",
+  due: "practice.modeDueBlurb",
+  weak: "practice.modeWeakBlurb",
+  recent: "practice.modeRecentBlurb",
+  random: "practice.modeRandomBlurb",
 };

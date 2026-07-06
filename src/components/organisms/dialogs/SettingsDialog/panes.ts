@@ -53,23 +53,26 @@ export type GroupId = "app" | "ai" | "cloud" | "advanced";
 
 export interface GroupDef {
   id: GroupId;
+  /// i18n key — resolved via `t()` by the rendering component.
   label: string;
 }
 
 export const GROUPS: ReadonlyArray<GroupDef> = [
-  { id: "app", label: "App" },
-  { id: "ai", label: "AI" },
-  { id: "cloud", label: "Cloud" },
-  { id: "advanced", label: "Advanced" },
+  { id: "app", label: "settings.navGroupApp" },
+  { id: "ai", label: "settings.navGroupAi" },
+  { id: "cloud", label: "settings.navGroupCloud" },
+  { id: "advanced", label: "settings.navGroupAdvanced" },
 ];
 
 export interface PaneDef {
   id: PaneId;
   group: GroupId;
+  /// i18n key for the pane's title — resolved via `t()` by the
+  /// rendering component (this module stays hook-free).
   label: string;
-  /// One-line summary shown under the label in the rail. Should be
-  /// scannable at a glance — "what does this section contain?" in
-  /// 4-7 words.
+  /// i18n key for the one-line summary shown under the label in
+  /// the rail. Should resolve to something scannable at a glance —
+  /// "what does this section contain?" in 4-7 words.
   hint: string;
   /// Lucide icon component imported at the top of this file. Used
   /// both in the nav rail and as the pane's title icon in the
@@ -89,16 +92,16 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "general",
     group: "app",
-    label: "General",
-    hint: "Version + updates",
+    label: "settings.general",
+    hint: "settings.paneHintGeneral",
     icon: settings2,
     searchTerms: ["version", "update", "auto-update", "build", "release", "about"],
   },
   {
     id: "theme",
     group: "app",
-    label: "Theme",
-    hint: "App + editor colors",
+    label: "settings.theme",
+    hint: "settings.paneHintTheme",
     icon: palette,
     searchTerms: [
       "color",
@@ -115,16 +118,16 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "sounds",
     group: "app",
-    label: "Sounds",
-    hint: "SFX + UI cues",
+    label: "settings.soundsTitle",
+    hint: "settings.paneHintSounds",
     icon: volume2,
     searchTerms: ["audio", "mute", "volume", "sfx", "noise", "chime", "click"],
   },
   {
     id: "haptics",
     group: "app",
-    label: "Haptics",
-    hint: "Tactile feedback + intensity",
+    label: "settings.paneHaptics",
+    hint: "settings.paneHintHaptics",
     icon: vibrate,
     searchTerms: [
       "buzz",
@@ -141,8 +144,8 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "shortcuts",
     group: "app",
-    label: "Shortcuts",
-    hint: "Keyboard bindings + rebind",
+    label: "settings.shortcuts",
+    hint: "settings.paneHintShortcuts",
     icon: keyboard,
     searchTerms: [
       "key",
@@ -160,8 +163,8 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "ai",
     group: "ai",
-    label: "AI & API",
-    hint: "Anthropic key + model",
+    label: "settings.paneAiApi",
+    hint: "settings.paneHintAi",
     icon: sparkles,
     searchTerms: [
       "anthropic",
@@ -181,8 +184,8 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "accounts",
     group: "cloud",
-    label: "Accounts",
-    hint: "Multiple sign-ins · separate libraries · switch",
+    label: "settings.accountsTitle",
+    hint: "settings.paneHintAccounts",
     icon: users,
     searchTerms: [
       "account",
@@ -201,8 +204,8 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "account",
     group: "cloud",
-    label: "Account",
-    hint: "Sign in · profile · delete",
+    label: "settings.account",
+    hint: "settings.paneHintAccount",
     icon: user,
     searchTerms: [
       "sign in",
@@ -230,8 +233,8 @@ export const PANES: ReadonlyArray<PaneDef> = [
     // surface is still discoverable.
     id: "data",
     group: "advanced",
-    label: "Data & storage",
-    hint: "Sync · cache · toolchains",
+    label: "settings.dataAndStorage",
+    hint: "settings.paneHintData",
     icon: database,
     searchTerms: [
       "cache",
@@ -269,8 +272,8 @@ export const PANES: ReadonlyArray<PaneDef> = [
   {
     id: "developer",
     group: "advanced",
-    label: "Developer",
-    hint: "Console + celebration tester",
+    label: "settings.developer",
+    hint: "settings.paneHintDeveloper",
     icon: terminal,
     searchTerms: [
       "console",

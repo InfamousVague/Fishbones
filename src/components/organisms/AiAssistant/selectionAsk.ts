@@ -11,6 +11,8 @@
 /// Pure module so the prompt/route logic is unit-tested; the editor
 /// wiring (Monaco actions) and the AiAssistant dispatch consume it.
 
+import type { TFunction } from "@/i18n/i18n";
+
 export type SelectionAction = "explain" | "improve" | "comment";
 
 export interface SandboxSelectionAsk {
@@ -43,14 +45,25 @@ function cap(s: string, n: number): string {
 
 /// Short, plain user-facing bubble (what the chat shows the learner
 /// typed). The framed prompt the model receives is `buildSelectionAskPrompt`.
-export function buildSelectionAskDisplay(d: SandboxSelectionAsk): string {
+/// Pass the component's `t` to localize; without it the English
+/// fallback keeps older call sites working.
+export function buildSelectionAskDisplay(
+  d: SandboxSelectionAsk,
+  t?: TFunction,
+): string {
   switch (d.action) {
     case "explain":
-      return `Explain this selection from \`${d.filePath}\``;
+      return t
+        ? t("ai.displayExplainSelection", { filePath: d.filePath })
+        : `Explain this selection from \`${d.filePath}\``;
     case "improve":
-      return `Improve the selected code in \`${d.filePath}\``;
+      return t
+        ? t("ai.displayImproveSelection", { filePath: d.filePath })
+        : `Improve the selected code in \`${d.filePath}\``;
     case "comment":
-      return `Add comments to the selected code in \`${d.filePath}\``;
+      return t
+        ? t("ai.displayCommentSelection", { filePath: d.filePath })
+        : `Add comments to the selected code in \`${d.filePath}\``;
   }
 }
 

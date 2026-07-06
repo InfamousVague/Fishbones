@@ -170,6 +170,7 @@ function CarouselItem({
   onClick: () => void;
   onContextMenu?: (e: React.MouseEvent) => void;
 }) {
+  const t = useT();
   const coverUrl = useCourseCover(course.id, course.coverFetchedAt);
   const hasCover = !!coverUrl;
   const { pct, done, total } = progress;
@@ -177,10 +178,10 @@ function CarouselItem({
     total === 0
       ? ""
       : pct === 1
-      ? " · complete"
+      ? ` · ${t("sidebar.carouselComplete")}`
       : pct === 0
-      ? " · not started"
-      : ` · ${done}/${total} lessons`;
+      ? ` · ${t("sidebar.carouselNotStarted")}`
+      : ` · ${t("sidebar.carouselLessons", { done, total })}`;
 
   return (
     <button
@@ -192,7 +193,10 @@ function CarouselItem({
       onClick={onClick}
       onContextMenu={onContextMenu}
       title={`${course.title}${pctLabel}`}
-      aria-label={`Open ${course.title}${pctLabel}`}
+      aria-label={t("sidebar.carouselOpenAria", {
+        course: course.title,
+        pct: pctLabel,
+      })}
     >
       {hasCover ? (
         <img

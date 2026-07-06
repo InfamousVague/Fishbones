@@ -40,16 +40,17 @@ import { readHapticSettings, writeHapticSettings, haptics } from "@/lib/haptics"
 import { THEME_PREVIEW } from "@/theme/themePreviews";
 import "./MobileSettings.css";
 import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
+import { useT } from "@/i18n/i18n";
 
-/// Appearance scale knobs (same set as the desktop ThemePane). Plain
-/// English labels — MobileSettings doesn't route through i18n.
-const SCALE_META: { key: ScaleKey; label: string; sub: string }[] = [
-  { key: "font", label: "Text size", sub: "Scale all interface text." },
-  { key: "space", label: "Density", sub: "Padding, gaps and margins." },
-  { key: "radius", label: "Corner roundness", sub: "Square to softly rounded." },
-  { key: "border", label: "Border weight", sub: "Outline + divider thickness." },
-  { key: "motion", label: "Motion", sub: "Animation speed; 0% is off." },
-  { key: "blur", label: "Glass blur", sub: "Frosted-glass strength." },
+/// Appearance scale knobs (same set as the desktop ThemePane). Holds
+/// i18n KEYS — the component resolves them through `t()`.
+const SCALE_META: { key: ScaleKey; labelKey: string; subKey: string }[] = [
+  { key: "font", labelKey: "settings.scaleFont", subKey: "settings.scaleFontSubShort" },
+  { key: "space", labelKey: "settings.scaleSpace", subKey: "settings.scaleSpaceSubShort" },
+  { key: "radius", labelKey: "settings.scaleRadius", subKey: "settings.scaleRadiusSubShort" },
+  { key: "border", labelKey: "settings.scaleBorder", subKey: "settings.scaleBorderSubShort" },
+  { key: "motion", labelKey: "settings.scaleMotion", subKey: "settings.scaleMotionSubShort" },
+  { key: "blur", labelKey: "settings.scaleBlur", subKey: "settings.scaleBlurSubShort" },
 ];
 
 interface Props {
@@ -78,6 +79,7 @@ export default function MobileSettings({
   onResetProgress,
   appVersion = "0.1.4",
 }: Props) {
+  const t = useT();
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -152,11 +154,11 @@ export default function MobileSettings({
   return (
     <div className="m-set">
       <header className="m-set__head">
-        <h1 className="m-set__title">Settings</h1>
+        <h1 className="m-set__title">{t("settings.title")}</h1>
       </header>
 
       <section className="m-set__section">
-        <h3 className="m-set__section-title">Account</h3>
+        <h3 className="m-set__section-title">{t("settings.account")}</h3>
         {signedIn && user ? (
           <>
             <div className="m-set__row m-set__row--passive">
@@ -179,23 +181,19 @@ export default function MobileSettings({
               disabled={signingOut}
             >
               <span className="m-set__row-title">
-                {signingOut ? "Signing out…" : "Sign out"}
+                {signingOut ? t("settings.signingOut") : t("auth.signOut")}
               </span>
             </button>
           </>
         ) : (
           <>
-            <p className="m-set__blurb">
-              Sign in to sync progress, streaks, and lesson history between
-              devices. Libre runs entirely offline without an account —
-              signing in is purely additive.
-            </p>
+            <p className="m-set__blurb">{t("auth.signInBlurbMobile")}</p>
             <button
               type="button"
               className="m-set__row m-set__row--button m-set__row--primary"
               onClick={onRequestSignIn}
             >
-              <span className="m-set__row-title">Sign in</span>
+              <span className="m-set__row-title">{t("auth.signIn")}</span>
             </button>
           </>
         )}
@@ -221,12 +219,9 @@ export default function MobileSettings({
       )}
 
       <section className="m-set__section">
-        <h3 className="m-set__section-title">Theme</h3>
-        <p className="m-set__blurb">
-          App + editor colors. Picks land instantly and persist across
-          launches; same library as the desktop app.
-        </p>
-        <ul className="m-set__theme-list" role="radiogroup" aria-label="Theme">
+        <h3 className="m-set__section-title">{t("settings.theme")}</h3>
+        <p className="m-set__blurb">{t("settings.themeBlurbMobile")}</p>
+        <ul className="m-set__theme-list" role="radiogroup" aria-label={t("settings.theme")}>
           {THEMES.map((t) => {
             const active = t.id === theme;
             const thumb = themeThumb(t.id);
@@ -307,20 +302,16 @@ export default function MobileSettings({
       </section>
 
       <section className="m-set__section">
-        <h3 className="m-set__section-title">Scale &amp; motion</h3>
-        <p className="m-set__blurb">
-          Every spacing, type size, corner, border, transition and blur is
-          driven by a global token — each dial moves them all in lockstep.
-          Choices persist across launches.
-        </p>
+        <h3 className="m-set__section-title">{t("settings.scaleCard")}</h3>
+        <p className="m-set__blurb">{t("settings.scaleMotionBlurbMobile")}</p>
         {SCALE_META.map((row) => {
           const [min, max] = SCALE_BOUNDS[row.key];
           const val = scales[row.key];
           return (
             <div key={row.key} className="m-set__scale-row">
               <div className="m-set__scale-text">
-                <span className="m-set__row-title">{row.label}</span>
-                <span className="m-set__row-meta">{row.sub}</span>
+                <span className="m-set__row-title">{t(row.labelKey)}</span>
+                <span className="m-set__row-meta">{t(row.subKey)}</span>
               </div>
               <div className="m-set__scale-control">
                 <RangeSlider
@@ -329,7 +320,7 @@ export default function MobileSettings({
                   step={0.05}
                   value={val}
                   className="m-set__scale-slider"
-                  aria-label={row.label}
+                  aria-label={t(row.labelKey)}
                   onChange={(e) => updateScale(row.key, Number(e.target.value))}
                 />
                 <span className="m-set__scale-val">
@@ -344,7 +335,7 @@ export default function MobileSettings({
           className="m-set__row m-set__row--button"
           onClick={resetAllScales}
         >
-          <span className="m-set__row-title">Reset to defaults</span>
+          <span className="m-set__row-title">{t("settings.scaleReset")}</span>
         </button>
       </section>
 

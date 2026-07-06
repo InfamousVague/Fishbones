@@ -90,6 +90,13 @@ function newId(): string {
   return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/// Default session names are stored as i18n KEYS (this module is a
+/// plain hook with no `t()` access at creation time) — the sessions
+/// menu resolves them via `t()` at render, and user-derived names
+/// pass through `t()`'s missing-key fallback untouched.
+const NEW_AGENT_NAME_KEY = "ai.newAgentTaskName";
+const NEW_CHAT_NAME_KEY = "ai.newChatName";
+
 function deriveName(messages: TrayMessage[], mode: "chat" | "agent"): string {
   const firstUser = messages.find((m) => m.role === "user");
   if (firstUser) {
@@ -98,7 +105,7 @@ function deriveName(messages: TrayMessage[], mode: "chat" | "agent"): string {
       return text.length > 36 ? text.slice(0, 33) + "…" : text;
     }
   }
-  return mode === "agent" ? "New agent task" : "New chat";
+  return mode === "agent" ? NEW_AGENT_NAME_KEY : NEW_CHAT_NAME_KEY;
 }
 
 export interface UseTraySessions {
@@ -136,7 +143,7 @@ export function useTraySessions(): UseTraySessions {
       // first paint has something to attach to.
       const seed: TraySession = {
         id: newId(),
-        name: "New agent task",
+        name: NEW_AGENT_NAME_KEY,
         mode: "agent",
         messages: [],
         updatedAt: Date.now(),
@@ -164,7 +171,7 @@ export function useTraySessions(): UseTraySessions {
     return (
       found ?? {
         id: "missing",
-        name: "New chat",
+        name: NEW_CHAT_NAME_KEY,
         mode: "agent" as const,
         messages: [] as TrayMessage[],
         updatedAt: Date.now(),
@@ -180,7 +187,7 @@ export function useTraySessions(): UseTraySessions {
     setState((prev) => {
       const fresh: TraySession = {
         id: newId(),
-        name: mode === "agent" ? "New agent task" : "New chat",
+        name: mode === "agent" ? NEW_AGENT_NAME_KEY : NEW_CHAT_NAME_KEY,
         mode,
         messages: [],
         updatedAt: Date.now(),
@@ -196,7 +203,7 @@ export function useTraySessions(): UseTraySessions {
       if (next.length === 0) {
         const fresh: TraySession = {
           id: newId(),
-          name: "New agent task",
+          name: NEW_AGENT_NAME_KEY,
           mode: "agent",
           messages: [],
           updatedAt: Date.now(),
@@ -233,7 +240,12 @@ export function useTraySessions(): UseTraySessions {
         ...current,
         messages,
         name:
-          current.name === "New chat" || current.name === "New agent task"
+          current.name === NEW_CHAT_NAME_KEY ||
+          current.name === NEW_AGENT_NAME_KEY ||
+          // Legacy sessions persisted before the defaults moved to
+          // i18n keys stored the literal English names.
+          current.name === "New chat" ||
+          current.name === "New agent task"
             ? deriveName(messages, current.mode)
             : current.name,
         updatedAt: Date.now(),
@@ -261,7 +273,7 @@ export function useTraySessions(): UseTraySessions {
       // No existing session of that mode — create one.
       const fresh: TraySession = {
         id: newId(),
-        name: mode === "agent" ? "New agent task" : "New chat",
+        name: mode === "agent" ? NEW_AGENT_NAME_KEY : NEW_CHAT_NAME_KEY,
         mode,
         messages: [],
         updatedAt: Date.now(),

@@ -243,7 +243,7 @@ export default function ThemePane({ theme, onThemeChange }: ThemePaneProps) {
                 onChange={() => setSidebarVariant(v.id)}
               />
               <div>
-                <div className="libre-settings-model-label">{v.label}</div>
+                <div className="libre-settings-model-label">{t(v.labelKey)}</div>
                 <div className="libre-settings-model-hint">
                   {t(VARIANT_BLURB_KEYS[v.id])}
                 </div>

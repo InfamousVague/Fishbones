@@ -573,7 +573,7 @@ export default function AiAgentPanel({
     <aside
       className={`libre-ai-panel libre-ai-panel--agent ${open ? "is-open" : ""}`}
       role="complementary"
-      aria-label="Agent mode"
+      aria-label={t("ai.agentMode")}
       aria-hidden={!open}
     >
       <div className="libre-ai-panel-header">
@@ -582,7 +582,7 @@ export default function AiAgentPanel({
           {settings?.autoApprove && (
             <span
               className="libre-ai-panel-auto-badge"
-              title="Auto-approve is on — tools run without confirmation"
+              title={t("ai.agentAutoApproveOn")}
             >
               auto
             </span>
@@ -596,7 +596,7 @@ export default function AiAgentPanel({
                 "libre-ai-panel-reset" + (settingsOpen ? " is-active" : "")
               }
               onClick={() => setSettingsOpen((v) => !v)}
-              title="Agent settings"
+              title={t("ai.agentSettings")}
               aria-pressed={settingsOpen}
             >
               ⚙
@@ -610,7 +610,7 @@ export default function AiAgentPanel({
                 (timelineOpen ? " is-active" : "")
               }
               onClick={() => setTimelineOpen((v) => !v)}
-              title="Show tool-call timeline"
+              title={t("ai.showTimeline")}
             >
               Tools · {timeline.length}
             </button>
@@ -621,7 +621,7 @@ export default function AiAgentPanel({
               className="libre-ai-panel-reset"
               onClick={onReset}
               disabled={streaming}
-              title="Clear this agent run"
+              title={t("ai.clearRun")}
             >
               Clear
             </button>
@@ -630,7 +630,7 @@ export default function AiAgentPanel({
             type="button"
             className="libre-ai-panel-close"
             onClick={onClose}
-            aria-label="Close agent"
+            aria-label={t("ai.closeAgent")}
           >
             <Icon icon={xIcon} size="sm" color="currentColor" />
           </button>
@@ -697,7 +697,7 @@ export default function AiAgentPanel({
           <div
             className="libre-ai-file-chip-stack"
             aria-live="polite"
-            aria-label="Files being written to sandbox"
+            aria-label={t("ai.filesWriting")}
           >
             {fileWrites.map((f) => (
               <FileWriteChip
@@ -764,7 +764,7 @@ export default function AiAgentPanel({
               target="_blank"
               rel="noreferrer"
               className="libre-ai-panel-preview-open"
-              title="Open in browser"
+              title={t("ai.openInBrowser")}
             >
               ↗
             </a>
@@ -772,7 +772,7 @@ export default function AiAgentPanel({
               type="button"
               className="libre-ai-panel-preview-close"
               onClick={() => setPreviewOpen(false)}
-              aria-label="Hide preview"
+              aria-label={t("ai.hidePreview")}
             >
               <Icon icon={xIcon} size="xs" color="currentColor" />
             </button>
@@ -780,7 +780,7 @@ export default function AiAgentPanel({
           <iframe
             className="libre-ai-panel-preview-frame"
             src={latestPreview.url}
-            title="Agent preview"
+            title={t("ai.agentPreview")}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
           />
         </div>
@@ -928,7 +928,7 @@ export default function AiAgentPanel({
           });
           if (actions.length === 0) return null;
           return (
-            <div className="libre-ai-quick-actions" role="group" aria-label="Quick actions">
+            <div className="libre-ai-quick-actions" role="group" aria-label={t("ai.quickActions")}>
               {actions.map((a) => {
                 const ctx = {
                   projectName: currentSandbox?.name,
@@ -945,7 +945,7 @@ export default function AiAgentPanel({
                     }
                     onClick={() => onSend(a.prompt(ctx))}
                   >
-                    {a.label}
+                    {t(a.label)}
                   </button>
                 );
               })}
@@ -996,6 +996,7 @@ function ThinkingBanner({
   streaming: boolean;
   messages: readonly AgentMessage[];
 }) {
+  const t = useT();
   // Find the most recent empty-assistant placeholder — same
   // detection AgentRow uses, lifted into the banner so we can
   // surface the right "running X / thinking" label.
@@ -1012,7 +1013,12 @@ function ThinkingBanner({
   const toolCalls = (lastAssistant?.toolCalls ?? []) as ToolCall[];
   const label =
     toolCalls.length > 0
-      ? `running ${toolCalls.length === 1 ? toolCalls[0].name : `${toolCalls.length} tools`}…`
+      ? t("ai.runningTool", {
+          label:
+            toolCalls.length === 1
+              ? toolCalls[0].name
+              : `${toolCalls.length} tools`,
+        })
       : "thinking";
   return (
     <div className="libre-ai-thinking-banner" aria-live="polite">
@@ -1050,6 +1056,7 @@ function AgentRow({
   /// mid-stream sanitizing (trailing unterminated-tag removal).
   streaming?: boolean;
 }) {
+  const t = useT();
   if (message.role === "system") return null;
   if (message.role === "user") {
     // Loop-injected auto-continue nudges are NOT learner words —
@@ -1125,7 +1132,7 @@ function AgentRow({
           ? "ran"
           : label
         : hasToolCalls
-          ? `running ${label}…`
+          ? t("ai.runningTool", { label })
           : label;
       return (
         <div

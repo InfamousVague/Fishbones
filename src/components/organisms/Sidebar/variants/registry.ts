@@ -18,12 +18,15 @@ export type VariantId = "classic" | "grid";
 
 export interface VariantDef {
   id: VariantId;
-  label: string;
+  /// i18n key for the human-facing name — this module is data-only
+  /// (no React), so the rendering component (Settings theme pane)
+  /// passes the key through its own `useT()`.
+  labelKey: string;
 }
 
 export const VARIANTS: ReadonlyArray<VariantDef> = [
-  { id: "classic", label: "List" },
-  { id: "grid", label: "Grid" },
+  { id: "classic", labelKey: "settings.sidebarVariantList" },
+  { id: "grid", labelKey: "settings.sidebarVariantGrid" },
 ];
 
 export const DEFAULT_VARIANT_ID: VariantId = "classic";

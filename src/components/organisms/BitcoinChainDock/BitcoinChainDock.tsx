@@ -17,6 +17,7 @@
 /// grid CSS gives us visual continuity without that compromise.
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useT } from "@/i18n/i18n";
 import {
   subscribeBitcoinChain,
   getBitcoinChainSnapshot,
@@ -78,13 +79,16 @@ function shortHex(hex: string, head = 8, tail = 4): string {
   return shortAddr(hex, head, tail);
 }
 
-function secondsAgo(ts: number): string {
+/// Returns an i18n key + count for the relative-time chip — the
+/// consuming component passes them through `t()` (plain module-level
+/// helper, so no hooks here).
+function secondsAgo(ts: number): { key: string; count: number } {
   const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-  if (s < 60) return `${s}s ago`;
+  if (s < 60) return { key: "chainDock.agoSeconds", count: s };
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return { key: "chainDock.agoMinutes", count: m };
   const h = Math.floor(m / 60);
-  return `${h}h ago`;
+  return { key: "chainDock.agoHours", count: h };
 }
 
 export function BitcoinChainDock({
@@ -92,6 +96,7 @@ export function BitcoinChainDock({
   onOpenPopout,
   onClose,
 }: Props) {
+  const t = useT();
   const [snap, setSnap] = useState<BitcoinChainSnapshot>(() =>
     getBitcoinChainSnapshot(),
   );
@@ -107,15 +112,11 @@ export function BitcoinChainDock({
   }, []);
 
   const onReset = useCallback(() => {
-    if (
-      !confirm(
-        "Reset the chain? All balances, UTXOs, and mined blocks will be cleared.",
-      )
-    ) {
+    if (!confirm(t("chainDock.resetConfirmBtc"))) {
       return;
     }
     resetBitcoinChain();
-  }, []);
+  }, [t]);
 
   const balanceFor = useCallback(
     (acct: BitcoinAccount): bigint => {
@@ -194,14 +195,14 @@ export function BitcoinChainDock({
       ref={rootRef}
       className={`chain-dock chain-dock--${variant} btc-dock`}
       role="region"
-      aria-label="In-process Bitcoin regtest chain"
+      aria-label={t("chainDock.regionBtc")}
       style={rootStyle}
     >
       <header className="chain-dock__header">
         <div className="chain-dock__title">
-          <span className="chain-dock__chip btc-dock__chip">Local Bitcoin</span>
+          <span className="chain-dock__chip btc-dock__chip">{t("chainDock.localBitcoin")}</span>
           <span className="chain-dock__block">
-            tip <strong>{snap.height >= 0 ? snap.height : "—"}</strong>
+            {t("chainDock.tipPrefix")} <strong>{snap.height >= 0 ? snap.height : "—"}</strong>
           </span>
           {tipBlock && (
             <span
@@ -218,25 +219,25 @@ export function BitcoinChainDock({
               type="button"
               className="chain-dock__btn chain-dock__btn--ghost"
               onClick={onOpenPopout}
-              title="Open the Bitcoin dock in its own window"
+              title={t("chainDock.popOutTitleBtc")}
             >
-              ↗ Pop out
+              {t("chainDock.popOut")}
             </button>
           )}
           <button
             type="button"
             className="chain-dock__btn chain-dock__btn--ghost"
             onClick={onReset}
-            title="Drop all chain state"
+            title={t("chainDock.resetTitle")}
           >
-            Reset
+            {t("chainDock.reset")}
           </button>
           {variant === "banner" && onClose && (
             <button
               type="button"
               className="chain-dock__btn chain-dock__btn--icon"
               onClick={onClose}
-              aria-label="Close dock"
+              aria-label={t("chainDock.closeDock")}
             >
               ✕
             </button>
@@ -249,7 +250,7 @@ export function BitcoinChainDock({
           {/* ── Accounts: balances aggregated over P2WPKH UTXOs ── */}
           <section className="chain-dock__panel chain-dock__panel--accounts">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Accounts</span>
+              <span className="chain-dock__panel-label">{t("chainDock.accounts")}</span>
               {snap.accounts.length > 0 && (
                 <span className="chain-dock__panel-meta">
                   {snap.accounts.length}
@@ -259,8 +260,7 @@ export function BitcoinChainDock({
             <div className="chain-dock__panel-body">
               {!defaultAcc && (
                 <div className="chain-dock__empty">
-                  The chain hasn't been initialised yet. Run a Bitcoin
-                  lesson to spin it up.
+                  {t("chainDock.notInitialisedBtc")}
                 </div>
               )}
               {defaultAcc && (
@@ -272,7 +272,7 @@ export function BitcoinChainDock({
               )}
               {otherAccs.length > 0 && (
                 <details className="chain-dock__more">
-                  <summary>+{otherAccs.length} other accounts</summary>
+                  <summary>{t("chainDock.otherAccounts", { count: otherAccs.length })}</summary>
                   <div className="chain-dock__more-list">
                     {otherAccs.map((a) => (
                       <BitcoinAccountRow
@@ -290,17 +290,21 @@ export function BitcoinChainDock({
           {/* ── Mempool: unconfirmed txs awaiting mine() ── */}
           <section className="chain-dock__panel btc-dock__panel--mempool">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Mempool</span>
+              <span className="chain-dock__panel-label">{t("chainDock.mempool")}</span>
               <span className="chain-dock__panel-meta">
                 {snap.mempool.length}
               </span>
             </header>
             <div className="chain-dock__panel-body">
               {snap.mempool.length === 0 && (
-                <div className="chain-dock__empty chain-dock__empty--inline">
-                  Empty. Broadcast a tx and it'll queue here until you
-                  call <code>chain.mine()</code>.
-                </div>
+                <div
+                  className="chain-dock__empty chain-dock__empty--inline"
+                  // The string carries a <code> tag — same pattern as
+                  // library.dropSub.
+                  dangerouslySetInnerHTML={{
+                    __html: t("chainDock.mempoolEmpty"),
+                  }}
+                />
               )}
               <ul className="btc-dock__tx-list">
                 {snap.mempool.slice(0, 6).map((tx) => (
@@ -314,14 +318,14 @@ export function BitcoinChainDock({
           <section className="chain-dock__panel chain-dock__panel--txs">
             <header className="chain-dock__panel-header">
               <span className="chain-dock__panel-label">
-                Recent transactions
+                {t("chainDock.recentTxs")}
               </span>
               <span className="chain-dock__panel-meta">{snap.txs.length}</span>
             </header>
             <div className="chain-dock__panel-body">
               {snap.txs.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No mined txs yet.
+                  {t("chainDock.noMinedTxs")}
                 </div>
               )}
               <ul className="btc-dock__tx-list">
@@ -335,7 +339,7 @@ export function BitcoinChainDock({
           {/* ── Recent blocks (height, txid count, ago) ── */}
           <section className="chain-dock__panel btc-dock__panel--blocks">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Recent blocks</span>
+              <span className="chain-dock__panel-label">{t("chainDock.recentBlocks")}</span>
               <span className="chain-dock__panel-meta">
                 {snap.blocks.length}
               </span>
@@ -343,7 +347,7 @@ export function BitcoinChainDock({
             <div className="chain-dock__panel-body">
               {snap.blocks.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No blocks mined yet (genesis only).
+                  {t("chainDock.noBlocksMined")}
                 </div>
               )}
               <ul className="btc-dock__block-list">
@@ -357,7 +361,7 @@ export function BitcoinChainDock({
           {/* ── Recent UTXOs (last 30 by recency) ── */}
           <section className="chain-dock__panel btc-dock__panel--utxos">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Recent UTXOs</span>
+              <span className="chain-dock__panel-label">{t("chainDock.recentUtxos")}</span>
               <span className="chain-dock__panel-meta">
                 {snap.utxos.length}
               </span>
@@ -365,7 +369,7 @@ export function BitcoinChainDock({
             <div className="chain-dock__panel-body">
               {snap.utxos.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No unspent outputs yet.
+                  {t("chainDock.noUtxos")}
                 </div>
               )}
               <ul className="btc-dock__utxo-list">
@@ -387,8 +391,8 @@ export function BitcoinChainDock({
           onMouseDown={onResizeStart}
           role="separator"
           aria-orientation="horizontal"
-          aria-label="Resize Bitcoin dock"
-          title="Drag to resize"
+          aria-label={t("chainDock.resizeDock")}
+          title={t("chainDock.dragToResize")}
         />
       )}
     </div>
@@ -427,6 +431,7 @@ function BitcoinAccountRow({
 }
 
 function BitcoinMempoolRow({ tx }: { tx: BitcoinTxSnapshot }) {
+  const t = useT();
   return (
     <li className="btc-dock__tx-row btc-dock__tx-row--pending">
       <span className={`btc-dock__tx-kind btc-dock__tx-kind--${tx.kind}`}>
@@ -442,8 +447,8 @@ function BitcoinMempoolRow({ tx }: { tx: BitcoinTxSnapshot }) {
         {formatBtc(tx.totalOutSats)} BTC
       </span>
       {tx.feeSats !== null && tx.feeSats > 0n && (
-        <span className="btc-dock__tx-fee" title="fee in sats">
-          fee {tx.feeSats.toString()}s
+        <span className="btc-dock__tx-fee" title={t("chainDock.feeSatsTitle")}>
+          {t("chainDock.feeSats", { fee: tx.feeSats.toString() })}
         </span>
       )}
     </li>
@@ -451,6 +456,8 @@ function BitcoinMempoolRow({ tx }: { tx: BitcoinTxSnapshot }) {
 }
 
 function BitcoinTxRow({ tx }: { tx: BitcoinTxSnapshot }) {
+  const t = useT();
+  const ago = secondsAgo(tx.timestamp);
   return (
     <li className="btc-dock__tx-row">
       <span className={`btc-dock__tx-kind btc-dock__tx-kind--${tx.kind}`}>
@@ -466,14 +473,18 @@ function BitcoinTxRow({ tx }: { tx: BitcoinTxSnapshot }) {
         {formatBtc(tx.totalOutSats)} BTC
       </span>
       {tx.blockHeight !== null && (
-        <span className="btc-dock__tx-block">block {tx.blockHeight}</span>
+        <span className="btc-dock__tx-block">
+          {t("chainDock.blockN", { block: tx.blockHeight })}
+        </span>
       )}
-      <span className="chain-dock__tx-ago">{secondsAgo(tx.timestamp)}</span>
+      <span className="chain-dock__tx-ago">{t(ago.key, { count: ago.count })}</span>
     </li>
   );
 }
 
 function BitcoinBlockRow({ block }: { block: BitcoinBlockSnapshot }) {
+  const t = useT();
+  const ago = secondsAgo(block.timestamp);
   return (
     <li className="btc-dock__block-row">
       <span className="btc-dock__block-height">#{block.height}</span>
@@ -481,14 +492,20 @@ function BitcoinBlockRow({ block }: { block: BitcoinBlockSnapshot }) {
         {shortHex(block.hash)}
       </span>
       <span className="btc-dock__block-txs">
-        {block.txids.length} tx{block.txids.length === 1 ? "" : "s"}
+        {t(
+          block.txids.length === 1
+            ? "chainDock.txCount"
+            : "chainDock.txCountPlural",
+          { count: block.txids.length },
+        )}
       </span>
-      <span className="chain-dock__tx-ago">{secondsAgo(block.timestamp)}</span>
+      <span className="chain-dock__tx-ago">{t(ago.key, { count: ago.count })}</span>
     </li>
   );
 }
 
 function BitcoinUtxoRow({ utxo }: { utxo: BitcoinUtxo }) {
+  const t = useT();
   return (
     <li className="btc-dock__utxo-row">
       <span className="btc-dock__utxo-amount">
@@ -502,7 +519,9 @@ function BitcoinUtxoRow({ utxo }: { utxo: BitcoinUtxo }) {
           → {shortAddr(utxo.address)}
         </span>
       )}
-      <span className="btc-dock__utxo-height">block {utxo.height}</span>
+      <span className="btc-dock__utxo-height">
+        {t("chainDock.blockN", { block: utxo.height })}
+      </span>
     </li>
   );
 }

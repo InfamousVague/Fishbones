@@ -17,6 +17,7 @@
 /// path catches Solana lessons before this component ever mounts.
 
 import { useEffect, useState, useCallback } from "react";
+import { useT } from "@/i18n/i18n";
 import { useInterval } from "@/hooks/useInterval";
 import {
   subscribe,
@@ -50,6 +51,7 @@ interface Props {
 }
 
 export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
+  const t = useT();
   const [snap, setSnap] = useState<SvmChainSnapshot>(() => getSnapshot());
   const [pendingAirdrop, setPendingAirdrop] = useState<Set<string>>(new Set());
   // Tick once a second so the cooldown countdown + "Xs ago" relative
@@ -82,15 +84,11 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
   }, []);
 
   const onReset = useCallback(async () => {
-    if (
-      !confirm(
-        "Reset the SVM? All accounts, deployed programs, and transactions will be cleared.",
-      )
-    ) {
+    if (!confirm(t("chainDock.resetConfirmSvm"))) {
       return;
     }
     await resetSvmChain();
-  }, []);
+  }, [t]);
 
   const defaultAcc = snap.accounts[0];
   const otherAccs = snap.accounts.slice(1);
@@ -106,13 +104,13 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
     <div
       className={`chain-dock chain-dock--${variant}`}
       role="region"
-      aria-label="In-process Solana dev chain"
+      aria-label={t("chainDock.regionSvm")}
     >
       <header className="chain-dock__header">
         <div className="chain-dock__title">
-          <span className="chain-dock__chip svm-dock__chip">Local SVM</span>
+          <span className="chain-dock__chip svm-dock__chip">{t("chainDock.localSvm")}</span>
           <span className="chain-dock__block">
-            slot <strong>{snap.slot.toString()}</strong>
+            {t("chainDock.slotPrefix")} <strong>{snap.slot.toString()}</strong>
           </span>
           <span className="chain-dock__timestamp">{slotDate}</span>
         </div>
@@ -122,25 +120,25 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
               type="button"
               className="chain-dock__btn chain-dock__btn--ghost"
               onClick={onOpenPopout}
-              title="Open the dock in its own window"
+              title={t("chainDock.popOutTitle")}
             >
-              ↗ Pop out
+              {t("chainDock.popOut")}
             </button>
           )}
           <button
             type="button"
             className="chain-dock__btn chain-dock__btn--ghost"
             onClick={onReset}
-            title="Drop all SVM state"
+            title={t("chainDock.resetTitleSvm")}
           >
-            Reset
+            {t("chainDock.reset")}
           </button>
           {variant === "banner" && onClose && (
             <button
               type="button"
               className="chain-dock__btn chain-dock__btn--icon"
               onClick={onClose}
-              aria-label="Close dock"
+              aria-label={t("chainDock.closeDock")}
             >
               ✕
             </button>
@@ -152,7 +150,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
         <div className="chain-dock__grid">
           <section className="chain-dock__panel chain-dock__panel--accounts">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Accounts</span>
+              <span className="chain-dock__panel-label">{t("chainDock.accounts")}</span>
               {snap.accounts.length > 0 && (
                 <span className="chain-dock__panel-meta">
                   {snap.accounts.length}
@@ -162,8 +160,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
             <div className="chain-dock__panel-body">
               {!defaultAcc && (
                 <div className="chain-dock__empty">
-                  The SVM hasn't been initialised yet. Run a Solana lesson
-                  to spin it up.
+                  {t("chainDock.notInitialisedSvm")}
                 </div>
               )}
               {defaultAcc && (
@@ -176,7 +173,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
               )}
               {otherAccs.length > 0 && (
                 <details className="chain-dock__more">
-                  <summary>+{otherAccs.length} other accounts</summary>
+                  <summary>{t("chainDock.otherAccounts", { count: otherAccs.length })}</summary>
                   <div className="chain-dock__more-list">
                     {otherAccs.map((a) => (
                       <AccountRow
@@ -194,7 +191,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
 
           <section className="chain-dock__panel chain-dock__panel--contracts">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Programs</span>
+              <span className="chain-dock__panel-label">{t("chainDock.programs")}</span>
               <span className="chain-dock__panel-meta">
                 {snap.programs.length}
               </span>
@@ -202,7 +199,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
             <div className="chain-dock__panel-body">
               {snap.programs.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No deploys yet.
+                  {t("chainDock.noDeploys")}
                 </div>
               )}
               <ul className="chain-dock__contract-list">
@@ -213,7 +210,7 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
                       {shortAddr(p.programId)}
                     </span>
                     <span className="chain-dock__contract-block">
-                      slot {p.deployedAtSlot.toString()}
+                      {t("chainDock.slotN", { slot: p.deployedAtSlot.toString() })}
                     </span>
                   </li>
                 ))}
@@ -223,13 +220,13 @@ export function SvmDock({ variant = "banner", onOpenPopout, onClose }: Props) {
 
           <section className="chain-dock__panel chain-dock__panel--txs">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Recent transactions</span>
+              <span className="chain-dock__panel-label">{t("chainDock.recentTxs")}</span>
               <span className="chain-dock__panel-meta">{snap.txs.length}</span>
             </header>
             <div className="chain-dock__panel-body">
               {snap.txs.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No txs yet.
+                  {t("chainDock.noTxs")}
                 </div>
               )}
               <ul className="chain-dock__tx-list">
@@ -253,6 +250,7 @@ interface AccountRowProps {
 }
 
 function AccountRow({ acc, isDefault, pending, onAirdrop }: AccountRowProps) {
+  const t = useT();
   const remaining = airdropCooldownRemainingMs(acc.address);
   const onCooldown = remaining > 0;
   return (
@@ -273,8 +271,11 @@ function AccountRow({ acc, isDefault, pending, onAirdrop }: AccountRowProps) {
         onClick={() => onAirdrop(acc.address)}
         title={
           onCooldown
-            ? `Cooldown — try again in ${formatRemaining(remaining)}`
-            : `Airdrop ${formatSol(AIRDROP_AMOUNT)} SOL (resets every ${formatRemaining(AIRDROP_COOLDOWN)})`
+            ? t("chainDock.airdropCooldownTitle", { time: formatRemaining(remaining) })
+            : t("chainDock.airdropAddTitle", {
+                amount: formatSol(AIRDROP_AMOUNT),
+                time: formatRemaining(AIRDROP_COOLDOWN),
+              })
         }
       >
         {pending
@@ -288,17 +289,18 @@ function AccountRow({ acc, isDefault, pending, onAirdrop }: AccountRowProps) {
 }
 
 function TxRow({ tx }: { tx: TxSnapshot }) {
+  const t = useT();
   const ago = secondsAgo(tx.timestamp);
-  const kindLabel: Record<TxSnapshot["kind"], string> = {
-    deploy: "deploy",
-    invoke: "invoke",
-    transfer: "transfer",
-    airdrop: "airdrop",
+  const kindKey: Record<TxSnapshot["kind"], string> = {
+    deploy: "chainDock.txKindDeploy",
+    invoke: "chainDock.txKindInvoke",
+    transfer: "chainDock.txKindTransfer",
+    airdrop: "chainDock.txKindAirdrop",
   };
   return (
     <li className={`chain-dock__tx chain-dock__tx--${tx.status}`}>
       <span className={`chain-dock__tx-kind chain-dock__tx-kind--${tx.kind}`}>
-        {kindLabel[tx.kind]}
+        {t(kindKey[tx.kind])}
       </span>
       <span className="chain-dock__tx-from">{shortAddr(tx.feePayer)}</span>
       {tx.to && tx.kind !== "airdrop" && (
@@ -312,19 +314,24 @@ function TxRow({ tx }: { tx: TxSnapshot }) {
           {formatSol(tx.valueLamports)} SOL
         </span>
       )}
-      <span className="chain-dock__tx-block">slot {tx.slot.toString()}</span>
-      <span className="chain-dock__tx-ago">{ago}</span>
+      <span className="chain-dock__tx-block">
+        {t("chainDock.slotN", { slot: tx.slot.toString() })}
+      </span>
+      <span className="chain-dock__tx-ago">{t(ago.key, { count: ago.count })}</span>
     </li>
   );
 }
 
-function secondsAgo(ts: number): string {
+/// Returns an i18n key + count for the relative-time chip — the
+/// consuming component passes them through `t()` (plain module-level
+/// helper, so no hooks here).
+function secondsAgo(ts: number): { key: string; count: number } {
   const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-  if (s < 60) return `${s}s ago`;
+  if (s < 60) return { key: "chainDock.agoSeconds", count: s };
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return { key: "chainDock.agoMinutes", count: m };
   const h = Math.floor(m / 60);
-  return `${h}h ago`;
+  return { key: "chainDock.agoHours", count: h };
 }
 
 function formatRemaining(ms: number): string {

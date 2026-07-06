@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { UseLibreCloud } from "@/hooks/useLibreCloud";
 import { UnverifiedEmailError } from "@/hooks/useLibreCloud";
+import { useT } from "@/i18n/i18n";
 import { isWeb } from "@/lib/platform";
 import { setPendingOAuthSession } from "@/lib/oauthSession";
 import { track } from "@/lib/track";
@@ -76,6 +77,7 @@ export default function SignInDialog({
   headline,
   blurb,
 }: Props) {
+  const t = useT();
   const [emailMode, setEmailMode] = useState<EmailMode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -142,13 +144,14 @@ export default function SignInDialog({
         setVerifyEmail(err.email);
         return;
       }
+      // The cloud hook throws i18n KEYS for the known cases; anything
+      // else (raw status text, network errors) passes through `t()`
+      // unchanged via its literal-key fallback.
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.toLowerCase().includes("didn't match") || msg.includes("401")) {
-        setEmailError(
-          "Email or password didn't match. If you don't have an account yet, switch to Create account.",
-        );
+      if (msg === "auth.errCredentials" || msg.includes("401")) {
+        setEmailError(t("auth.errCredentials"));
       } else {
-        setEmailError(msg || "Couldn't sign in. Please try again.");
+        setEmailError(msg ? t(msg) : t("auth.errSignInGeneric"));
       }
     }
   };
@@ -165,11 +168,11 @@ export default function SignInDialog({
     setVerifyEmail(null);
     setVerifyResent(false);
     if (password.length < PASSWORD_MIN_LENGTH) {
-      setEmailError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
+      setEmailError(t("auth.errPasswordMin", { minLength: PASSWORD_MIN_LENGTH }));
       return;
     }
     if (password !== passwordConfirm) {
-      setEmailError("Passwords don't match. Re-enter both fields.");
+      setEmailError(t("auth.errPasswordMismatch"));
       return;
     }
     try {
@@ -184,15 +187,12 @@ export default function SignInDialog({
       setVerifyEmail(pending);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      const lower = msg.toLowerCase();
-      if (lower.includes("already exists") || msg.includes("409")) {
-        setEmailError(
-          "An account with that email already exists. Switch to Sign in instead?",
-        );
-      } else if (lower.includes("password") && lower.includes("8")) {
-        setEmailError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
+      if (msg === "auth.errAccountExists" || msg.includes("409")) {
+        setEmailError(t("auth.errAccountExists"));
+      } else if (msg === "auth.errInvalidEmailOrPassword") {
+        setEmailError(t("auth.errPasswordMin", { minLength: PASSWORD_MIN_LENGTH }));
       } else {
-        setEmailError(msg || "Couldn't create account. Please try again.");
+        setEmailError(msg ? t(msg) : t("auth.errSignInGeneric"));
       }
     }
   };
@@ -234,7 +234,7 @@ export default function SignInDialog({
       setForgotSent(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setEmailError(msg || "Couldn't reach the server. Please try again.");
+      setEmailError(msg ? t(msg) : t("auth.errServer"));
     }
   };
 
@@ -305,9 +305,7 @@ export default function SignInDialog({
     const features = "popup=yes,width=520,height=640";
     const win = window.open(url, "libre-oauth", features);
     if (!win) {
-      setOauthError(
-        "Couldn't open the sign-in popup — check your browser's pop-up blocker, then try again.",
-      );
+      setOauthError(t("auth.errPopupBlocked"));
       return false;
     }
     oauthPopupRef.current = win;
@@ -424,17 +422,16 @@ export default function SignInDialog({
           type="button"
           className="libre-signin-close"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t("common.close")}
         >
           ×
         </button>
 
         <h2 className="libre-signin-title">
-          {headline ?? "Sign in to Libre"}
+          {headline ?? t("auth.signInHeadline")}
         </h2>
         <p className="libre-signin-blurb">
-          {blurb ??
-            "Optional — sync progress between devices, upload courses, and share them with friends. You can also keep using Libre without an account; everything else still runs locally."}
+          {blurb ?? t("auth.signInBlurb")}
         </p>
 
         {/* Email is the primary form — always shown above the
@@ -457,7 +454,7 @@ export default function SignInDialog({
               email field, no Sign in vs Create account distinction
               to make). */}
           {emailMode !== "forgot" && (
-            <div className="libre-signin-mode-toggle" role="tablist" aria-label="Email account mode">
+            <div className="libre-signin-mode-toggle" role="tablist" aria-label={t("auth.emailModeAria")}>
               <button
                 type="button"
                 role="tab"
@@ -465,7 +462,7 @@ export default function SignInDialog({
                 className={`libre-signin-mode-btn ${emailMode === "signIn" ? "libre-signin-mode-btn--active" : ""}`}
                 onClick={() => switchEmailMode("signIn")}
               >
-                Sign in
+                {t("auth.signIn")}
               </button>
               <button
                 type="button"
@@ -474,7 +471,7 @@ export default function SignInDialog({
                 className={`libre-signin-mode-btn ${emailMode === "signUp" ? "libre-signin-mode-btn--active" : ""}`}
                 onClick={() => switchEmailMode("signUp")}
               >
-                Create account
+                {t("auth.createAccount")}
               </button>
             </div>
           )}
@@ -486,13 +483,12 @@ export default function SignInDialog({
               step in the flow. */}
           {emailMode === "forgot" && !forgotSent && (
             <p className="libre-signin-helper">
-              Enter your account email and we'll send a link to reset
-              your password. The link expires in 1 hour.
+              {t("auth.forgotHelper")}
             </p>
           )}
 
           <label className="libre-signin-field">
-            <span>Email</span>
+            <span>{t("auth.emailLabel")}</span>
             <input
               type="email"
               value={email}
@@ -521,7 +517,7 @@ export default function SignInDialog({
                 disabled={cloud.busy}
                 helper={
                   emailMode === "signUp"
-                    ? `At least ${PASSWORD_MIN_LENGTH} characters. Mix cases, digits, and symbols for a stronger password.`
+                    ? t("auth.passwordHelper", { minLength: PASSWORD_MIN_LENGTH })
                     : null
                 }
               />
@@ -537,13 +533,13 @@ export default function SignInDialog({
                 <PasswordField
                   value={passwordConfirm}
                   onChange={setPasswordConfirm}
-                  label="Confirm password"
+                  label={t("auth.confirmPasswordLabel")}
                   showStrength={false}
                   autoComplete="new-password"
                   required
                   disabled={cloud.busy}
                   helper={null}
-                  error={confirmMismatch ? "Passwords don't match" : null}
+                  error={confirmMismatch ? t("auth.errPasswordMismatch") : null}
                 />
               )}
             </>
@@ -555,9 +551,7 @@ export default function SignInDialog({
           {verifyEmail && !emailError && (
             <div className="libre-signin-verify">
               <p className="libre-signin-helper libre-signin-helper--success">
-                Check your inbox — we sent a confirmation link to{" "}
-                <strong>{verifyEmail}</strong>. Click it to activate your
-                account, then sign in. The link expires in 24 hours.
+                {t("auth.verifySent", { email: verifyEmail })}
               </p>
               <button
                 type="button"
@@ -566,15 +560,14 @@ export default function SignInDialog({
                 onClick={() => void onResendVerification()}
               >
                 {verifyResent
-                  ? "Confirmation link re-sent ✓"
-                  : "Didn't get it? Resend"}
+                  ? t("auth.resendDone")
+                  : t("auth.resendCta")}
               </button>
             </div>
           )}
           {forgotSent && !emailError && (
             <p className="libre-signin-helper libre-signin-helper--success">
-              If that email is on file, a reset link is on its way. Check
-              your inbox (and spam folder) — the link expires in 1 hour.
+              {t("auth.forgotSent")}
             </p>
           )}
 
@@ -602,10 +595,10 @@ export default function SignInDialog({
               {cloud.busy
                 ? "…"
                 : emailMode === "signIn"
-                  ? "Sign in"
+                  ? t("auth.signIn")
                   : emailMode === "signUp"
-                    ? "Create account"
-                    : "Send reset link"}
+                    ? t("auth.createAccount")
+                    : t("auth.submitReset")}
             </button>
           )}
 
@@ -621,40 +614,40 @@ export default function SignInDialog({
                   className="libre-signin-switch__link"
                   onClick={() => switchEmailMode("forgot")}
                 >
-                  Forgot password?
+                  {t("auth.forgotPassword")}
                 </button>
                 {" · "}
-                Don't have an account?{" "}
+                {t("auth.noAccount")}{" "}
                 <button
                   type="button"
                   className="libre-signin-switch__link"
                   onClick={() => switchEmailMode("signUp")}
                 >
-                  Create one
+                  {t("auth.createOne")}
                 </button>
               </>
             )}
             {emailMode === "signUp" && (
               <>
-                Already have an account?{" "}
+                {t("auth.haveAccount")}{" "}
                 <button
                   type="button"
                   className="libre-signin-switch__link"
                   onClick={() => switchEmailMode("signIn")}
                 >
-                  Sign in
+                  {t("auth.signIn")}
                 </button>
               </>
             )}
             {emailMode === "forgot" && (
               <>
-                Remembered it?{" "}
+                {t("auth.rememberedIt")}{" "}
                 <button
                   type="button"
                   className="libre-signin-switch__link"
                   onClick={() => switchEmailMode("signIn")}
                 >
-                  Back to sign in
+                  {t("auth.backToSignIn")}
                 </button>
               </>
             )}
@@ -667,9 +660,9 @@ export default function SignInDialog({
         <div
           className="libre-signin-or"
           role="separator"
-          aria-label="or"
+          aria-label={t("auth.orSeparator")}
         >
-          <span>or</span>
+          <span>{t("auth.orSeparator")}</span>
         </div>
 
         <div className="libre-signin-oauth">
@@ -695,7 +688,7 @@ export default function SignInDialog({
                 <path d="M14.94 9.97c-.02-2.05 1.68-3.04 1.76-3.09-.96-1.4-2.45-1.59-2.98-1.61-1.27-.13-2.48.74-3.13.74-.65 0-1.65-.72-2.71-.7-1.39.02-2.69.81-3.4 2.05-1.45 2.51-.37 6.22 1.04 8.27.69 1 1.51 2.13 2.58 2.09 1.04-.04 1.43-.67 2.69-.67 1.25 0 1.61.67 2.7.65 1.12-.02 1.83-1.02 2.51-2.03.79-1.16 1.12-2.29 1.14-2.35-.03-.01-2.18-.84-2.2-3.35M12.95 4.18c.57-.69.96-1.65.85-2.6-.82.03-1.81.55-2.4 1.24-.53.61-.99 1.59-.87 2.52.91.07 1.85-.46 2.42-1.16" />
               </svg>
             </span>
-            <span>Sign in with Apple</span>
+            <span>{t("auth.signInWithApple")}</span>
           </button>
           <button
             type="button"
@@ -723,19 +716,22 @@ export default function SignInDialog({
                 />
               </svg>
             </span>
-            <span>Sign in with Google</span>
+            <span>{t("auth.signInWithGoogle")}</span>
           </button>
           {awaitingOAuth && (
             <p className="libre-signin-oauth-waiting">
-              Waiting for sign-in… finish in your browser, then we'll bring
-              you back automatically.
+              {t("auth.oauthWaiting")}
             </p>
           )}
           {oauthError && (
             <p className="libre-signin-error">{oauthError}</p>
           )}
           {cloud.error && !oauthError && (
-            <p className="libre-signin-error">{cloud.error}</p>
+            // The hook reports errors as i18n keys for the known cases;
+            // `t()` renders unknown strings (raw status text) verbatim.
+            <p className="libre-signin-error">
+              {t(cloud.error, { minLength: PASSWORD_MIN_LENGTH })}
+            </p>
           )}
         </div>
 
@@ -748,7 +744,7 @@ export default function SignInDialog({
               onClose();
             }}
           >
-            Maybe later
+            {t("auth.maybeLater")}
           </button>
         )}
       </div>

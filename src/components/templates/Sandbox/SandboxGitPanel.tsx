@@ -276,7 +276,7 @@ export default function SandboxGitPanel({ projectId, refreshTick }: Props) {
         title={t("sandbox.showInFinderTitle")}
       >
         <Icon icon={folderOpen} size="xs" color="currentColor" />
-        <span>Show in Finder</span>
+        <span>{t("sandbox.showInFinder")}</span>
       </button>
       {error && <p className="libre-sb-git__error">{error}</p>}
     </section>

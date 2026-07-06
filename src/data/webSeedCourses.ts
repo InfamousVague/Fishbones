@@ -545,7 +545,11 @@ function starterUrl(path: string): string {
 /// surfaces the picker. The same re-fetch also picks up the new
 /// `reviewQuestions` review material generated for every Rust-book code
 /// lesson (Practice-deck coverage), which shipped in the same window.
-const SEED_VERSION = 38;
+// v39: the Rust book's images were de-duplicated into a shared
+// `course.images` map (bodies now use `asset://<hash>` refs), shrinking
+// the seed from ~25MB to ~4.4MB and fully translating every image
+// caption/alt. Bump forces clients to re-fetch the slimmer course.
+const SEED_VERSION = 39;
 
 /// Run the web seed if it hasn't run yet OR if the persisted
 /// `SEED_VERSION` is older than the current build's. Idempotent +

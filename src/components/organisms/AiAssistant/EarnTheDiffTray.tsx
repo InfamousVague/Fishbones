@@ -34,6 +34,7 @@ import { shouldOfferRewind } from "@/lib/ai/rewindPolicy";
 import { loadMemory } from "@/lib/ai/memory";
 import type { PairMode } from "@/lib/aiAgent/pairMode";
 import { loadProject, isSandboxFsUnavailable } from "@/lib/sandboxFs";
+import { useT } from "@/i18n/i18n";
 
 const EMPTY_COURSES: readonly Course[] = [];
 const EMPTY_COMPLETED: ReadonlySet<string> = new Set<string>();
@@ -166,6 +167,7 @@ export function EarnTheDiffTray({
   onResolved: (passed: boolean, conceptId: string) => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   const [guess, setGuess] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [passed, setPassed] = useState(false);
@@ -179,6 +181,10 @@ export function EarnTheDiffTray({
 
   const cov = challenge.concept;
   const lessons = cov.lessons.slice(0, 2);
+  // Localized concept label/blurb — the engine's `Concept` carries
+  // canonical English (it also feeds retrieval + model prompts).
+  const conceptLabel = t(`practice.concepts.${cov.concept.id}.label`);
+  const conceptBlurb = t(`practice.concepts.${cov.concept.id}.blurb`);
 
   const submit = () => {
     if (revealed) return;
@@ -195,25 +201,35 @@ export function EarnTheDiffTray({
   );
 
   return (
-    <div className="libre-etd" role="region" aria-label="Earn the diff challenge">
+    <div className="libre-etd" role="region" aria-label={t("ai.etdRegionAria")}>
       <div className="libre-etd-head">
         <Icon icon={sparkles} size="sm" color="currentColor" />
-        <span className="libre-etd-title">Earn the diff</span>
-        <span className="libre-etd-concept">{cov.concept.label}</span>
+        <span className="libre-etd-title">{t("ai.etdTitle")}</span>
+        <span className="libre-etd-concept">{conceptLabel}</span>
         <button
           type="button"
           className="libre-ai-panel-preview-close"
           onClick={onDismiss}
-          aria-label="Skip challenge"
+          aria-label={t("ai.etdSkipAria")}
         >
           <Icon icon={xIcon} size="xs" color="currentColor" />
         </button>
       </div>
 
       <div className="libre-etd-body">
-        <p className="libre-etd-prompt">{challenge.prompt}</p>
+        {/* Localized equivalent of the engine's deterministic
+            `challenge.prompt` (English fallback), keyed off why the
+            line was chosen. */}
+        <p className="libre-etd-prompt">
+          {t(
+            challenge.reason === "struggled-concept"
+              ? "ai.etdRetryPrompt"
+              : "ai.etdPredictPrompt",
+            { conceptLabel, filePath: challenge.file },
+          )}
+        </p>
 
-        <pre className="libre-etd-code" aria-label="Build with one line blanked">
+        <pre className="libre-etd-code" aria-label={t("ai.etdCodeAria")}>
           {blankedLines.map((line, i) => {
             const isHole = i === challenge.lineIndex;
             return (
@@ -235,7 +251,7 @@ export function EarnTheDiffTray({
             <input
               type="text"
               className="libre-etd-input"
-              placeholder="Type the missing line…"
+              placeholder={t("ai.etdPlaceholder")}
               value={guess}
               spellCheck={false}
               autoComplete="off"
@@ -251,14 +267,14 @@ export function EarnTheDiffTray({
               onClick={submit}
               disabled={guess.trim().length === 0}
             >
-              Check
+              {t("ai.etdCheck")}
             </button>
             <button
               type="button"
               className="libre-etd-skip"
               onClick={onDismiss}
             >
-              Skip
+              {t("practice.skip")}
             </button>
           </div>
         ) : (
@@ -272,19 +288,21 @@ export function EarnTheDiffTray({
               {passed ? (
                 <>
                   <Icon icon={check} size="xs" color="currentColor" />
-                  You earned it — that's the line.
+                  {t("ai.etdPass")}
                 </>
               ) : (
-                <>Not quite. Here's the line the build needed:</>
+                <>{t("ai.etdMiss")}</>
               )}
             </div>
             {!passed && (
               <div className="libre-etd-yourguess">
-                <span className="libre-etd-yourguess-label">you wrote</span>
+                <span className="libre-etd-yourguess-label">
+                  {t("ai.etdYouWrote")}
+                </span>
                 <code>{guess.trim() || "—"}</code>
               </div>
             )}
-            <p className="libre-etd-blurb">{cov.concept.blurb}</p>
+            <p className="libre-etd-blurb">{conceptBlurb}</p>
             {lessons.length > 0 && (
               <div className="libre-etd-links">
                 {lessons.map((l) => (
@@ -293,7 +311,10 @@ export function EarnTheDiffTray({
                     type="button"
                     className="libre-bj-learn"
                     onClick={() => openLesson(l.courseId, l.lessonId)}
-                    title={`Open “${l.lessonTitle}” in ${l.courseTitle}`}
+                    title={t("ai.etdOpenLessonTitle", {
+                      lesson: l.lessonTitle,
+                      course: l.courseTitle,
+                    })}
                   >
                     <Icon icon={bookOpenText} size="xs" color="currentColor" />
                     <span className="libre-bj-learn-text">{l.lessonTitle}</span>
@@ -307,7 +328,7 @@ export function EarnTheDiffTray({
               className="libre-etd-done"
               onClick={onDismiss}
             >
-              Done
+              {t("ai.etdDone")}
             </button>
           </div>
         )}

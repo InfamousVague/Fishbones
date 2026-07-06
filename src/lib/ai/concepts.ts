@@ -35,14 +35,17 @@ export interface Concept {
   /// Stable id, e.g. "rust-ownership". Also the key used by the
   /// memory layer's struggle counters + the diagnosis bridge.
   id: string;
-  /// Display label, e.g. "Ownership".
+  /// Display label, e.g. "Ownership". Canonical English — the
+  /// detection/retrieval engines and model prompts consume it
+  /// directly; UI surfaces render the localized
+  /// `practice.concepts.<id>.label` instead.
   label: string;
   /// Languages this concept belongs to. A build in one language
   /// only ever surfaces that language's concepts.
   langs: ConceptLang[];
-  /// One-line plain-English definition. Shown in chips + the
-  /// journal; injected into prompts so the model explains
-  /// consistently.
+  /// One-line plain-English definition. Injected into prompts so
+  /// the model explains consistently; UI surfaces (chips, journal,
+  /// tooltips) render the localized `practice.concepts.<id>.blurb`.
   blurb: string;
   /// Retrieval query that finds a lesson teaching this concept.
   query: string;

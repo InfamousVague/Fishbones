@@ -66,6 +66,7 @@ const CertificatesPage = lazy(() => import("@/components/organisms/Certificates/
 const PathsPage = lazy(() => import("@/components/templates/Paths/PathsPage"));
 import { mintCertificate } from "@/data/certificates";
 import { availableLocalesFor } from "@/data/localize";
+import { registerCourseImages } from "@/data/courseImages";
 import type { Locale } from "@/data/locales";
 import InstallLanguagesDialog from "@/components/organisms/dialogs/InstallLanguagesDialog/InstallLanguagesDialog";
 import { notifyCertificatesChanged } from "@/hooks/useCertificates";
@@ -1945,6 +1946,15 @@ export default function App() {
     () => (activeCourse ? availableLocalesFor(activeCourse) : []),
     [activeCourse],
   );
+
+  // Register the active course's de-duplicated image map so the lesson
+  // reader can resolve `asset://<hash>` refs. Done in a useMemo (runs
+  // during render, before the reader's own effects) so the map is ready
+  // by the time LessonReader tries to resolve. No-op for un-migrated
+  // courses (no `images` field).
+  useMemo(() => {
+    registerCourseImages(activeCourse?.id ?? "", activeCourse?.images);
+  }, [activeCourse]);
 
   // Language-aware tint: while reading a course (view "courses") OR coding in
   // the Playground (view "sandbox"), point the GhostWire accent hue at that

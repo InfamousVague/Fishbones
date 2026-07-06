@@ -12,6 +12,7 @@ import type { Course, LanguageId } from "@/data/types";
 import { isExerciseKind } from "@/data/types";
 import type { Completion } from "@/hooks/useProgress";
 import { xpForLessonKind, type StreakAndXp } from "@/hooks/useStreakAndXp";
+import { useT } from "@/i18n/i18n";
 import SupporterCard from "@/components/molecules/SupporterCard/SupporterCard";
 import "./ProfileView.css";
 
@@ -123,6 +124,7 @@ export default function ProfileView({
   // session typically wants the digest view again.
   const [showAllTopics, setShowAllTopics] = useState(false);
   const [showAllActivity, setShowAllActivity] = useState(false);
+  const t = useT();
 
   /// Build a lookup of `{courseId: course}` and flatten all lessons once
   /// so downstream math can resolve completions without nested scans.
@@ -196,13 +198,24 @@ export default function ProfileView({
       cells.push({
         key,
         count,
-        label: `${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}: ${count} lesson${count === 1 ? "" : "s"}`,
+        label: t(
+          count === 1
+            ? "profile.heatmapCellLabel"
+            : "profile.heatmapCellLabelPlural",
+          {
+            date: d.toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+            }),
+            count,
+          },
+        ),
         isPad: false,
       });
     }
     const peak = Math.max(1, ...cells.map((c) => c.count));
     return { cells, peak, activeDays, totalCompletions };
-  }, [history]);
+  }, [history, t]);
 
   /// Per-language XP breakdown — bars sorted descending, language
   /// totals shown on the right. Cap to top 8.
@@ -337,12 +350,15 @@ export default function ProfileView({
               so it doesn't fight the stat strip for attention. */}
           <header className="libre-profile-header">
             <div className="libre-profile-header-text">
-              <h1 className="libre-profile-title">Profile</h1>
+              <h1 className="libre-profile-title">{t("profile.title")}</h1>
               <p className="libre-profile-subtitle">
-                Level {stats.level} ·{" "}
+                {t("profile.levelLine", { level: stats.level })}{" "}
                 {xpToNext === 0
-                  ? "ready to level up — complete any lesson"
-                  : `${formatNumber(xpToNext)} XP to level ${stats.level + 1}`}
+                  ? t("stats.readyLevelUp")
+                  : t("stats.xpToNext", {
+                      xp: formatNumber(xpToNext),
+                      level: stats.level + 1,
+                    })}
               </p>
             </div>
             <div
@@ -351,7 +367,7 @@ export default function ProfileView({
               aria-valuenow={Math.round(levelPct * 100)}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label={`Level ${stats.level} progress`}
+              aria-label={t("profile.ariaLevelProgress", { level: stats.level })}
             >
               <div className="libre-profile-level-bar-track">
                 <div
@@ -379,11 +395,11 @@ export default function ProfileView({
               5-tile chunkier row: half the vertical footprint per
               tile, ~50% more info per scroll-inch. */}
           <div className="libre-profile-stats" role="list">
-            <StatTile icon={flame} tone="streak" value={stats.streakDays} label="Day streak" />
-            <StatTile icon={trophy} tone="longest" value={stats.longestStreakDays} label="Longest streak" />
-            <StatTile icon={bookOpenCheck} tone="lessons" value={stats.lessonsCompleted} label="Lessons" />
-            <StatTile icon={zap} tone="xp" value={stats.xp} label="Total XP" formatted />
-            <StatTile icon={globe} tone="level" value={totalLangsTouched} label="Languages" />
+            <StatTile icon={flame} tone="streak" value={stats.streakDays} label={t("profile.statDayStreak")} />
+            <StatTile icon={trophy} tone="longest" value={stats.longestStreakDays} label={t("profile.statLongestStreak")} />
+            <StatTile icon={bookOpenCheck} tone="lessons" value={stats.lessonsCompleted} label={t("profile.statLessons")} />
+            <StatTile icon={zap} tone="xp" value={stats.xp} label={t("profile.statTotalXp")} formatted />
+            <StatTile icon={globe} tone="level" value={totalLangsTouched} label={t("profile.statLanguages")} />
           </div>
 
           {/* ── Dashboard grid ─────────────────────────────────
@@ -397,33 +413,47 @@ export default function ProfileView({
             {/* Activity heatmap ────────────────────────────── */}
             <section className="libre-profile-card libre-profile-card--activity">
               <header className="libre-profile-card-head">
-                <h2 className="libre-profile-card-title">Activity</h2>
+                <h2 className="libre-profile-card-title">{t("profile.activityTitle")}</h2>
                 <span className="libre-profile-card-meta">
                   {heatmap.activeDays === 0
-                    ? "No completions yet"
-                    : `${heatmap.totalCompletions} completion${heatmap.totalCompletions === 1 ? "" : "s"} · ${heatmap.activeDays} active day${heatmap.activeDays === 1 ? "" : "s"} · last ${HEATMAP_WEEKS}w`}
+                    ? t("profile.noCompletionsYet")
+                    : t("profile.activitySummary", {
+                        completions: t(
+                          heatmap.totalCompletions === 1
+                            ? "profile.activityCompletions"
+                            : "profile.activityCompletionsPlural",
+                          { count: heatmap.totalCompletions },
+                        ),
+                        activeDays: t(
+                          heatmap.activeDays === 1
+                            ? "profile.activityActiveDays"
+                            : "profile.activityActiveDaysPlural",
+                          { count: heatmap.activeDays },
+                        ),
+                        weeks: HEATMAP_WEEKS,
+                      })}
                 </span>
               </header>
               <div className="libre-profile-heatmap-wrap">
                 <div className="libre-profile-heatmap-rowlabels" aria-hidden>
                   <span />
-                  <span>Mon</span>
+                  <span>{t("profile.weekdayMon")}</span>
                   <span />
-                  <span>Wed</span>
+                  <span>{t("profile.weekdayWed")}</span>
                   <span />
-                  <span>Fri</span>
+                  <span>{t("profile.weekdayFri")}</span>
                   <span />
                 </div>
                 <Heatmap cells={heatmap.cells} peak={heatmap.peak} />
               </div>
               <div className="libre-profile-heatmap-legend" aria-hidden>
-                <span>Less</span>
+                <span>{t("profile.legendLess")}</span>
                 <span className="libre-profile-heatmap-cell libre-profile-heatmap-cell--lvl-0" />
                 <span className="libre-profile-heatmap-cell libre-profile-heatmap-cell--lvl-1" />
                 <span className="libre-profile-heatmap-cell libre-profile-heatmap-cell--lvl-2" />
                 <span className="libre-profile-heatmap-cell libre-profile-heatmap-cell--lvl-3" />
                 <span className="libre-profile-heatmap-cell libre-profile-heatmap-cell--lvl-4" />
-                <span>More</span>
+                <span>{t("profile.legendMore")}</span>
               </div>
             </section>
 
@@ -431,9 +461,9 @@ export default function ProfileView({
             {langChart.rows.length > 0 ? (
               <section className="libre-profile-card libre-profile-card--lang">
                 <header className="libre-profile-card-head">
-                  <h2 className="libre-profile-card-title">XP by language</h2>
+                  <h2 className="libre-profile-card-title">{t("profile.xpByLanguage")}</h2>
                   <span className="libre-profile-card-meta">
-                    {totalLangsTouched} touched
+                    {t("profile.langsTouched", { count: totalLangsTouched })}
                   </span>
                 </header>
                 <ul className="libre-profile-lang-chart" role="list">
@@ -467,10 +497,10 @@ export default function ProfileView({
               // layout would look hollow.
               <section className="libre-profile-card libre-profile-card--lang">
                 <header className="libre-profile-card-head">
-                  <h2 className="libre-profile-card-title">XP by language</h2>
+                  <h2 className="libre-profile-card-title">{t("profile.xpByLanguage")}</h2>
                 </header>
                 <p className="libre-profile-empty libre-profile-empty--inline">
-                  Open any lesson to start earning XP.
+                  {t("profile.emptyXp")}
                 </p>
               </section>
             )}
@@ -479,16 +509,21 @@ export default function ProfileView({
             {/* Topics ──────────────────────────────────────── */}
             <section className="libre-profile-card libre-profile-card--topics">
               <header className="libre-profile-card-head">
-                <h2 className="libre-profile-card-title">Topics practised</h2>
+                <h2 className="libre-profile-card-title">{t("profile.topicsTitle")}</h2>
                 <span className="libre-profile-card-meta">
                   {topicStats.length === 0
-                    ? "Challenge packs only"
-                    : `${topicStats.length} topic${topicStats.length === 1 ? "" : "s"}`}
+                    ? t("profile.topicsChallengeOnly")
+                    : t(
+                        topicStats.length === 1
+                          ? "profile.topicsCount"
+                          : "profile.topicsCountPlural",
+                        { count: topicStats.length },
+                      )}
                 </span>
               </header>
               {topicStats.length === 0 ? (
                 <p className="libre-profile-empty libre-profile-empty--inline">
-                  Finish a challenge-pack lesson — its topic shows up here.
+                  {t("profile.topicsEmpty")}
                 </p>
               ) : (
                 <>
@@ -504,8 +539,8 @@ export default function ProfileView({
                     <ExpanderButton
                       open={showAllTopics}
                       onToggle={() => setShowAllTopics((v) => !v)}
-                      collapsedLabel={`Show all (${topicStats.length})`}
-                      expandedLabel={`Show top ${TOPICS_PREVIEW_COUNT}`}
+                      collapsedLabel={t("profile.showAll", { count: topicStats.length })}
+                      expandedLabel={t("profile.showTop", { count: TOPICS_PREVIEW_COUNT })}
                     />
                   )}
                 </>
@@ -522,11 +557,13 @@ export default function ProfileView({
               padding. */}
           <section className="libre-profile-card libre-profile-card--activity-feed">
             <header className="libre-profile-card-head">
-              <h2 className="libre-profile-card-title">Recent activity</h2>
+              <h2 className="libre-profile-card-title">{t("profile.recentActivityTitle")}</h2>
               <span className="libre-profile-card-meta">
                 {recentActivity.length === 0
-                  ? "No completions yet"
-                  : `${recentActivity.length}${recentActivity.length >= 60 ? "+" : ""} recent`}
+                  ? t("profile.noCompletionsYet")
+                  : t("profile.recentCount", {
+                      count: `${recentActivity.length}${recentActivity.length >= 60 ? "+" : ""}`,
+                    })}
               </span>
             </header>
             {recentActivity.length > 0 ? (
@@ -561,15 +598,14 @@ export default function ProfileView({
                   <ExpanderButton
                     open={showAllActivity}
                     onToggle={() => setShowAllActivity((v) => !v)}
-                    collapsedLabel={`Show all (${recentActivity.length})`}
-                    expandedLabel={`Show recent ${ACTIVITY_PREVIEW_COUNT}`}
+                    collapsedLabel={t("profile.showAll", { count: recentActivity.length })}
+                    expandedLabel={t("profile.showRecent", { count: ACTIVITY_PREVIEW_COUNT })}
                   />
                 )}
               </>
             ) : (
               <p className="libre-profile-empty libre-profile-empty--inline">
-                No completed lessons yet. Pick a course in the sidebar to start
-                building your profile.
+                {t("profile.emptyActivity")}
               </p>
             )}
           </section>

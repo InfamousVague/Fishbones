@@ -42,6 +42,7 @@ import PracticeParsons from "./PracticeParsons";
 import PracticeSpotBug from "./PracticeSpotBug";
 import PracticeCloze from "./PracticeCloze";
 import PracticeRebuild from "./PracticeRebuild";
+import { useT } from "@/i18n/i18n";
 import "./PracticeSession.css";
 
 interface Props {
@@ -511,6 +512,9 @@ function CardFeedback({
   onAdvance: () => void;
   onOpenLesson?: (courseId: string, lessonId: string) => void;
 }) {
+  const t = useT();
+  const due = formatDueIn(outcome.nextDueMs);
+  const dueIn = t(due.key, due.params);
   const explanation =
     item.question?.kind === "mcq" || item.question?.kind === "short"
       ? item.question.explanation
@@ -528,12 +532,12 @@ function CardFeedback({
         {outcome.status === "correct" ? (
           <>
             <Icon icon={checkIcon} size="sm" color="currentColor" />
-            <span>Correct — back in your queue {formatDueIn(outcome.nextDueMs)}</span>
+            <span>{t("practice.feedbackCorrect", { dueIn })}</span>
           </>
         ) : (
           <>
             <Icon icon={xIcon} size="sm" color="currentColor" />
-            <span>Not quite — you'll see this one again {formatDueIn(outcome.nextDueMs)}</span>
+            <span>{t("practice.feedbackWrong", { dueIn })}</span>
           </>
         )}
       </div>

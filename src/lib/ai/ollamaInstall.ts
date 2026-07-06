@@ -20,6 +20,16 @@ export interface InstallProbe {
   error: string | null;
 }
 
+/// Translate function shape (matches `TFunction` from `i18n/i18n`).
+/// This is a plain lib module — no React hooks — so callers pass
+/// their component's `t()` in; the default returns the key, which
+/// mirrors `t()`'s own missing-key fallback.
+type Translate = (
+  key: string,
+  params?: Record<string, string | number>,
+) => string;
+const keyFallback: Translate = (key) => key;
+
 export interface PullOutcome {
   success: boolean;
   /// stderr/error text on failure; empty on success.
@@ -45,6 +55,7 @@ interface DesktopInstallResult {
 /// selection; harmless on the remote path.
 export async function probeInstalledModels(
   currentModel?: string,
+  translate: Translate = keyFallback,
 ): Promise<InstallProbe> {
   if (isDesktop) {
     const r = (await invoke("ai_chat_probe", {
@@ -57,7 +68,7 @@ export async function probeInstalledModels(
     return {
       reachable: false,
       models: [],
-      error: "AI host not set. Configure it in Settings → AI host.",
+      error: translate("settings.aiHostNotSet"),
     };
   }
   const ctrl = new AbortController();
@@ -65,7 +76,11 @@ export async function probeInstalledModels(
   try {
     const r = await fetch(url, { signal: ctrl.signal });
     if (!r.ok) {
-      return { reachable: false, models: [], error: `Ollama returned ${r.status}` };
+      return {
+        reachable: false,
+        models: [],
+        error: translate("settings.ollamaHttpError", { status: r.status }),
+      };
     }
     const body = (await r.json()) as { models?: Array<{ name: string }> };
     return {
@@ -87,11 +102,14 @@ export async function probeInstalledModels(
 /// Pull (`ollama pull`) a model by tag. Desktop-only — on web/mobile
 /// the host machine owns the install, so this rejects early with a
 /// clear message instead of throwing an opaque invoke error.
-export async function pullModel(id: string): Promise<PullOutcome> {
+export async function pullModel(
+  id: string,
+  translate: Translate = keyFallback,
+): Promise<PullOutcome> {
   if (!isDesktop) {
     return {
       success: false,
-      error: "Pulls run on the host machine — install it there with `ollama pull`.",
+      error: translate("settings.pullDesktopOnly"),
     };
   }
   try {

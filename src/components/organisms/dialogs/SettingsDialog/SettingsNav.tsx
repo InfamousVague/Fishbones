@@ -113,7 +113,12 @@ export default function SettingsNav({
             <span className="libre-settings-nav__profile-name">
               {user.name}
             </span>
-            <span className="libre-settings-nav__profile-sub">{user.sub}</span>
+            <span className="libre-settings-nav__profile-sub">
+              {/* `sub` may be an i18n key (provider description from
+                  describeAuthProvider) or literal text (an email).
+                  t() resolves keys and passes literals through. */}
+              {t(user.sub)}
+            </span>
           </span>
           <span className="libre-settings-nav__profile-chev" aria-hidden>
             <Icon icon={chevronRight} size="sm" color="currentColor" />
@@ -148,9 +153,15 @@ export default function SettingsNav({
               </span>
               <span className="libre-settings-nav__item-text">
                 <span className="libre-settings-nav__item-label">
-                  {p.label}
+                  {t(p.label)}
                 </span>
-                <span className="libre-settings-nav__item-hint">{p.hint}</span>
+                {/* Hint is an i18n key from panes.ts — except when the
+                    parent swapped in already-translated text (the
+                    signed-out Account override), where t() passes the
+                    literal through untouched. */}
+                <span className="libre-settings-nav__item-hint">
+                  {t(p.hint)}
+                </span>
               </span>
               <span className="libre-settings-nav__item-chev" aria-hidden>
                 <Icon icon={chevronRight} size="sm" color="currentColor" />
@@ -223,8 +234,9 @@ function FooterChip({ appVersion, themeName, onVersionTap }: FooterProps) {
 ///
 /// `signedInFallback` is the localised "Signed in" string used as a
 /// last-resort name when the user has no display_name or email. The
-/// caller passes it so this helper can stay a pure function (no
-/// hook coupling) and still produce locale-correct output.
+/// caller passes `t("settings.signedIn")` so this helper can stay a
+/// pure function (no hook coupling) and still produce locale-correct
+/// output.
 export function deriveUserDisplay(
   user: {
     email: string | null;
@@ -232,7 +244,7 @@ export function deriveUserDisplay(
   } | null
     | false,
   providerLabel: string,
-  signedInFallback: string = "Signed in",
+  signedInFallback: string,
 ): UserDisplay | null {
   if (!user || typeof user !== "object") return null;
   const trimmed = user.display_name?.trim() || null;

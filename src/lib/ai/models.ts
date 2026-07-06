@@ -53,7 +53,9 @@ export interface OllamaModelMeta {
   role: ModelRole;
   /// Tool-calling tier — drives the agent-reliability hint.
   tools: ToolTier;
-  /// One-line pitch shown under the label.
+  /// One-line pitch shown under the label. Canonical English —
+  /// the picker renders the localized `modelBlurbKey(id)` string
+  /// with this as the fallback.
   blurb: string;
   /// True for the small set shown by default (the rest live behind
   /// a "show all" affordance so the picker isn't a wall).
@@ -258,6 +260,18 @@ function canonicalModelId(id: string): string {
 /// True when the id is a known registry model.
 export function isKnownModel(id: string): boolean {
   return findModelMeta(id) !== null;
+}
+
+/// i18n key for a registry model's blurb
+/// (`settings.modelBlurbs.<id>` with the Ollama tag sanitized —
+/// dots/colons would break the dotted-path dictionary lookup, so
+/// `qwen2.5-coder:7b` → `settings.modelBlurbs.qwen2_5_coder_7b`).
+/// Returns null for custom models not in the registry; callers
+/// fall back to `meta.blurb` (or their "custom model" copy).
+export function modelBlurbKey(id: string): string | null {
+  const meta = findModelMeta(id);
+  if (!meta) return null;
+  return `settings.modelBlurbs.${meta.id.replace(/[^a-zA-Z0-9]+/g, "_")}`;
 }
 
 /// Compact label for tight chrome (the header dropdown trigger):

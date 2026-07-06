@@ -31,13 +31,15 @@ export interface RestPreset {
   kind: "rest";
   /// Stable id used as the React key + saved-history join key.
   id: string;
-  /// Human-readable label rendered in the sidebar.
+  /// i18n key for the human-readable label rendered in the sidebar
+  /// (`tradeDock.presets.<id>.label`). Plain data module — the dock
+  /// resolves keys through `t()` at render time.
   label: string;
-  /// One-line summary shown under the label / on hover.
+  /// i18n key for the one-line summary shown under the label / on
+  /// hover (`tradeDock.presets.<id>.description`).
   description: string;
-  /// Loose category tag — drives the section grouping in the
-  /// sidebar. Lower-cased, kept short ("market", "account",
-  /// "auth", "trade", "data").
+  /// i18n key for the category heading — drives the section
+  /// grouping in the sidebar (`tradeDock.category.<id>`).
   category: string;
   method: PresetMethod;
   url: string;
@@ -81,36 +83,36 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.public.instruments",
-    label: "List instruments",
-    description: "All tradable perpetuals + spot pairs.",
-    category: "Market data",
+    label: "tradeDock.presets.rest.public.instruments.label",
+    description: "tradeDock.presets.rest.public.instruments.description",
+    category: "tradeDock.category.market",
     method: "GET",
     url: "{{baseUrl}}/api/instruments",
   },
   {
     kind: "rest",
     id: "rest.public.markets",
-    label: "List markets",
-    description: "Numeric market ids + their tick / lot size.",
-    category: "Market data",
+    label: "tradeDock.presets.rest.public.markets.label",
+    description: "tradeDock.presets.rest.public.markets.description",
+    category: "tradeDock.category.market",
     method: "GET",
     url: "{{baseUrl}}/api/markets",
   },
   {
     kind: "rest",
     id: "rest.public.candles",
-    label: "Historical candles",
-    description: "OHLCV bars for a given market + interval.",
-    category: "Market data",
+    label: "tradeDock.presets.rest.public.candles.label",
+    description: "tradeDock.presets.rest.public.candles.description",
+    category: "tradeDock.category.market",
     method: "GET",
     url: "{{baseUrl}}/api/candles?market=BTC-PERP&interval=1m&limit=100",
   },
   {
     kind: "rest",
     id: "rest.public.tickers",
-    label: "24h tickers",
-    description: "Last price, 24h volume, change for every market.",
-    category: "Market data",
+    label: "tradeDock.presets.rest.public.tickers.label",
+    description: "tradeDock.presets.rest.public.tickers.description",
+    category: "tradeDock.category.market",
     method: "GET",
     url: "{{baseUrl}}/api/tickers",
   },
@@ -118,9 +120,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.auth.account",
-    label: "Account snapshot",
-    description: "Balance, positions, open orders. Requires sig.",
-    category: "Account",
+    label: "tradeDock.presets.rest.auth.account.label",
+    description: "tradeDock.presets.rest.auth.account.description",
+    category: "tradeDock.category.account",
     method: "GET",
     url: "{{baseUrl}}/api/account",
     headers: {
@@ -131,9 +133,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.auth.deposit",
-    label: "Deposit USDC",
-    description: "ERC-2612 permit deposit. Body carries the EIP-712 sig.",
-    category: "Account",
+    label: "tradeDock.presets.rest.auth.deposit.label",
+    description: "tradeDock.presets.rest.auth.deposit.description",
+    category: "tradeDock.category.account",
     method: "POST",
     url: "{{baseUrl}}/api/deposit",
     headers: { "Content-Type": "application/json" },
@@ -152,9 +154,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.auth.withdraw",
-    label: "Withdraw USDC",
-    description: "Authenticated withdrawal. Body carries an EIP-712 sig.",
-    category: "Account",
+    label: "tradeDock.presets.rest.auth.withdraw.label",
+    description: "tradeDock.presets.rest.auth.withdraw.description",
+    category: "tradeDock.category.account",
     method: "POST",
     url: "{{baseUrl}}/api/withdraw",
     headers: { "Content-Type": "application/json" },
@@ -188,11 +190,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.auth.orders",
-    label: "Order history",
-    description:
-      "Every order the account has placed. Slow for old accounts " +
-      "when the orders table lacks a (account_id, created_at DESC) index.",
-    category: "Account",
+    label: "tradeDock.presets.rest.auth.orders.label",
+    description: "tradeDock.presets.rest.auth.orders.description",
+    category: "tradeDock.category.account",
     method: "GET",
     // 100-row page is the typical default. If the server times out
     // on this, drop to limit=10 to confirm it's a query-cost issue
@@ -206,12 +206,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.auth.ordersOpen",
-    label: "Open orders",
-    description:
-      "Only orders currently resting on the book. Should be a tiny " +
-      "set per account (typically <10). If this returns empty for an " +
-      "account with known-open orders, the status filter is buggy.",
-    category: "Account",
+    label: "tradeDock.presets.rest.auth.ordersOpen.label",
+    description: "tradeDock.presets.rest.auth.ordersOpen.description",
+    category: "tradeDock.category.account",
     method: "GET",
     url: "{{baseUrl}}/api/orders?status=open&limit=100",
     headers: {
@@ -222,12 +219,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.auth.fills",
-    label: "Trade fills",
-    description:
-      "Per-fill execution log (one row per match, not per order). " +
-      "Cardinality is higher than /orders for any account that " +
-      "places large orders that fill in pieces.",
-    category: "Account",
+    label: "tradeDock.presets.rest.auth.fills.label",
+    description: "tradeDock.presets.rest.auth.fills.description",
+    category: "tradeDock.category.account",
     method: "GET",
     url: "{{baseUrl}}/api/fills?limit=100",
     headers: {
@@ -239,18 +233,18 @@ export const PRESETS: Preset[] = [
   {
     kind: "rest",
     id: "rest.public.fundingRates",
-    label: "Funding rates",
-    description: "Current and historical funding for every perp.",
-    category: "Reference",
+    label: "tradeDock.presets.rest.public.fundingRates.label",
+    description: "tradeDock.presets.rest.public.fundingRates.description",
+    category: "tradeDock.category.reference",
     method: "GET",
     url: "{{baseUrl}}/api/funding-rates?market=BTC-PERP&limit=24",
   },
   {
     kind: "rest",
     id: "rest.public.markPrices",
-    label: "Mark prices",
-    description: "Index + mark price snapshot.",
-    category: "Reference",
+    label: "tradeDock.presets.rest.public.markPrices.label",
+    description: "tradeDock.presets.rest.public.markPrices.description",
+    category: "tradeDock.category.reference",
     method: "GET",
     url: "{{baseUrl}}/api/mark-prices",
   },
@@ -258,9 +252,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.market.tickers",
-    label: "Live tickers",
-    description: "Subscribe to compressed price + 24h stats.",
-    category: "WebSocket · market data",
+    label: "tradeDock.presets.ws.market.tickers.label",
+    description: "tradeDock.presets.ws.market.tickers.description",
+    category: "tradeDock.category.wsMarket",
     wsUrl: "{{marketDataWsUrl}}?token={{marketDataToken}}",
     wsMessages: [
       JSON.stringify({ type: "subscribe", channel: "lightTickers" }, null, 2),
@@ -269,9 +263,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.market.orderbook",
-    label: "Order book (BTC-PERP)",
-    description: "Top-of-book snapshots + diff updates.",
-    category: "WebSocket · market data",
+    label: "tradeDock.presets.ws.market.orderbook.label",
+    description: "tradeDock.presets.ws.market.orderbook.description",
+    category: "tradeDock.category.wsMarket",
     wsUrl: "{{marketDataWsUrl}}?token={{marketDataToken}}",
     wsMessages: [
       JSON.stringify(
@@ -289,9 +283,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.market.trades",
-    label: "Live trades (BTC-PERP)",
-    description: "Stream of every print on a market.",
-    category: "WebSocket · market data",
+    label: "tradeDock.presets.ws.market.trades.label",
+    description: "tradeDock.presets.ws.market.trades.description",
+    category: "tradeDock.category.wsMarket",
     wsUrl: "{{marketDataWsUrl}}?token={{marketDataToken}}",
     wsMessages: [
       JSON.stringify(
@@ -304,9 +298,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.market.candles",
-    label: "Live candles (BTC-PERP)",
-    description: "Streaming OHLCV bars.",
-    category: "WebSocket · market data",
+    label: "tradeDock.presets.ws.market.candles.label",
+    description: "tradeDock.presets.ws.market.candles.description",
+    category: "tradeDock.category.wsMarket",
     wsUrl: "{{marketDataWsUrl}}?token={{marketDataToken}}",
     wsMessages: [
       JSON.stringify(
@@ -325,9 +319,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.trade.authenticate",
-    label: "Authenticate session",
-    description: "EIP-191 sign-in. Send a SimpleSignature payload.",
-    category: "WebSocket · trading",
+    label: "tradeDock.presets.ws.trade.authenticate.label",
+    description: "tradeDock.presets.ws.trade.authenticate.description",
+    category: "tradeDock.category.wsTrading",
     wsUrl: "{{wsUrl}}",
     wsMessages: [
       JSON.stringify(
@@ -343,18 +337,18 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.trade.subscribeTrading",
-    label: "Subscribe to execution reports",
-    description: "After auth: receive order/fill/margin events live.",
-    category: "WebSocket · trading",
+    label: "tradeDock.presets.ws.trade.subscribeTrading.label",
+    description: "tradeDock.presets.ws.trade.subscribeTrading.description",
+    category: "tradeDock.category.wsTrading",
     wsUrl: "{{wsUrl}}",
     wsMessages: [JSON.stringify({ type: "subscribeTrading" }, null, 2)],
   },
   {
     kind: "ws",
     id: "ws.trade.placeOrder",
-    label: "Place limit order",
-    description: "EIP-712 Order signature. Buy 0.001 BTC at 50,000.",
-    category: "WebSocket · trading",
+    label: "tradeDock.presets.ws.trade.placeOrder.label",
+    description: "tradeDock.presets.ws.trade.placeOrder.description",
+    category: "tradeDock.category.wsTrading",
     wsUrl: "{{wsUrl}}",
     wsMessages: [
       JSON.stringify(
@@ -370,9 +364,9 @@ export const PRESETS: Preset[] = [
   {
     kind: "ws",
     id: "ws.trade.cancelOrder",
-    label: "Cancel order",
-    description: "EIP-712 OrderCancel signature.",
-    category: "WebSocket · trading",
+    label: "tradeDock.presets.ws.trade.cancelOrder.label",
+    description: "tradeDock.presets.ws.trade.cancelOrder.description",
+    category: "tradeDock.category.wsTrading",
     wsUrl: "{{wsUrl}}",
     wsMessages: [
       JSON.stringify(

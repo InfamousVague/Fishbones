@@ -78,10 +78,15 @@ export interface LibreCloudUser {
 /// Thrown by `signInEmail` when the relay rejects a correct-password
 /// login because the email hasn't been confirmed yet (HTTP 403). Carries
 /// the email so the dialog can pre-fill the "resend confirmation" action.
+///
+/// Like every user-facing message in this hook, `message` is an i18n
+/// KEY (not English copy) — the consuming component resolves it with
+/// `t()`. Unknown strings fall through `t()` unchanged, so raw
+/// network/status messages still render.
 export class UnverifiedEmailError extends Error {
   readonly email: string;
   constructor(email: string) {
-    super("Please confirm your email before signing in.");
+    super("auth.confirmEmailBeforeSignIn");
     this.name = "UnverifiedEmailError";
     this.email = email;
   }
@@ -483,17 +488,18 @@ export function useLibreCloud(): UseLibreCloud {
           body: JSON.stringify(body),
         });
         if (!res.ok) {
-          // Surface a friendlier message for the common cases. The
-          // server intentionally collapses bad-credential and unknown-
-          // user into the same 401 to avoid email-existence leaks, so
-          // the client can't distinguish them — display generically.
+          // Surface a friendlier message (as an i18n key the dialog
+          // resolves with `t()`) for the common cases. The server
+          // intentionally collapses bad-credential and unknown-user
+          // into the same 401 to avoid email-existence leaks, so the
+          // client can't distinguish them — display generically.
           const msg =
             res.status === 401
-              ? "Email or password didn't match."
+              ? "auth.errCredentials"
               : res.status === 409
-                ? "An account with that email already exists."
+                ? "auth.errAccountExists"
                 : res.status === 503
-                  ? "That sign-in method isn't configured on the server."
+                  ? "auth.errMethodNotConfigured"
                   : `Sign-in failed (${res.status}).`;
           throw new Error(msg);
         }
@@ -559,9 +565,9 @@ export function useLibreCloud(): UseLibreCloud {
         if (!res.ok) {
           const msg =
             res.status === 409
-              ? "An account with that email already exists."
+              ? "auth.errAccountExists"
               : res.status === 400
-                ? "Enter a valid email and a password of at least 8 characters."
+                ? "auth.errInvalidEmailOrPassword"
                 : `Sign-up failed (${res.status}).`;
           throw new Error(msg);
         }
@@ -600,9 +606,9 @@ export function useLibreCloud(): UseLibreCloud {
         if (!res.ok) {
           const msg =
             res.status === 401
-              ? "Email or password didn't match."
+              ? "auth.errCredentials"
               : res.status === 503
-                ? "That sign-in method isn't configured on the server."
+                ? "auth.errMethodNotConfigured"
                 : `Sign-in failed (${res.status}).`;
           throw new Error(msg);
         }
@@ -717,10 +723,10 @@ export function useLibreCloud(): UseLibreCloud {
           body: JSON.stringify({ token, new_password: newPassword }),
         });
         if (res.status === 401) {
-          throw new Error("This reset link is invalid or has expired. Request a new one.");
+          throw new Error("auth.errResetLinkInvalid");
         }
         if (res.status === 400) {
-          throw new Error("Password didn't meet the minimum length (8 characters).");
+          throw new Error("auth.errPasswordTooShort");
         }
         if (!res.ok && res.status !== 204) {
           throw new Error(`reset confirm failed (${res.status})`);
@@ -791,7 +797,7 @@ export function useLibreCloud(): UseLibreCloud {
 
   const authFetch = useCallback(
     async (path: string, init: RequestInit = {}): Promise<Response> => {
-      if (!token) throw new Error("Not signed in");
+      if (!token) throw new Error("auth.errNotSignedIn");
       const headers = new Headers(init.headers ?? {});
       headers.set("Authorization", `Bearer ${token}`);
       if (init.body && !headers.has("Content-Type")) {

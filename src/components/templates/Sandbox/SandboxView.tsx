@@ -46,6 +46,7 @@ function askAi(detail: Record<string, unknown>): void {
 /// files silently swapping under them. Self-contained — manages its
 /// own visibility from the event stream.
 function AgentEditingBanner({ projectId }: { projectId: string }) {
+  const t = useT();
   const [editing, setEditing] = useState<{ path: string; done: boolean } | null>(
     null,
   );
@@ -94,11 +95,16 @@ function AgentEditingBanner({ projectId }: { projectId: string }) {
       <span className="libre-sandbox-agent-banner-spark" aria-hidden>
         ✨
       </span>
-      {editing.done ? (
-        <>AI updated <code>{editing.path}</code></>
-      ) : (
-        <>AI is editing <code>{editing.path}</code>…</>
-      )}
+      {/* Values embed `<code>{path}</code>` markup (same convention as
+          library.dropSub); safe because the path already passed
+          validateFilePath, which rejects angle-brackets and quotes. */}
+      <span
+        dangerouslySetInnerHTML={{
+          __html: editing.done
+            ? t("sandbox.aiUpdated", { path: editing.path })
+            : t("sandbox.aiEditing", { path: editing.path }),
+        }}
+      />
     </div>
   );
 }
@@ -606,13 +612,16 @@ export default function SandboxView({ projects }: SandboxViewProps) {
     // shows a "running…" placeholder while the runtime works.
     if (PHONE_VIEW_LANGUAGES.has(language)) {
       setFloatingPhoneOpen(true);
-      void openPhonePopout(phoneScope, `Sandbox · ${activeProject.name}`);
+      void openPhonePopout(
+        phoneScope,
+        t("sandbox.phonePopoutTitle", { name: activeProject.name }),
+      );
       phoneBus?.emit({ type: "running" });
     }
     try {
       const r = await runFiles(language, files);
       if (!r) {
-        const msg = `No runtime for language "${language}".`;
+        const msg = t("sandbox.noRuntimeForLanguage", { language });
         setResult({
           logs: [],
           error: msg,
@@ -896,7 +905,10 @@ export default function SandboxView({ projects }: SandboxViewProps) {
         <PhoneToggleButton
           onShow={() => {
             setFloatingPhoneOpen(true);
-            void openPhonePopout(phoneScope, `Sandbox · ${activeProject.name}`);
+            void openPhonePopout(
+              phoneScope,
+              t("sandbox.phonePopoutTitle", { name: activeProject.name }),
+            );
             // Replay the latest result into a fresh popout so the
             // window doesn't open empty after a Run already produced
             // output. Mirrors the logic in handleRun() so the bus

@@ -25,6 +25,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import type { ProbeResult } from "@/hooks/useAiChat";
+import { useT, type TFunction } from "@/i18n/i18n";
 import ModelPicker from "@/components/organisms/AiAssistant/ModelPicker";
 import { compactModelLabel } from "@/lib/ai/models";
 import { EFFORT_OPTIONS, type AiAgentSettings } from "@/lib/aiAgent/settings";
@@ -66,6 +67,7 @@ export default function TrayHeader({
   onDeleteSession,
   onClose,
 }: Props) {
+  const t = useT();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -79,11 +81,12 @@ export default function TrayHeader({
   });
 
   const status = computeStatus(probe);
+  const statusLabel = t(status.labelKey);
 
   return (
     <>
     <div className="libre-tray-header">
-      <div className="libre-tray-header-mode" role="tablist" aria-label="Assistant mode">
+      <div className="libre-tray-header-mode" role="tablist" aria-label={t("ai.assistantMode")}>
         <button
           type="button"
           role="tab"
@@ -93,10 +96,10 @@ export default function TrayHeader({
             (mode === "chat" ? " is-active" : "")
           }
           onClick={() => setMode("chat")}
-          title="Chat — streaming Q&A"
+          title={t("ai.modeChatTitle")}
         >
           <ChatBubbleIcon />
-          <span>Chat</span>
+          <span>{t("ai.modeChat")}</span>
         </button>
         <button
           type="button"
@@ -107,10 +110,10 @@ export default function TrayHeader({
             (mode === "agent" ? " is-active" : "")
           }
           onClick={() => setMode("agent")}
-          title="Agent — tools that act on your behalf"
+          title={t("ai.modeAgentTitle")}
         >
           <BoltIcon />
-          <span>Agent</span>
+          <span>{t("ai.modeAgent")}</span>
         </button>
       </div>
 
@@ -119,8 +122,8 @@ export default function TrayHeader({
       <button
         type="button"
         className={`libre-tray-header-status libre-tray-header-status--${status.tone}`}
-        title={status.label}
-        aria-label={`Ollama ${status.label}`}
+        title={statusLabel}
+        aria-label={t("ai.ollamaStatus", { label: statusLabel })}
       >
         <span className="libre-tray-header-status-dot" aria-hidden />
       </button>
@@ -132,7 +135,10 @@ export default function TrayHeader({
           onClick={() => setMenuOpen((v) => !v)}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
-          title={`${sessions.length} session${sessions.length === 1 ? "" : "s"}`}
+          title={t(
+            sessions.length === 1 ? "ai.sessionsCount" : "ai.sessionsCountPlural",
+            { count: sessions.length },
+          )}
         >
           <HistoryIcon />
           <span className="libre-tray-header-sessions-count">
@@ -142,11 +148,11 @@ export default function TrayHeader({
         {menuOpen && (
           <div className="libre-tray-header-sessions-menu" role="menu">
             <div className="libre-tray-header-sessions-menu-title">
-              Sessions
+              {t("ai.sessionsTitle")}
             </div>
             {sessions.length === 0 ? (
               <div className="libre-tray-header-sessions-menu-empty">
-                No saved sessions.
+                {t("ai.noSavedSessions")}
               </div>
             ) : (
               <ul className="libre-tray-header-sessions-list">
@@ -173,10 +179,14 @@ export default function TrayHeader({
                         {s.mode === "agent" ? <BoltIcon /> : <ChatBubbleIcon />}
                       </span>
                       <span className="libre-tray-header-sessions-name">
-                        {s.name}
+                        {/* Default names are stored as i18n keys
+                            ("ai.newChatName"); user-derived names
+                            pass through t() untouched (missing-key
+                            fallback returns the literal). */}
+                        {t(s.name)}
                       </span>
                       <span className="libre-tray-header-sessions-time">
-                        {relativeTime(s.updatedAt)}
+                        {relativeTime(s.updatedAt, t)}
                       </span>
                     </button>
                     <button
@@ -186,8 +196,8 @@ export default function TrayHeader({
                         e.stopPropagation();
                         onDeleteSession(s.id);
                       }}
-                      title="Delete session"
-                      aria-label="Delete session"
+                      title={t("ai.deleteSession")}
+                      aria-label={t("ai.deleteSession")}
                     >
                       <XIcon />
                     </button>
@@ -203,8 +213,8 @@ export default function TrayHeader({
         type="button"
         className="libre-tray-header-new"
         onClick={onNewSession}
-        title="New session"
-        aria-label="New session"
+        title={t("ai.newSession")}
+        aria-label={t("ai.newSession")}
       >
         <PlusIcon />
       </button>
@@ -214,8 +224,8 @@ export default function TrayHeader({
           type="button"
           className="libre-tray-header-close"
           onClick={onClose}
-          title="Close"
-          aria-label="Close"
+          title={t("common.close")}
+          aria-label={t("common.close")}
         >
           <XIcon />
         </button>
@@ -227,7 +237,7 @@ export default function TrayHeader({
         one click away in EITHER mode. Both write through
         onUpdateSettings, which the host funnels into the agent AND
         the chat hook. */}
-    <div className="libre-tray-subheader" aria-label="Assistant quick settings">
+    <div className="libre-tray-subheader" aria-label={t("ai.quickSettings")}>
       <ModelHeaderDropdown
         settings={settings}
         onUpdateSettings={onUpdateSettings}
@@ -309,12 +319,13 @@ function HeaderDropdown({
 }
 
 function ModelHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
+  const t = useT();
   return (
     <HeaderDropdown
       triggerIcon={<CpuIcon />}
       triggerLabel={compactModelLabel(settings.model)}
-      triggerTitle={`Assistant model — ${settings.model}`}
-      ariaLabel="Assistant model"
+      triggerTitle={t("ai.assistantModelTitle", { model: settings.model })}
+      ariaLabel={t("ai.assistantModel")}
       panelClassName="libre-tray-dd-panel--model"
       renderPanel={(close) => (
         <ModelPicker
@@ -330,14 +341,18 @@ function ModelHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
 }
 
 function EffortHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
+  const t = useT();
   const current =
     EFFORT_OPTIONS.find((o) => o.value === settings.effort) ?? EFFORT_OPTIONS[1];
   return (
     <HeaderDropdown
       triggerIcon={<GaugeIcon />}
-      triggerLabel={current.label}
-      triggerTitle={`Effort — ${current.label}: ${current.blurb}`}
-      ariaLabel="Effort level"
+      triggerLabel={t(current.labelKey)}
+      triggerTitle={t("ai.effortTitle", {
+        label: t(current.labelKey),
+        blurb: t(current.blurbKey),
+      })}
+      ariaLabel={t("ai.effortLevel")}
       panelClassName="libre-tray-dd-panel--effort"
       renderPanel={(close) => (
         <ul className="libre-tray-effort-list" role="none">
@@ -357,12 +372,12 @@ function EffortHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
                 }}
               >
                 <span className="libre-tray-effort-name">
-                  {o.label}
+                  {t(o.labelKey)}
                   {o.value === "ultra" && (
-                    <span className="libre-tray-effort-max">MAX</span>
+                    <span className="libre-tray-effort-max">{t("ai.maxBadge")}</span>
                   )}
                 </span>
-                <span className="libre-tray-effort-blurb">{o.blurb}</span>
+                <span className="libre-tray-effort-blurb">{t(o.blurbKey)}</span>
               </button>
             </li>
           ))}
@@ -374,36 +389,38 @@ function EffortHeaderDropdown({ settings, onUpdateSettings }: DropdownProps) {
 
 interface StatusInfo {
   tone: "ok" | "warn" | "bad";
-  label: string;
+  /// i18n key for the human-readable state — the component resolves
+  /// it via `t()` (this helper stays hook-free).
+  labelKey: string;
 }
 
 function computeStatus(probe: ProbeResult | null): StatusInfo {
-  if (!probe) return { tone: "warn", label: "Probing…" };
-  if (!probe.reachable) return { tone: "bad", label: "Ollama unreachable" };
+  if (!probe) return { tone: "warn", labelKey: "ai.statusProbing" };
+  if (!probe.reachable) return { tone: "bad", labelKey: "ai.statusUnreachable" };
   if (!probe.hasDefaultModel) {
-    return { tone: "warn", label: "Default model not pulled" };
+    return { tone: "warn", labelKey: "ai.statusModelMissing" };
   }
-  return { tone: "ok", label: "Ready" };
+  return { tone: "ok", labelKey: "ai.statusReady" };
 }
 
-/// One-grain relative-time formatter. Hard-coded English labels —
-/// matches the rest of the tray UI which isn't i18n-aware. Keeps
-/// the implementation tiny (no `Intl.RelativeTimeFormat` overhead
+/// One-grain relative-time formatter. Labels resolve through the
+/// caller's `t()` (keys under `common.relTime*`). Keeps the
+/// implementation tiny (no `Intl.RelativeTimeFormat` overhead
 /// for a label that's at most 4 chars wide).
-function relativeTime(ts: number): string {
+function relativeTime(ts: number, t: TFunction): string {
   const diff = Date.now() - ts;
   const sec = Math.floor(diff / 1000);
-  if (sec < 60) return "now";
+  if (sec < 60) return t("common.relTimeNow");
   const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}m`;
+  if (min < 60) return t("common.relTimeMin", { n: min });
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h`;
+  if (hr < 24) return t("common.relTimeHour", { n: hr });
   const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}d`;
+  if (day < 7) return t("common.relTimeDay", { n: day });
   const wk = Math.floor(day / 7);
-  if (wk < 4) return `${wk}w`;
+  if (wk < 4) return t("common.relTimeWeek", { n: wk });
   const mo = Math.floor(day / 30);
-  return `${mo}mo`;
+  return t("common.relTimeMonth", { n: mo });
 }
 
 // ── Inline SVG icons ────────────────────────────────────────────

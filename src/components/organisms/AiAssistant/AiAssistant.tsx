@@ -26,6 +26,7 @@ import {
   type SandboxSelectionAsk,
 } from "./selectionAsk";
 import { readAiEnabled } from "@/lib/aiHost";
+import { useT, type TFunction } from "@/i18n/i18n";
 import TrayHeader from "@/components/organisms/TrayPanel/TrayHeader";
 import { useTraySessions } from "@/components/organisms/TrayPanel/useTraySessions";
 import { useSandboxStreamWriter } from "@/components/organisms/TrayPanel/useSandboxStreamWriter";
@@ -98,6 +99,7 @@ export default function AiAssistant({
   celebrateAt,
   currentSandbox,
 }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   // Shared session store with the menu-bar tray — typing in
@@ -566,7 +568,7 @@ export default function AiAssistant({
         selectionAskRoutesToAgent(detail.action)
       ) {
         track.aiSend({ mode: "agent", context: askContext });
-        void agent.send(formatAskDisplay(detail), formatAskPrompt(detail));
+        void agent.send(formatAskDisplay(detail, t), formatAskPrompt(detail));
         return;
       }
       // Chat-routed kinds (code, explain-step, quiz, ask,
@@ -605,13 +607,13 @@ export default function AiAssistant({
           : "";
       const augmented =
         formatAskPrompt(detail) + (grounding ? `\n\n${grounding}` : "");
-      const displayed = formatAskDisplay(detail);
+      const displayed = formatAskDisplay(detail, t);
       track.aiSend({ mode: "chat", context: askContext });
       void chat.send(displayed, systemPrompt, augmented);
     };
     window.addEventListener("libre:ask-ai", handler);
     return () => window.removeEventListener("libre:ask-ai", handler);
-  }, [chat, agent, setMode, systemPrompt, panelContext, courses, course, localModel]);
+  }, [chat, agent, setMode, systemPrompt, panelContext, courses, course, localModel, t]);
 
   // Pending-generate completion is now handled by the AGENT path
   // — `useSandboxStreamWriter` writes each ```lang:path block into
@@ -1178,11 +1180,12 @@ function formatAskPrompt(detail: Exclude<AskAiDetail, { kind: "open" }>): string
 /// model via the `augmented` field on the message.
 function formatAskDisplay(
   detail: Exclude<AskAiDetail, { kind: "open" }>,
+  t: TFunction,
 ): string {
   if (detail.kind === "code") {
     const lang = detail.language || "";
     return [
-      "Walk me through this snippet.",
+      t("ai.displayWalkThroughSnippet"),
       "",
       "```" + lang,
       detail.code,
@@ -1192,7 +1195,7 @@ function formatAskDisplay(
   if (detail.kind === "explain-step") {
     const lang = detail.language || "";
     return [
-      "Explain this code step by step.",
+      t("ai.displayExplainStepByStep"),
       "",
       "```" + lang,
       detail.code,
@@ -1214,7 +1217,7 @@ function formatAskDisplay(
     // Show the passage the learner picked, quoted, under a short
     // intent line — mirrors what they did ("I highlighted this").
     return [
-      "Explain this passage:",
+      t("ai.displayExplainPassage"),
       "",
       "> " + detail.text.trim().replace(/\n/g, "\n> "),
     ].join("\n");

@@ -32,7 +32,9 @@ export interface JournalFile {
   path: string;
   language: string;
   /// Heuristic one-line role ("Entry point", "Component",
-  /// "Logic module", "Styles", "Config").
+  /// "Logic module", "Styles", "Config"). Canonical English —
+  /// `readingRank` and tests key off these values; the panel maps
+  /// each to its ai.fileRole* i18n key at render time.
   purpose: string;
   /// Concepts detected in this specific file.
   concepts: Concept[];

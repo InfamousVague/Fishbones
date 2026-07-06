@@ -74,36 +74,39 @@ import SettingsCard, { SettingsPage } from "./SettingsCard";
 import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
 import { track } from "@/lib/track";
+import { useT } from "@/i18n/i18n";
 import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
 interface IntentMeta {
   intent: HapticIntent;
   icon: string;
+  /// i18n keys — resolved via `t()` at the render sites.
   label: string;
   sub: string;
 }
 
 const IMPACT_INTENTS: IntentMeta[] = [
-  { intent: "tap", icon: mousePointerClick, label: "Tap", sub: "Light buzz on every button press. The default mobile chrome feedback." },
-  { intent: "selection", icon: circle, label: "Selection", sub: "Confirms tab changes, theme picks, and segmented-control toggles." },
-  { intent: "impact-light", icon: zap, label: "Light impact", sub: "Modal open, popover dismiss, sheet present." },
-  { intent: "impact-medium", icon: zap, label: "Medium impact", sub: "Significant transition — lesson change, course open, navigation to detail." },
-  { intent: "impact-heavy", icon: zap, label: "Heavy impact", sub: "Destructive confirmation, achievement unlock first frame." },
+  { intent: "tap", icon: mousePointerClick, label: "settings.hapticsImpactTap", sub: "settings.hapticsImpactTapSub" },
+  { intent: "selection", icon: circle, label: "settings.hapticsImpactSelection", sub: "settings.hapticsImpactSelectionSub" },
+  { intent: "impact-light", icon: zap, label: "settings.hapticsImpactLight", sub: "settings.hapticsImpactLightSub" },
+  { intent: "impact-medium", icon: zap, label: "settings.hapticsImpactMedium", sub: "settings.hapticsImpactMediumSub" },
+  { intent: "impact-heavy", icon: zap, label: "settings.hapticsImpactHeavy", sub: "settings.hapticsImpactHeavySub" },
 ];
 
 const NOTIFICATION_INTENTS: IntentMeta[] = [
-  { intent: "notification-success", icon: check, label: "Success", sub: "Tests pass, lesson marked complete, sync finishes." },
-  { intent: "notification-warning", icon: triangleAlert, label: "Warning", sub: "Validation rejected, network slow, optional step skipped." },
-  { intent: "notification-error", icon: circleX, label: "Error", sub: "Tests fail, run errored, sync rejected." },
+  { intent: "notification-success", icon: check, label: "settings.hapticsNotifSuccess", sub: "settings.hapticsNotifSuccessSub" },
+  { intent: "notification-warning", icon: triangleAlert, label: "settings.hapticsNotifWarning", sub: "settings.hapticsNotifWarningSub" },
+  { intent: "notification-error", icon: circleX, label: "settings.hapticsNotifError", sub: "settings.hapticsNotifErrorSub" },
 ];
 
 const PATTERN_INTENTS: IntentMeta[] = [
-  { intent: "streak-bump", icon: flame, label: "Streak bump", sub: "Ascending crescendo when the streak counter ticks up." },
-  { intent: "level-up", icon: award, label: "Level up", sub: "Five-pulse celebration on the level-up modal, paired with confetti." },
-  { intent: "completion", icon: trophy, label: "Course complete", sub: "Long descending finale timed to the certificate-mint moment." },
+  { intent: "streak-bump", icon: flame, label: "settings.hapticsPatternStreak", sub: "settings.hapticsPatternStreakSub" },
+  { intent: "level-up", icon: award, label: "settings.hapticsPatternLevelUp", sub: "settings.hapticsPatternLevelUpSub" },
+  { intent: "completion", icon: trophy, label: "settings.hapticsPatternCompletion", sub: "settings.hapticsPatternCompletionSub" },
 ];
 
 export default function HapticsPane() {
+  const t = useT();
   // ─── Master settings ─────────────────────────────────────────
   const initial = readHapticSettings();
   const [enabled, setEnabled] = useState<boolean>(initial.enabled);
@@ -190,7 +193,7 @@ export default function HapticsPane() {
     <button
       type="button"
       onClick={() => void fireHaptic(intent)}
-      aria-label={`Preview ${intent} haptic`}
+      aria-label={t("settings.previewHapticAria", { intent })}
       className="libre-settings-cue-play"
     >
       <Icon icon={playIcon} size="xs" color="currentColor" />
@@ -199,28 +202,30 @@ export default function HapticsPane() {
 
   return (
     <SettingsPage
-      title="Haptics"
-      description="Tactile feedback timed with what's on screen. On supported devices, every primary interaction fires a subtle buzz so the app feels alive in your hand. Use the cards below to tune which moments buzz, how strongly, and when."
+      title={t("settings.hapticsTitle")}
+      description={t("settings.hapticsDescription")}
     >
       {/* ─── 1. Master ──────────────────────────────────────── */}
-      <SettingsCard title="Master">
+      <SettingsCard title={t("settings.masterCard")}>
         <SettingsRow
           icon={enabled ? vibrate : vibrateOff}
           tone={enabled ? "accent" : "default"}
-          label="Haptic feedback"
-          sub="Master switch — kills every buzz when off."
+          label={t("settings.hapticFeedback")}
+          sub={t("settings.hapticsEnableSub")}
           control={
             <SettingsToggle
               checked={enabled}
               onChange={onToggleEnabled}
-              label="Haptic feedback"
+              label={t("settings.hapticFeedback")}
             />
           }
         />
         <SettingsRow
           icon={sliders}
-          label="Intensity"
-          sub={`Scales every pattern's duration. Currently ${Math.round(intensity * 100)}%.`}
+          label={t("settings.intensity")}
+          sub={t("settings.hapticsIntensitySub", {
+            percent: Math.round(intensity * 100),
+          })}
           control={
             <RangeSlider
               min={0}
@@ -239,7 +244,7 @@ export default function HapticsPane() {
                   onIntensityRelease();
                 }
               }}
-              aria-label="Haptic intensity"
+              aria-label={t("settings.hapticIntensityAria")}
               disabled={!enabled}
               className="libre-settings-cue-slider"
             />
@@ -249,7 +254,7 @@ export default function HapticsPane() {
 
       {/* ─── 2. Categories ──────────────────────────────────── */}
       <SettingsCard
-        title="Categories"
+        title={t("settings.hapticsCardCategories")}
         // Per-category gates let users keep the feedback they
         // want and silence the rest. Toggling off a category
         // here doesn't reach back into the master switch — the
@@ -279,16 +284,23 @@ export default function HapticsPane() {
       </SettingsCard>
 
       {/* ─── 3. Quiet hours ─────────────────────────────────── */}
-      <SettingsCard title="Quiet hours">
+      <SettingsCard title={t("settings.hapticsCardQuietHours")}>
         <SettingsRow
           icon={moon}
-          label="Mode"
+          label={t("settings.quietMode")}
           sub={
             quiet.mode === "off"
-              ? "Off — haptics play at full strength all day."
+              ? t("settings.quietModeOffSub")
               : quiet.mode === "dampen"
-                ? `Dampen during ${quiet.startHHMM}–${quiet.endHHMM} (${Math.round(quiet.dampenFactor * 100)}% intensity).`
-                : `Mute during ${quiet.startHHMM}–${quiet.endHHMM}.`
+                ? t("settings.quietModeDampenSub", {
+                    start: quiet.startHHMM,
+                    end: quiet.endHHMM,
+                    percent: Math.round(quiet.dampenFactor * 100),
+                  })
+                : t("settings.quietModeMuteSub", {
+                    start: quiet.startHHMM,
+                    end: quiet.endHHMM,
+                  })
           }
           control={
             <select
@@ -300,11 +312,11 @@ export default function HapticsPane() {
               }
               disabled={!enabled}
               className="libre-settings-cue-slider"
-              aria-label="Quiet hours mode"
+              aria-label={t("settings.quietModeAria")}
             >
-              <option value="off">Off</option>
-              <option value="dampen">Dampen</option>
-              <option value="mute">Mute</option>
+              <option value="off">{t("settings.quietOptionOff")}</option>
+              <option value="dampen">{t("settings.quietOptionDampen")}</option>
+              <option value="mute">{t("settings.quietOptionMute")}</option>
             </select>
           }
         />
@@ -312,8 +324,8 @@ export default function HapticsPane() {
           <>
             <SettingsRow
               icon={moon}
-              label="Start"
-              sub="When the quiet window begins (24-hour, local time)."
+              label={t("settings.quietStart")}
+              sub={t("settings.quietStartSub")}
               control={
                 <input
                   type="time"
@@ -321,14 +333,14 @@ export default function HapticsPane() {
                   onChange={(e) => updateQuiet({ startHHMM: e.target.value })}
                   disabled={!enabled}
                   className="libre-settings-cue-slider"
-                  aria-label="Quiet hours start"
+                  aria-label={t("settings.quietStartAria")}
                 />
               }
             />
             <SettingsRow
               icon={sun}
-              label="End"
-              sub="When the window lifts. End-before-start wraps midnight."
+              label={t("settings.quietEnd")}
+              sub={t("settings.quietEndSub")}
               control={
                 <input
                   type="time"
@@ -336,15 +348,17 @@ export default function HapticsPane() {
                   onChange={(e) => updateQuiet({ endHHMM: e.target.value })}
                   disabled={!enabled}
                   className="libre-settings-cue-slider"
-                  aria-label="Quiet hours end"
+                  aria-label={t("settings.quietEndAria")}
                 />
               }
             />
             {quiet.mode === "dampen" && (
               <SettingsRow
                 icon={sliders}
-                label="Dampen factor"
-                sub={`Intensity multiplier inside the window. ${Math.round(quiet.dampenFactor * 100)}%.`}
+                label={t("settings.quietDampenFactor")}
+                sub={t("settings.quietDampenFactorSub", {
+                  percent: Math.round(quiet.dampenFactor * 100),
+                })}
                 control={
                   <RangeSlider
                     min={0.05}
@@ -358,7 +372,7 @@ export default function HapticsPane() {
                     }
                     disabled={!enabled}
                     className="libre-settings-cue-slider"
-                    aria-label="Quiet hours dampen factor"
+                    aria-label={t("settings.quietDampenAria")}
                   />
                 }
               />
@@ -368,52 +382,52 @@ export default function HapticsPane() {
       </SettingsCard>
 
       {/* ─── 4. Impacts ─────────────────────────────────────── */}
-      <SettingsCard title="Impacts">
+      <SettingsCard title={t("settings.hapticsCardImpacts")}>
         {IMPACT_INTENTS.map((m) => (
           <SettingsRow
             key={m.intent}
             icon={m.icon}
-            label={m.label}
-            sub={m.sub}
+            label={t(m.label)}
+            sub={t(m.sub)}
             control={renderPlay(m.intent)}
           />
         ))}
       </SettingsCard>
 
       {/* ─── 5. Notifications ───────────────────────────────── */}
-      <SettingsCard title="Notifications">
+      <SettingsCard title={t("settings.hapticsCardNotifications")}>
         {NOTIFICATION_INTENTS.map((m) => (
           <SettingsRow
             key={m.intent}
             icon={m.icon}
             tone="accent"
-            label={m.label}
-            sub={m.sub}
+            label={t(m.label)}
+            sub={t(m.sub)}
             control={renderPlay(m.intent)}
           />
         ))}
       </SettingsCard>
 
       {/* ─── 6. Patterns + presets + custom ──────────────────── */}
-      <SettingsCard title="Patterns">
+      <SettingsCard title={t("settings.hapticsCardPatterns")}>
         {PATTERN_INTENTS.map((m) => (
           <SettingsRow
             key={m.intent}
             icon={m.icon}
-            label={m.label}
-            sub={m.sub}
+            label={t(m.label)}
+            sub={t(m.sub)}
             control={renderPlay(m.intent)}
           />
         ))}
       </SettingsCard>
 
-      <SettingsCard title="Preset library">
+      <SettingsCard title={t("settings.hapticsCardPresets")}>
         {PRESETS.map((preset) => (
           <PresetRow key={preset.id} preset={preset} disabled={!enabled} />
         ))}
       </SettingsCard>
 
-      <SettingsCard title="Custom patterns">
+      <SettingsCard title={t("settings.hapticsCardCustom")}>
         <CustomPatternEditor disabled={!enabled} />
         {customs.length > 0 && (
           customs.map((p) => (
@@ -421,13 +435,16 @@ export default function HapticsPane() {
               key={p.id}
               icon={vibrate}
               label={p.id}
-              sub={`${p.beats.length} beats · ${p.beats.reduce((s, [ms]) => s + ms, 0)}ms total`}
+              sub={t("settings.customPatternSub", {
+                beats: p.beats.length,
+                ms: p.beats.reduce((s, [ms]) => s + ms, 0),
+              })}
               control={
                 <div style={{ display: "flex", gap: 'var(--libre-space-4)' }}>
                   <button
                     type="button"
                     onClick={() => void firePattern(p, "celebration")}
-                    aria-label={`Preview ${p.id}`}
+                    aria-label={t("settings.previewPatternAria", { id: p.id })}
                     className="libre-settings-cue-play"
                   >
                     <Icon icon={playIcon} size="xs" color="currentColor" />
@@ -435,7 +452,7 @@ export default function HapticsPane() {
                   <button
                     type="button"
                     onClick={() => deleteCustomPattern(p.id)}
-                    aria-label={`Delete ${p.id}`}
+                    aria-label={t("settings.deletePatternAria", { id: p.id })}
                     className="libre-settings-cue-play"
                   >
                     <Icon icon={trash2} size="xs" color="currentColor" />
@@ -448,18 +465,23 @@ export default function HapticsPane() {
       </SettingsCard>
 
       {/* ─── 7. Telemetry ───────────────────────────────────── */}
-      <SettingsCard title="Telemetry">
+      <SettingsCard title={t("settings.hapticsCardTelemetry")}>
         <SettingsRow
           icon={sliders}
-          label="Fires this session"
-          sub={`${totalFires} buzz${totalFires === 1 ? "" : "es"} since launch. Live count, in-memory only — never persisted, never sent anywhere.`}
+          label={t("settings.telemetryFires")}
+          sub={t(
+            totalFires === 1
+              ? "settings.telemetryFiresSub"
+              : "settings.telemetryFiresSubPlural",
+            { count: totalFires },
+          )}
           control={
             <button
               type="button"
               onClick={() => resetTelemetry()}
               className="libre-settings-cue-play"
-              aria-label="Reset telemetry"
-              title="Reset counters"
+              aria-label={t("settings.resetTelemetryAria")}
+              title={t("settings.resetCountersTitle")}
             >
               <Icon icon={trash2} size="xs" color="currentColor" />
             </button>
@@ -473,7 +495,9 @@ export default function HapticsPane() {
               key={intent}
               icon={iconForIntent(intent)}
               label={intent}
-              sub={`Category: ${INTENT_CATEGORY[intent]}`}
+              sub={t("settings.telemetryCategorySub", {
+                category: INTENT_CATEGORY[intent],
+              })}
               control={
                 <span style={{ fontVariantNumeric: "tabular-nums" }}>
                   {telemetry[intent]}
@@ -484,8 +508,8 @@ export default function HapticsPane() {
         {totalFires === 0 && (
           <SettingsRow
             icon={circle}
-            label="No fires yet"
-            sub="Use the Play buttons above to audition any intent and the count appears here."
+            label={t("settings.telemetryEmpty")}
+            sub={t("settings.telemetryEmptySub")}
           />
         )}
       </SettingsCard>
@@ -523,6 +547,7 @@ function iconForIntent(intent: HapticIntent): string {
 }
 
 function PresetRow({ preset, disabled }: { preset: Preset; disabled: boolean }) {
+  const t = useT();
   return (
     <SettingsRow
       icon={vibrate}
@@ -532,7 +557,7 @@ function PresetRow({ preset, disabled }: { preset: Preset; disabled: boolean }) 
         <button
           type="button"
           onClick={() => void firePattern(preset, "completion")}
-          aria-label={`Preview ${preset.label}`}
+          aria-label={t("settings.previewPatternAria", { id: preset.label })}
           className="libre-settings-cue-play"
           disabled={disabled}
         >
@@ -548,6 +573,7 @@ function PresetRow({ preset, disabled }: { preset: Preset; disabled: boolean }) 
 /// above. Intentionally minimal — power users can hand-edit JSON
 /// via the localStorage panel if they want richer composition.
 function CustomPatternEditor({ disabled }: { disabled: boolean }) {
+  const t = useT();
   const [beats, setBeats] = useState<Array<{ ms: number; kind: "buzz" | "pause" }>>(
     () => [
       { ms: 20, kind: "buzz" },
@@ -624,7 +650,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
                 updateBeat(i, "kind", e.target.value as "buzz" | "pause")
               }
               disabled={disabled}
-              aria-label="Beat kind"
+              aria-label={t("settings.beatKindAria")}
               style={{
                 background: "transparent",
                 color: "var(--color-text-primary)",
@@ -632,8 +658,8 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
                 fontSize: 'var(--libre-fs-11)',
               }}
             >
-              <option value="buzz">buzz</option>
-              <option value="pause">pause</option>
+              <option value="buzz">{t("settings.beatBuzz")}</option>
+              <option value="pause">{t("settings.beatPause")}</option>
             </select>
             <input
               type="number"
@@ -645,7 +671,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
                 updateBeat(i, "ms", Math.max(0, Number.parseInt(e.target.value, 10) || 0))
               }
               disabled={disabled}
-              aria-label="Beat duration in ms"
+              aria-label={t("settings.beatDurationAria")}
               style={{
                 width: 'var(--libre-size-56)',
                 background: "transparent",
@@ -655,12 +681,12 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
                 fontSize: 'var(--libre-fs-11)',
               }}
             />
-            <span style={{ fontSize: 'var(--libre-fs-10)', color: "var(--color-text-tertiary)" }}>ms</span>
+            <span style={{ fontSize: 'var(--libre-fs-10)', color: "var(--color-text-tertiary)" }}>{t("settings.msUnit")}</span>
             <button
               type="button"
               onClick={() => removeBeat(i)}
               disabled={disabled || beats.length <= 1}
-              aria-label="Remove beat"
+              aria-label={t("settings.removeBeatAria")}
               style={{
                 background: "transparent",
                 color: "var(--color-text-tertiary)",
@@ -679,7 +705,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
           onClick={addBeat}
           disabled={disabled || beats.length >= 16}
           className="libre-settings-cue-play"
-          aria-label="Add beat"
+          aria-label={t("settings.addBeatAria")}
         >
           +
         </button>
@@ -692,7 +718,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
           disabled={disabled}
         >
           <Icon icon={playIcon} size="xs" color="currentColor" />
-          <span style={{ marginLeft: 'var(--libre-space-4)' }}>Preview</span>
+          <span style={{ marginLeft: 'var(--libre-space-4)' }}>{t("settings.previewBtn")}</span>
         </button>
         <button
           type="button"
@@ -700,7 +726,7 @@ function CustomPatternEditor({ disabled }: { disabled: boolean }) {
           className="libre-settings-cue-play"
           disabled={disabled}
         >
-          {savedFlash ? "Saved!" : "Save as custom"}
+          {savedFlash ? t("settings.savedFlash") : t("settings.saveAsCustom")}
         </button>
       </div>
     </div>

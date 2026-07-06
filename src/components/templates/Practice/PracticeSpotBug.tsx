@@ -13,6 +13,7 @@ import { Icon } from "@base/primitives/icon";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
+import { useT } from "@/i18n/i18n";
 import "./PracticeSpotBug.css";
 
 interface Props {
@@ -37,6 +38,7 @@ export default function PracticeSpotBug({
   committed,
   onResult,
 }: Props) {
+  const t = useT();
   const [tapped, setTapped] = useState<number | null>(null);
 
   function tap(i: number) {
@@ -48,7 +50,7 @@ export default function PracticeSpotBug({
   return (
     <div className="libre-spotbug">
       <div className="libre-spotbug__hint">
-        One line has a bug — tap the line you think is wrong.
+        {t("practice.spotbugHint")}
       </div>
       <ol className="libre-spotbug__list">
         {lines.map((line, i) => {
@@ -93,7 +95,7 @@ export default function PracticeSpotBug({
             <Icon icon={checkIcon} size="xs" color="currentColor" /> {category}
           </span>
           <div className="libre-spotbug__fix">
-            <span className="libre-spotbug__fix-label">Should be</span>
+            <span className="libre-spotbug__fix-label">{t("practice.shouldBe")}</span>
             <code>{original}</code>
           </div>
         </div>

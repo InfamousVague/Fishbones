@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { LanguageId } from "@/data/types";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
+import { useT } from "@/i18n/i18n";
 import "./DocsImportDialog.css";
 import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
@@ -13,30 +14,32 @@ const AVG_TOKENS_PER_PAGE = {
   output: 5500,
 };
 
+// `hint` holds an i18n key (module scope — no hooks here); the render
+// resolves it through `t()`.
 const MODEL_PRICES: Record<ModelId, { inputPerM: number; outputPerM: number; label: string; hint: string }> = {
   "claude-haiku-4-8": {
     inputPerM: 0.8,
     outputPerM: 4,
     label: "Haiku 4.8",
-    hint: "Fastest + cheapest. OK for smaller sites.",
+    hint: "import.modelHintHaiku",
   },
   "claude-sonnet-4-8": {
     inputPerM: 3,
     outputPerM: 15,
     label: "Sonnet 4.8",
-    hint: "Solid baseline. Recommended default.",
+    hint: "import.modelHintSonnet",
   },
   "claude-opus-4-8": {
     inputPerM: 15,
     outputPerM: 75,
     label: "Opus 4.8",
-    hint: "Highest quality. Best for reference docs.",
+    hint: "import.modelHintOpus",
   },
   "claude-fable-5": {
     inputPerM: 10,
     outputPerM: 50,
     label: "Fable 5",
-    hint: "Most powerful. Best pedagogy + test design.",
+    hint: "import.modelHintFable",
   },
 };
 
@@ -87,6 +90,7 @@ const DEFAULT_REQUEST_DELAY = 250;
 /// different — the PDF path asks for a file + metadata detection; the
 /// docs path asks for a URL + crawl bounds + model selection.
 export default function DocsImportDialog({ onDismiss, onStart }: Props) {
+  const t = useT();
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
@@ -115,14 +119,14 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
     try {
       const u = new URL(url.trim());
       if (u.protocol !== "http:" && u.protocol !== "https:") {
-        setUrlError("URL must use http:// or https://");
+        setUrlError(t("import.errUrlProtocol"));
       } else {
         setUrlError(null);
       }
     } catch {
-      setUrlError("Not a valid URL");
+      setUrlError(t("import.errUrlInvalid"));
     }
-  }, [url]);
+  }, [url, t]);
 
   const estimatedCostUsd = useMemo(() => {
     const price = MODEL_PRICES[model];
@@ -161,19 +165,19 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
       >
         <div className="libre-docs-header">
           <div>
-            <div className="libre-docs-kicker">New course</div>
+            <div className="libre-docs-kicker">{t("import.docsKicker")}</div>
             <div
               className="libre-docs-title"
               id="libre-docs-title"
             >
-              Import from docs site
+              {t("import.docsTitle")}
             </div>
           </div>
           <button
             type="button"
             className="libre-docs-close"
             onClick={onDismiss}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             ×
           </button>
@@ -185,7 +189,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
               className="libre-docs-section-label"
               htmlFor="libre-docs-url"
             >
-              Start URL
+              {t("import.startUrl")}
             </label>
             <input
               id="libre-docs-url"
@@ -203,9 +207,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
               <div className="libre-docs-error">{urlError}</div>
             )}
             <div className="libre-docs-section-hint">
-              Crawl is scoped to the same origin + path prefix —
-              everything under the URL's "directory" gets visited, nothing
-              above it or on other hosts.
+              {t("import.crawlScopeHint")}
             </div>
           </section>
 
@@ -214,13 +216,13 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
               className="libre-docs-section-label"
               htmlFor="libre-docs-title-input"
             >
-              Course title
+              {t("import.courseTitle")}
             </label>
             <input
               id="libre-docs-title-input"
               type="text"
               className="libre-docs-input"
-              placeholder="e.g. React Native Docs"
+              placeholder={t("import.docsTitlePlaceholder")}
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
@@ -230,7 +232,9 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
           </section>
 
           <section className="libre-docs-section">
-            <label className="libre-docs-section-label">Language</label>
+            <label className="libre-docs-section-label">
+              {t("import.language")}
+            </label>
             <div className="libre-docs-lang-row">
               {LANGUAGE_OPTIONS.map((opt) => (
                 <button
@@ -246,16 +250,14 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
               ))}
             </div>
             <div className="libre-docs-section-hint">
-              Sets the runtime for auto-generated exercises. The crawler
-              doesn't inspect code blocks to pick one — you know the
-              site better than our heuristic would.
+              {t("import.languageHint")}
             </div>
           </section>
 
           <section className="libre-docs-section libre-docs-section--two-up">
             <div className="libre-docs-slider-group">
               <label className="libre-docs-section-label">
-                Max pages
+                {t("import.maxPages")}
                 <span className="libre-docs-section-value">{maxPages}</span>
               </label>
               <RangeSlider
@@ -273,7 +275,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
             </div>
             <div className="libre-docs-slider-group">
               <label className="libre-docs-section-label">
-                Max depth
+                {t("import.maxDepth")}
                 <span className="libre-docs-section-value">{maxDepth}</span>
               </label>
               <RangeSlider
@@ -285,8 +287,8 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
                 onChange={(e) => setMaxDepth(parseInt(e.target.value, 10))}
               />
               <div className="libre-docs-slider-ticks">
-                <span>shallow</span>
-                <span>deep</span>
+                <span>{t("import.shallow")}</span>
+                <span>{t("import.deep")}</span>
               </div>
             </div>
           </section>
@@ -299,19 +301,18 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
                 onChange={(e) => setEmbedImages(e.target.checked)}
               />
               <span className="libre-docs-toggle-label">
-                Embed images into the course
+                {t("import.embedImages")}
               </span>
             </label>
             <div className="libre-docs-section-hint">
-              Downloads every image referenced on each page and inlines
-              it as a data URL so the exported <code>.academy</code>{" "}
-              archive is portable. Roughly doubles crawl time for
-              image-heavy sites; recommended.
+              {t("import.embedImagesHint")}
             </div>
           </section>
 
           <section className="libre-docs-section">
-            <label className="libre-docs-section-label">Model</label>
+            <label className="libre-docs-section-label">
+              {t("import.model")}
+            </label>
             <div className="libre-docs-model-list">
               {(Object.keys(MODEL_PRICES) as ModelId[]).map((id) => (
                 <button
@@ -326,7 +327,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
                     {MODEL_PRICES[id].label}
                   </div>
                   <div className="libre-docs-model-hint">
-                    {MODEL_PRICES[id].hint}
+                    {t(MODEL_PRICES[id].hint)}
                   </div>
                 </button>
               ))}
@@ -335,7 +336,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
 
           <section className="libre-docs-estimate">
             <div className="libre-docs-estimate-label">
-              Estimated cost
+              {t("import.estimatedCost")}
             </div>
             <div
               className={`libre-docs-estimate-value ${
@@ -345,11 +346,12 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
               ~${estimatedCostUsd.toFixed(2)}
             </div>
             <div className="libre-docs-estimate-hint">
-              {maxPages} pages × ~{AVG_TOKENS_PER_PAGE.output / 1000}k
-              output tokens × {MODEL_PRICES[model].label}. Short pages
-              cost less; API-reference pages cost more. Cancel any time.
-              {estimatedCostUsd > 20 &&
-                " — above $20. Consider Sonnet or a smaller page cap."}
+              {t("import.estimateHint", {
+                pages: maxPages,
+                tokens: AVG_TOKENS_PER_PAGE.output / 1000,
+                model: MODEL_PRICES[model].label,
+              })}
+              {estimatedCostUsd > 20 && ` ${t("import.estimateWarnHigh")}`}
             </div>
           </section>
         </div>
@@ -360,7 +362,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
             className="libre-docs-btn"
             onClick={onDismiss}
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -368,7 +370,7 @@ export default function DocsImportDialog({ onDismiss, onStart }: Props) {
             onClick={submit}
             disabled={!canSubmit}
           >
-            Crawl + generate
+            {t("import.crawlGenerate")}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { PipelineStats } from "@/ingest/pipeline";
 import { useInterval } from "@/hooks/useInterval";
+import { useT, type TFunction } from "@/i18n/i18n";
 import "./StatsBar.css";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 /// chapters, lessons (by kind), tokens, cost. Null-stats render a dim
 /// skeleton so the layout doesn't jump once the first event lands.
 export default function StatsBar({ stats }: Props) {
+  const t = useT();
   // Elapsed is derived from stats.startedAt and needs to tick independently
   // of pipeline events — Opus can happily think for 60s without firing
   // anything, and a frozen clock reads as a hung app. A 500ms interval
@@ -24,37 +26,54 @@ export default function StatsBar({ stats }: Props) {
 
   return (
     <div className="libre-stats">
-      <Cell label="elapsed" value={stats ? formatElapsed(elapsedMs) : "–"} />
       <Cell
-        label="chapters"
+        label={t("import.statElapsed")}
+        value={stats ? formatElapsed(elapsedMs) : "–"}
+      />
+      <Cell
+        label={t("import.statChapters")}
         value={stats ? `${stats.chaptersDone}/${stats.totalChapters || "?"}` : "–"}
       />
       <Cell
-        label="lessons"
+        label={t("import.statLessons")}
         value={stats ? `${stats.lessonsDone}/${stats.lessonsTotal || "?"}` : "–"}
-        hint={stats ? formatKinds(stats.lessonsByKind) : undefined}
+        hint={stats ? formatKinds(t, stats.lessonsByKind) : undefined}
       />
       <Cell
-        label="tokens"
+        label={t("import.statTokens")}
         value={stats ? `${formatCount(tokens)}` : "–"}
         hint={
           stats
-            ? `${formatCount(stats.inputTokens)} in · ${formatCount(stats.outputTokens)} out`
+            ? t("import.statInOut", {
+                in: formatCount(stats.inputTokens),
+                out: formatCount(stats.outputTokens),
+              })
             : undefined
         }
       />
       <Cell
-        label={`cost (${stats?.model.replace("claude-", "") ?? ""})`}
+        label={t("import.statCost", {
+          model: stats?.model.replace("claude-", "") ?? "",
+        })}
         value={stats ? `$${stats.estimatedCostUsd.toFixed(3)}` : "–"}
         hint={stats && (stats.apiCalls > 0 || stats.cacheHits > 0)
-          ? `${stats.apiCalls} call${stats.apiCalls === 1 ? "" : "s"} · ${stats.cacheHits} cached`
+          ? t(
+              stats.apiCalls === 1
+                ? "import.statCalls"
+                : "import.statCallsPlural",
+              { count: stats.apiCalls, cached: stats.cacheHits },
+            )
           : undefined}
       />
       {stats && (stats.validationAttempts > 0 || stats.demotedExercises > 0) && (
         <Cell
-          label="validate"
+          label={t("import.statValidate")}
           value={`${stats.validationAttempts - stats.validationFailures}/${stats.validationAttempts}`}
-          hint={stats.demotedExercises > 0 ? `${stats.demotedExercises} demoted` : undefined}
+          hint={
+            stats.demotedExercises > 0
+              ? t("import.statDemoted", { count: stats.demotedExercises })
+              : undefined
+          }
           tone={stats.demotedExercises > 0 ? "warn" : "normal"}
         />
       )}
@@ -95,10 +114,18 @@ function formatCount(n: number): string {
   return `${(n / 1_000_000).toFixed(2)}M`;
 }
 
-function formatKinds(kinds: Record<string, number>): string {
+/// Takes `t` as an argument (module-scope helper, no hooks here) so
+/// the per-kind labels localize with the rest of the bar.
+function formatKinds(t: TFunction, kinds: Record<string, number>): string {
   const order = ["reading", "exercise", "mixed", "quiz"];
+  const keys: Record<string, string> = {
+    reading: "import.statKindReading",
+    exercise: "import.statKindExercise",
+    mixed: "import.statKindMixed",
+    quiz: "import.statKindQuiz",
+  };
   return order
     .filter((k) => kinds[k])
-    .map((k) => `${kinds[k]} ${k}`)
+    .map((k) => t(keys[k], { count: kinds[k] }))
     .join(" · ") || "";
 }

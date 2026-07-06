@@ -136,16 +136,18 @@ export function resolveEffortParams(
 
 /// Effort rungs as presentation metadata — drives the header effort
 /// dropdown + the (legacy) settings select. Ordered fast → ultra so
-/// the dropdown reads as a single escalating dial.
+/// the dropdown reads as a single escalating dial. Labels + blurbs
+/// are i18n KEYS — this module is a plain lib (no React hooks), so
+/// the consuming component resolves them via `t()`.
 export const EFFORT_OPTIONS: ReadonlyArray<{
   value: AiAgentSettings["effort"];
-  label: string;
-  blurb: string;
+  labelKey: string;
+  blurbKey: string;
 }> = [
-  { value: "fast", label: "Fast", blurb: "Quick, one-shot answers. Smallest context." },
-  { value: "balanced", label: "Balanced", blurb: "The tuned default — good speed/quality mix." },
-  { value: "thorough", label: "Thorough", blurb: "Slower + deeper. Bigger context, longer plans." },
-  { value: "ultra", label: "Ultra", blurb: "Max everything — 32k context, longest output. Slowest." },
+  { value: "fast", labelKey: "ai.effortFast", blurbKey: "ai.effortFastBlurb" },
+  { value: "balanced", labelKey: "ai.effortBalanced", blurbKey: "ai.effortBalancedBlurb" },
+  { value: "thorough", labelKey: "ai.effortThorough", blurbKey: "ai.effortThoroughBlurb" },
+  { value: "ultra", labelKey: "ai.effortUltra", blurbKey: "ai.effortUltraBlurb" },
 ];
 
 export const DEFAULT_SETTINGS: AiAgentSettings = {

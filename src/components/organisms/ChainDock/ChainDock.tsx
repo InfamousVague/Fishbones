@@ -18,6 +18,7 @@
 /// see the same numbers).
 
 import { useEffect, useState, useCallback } from "react";
+import { useT } from "@/i18n/i18n";
 import {
   subscribe,
   getSnapshot,
@@ -49,6 +50,7 @@ interface Props {
 }
 
 export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) {
+  const t = useT();
   const [snap, setSnap] = useState<EvmChainSnapshot>(() => getSnapshot());
   const [pendingFaucet, setPendingFaucet] = useState<Set<string>>(new Set());
   const [, setTick] = useState(0);
@@ -83,11 +85,11 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
   );
 
   const onReset = useCallback(async () => {
-    if (!confirm("Reset the chain? All balances, contracts, and transactions will be cleared.")) {
+    if (!confirm(t("chainDock.resetConfirmEvm"))) {
       return;
     }
     await resetChain();
-  }, []);
+  }, [t]);
 
   const defaultAcc = snap.accounts[0];
   const otherAccs = snap.accounts.slice(1);
@@ -96,13 +98,13 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
     <div
       className={`chain-dock chain-dock--${variant}`}
       role="region"
-      aria-label="In-process Ethereum dev chain"
+      aria-label={t("chainDock.regionEvm")}
     >
       <header className="chain-dock__header">
         <div className="chain-dock__title">
-          <span className="chain-dock__chip">Local chain</span>
+          <span className="chain-dock__chip">{t("chainDock.localChain")}</span>
           <span className="chain-dock__block">
-            block <strong>{snap.blockNumber.toString()}</strong>
+            {t("chainDock.blockPrefix")} <strong>{snap.blockNumber.toString()}</strong>
           </span>
           <span className="chain-dock__timestamp">
             {snap.blockTimestamp > 0n
@@ -119,25 +121,25 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
               type="button"
               className="chain-dock__btn chain-dock__btn--ghost"
               onClick={onOpenPopout}
-              title="Open the dock in its own window"
+              title={t("chainDock.popOutTitle")}
             >
-              ↗ Pop out
+              {t("chainDock.popOut")}
             </button>
           )}
           <button
             type="button"
             className="chain-dock__btn chain-dock__btn--ghost"
             onClick={onReset}
-            title="Drop all chain state"
+            title={t("chainDock.resetTitle")}
           >
-            Reset
+            {t("chainDock.reset")}
           </button>
           {variant === "banner" && onClose && (
             <button
               type="button"
               className="chain-dock__btn chain-dock__btn--icon"
               onClick={onClose}
-              aria-label="Close dock"
+              aria-label={t("chainDock.closeDock")}
             >
               ✕
             </button>
@@ -154,7 +156,7 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
         <div className="chain-dock__grid">
           <section className="chain-dock__panel chain-dock__panel--accounts">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Accounts</span>
+              <span className="chain-dock__panel-label">{t("chainDock.accounts")}</span>
               {snap.accounts.length > 0 && (
                 <span className="chain-dock__panel-meta">
                   {snap.accounts.length}
@@ -164,8 +166,7 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
             <div className="chain-dock__panel-body">
               {!defaultAcc && (
                 <div className="chain-dock__empty">
-                  The chain hasn't been initialised yet. Run a smart-contract
-                  lesson to spin it up.
+                  {t("chainDock.notInitialisedEvm")}
                 </div>
               )}
               {defaultAcc && (
@@ -178,7 +179,7 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
               )}
               {otherAccs.length > 0 && (
                 <details className="chain-dock__more">
-                  <summary>+{otherAccs.length} other accounts</summary>
+                  <summary>{t("chainDock.otherAccounts", { count: otherAccs.length })}</summary>
                   <div className="chain-dock__more-list">
                     {otherAccs.map((a) => (
                       <AccountRow
@@ -196,7 +197,7 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
 
           <section className="chain-dock__panel chain-dock__panel--contracts">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Contracts</span>
+              <span className="chain-dock__panel-label">{t("chainDock.contracts")}</span>
               <span className="chain-dock__panel-meta">
                 {snap.contracts.length}
               </span>
@@ -204,7 +205,7 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
             <div className="chain-dock__panel-body">
               {snap.contracts.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No deploys yet.
+                  {t("chainDock.noDeploys")}
                 </div>
               )}
               <ul className="chain-dock__contract-list">
@@ -215,7 +216,7 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
                       {shortAddr(c.address)}
                     </span>
                     <span className="chain-dock__contract-block">
-                      block {c.deployedAtBlock.toString()}
+                      {t("chainDock.blockN", { block: c.deployedAtBlock.toString() })}
                     </span>
                   </li>
                 ))}
@@ -225,13 +226,13 @@ export function ChainDock({ variant = "banner", onOpenPopout, onClose }: Props) 
 
           <section className="chain-dock__panel chain-dock__panel--txs">
             <header className="chain-dock__panel-header">
-              <span className="chain-dock__panel-label">Recent transactions</span>
+              <span className="chain-dock__panel-label">{t("chainDock.recentTxs")}</span>
               <span className="chain-dock__panel-meta">{snap.txs.length}</span>
             </header>
             <div className="chain-dock__panel-body">
               {snap.txs.length === 0 && (
                 <div className="chain-dock__empty chain-dock__empty--inline">
-                  No txs yet.
+                  {t("chainDock.noTxs")}
                 </div>
               )}
               <ul className="chain-dock__tx-list">
@@ -255,6 +256,7 @@ interface AccountRowProps {
 }
 
 function AccountRow({ acc, isDefault, pending, onFaucet }: AccountRowProps) {
+  const t = useT();
   const remaining = faucetCooldownRemainingMs(acc.address);
   const onCooldown = remaining > 0;
   return (
@@ -275,8 +277,11 @@ function AccountRow({ acc, isDefault, pending, onFaucet }: AccountRowProps) {
         onClick={() => onFaucet(acc.address)}
         title={
           onCooldown
-            ? `Cooldown — try again in ${formatRemaining(remaining)}`
-            : `Add ${formatEth(FAUCET_AMOUNT)} ETH to this account (resets every ${formatRemaining(FAUCET_COOLDOWN)})`
+            ? t("chainDock.faucetCooldownTitle", { time: formatRemaining(remaining) })
+            : t("chainDock.faucetAddTitle", {
+                amount: formatEth(FAUCET_AMOUNT),
+                time: formatRemaining(FAUCET_COOLDOWN),
+              })
         }
       >
         {pending
@@ -290,17 +295,18 @@ function AccountRow({ acc, isDefault, pending, onFaucet }: AccountRowProps) {
 }
 
 function TxRow({ tx }: { tx: TxSnapshot }) {
+  const t = useT();
   const ago = secondsAgo(tx.timestamp);
-  const kindLabel = {
-    deploy: "deploy",
-    call: "call",
-    "value-transfer": "transfer",
-    faucet: "faucet",
+  const kindKey = {
+    deploy: "chainDock.txKindDeploy",
+    call: "chainDock.txKindCall",
+    "value-transfer": "chainDock.txKindTransfer",
+    faucet: "chainDock.txKindFaucet",
   }[tx.kind];
   return (
     <li className={`chain-dock__tx chain-dock__tx--${tx.status}`}>
       <span className={`chain-dock__tx-kind chain-dock__tx-kind--${tx.kind}`}>
-        {kindLabel}
+        {t(kindKey)}
       </span>
       <span className="chain-dock__tx-from">{shortAddr(tx.from)}</span>
       {tx.to && tx.kind !== "faucet" && (
@@ -315,20 +321,23 @@ function TxRow({ tx }: { tx: TxSnapshot }) {
         </span>
       )}
       <span className="chain-dock__tx-block">
-        block {tx.blockNumber.toString()}
+        {t("chainDock.blockN", { block: tx.blockNumber.toString() })}
       </span>
-      <span className="chain-dock__tx-ago">{ago}</span>
+      <span className="chain-dock__tx-ago">{t(ago.key, { count: ago.count })}</span>
     </li>
   );
 }
 
-function secondsAgo(ts: number): string {
+/// Returns an i18n key + count for the relative-time chip — the
+/// consuming component passes them through `t()` (plain module-level
+/// helper, so no hooks here).
+function secondsAgo(ts: number): { key: string; count: number } {
   const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
-  if (s < 60) return `${s}s ago`;
+  if (s < 60) return { key: "chainDock.agoSeconds", count: s };
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return { key: "chainDock.agoMinutes", count: m };
   const h = Math.floor(m / 60);
-  return `${h}h ago`;
+  return { key: "chainDock.agoHours", count: h };
 }
 
 function formatRemaining(ms: number): string {

@@ -672,6 +672,10 @@ export function synthesizeFromFences(
   context: {
     existingProjectId: string | null;
     userPromptHint?: string;
+    /// Localized fallback project name (`t("sandbox.newProject")`).
+    /// Pure module — no hooks — so the host passes it in; absent,
+    /// the English "New project" holds.
+    defaultProjectName?: string;
   },
 ): FenceRecovery | null {
   if (!content) return null;
@@ -730,7 +734,10 @@ export function synthesizeFromFences(
     // No project yet — one create call with inline files. The
     // tool accepts a `files` array exactly for this case.
     const language = inferLanguageFromFences(fences, context.userPromptHint);
-    const name = inferNameFromPrompt(context.userPromptHint);
+    const name = inferNameFromPrompt(
+      context.userPromptHint,
+      context.defaultProjectName,
+    );
     toolCalls.push({
       id: `synth_${Date.now()}_0`,
       name: "create_sandbox_project",
@@ -840,9 +847,12 @@ function candidateLanguageFromPath(
 /// 1. Strip the leading "build me a", "make me a", "create a" etc.
 /// 2. Take the first 4 content words.
 /// 3. Title-case them.
-/// Falls back to "New project" when nothing remains.
-function inferNameFromPrompt(prompt?: string): string {
-  if (!prompt) return "New project";
+/// Falls back to `fallbackName` (the caller's localized
+/// `sandbox.newProject`) — or English "New project" — when nothing
+/// remains.
+function inferNameFromPrompt(prompt?: string, fallbackName?: string): string {
+  const fallback = fallbackName ?? "New project";
+  if (!prompt) return fallback;
   let words = prompt
     .replace(
       /^\s*(build|make|create|write|generate|please|can\s+you)\s+(me\s+|us\s+)?(a\s+|an\s+|the\s+)?/i,
@@ -851,12 +861,12 @@ function inferNameFromPrompt(prompt?: string): string {
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 4);
-  if (words.length === 0) return "New project";
+  if (words.length === 0) return fallback;
   // Strip common trailing context that bloats the name.
   words = words.filter(
     (w) => !/^(in|using|with|for)$/i.test(w),
   );
-  if (words.length === 0) return "New project";
+  if (words.length === 0) return fallback;
   return words
     .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");

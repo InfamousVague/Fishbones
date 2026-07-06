@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { useT } from "@/i18n/i18n";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Icon } from "@base/primitives/icon";
@@ -23,12 +24,14 @@ export interface CourseMetadataPatch {
 
 /// Editorial-tier options for the release-status select. Order
 /// matches the library's Status sort (top → bottom): verified first,
-/// then final polish, next up, then unreviewed.
-const RELEASE_OPTIONS: Array<{ value: ReleaseStatus; label: string }> = [
-  { value: "VERIFIED", label: "VERIFIED — reviewed + verified end-to-end" },
-  { value: "BETA", label: "BETA — final polish for release" },
-  { value: "ALPHA", label: "ALPHA — next up in the queue" },
-  { value: "UNREVIEWED", label: "UNREVIEWED — unreviewed draft" },
+/// then final polish, next up, then unreviewed. Labels are i18n KEYS
+/// (this is a plain module-level const — the component resolves them
+/// through `t()` at render time).
+const RELEASE_OPTIONS: Array<{ value: ReleaseStatus; labelKey: string }> = [
+  { value: "VERIFIED", labelKey: "library.courseSettings.releaseOptionVerified" },
+  { value: "BETA", labelKey: "library.courseSettings.releaseOptionBeta" },
+  { value: "ALPHA", labelKey: "library.courseSettings.releaseOptionAlpha" },
+  { value: "UNREVIEWED", labelKey: "library.courseSettings.releaseOptionUnreviewed" },
 ];
 
 /// Human-readable labels for every `LanguageId`. Rendered in the
@@ -104,6 +107,7 @@ export default function CourseSettingsModal({
   onChangeLanguage,
   onChangeMetadata,
 }: Props) {
+  const t = useT();
   // ────────── Editable metadata (title / author / releaseStatus) ──
   // Staged in local state so the user can edit freely and only the
   // diff against `course` gets written on Save. We keep title/author
@@ -137,7 +141,7 @@ export default function CourseSettingsModal({
       // Clipboard API can fail in non-HTTPS contexts or when the
       // tab isn't focused. Fall back to a manual prompt so the user
       // can still grab the URL.
-      window.prompt("Copy this link:", shareUrl);
+      window.prompt(t("library.courseSettings.copyLinkPrompt"), shareUrl);
     }
   }
 
@@ -157,7 +161,7 @@ export default function CourseSettingsModal({
     if (!onChangeMetadata) return;
     if (!metadataDirty) return;
     if (!titleValid) {
-      setMetadataError("Title can't be empty.");
+      setMetadataError(t("library.courseSettings.errTitleEmpty"));
       return;
     }
     const patch: CourseMetadataPatch = {};
@@ -337,16 +341,20 @@ export default function CourseSettingsModal({
       <div className="libre-coursesettings-panel">
         <div className="libre-coursesettings-header">
           <div className="libre-coursesettings-titleblock">
-            <div className="libre-coursesettings-title">Course settings</div>
+            <div className="libre-coursesettings-title">
+              {t("library.courseSettings.title")}
+            </div>
             <div className="libre-coursesettings-course">{course.title}</div>
             {course.author && (
-              <div className="libre-coursesettings-author">by {course.author}</div>
+              <div className="libre-coursesettings-author">
+                {t("library.courseSettings.byAuthor", { author: course.author })}
+              </div>
             )}
           </div>
           <button
             className="libre-coursesettings-close"
             onClick={onDismiss}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <Icon icon={xIcon} size="xs" color="currentColor" />
           </button>
@@ -354,25 +362,35 @@ export default function CourseSettingsModal({
 
         <div className="libre-coursesettings-body">
           <section>
-            <div className="libre-coursesettings-section">At a glance</div>
+            <div className="libre-coursesettings-section">
+              {t("library.courseSettings.atAGlance")}
+            </div>
             <div className="libre-coursesettings-stats">
               <div>
                 <div className="libre-coursesettings-stat-value">
                   {course.chapters.length}
                 </div>
-                <div className="libre-coursesettings-stat-label">chapters</div>
+                <div className="libre-coursesettings-stat-label">
+                  {t("library.courseSettings.statChapters")}
+                </div>
               </div>
               <div>
                 <div className="libre-coursesettings-stat-value">{stats.lessons}</div>
-                <div className="libre-coursesettings-stat-label">lessons</div>
+                <div className="libre-coursesettings-stat-label">
+                  {t("library.courseSettings.statLessons")}
+                </div>
               </div>
               <div>
                 <div className="libre-coursesettings-stat-value">{stats.exercises}</div>
-                <div className="libre-coursesettings-stat-label">exercises</div>
+                <div className="libre-coursesettings-stat-label">
+                  {t("library.courseSettings.statExercises")}
+                </div>
               </div>
               <div>
                 <div className="libre-coursesettings-stat-value">{stats.readings}</div>
-                <div className="libre-coursesettings-stat-label">readings</div>
+                <div className="libre-coursesettings-stat-label">
+                  {t("library.courseSettings.statReadings")}
+                </div>
               </div>
             </div>
           </section>
@@ -384,48 +402,50 @@ export default function CourseSettingsModal({
               changes so accidental edits don't trigger a write. */}
           {onChangeMetadata && (
             <section>
-              <div className="libre-coursesettings-section">Course details</div>
+              <div className="libre-coursesettings-section">
+                {t("library.courseSettings.detailsSection")}
+              </div>
               <div className="libre-coursesettings-row libre-coursesettings-row--column">
                 <div className="libre-coursesettings-row-text">
                   <div className="libre-coursesettings-row-label">
-                    Title, author, and release status
+                    {t("library.courseSettings.detailsLabel")}
                   </div>
                   <div className="libre-coursesettings-row-hint">
-                    Edit any of the three and click Save to write the
-                    change back to <code>course.json</code>. Title can't
-                    be empty. Clearing the author leaves the byline blank.
-                    Release status drives the section the book lands in
-                    on the library shelf.
+                    {t("library.courseSettings.detailsSectionHint")}
                   </div>
                 </div>
                 <div className="libre-coursesettings-meta-fields">
                   <label className="libre-coursesettings-meta-field">
-                    <span className="libre-coursesettings-meta-field-label">Title</span>
+                    <span className="libre-coursesettings-meta-field-label">
+                      {t("library.courseSettings.fieldTitle")}
+                    </span>
                     <input
                       type="text"
                       className="libre-coursesettings-meta-input"
                       value={pendingTitle}
                       onChange={(e) => setPendingTitle(e.target.value)}
                       disabled={savingMetadata}
-                      placeholder="Course title"
-                      aria-label="Course title"
+                      placeholder={t("library.courseSettings.fieldTitlePlaceholder")}
+                      aria-label={t("library.courseSettings.fieldTitlePlaceholder")}
                     />
                   </label>
                   <label className="libre-coursesettings-meta-field">
-                    <span className="libre-coursesettings-meta-field-label">Author</span>
+                    <span className="libre-coursesettings-meta-field-label">
+                      {t("library.courseSettings.fieldAuthor")}
+                    </span>
                     <input
                       type="text"
                       className="libre-coursesettings-meta-input"
                       value={pendingAuthor}
                       onChange={(e) => setPendingAuthor(e.target.value)}
                       disabled={savingMetadata}
-                      placeholder="Author (optional)"
-                      aria-label="Course author"
+                      placeholder={t("library.courseSettings.fieldAuthorPlaceholder")}
+                      aria-label={t("library.courseSettings.fieldAuthorAria")}
                     />
                   </label>
                   <label className="libre-coursesettings-meta-field">
                     <span className="libre-coursesettings-meta-field-label">
-                      Release status
+                      {t("library.courseSettings.fieldReleaseStatus")}
                     </span>
                     <select
                       className="libre-coursesettings-meta-input"
@@ -434,11 +454,11 @@ export default function CourseSettingsModal({
                         setPendingReleaseStatus(e.target.value as ReleaseStatus)
                       }
                       disabled={savingMetadata}
-                      aria-label="Release status"
+                      aria-label={t("library.courseSettings.fieldReleaseStatus")}
                     >
                       {RELEASE_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                          {opt.label}
+                          {t(opt.labelKey)}
                         </option>
                       ))}
                     </select>
@@ -455,7 +475,7 @@ export default function CourseSettingsModal({
                       className="libre-coursesettings-meta-saved"
                       role="status"
                     >
-                      Saved
+                      {t("settings.savedLabel")}
                     </span>
                   )}
                   <button
@@ -464,7 +484,7 @@ export default function CourseSettingsModal({
                     onClick={commitMetadataChange}
                     disabled={!metadataDirty || !titleValid || savingMetadata}
                   >
-                    {savingMetadata ? "Saving…" : "Save"}
+                    {savingMetadata ? t("settings.saving") : t("settings.save")}
                   </button>
                 </div>
               </div>
@@ -472,17 +492,18 @@ export default function CourseSettingsModal({
           )}
 
           <section>
-            <div className="libre-coursesettings-section">Regenerate content</div>
+            <div className="libre-coursesettings-section">
+              {t("library.courseSettings.regenerateSection")}
+            </div>
             <div className="libre-coursesettings-row">
               <div className="libre-coursesettings-row-text">
                 <div className="libre-coursesettings-row-label">
-                  Regenerate exercises
+                  {t("library.courseSettings.regenerateLabel")}
                 </div>
                 <div className="libre-coursesettings-row-hint">
-                  Re-run the AI generation for all {stats.exercises} exercise
-                  lessons using the latest prompt. Readings and quizzes are
-                  untouched. Progress shows in the floating panel and each
-                  lesson saves as it completes — safe to cancel midway.
+                  {t("library.courseSettings.regenerateSectionHint", {
+                    count: stats.exercises,
+                  })}
                 </div>
               </div>
               <button
@@ -493,7 +514,7 @@ export default function CourseSettingsModal({
                 }}
                 disabled={stats.exercises === 0}
               >
-                Regenerate
+                {t("library.courseSettings.regenerate")}
               </button>
             </div>
           </section>
@@ -501,21 +522,17 @@ export default function CourseSettingsModal({
           {onChangeLanguage && (
             <section>
               <div className="libre-coursesettings-section">
-                Course language
+                {t("library.courseSettings.languageSection")}
               </div>
               <div className="libre-coursesettings-row">
                 <div className="libre-coursesettings-row-text">
                   <div className="libre-coursesettings-row-label">
-                    Fix the course's language
+                    {t("library.courseSettings.languageLabel")}
                   </div>
                   <div className="libre-coursesettings-row-hint">
-                    Currently set to{" "}
-                    <code>{labelFor(course.language)}</code>. LLM-generated
-                    courses from docs sites sometimes land with the wrong
-                    language — switching here re-dispatches Run and the
-                    lesson view to the right runtime. Lesson-level
-                    <code>language</code> fields are left untouched; only
-                    the course's top-level tag changes.
+                    {t("library.courseSettings.languageSectionHint", {
+                      language: labelFor(course.language),
+                    })}
                   </div>
                   {languageError && (
                     <div className="libre-coursesettings-row-error">
@@ -531,7 +548,7 @@ export default function CourseSettingsModal({
                       setPendingLanguage(e.target.value as LanguageId)
                     }
                     disabled={savingLanguage}
-                    aria-label="Course language"
+                    aria-label={t("library.courseSettings.languageSection")}
                   >
                     {LANGUAGE_OPTIONS.map((opt) => (
                       <option key={opt.id} value={opt.id}>
@@ -547,7 +564,7 @@ export default function CourseSettingsModal({
                       savingLanguage || pendingLanguage === course.language
                     }
                   >
-                    {savingLanguage ? "Saving…" : "Save"}
+                    {savingLanguage ? t("settings.saving") : t("settings.save")}
                   </button>
                 </div>
               </div>
@@ -556,25 +573,27 @@ export default function CourseSettingsModal({
 
           <section>
             <div className="libre-coursesettings-section">
-              Reading experience
+              {t("library.courseSettings.enrichSection")}
             </div>
             <div className="libre-coursesettings-row">
               <div className="libre-coursesettings-row-text">
                 <div className="libre-coursesettings-row-label">
-                  Enrich lessons
+                  {t("library.courseSettings.enrichLabel")}
                 </div>
                 <div className="libre-coursesettings-row-hint">
-                  Generate learning objectives, glossary terms, and inline
-                  symbol doc-links for {enrichRemaining} lesson
-                  {enrichRemaining === 1 ? "" : "s"} that don't have them yet.
-                  Much cheaper than regenerating — only the new reading-aid
-                  fields are produced, the existing body / starter / solution
-                  / tests are untouched. Safe to cancel midway: it resumes
-                  where it left off on the next run.
+                  {t(
+                    enrichRemaining === 1
+                      ? "library.courseSettings.enrichSectionHint"
+                      : "library.courseSettings.enrichSectionHintPlural",
+                    { count: enrichRemaining },
+                  )}
                   {stats.enriched > 0 && (
                     <>
                       {" "}
-                      ({stats.enriched} of {stats.enrichable} already enriched.)
+                      {t("library.courseSettings.alreadyEnriched", {
+                        count: stats.enriched,
+                        total: stats.enrichable,
+                      })}
                     </>
                   )}
                 </div>
@@ -587,25 +606,25 @@ export default function CourseSettingsModal({
                 }}
                 disabled={enrichRemaining === 0}
               >
-                {enrichRemaining === 0 ? "All enriched" : "Enrich"}
+                {enrichRemaining === 0
+                  ? t("library.courseSettings.allEnriched")
+                  : t("library.courseSettings.enrich")}
               </button>
             </div>
           </section>
 
           {onCoverRefreshed && (
             <section>
-              <div className="libre-coursesettings-section">Appearance</div>
+              <div className="libre-coursesettings-section">
+                {t("library.courseSettings.appearanceSection")}
+              </div>
               <div className="libre-coursesettings-row">
                 <div className="libre-coursesettings-row-text">
                   <div className="libre-coursesettings-row-label">
-                    Fetch cover artwork
+                    {t("library.courseSettings.fetchCover")}
                   </div>
                   <div className="libre-coursesettings-row-hint">
-                    Point Libre at a PDF or EPUB (the original book,
-                    or a single-page cover image saved as PDF) and we'll
-                    pull the cover art for the shelf. Useful when the
-                    original ingest didn't grab a cover, or if you want
-                    to re-extract from a higher-resolution source.
+                    {t("library.courseSettings.fetchCoverHint")}
                   </div>
                 </div>
                 <button
@@ -614,18 +633,18 @@ export default function CourseSettingsModal({
                   disabled={coverFetching || coverGenerating}
                   type="button"
                 >
-                  {coverFetching ? "Fetching…" : "Choose book…"}
+                  {coverFetching
+                    ? t("library.courseSettings.fetching")
+                    : t("library.courseSettings.chooseBook")}
                 </button>
               </div>
               <div className="libre-coursesettings-row">
                 <div className="libre-coursesettings-row-text">
                   <div className="libre-coursesettings-row-label">
-                    Import image file
+                    {t("library.courseSettings.importImage")}
                   </div>
                   <div className="libre-coursesettings-row-hint">
-                    Use any PNG, JPEG, WebP, or GIF from disk as the cover.
-                    Best for custom art or when the PDF's first page isn't
-                    the cover you want.
+                    {t("library.courseSettings.importImageHint")}
                   </div>
                 </div>
                 <button
@@ -634,21 +653,18 @@ export default function CourseSettingsModal({
                   disabled={coverFetching || coverGenerating}
                   type="button"
                 >
-                  {coverFetching ? "Importing…" : "Choose image…"}
+                  {coverFetching
+                    ? t("library.courseSettings.importing")
+                    : t("library.courseSettings.chooseImage")}
                 </button>
               </div>
               <div className="libre-coursesettings-row">
                 <div className="libre-coursesettings-row-text">
                   <div className="libre-coursesettings-row-label">
-                    Generate artwork with AI
+                    {t("library.courseSettings.generateAi")}
                   </div>
                   <div className="libre-coursesettings-row-hint">
-                    Ask <code>gpt-image-1</code> for a fresh cover in the
-                    library's shared editorial style — abstract geometric,
-                    no typography, cohesive across every book on the
-                    shelf. Takes 5–20 seconds and costs ~$0.04 per
-                    generation. Requires an OpenAI API key in{" "}
-                    <strong>Settings → AI</strong>.
+                    {t("library.courseSettings.generateAiHint")}
                   </div>
                 </div>
                 <button
@@ -657,7 +673,9 @@ export default function CourseSettingsModal({
                   disabled={coverFetching || coverGenerating}
                   type="button"
                 >
-                  {coverGenerating ? "Generating…" : "Generate"}
+                  {coverGenerating
+                    ? t("library.courseSettings.generating")
+                    : t("library.courseSettings.generate")}
                 </button>
               </div>
               {coverError && (
@@ -669,16 +687,16 @@ export default function CourseSettingsModal({
           )}
 
           <section>
-            <div className="libre-coursesettings-section">Share</div>
+            <div className="libre-coursesettings-section">
+              {t("library.courseSettings.share")}
+            </div>
             <div className="libre-coursesettings-row">
               <div className="libre-coursesettings-row-text">
                 <div className="libre-coursesettings-row-label">
-                  Copy share link
+                  {t("library.courseSettings.copyShareLink")}
                 </div>
                 <div className="libre-coursesettings-row-hint">
-                  Public URL anyone can open. If the course is in the
-                  Libre catalog they install with one click; otherwise
-                  the page guides them to import your shared file.
+                  {t("library.courseSettings.copyShareLinkHint")}
                 </div>
               </div>
               <button
@@ -686,21 +704,20 @@ export default function CourseSettingsModal({
                 onClick={() => {
                   void copyShareLink();
                 }}
-                aria-label="Copy course share link"
+                aria-label={t("library.courseSettings.copyShareLinkAria")}
               >
-                {shareCopied ? "Copied!" : "Copy link"}
+                {shareCopied
+                  ? t("library.courseSettings.copied")
+                  : t("library.courseSettings.copyLink")}
               </button>
             </div>
             <div className="libre-coursesettings-row">
               <div className="libre-coursesettings-row-text">
                 <div className="libre-coursesettings-row-label">
-                  Export as .academy
+                  {t("library.courseSettings.exportAcademy")}
                 </div>
                 <div className="libre-coursesettings-row-hint">
-                  Save the course as a portable <code>.academy</code> archive
-                  (the new name for the previous <code>.libre</code>
-                  format). Anyone with Libre can drop it onto the app
-                  window to import.
+                  {t("library.courseSettings.exportAcademyHint")}
                 </div>
               </div>
               <button
@@ -710,21 +727,22 @@ export default function CourseSettingsModal({
                   onDismiss();
                 }}
               >
-                Export…
+                {t("library.courseSettings.export")}
               </button>
             </div>
           </section>
 
           <section>
             <div className="libre-coursesettings-section libre-coursesettings-section--danger">
-              Danger zone
+              {t("library.courseSettings.dangerZone")}
             </div>
             <div className="libre-coursesettings-row">
               <div className="libre-coursesettings-row-text">
-                <div className="libre-coursesettings-row-label">Delete course</div>
+                <div className="libre-coursesettings-row-label">
+                  {t("library.courseSettings.deleteCourse")}
+                </div>
                 <div className="libre-coursesettings-row-hint">
-                  Removes the course, all lesson progress, and the ingest
-                  cache from disk. Can't be undone.
+                  {t("library.courseSettings.deleteCourseHint")}
                 </div>
               </div>
               <button
@@ -734,7 +752,7 @@ export default function CourseSettingsModal({
                   onDismiss();
                 }}
               >
-                Delete…
+                {t("library.courseSettings.delete")}
               </button>
             </div>
           </section>

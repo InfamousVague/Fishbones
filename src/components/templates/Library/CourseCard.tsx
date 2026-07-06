@@ -3,6 +3,8 @@ import type { Course } from "@/data/types";
 import { languageMeta } from "@/lib/languages";
 import LanguageChip from "@/components/atoms/LanguageChip/LanguageChip";
 import { useT } from "@/i18n/i18n";
+import { useLocale } from "@/hooks/useLocale";
+import { localizedCourse } from "@/data/localize";
 // Card chrome lives in CourseLibrary.css alongside the grid +
 // sidebar styles. Importing it from this file (rather than relying
 // on a parent like CourseLibrary to bring it in) means every
@@ -61,7 +63,7 @@ interface Props {
 }
 
 function CourseCardImpl({
-  course,
+  course: rawCourse,
   total,
   done,
   pct,
@@ -74,6 +76,12 @@ function CourseCardImpl({
   style,
 }: Props) {
   const t = useT();
+  // Localize the book title/description for the active app language —
+  // translated courses show their translated title on the shelf and
+  // fall back to English when the locale has no course-level
+  // translation (partial translations are first-class).
+  const [locale] = useLocale();
+  const course = localizedCourse(rawCourse, locale);
   const chapters = course.chapters.length;
   const isCompleted = pct === 1;
   const status =
@@ -172,7 +180,9 @@ function CourseCardImpl({
         </div>
         <div className="libre-library-card-title">{course.title}</div>
         {course.author && (
-          <div className="libre-library-card-author">by {course.author}</div>
+          <div className="libre-library-card-author">
+            {t("library.authorPrefix", { author: course.author })}
+          </div>
         )}
         <div className="libre-library-card-progress" aria-hidden>
           <div

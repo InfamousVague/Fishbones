@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTimeout } from "@/hooks/useTimeout";
+import { useT } from "@/i18n/i18n";
 import { Icon } from "@base/primitives/icon";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import { circleCheck } from "@base/primitives/icon/icons/circle-check";
@@ -55,6 +56,7 @@ interface Props {
 }
 
 export default function VerifyCourseOverlay({ session, onCancel, onClose }: Props) {
+  const t = useT();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   /// Short-lived "Copied!" / "Saved!" feedback shown next to the
   /// export buttons. Keyed by button id so two buttons don't trip
@@ -88,13 +90,13 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
     const md = formatFixPrompt(session.results, exportOpts);
     try {
       await navigator.clipboard.writeText(md);
-      showFeedback("prompt", "Copied!");
+      showFeedback("prompt", t("library.verify.copied"));
     } catch {
       // Some browsers / restrictive contexts (Tauri webviews
       // without clipboard permission) reject writeText. Fall back
       // to a trigger-download so the user still gets the report.
       downloadBlob(md, suggestExportFilename(exportOpts, "md"), "text/markdown");
-      showFeedback("prompt", "Saved (clipboard blocked)");
+      showFeedback("prompt", t("library.verify.savedClipboardBlocked"));
     }
   };
 
@@ -102,24 +104,24 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
     const json = formatJson(session.results, exportOpts);
     try {
       await navigator.clipboard.writeText(json);
-      showFeedback("json", "Copied!");
+      showFeedback("json", t("library.verify.copied"));
     } catch {
       downloadBlob(
         json,
         suggestExportFilename(exportOpts, "json"),
         "application/json",
       );
-      showFeedback("json", "Saved (clipboard blocked)");
+      showFeedback("json", t("library.verify.savedClipboardBlocked"));
     }
   };
 
   const downloadReport = () => {
     const md = formatFixPrompt(session.results, exportOpts);
     downloadBlob(md, suggestExportFilename(exportOpts, "md"), "text/markdown");
-    showFeedback("download", "Saved");
+    showFeedback("download", t("library.verify.saved"));
   };
 
-  const t = tally(session.results);
+  const counts = tally(session.results);
   const pct =
     session.total === 0 ? 0 : Math.round((session.index / session.total) * 100);
 
@@ -136,24 +138,35 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
     <div
       className="libre-verify-overlay"
       role="region"
-      aria-label="Course verification"
+      aria-label={t("library.verify.regionAria")}
     >
       <div className="libre-verify-header">
         <div className="libre-verify-title-block">
           <div className="libre-verify-title">{session.label}</div>
           <div className="libre-verify-subtitle">
             {session.done
-              ? `Done · ${session.total} lesson${session.total === 1 ? "" : "s"}`
+              ? t(
+                  session.total === 1
+                    ? "library.verify.done"
+                    : "library.verify.donePlural",
+                  { count: session.total },
+                )
               : session.current
-                ? `Running: ${session.current.lesson.title}`
-                : "Starting…"}
+                ? t("library.verify.running", {
+                    lessonTitle: session.current.lesson.title,
+                  })
+                : t("library.verify.starting")}
           </div>
         </div>
         <button
           className="libre-verify-icon-btn"
           onClick={session.done ? onClose : onCancel}
-          aria-label={session.done ? "Close" : "Cancel verification"}
-          title={session.done ? "Close" : "Cancel"}
+          aria-label={
+            session.done
+              ? t("common.close")
+              : t("library.verify.cancelVerification")
+          }
+          title={session.done ? t("common.close") : t("common.cancel")}
         >
           <Icon icon={xIcon} />
         </button>
@@ -174,15 +187,15 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
       <div className="libre-verify-tally">
         <span className="libre-verify-pill libre-verify-pill--pass">
           <Icon icon={circleCheck} />
-          {t.passed}
+          {counts.passed}
         </span>
         <span className="libre-verify-pill libre-verify-pill--fail">
           <Icon icon={circleX} />
-          {t.failed}
+          {counts.failed}
         </span>
         <span className="libre-verify-pill libre-verify-pill--skip">
           <Icon icon={circleSlash} />
-          {t.skipped}
+          {counts.skipped}
         </span>
       </div>
 
@@ -190,7 +203,7 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
         {session.results.length === 0 && !session.done && (
           <div className="libre-verify-empty">
             <Icon icon={loader} />
-            <span>Waiting for the first lesson…</span>
+            <span>{t("library.verify.waitingFirst")}</span>
           </div>
         )}
         {session.results.map((r) => {
@@ -202,6 +215,17 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
               ? "pass"
               : "fail";
           const kindIcon = KIND_ICON[r.target.kind];
+          // Localised name for the lesson kind. "other" has no key —
+          // it's an internal bucket that only shows up as a skip; the
+          // raw kind string keeps it debuggable.
+          const kindLabel =
+            r.target.kind === "exercise"
+              ? t("library.verify.kindExercise")
+              : r.target.kind === "reading"
+                ? t("library.verify.kindReading")
+                : r.target.kind === "quiz"
+                  ? t("library.verify.kindQuiz")
+                  : r.target.kind;
           return (
             <div
               key={id}
@@ -221,8 +245,8 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
                 </span>
                 <span
                   className="libre-verify-row-kind"
-                  aria-label={r.target.kind}
-                  title={r.target.kind}
+                  aria-label={kindLabel}
+                  title={kindLabel}
                 >
                   <Icon icon={kindIcon} />
                 </span>
@@ -231,7 +255,7 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
                 </span>
                 <span className="libre-verify-row-meta">
                   {r.skipped
-                    ? r.skipReason ?? "skipped"
+                    ? r.skipReason ?? t("library.verify.skipped")
                     : `${(r.durationMs / 1000).toFixed(2)}s`}
                 </span>
               </button>
@@ -239,7 +263,8 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
                 <div className="libre-verify-row-detail">
                   {r.result?.error && (
                     <div className="libre-verify-row-error">
-                      <strong>Error:</strong> {r.result.error}
+                      <strong>{t("library.verify.errorLabel")}</strong>{" "}
+                      {r.result.error}
                     </div>
                   )}
                   {(r.result?.tests ?? []).filter((t) => !t.passed).map((t, i) => (
@@ -267,15 +292,19 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
           <button
             className="libre-verify-btn libre-verify-btn--primary"
             onClick={copyAsPrompt}
-            title="Copy a Markdown 'fix-me' prompt for Claude / ChatGPT"
+            title={t("library.verify.tooltipFixPrompt")}
           >
             <Icon icon={flash?.key === "prompt" ? check : copy} />
-            <span>{flash?.key === "prompt" ? flash.label : "Copy fix prompt"}</span>
+            <span>
+              {flash?.key === "prompt"
+                ? flash.label
+                : t("library.verify.copyFixPrompt")}
+            </span>
           </button>
           <button
             className="libre-verify-btn"
             onClick={copyAsJson}
-            title="Copy results as JSON"
+            title={t("library.verify.tooltipJson")}
           >
             <Icon icon={flash?.key === "json" ? check : copy} />
             <span>{flash?.key === "json" ? flash.label : "JSON"}</span>
@@ -283,14 +312,16 @@ export default function VerifyCourseOverlay({ session, onCancel, onClose }: Prop
           <button
             className="libre-verify-btn"
             onClick={downloadReport}
-            title="Download the Markdown report as a file"
+            title={t("library.verify.tooltipDownload")}
           >
             <Icon icon={flash?.key === "download" ? check : download} />
-            <span>{flash?.key === "download" ? flash.label : "Save"}</span>
+            <span>
+              {flash?.key === "download" ? flash.label : t("common.save")}
+            </span>
           </button>
           <span className="libre-verify-footer-spacer" />
           <button className="libre-verify-btn" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </div>
       )}

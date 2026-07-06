@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { arrowLeft } from "@base/primitives/icon/icons/arrow-left";
 import { arrowRight } from "@base/primitives/icon/icons/arrow-right";
+import { check } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
 import { ShortcutHint } from "@/components/atoms/ShortcutHint/ShortcutHint";
 import { useT } from "@/i18n/i18n";
@@ -25,6 +26,9 @@ interface Props {
   /// reserved for the "mark read & next" variant on reading-only
   /// lessons that the learner is about to complete by clicking. The
   /// holo overlay reads as "this is the moment, take the action."
+  /// Also keeps the button CLICKABLE when `next` is null: on the
+  /// final lesson of a course the slot is "mark read & finish" —
+  /// onNext completes the lesson without navigating anywhere.
   /// Defaults false.
   nextIsCta?: boolean;
   /// Timestamp (ms since epoch) at which an auto-advance is scheduled
@@ -171,6 +175,13 @@ export default function LessonNav({
   // yet.
   const showCountdown =
     autoAdvanceFireAt !== null && autoAdvanceFireAt > Date.now();
+  // The Next slot stays live without a next neighbor when it's in
+  // CTA mode — that's the final-lesson "mark read & finish" click,
+  // where onNext completes the reading instead of navigating.
+  const nextActionable = !!next || nextIsCta;
+  // Finish variant (CTA with nowhere to go) trades the forward arrow
+  // for a check: the click ends the course, it doesn't turn a page.
+  const finishMode = !next && nextIsCta;
   return (
     <nav className="libre-lesson-nav" aria-label={t("lessonNav.ariaLabel")}>
       <button
@@ -200,7 +211,7 @@ export default function LessonNav({
           (showCountdown ? "libre-lesson-nav-btn--counting" : "")
         }
         onClick={onNext}
-        disabled={!next}
+        disabled={!nextActionable}
         title={next?.title}
       >
         {/* Holographic foil retired — the rainbow snake-sparkle
@@ -209,7 +220,7 @@ export default function LessonNav({
         <span className="libre-lesson-nav-text libre-lesson-nav-text--right">
           <span className="libre-lesson-nav-label">
             {nextLabel ?? t("lessonNav.next")}
-            {next && <ShortcutHint actionId="lesson.next" variant="muted" className="libre-shortcut-hint--gap" />}
+            {nextActionable && <ShortcutHint actionId="lesson.next" variant="muted" className="libre-shortcut-hint--gap" />}
           </span>
           {next && <MiddleTitle text={next.title} />}
         </span>
@@ -217,7 +228,11 @@ export default function LessonNav({
           {showCountdown && autoAdvanceFireAt !== null ? (
             <AutoAdvanceRing fireAt={autoAdvanceFireAt} />
           ) : (
-            <Icon icon={arrowRight} size="sm" color="currentColor" />
+            <Icon
+              icon={finishMode ? check : arrowRight}
+              size="sm"
+              color="currentColor"
+            />
           )}
         </span>
       </button>

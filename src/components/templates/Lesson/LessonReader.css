@@ -1016,12 +1016,18 @@
      opener up to ~two-thirds. (Floats/talls/seals set their own smaller
      widths below.) Phones go full-width in the media query. */
   float: right;
-  width: min(50%, var(--libre-size-360));
+  /* Smaller than half the column so the art no longer TOWERS over its
+     text — a smaller figure lets the prose wrap fully around it instead
+     of leaving a blank gutter beside its lower half (the "content
+     doesn't fill around the graphics" complaint). */
+  width: min(40%, var(--libre-size-300));
   margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-16) var(--libre-space-24);
   border-radius: var(--libre-radius-14);
   overflow: hidden;
   border: var(--libre-bw-1) solid var(--color-border-card);
   background: var(--color-bg-secondary);
+  /* Wrap text tight to the rounded card edge. */
+  shape-outside: inset(0 round var(--libre-radius-14));
   /* Sit above the read-along highlight. The current paragraph's ::before
      gradient spans the full column width (under a right-floated figure)
      and, painting later in DOM order, was washing amber over the artwork.
@@ -1030,7 +1036,18 @@
   z-index: var(--libre-z-1);
 }
 .libre-reader-body .libre-figure--wide {
-  width: min(66%, var(--libre-size-460));
+  width: min(52%, var(--libre-size-400));
+}
+
+/* Alternate every other content figure to the LEFT so the prose fills
+   BOTH margins as you scroll instead of stacking down an empty-left
+   right rail. Seals are excluded (they're deliberately small left
+   badges) and keep their own placement. */
+.libre-reader-body
+  .libre-figure:nth-of-type(even):not(.libre-figure--seal) {
+  float: left;
+  margin: var(--libre-space-4) var(--libre-space-24) var(--libre-space-16)
+    var(--libre-space-0);
 }
 
 .libre-reader-body .libre-figure img {
@@ -1056,19 +1073,17 @@
    Headings clear floats so art never bleeds into the next section. */
 .libre-reader-body .libre-figure--float,
 .libre-reader-body .libre-figure--tall {
-  float: right;
-  width: min(44%, var(--libre-size-320));
-  margin: var(--libre-space-4) var(--libre-space-0) var(--libre-space-16) var(--libre-space-22);
+  width: min(36%, var(--libre-size-260));
 }
 .libre-reader-body .libre-figure--tall {
-  width: min(40%, var(--libre-size-280));
+  width: min(32%, var(--libre-size-240));
 }
 /* Small float — for short lessons (brief intro + an exercise editor)
    where a full float would tower over the few lines of prose and leave
    a blank gutter beside its lower half. The baker assigns this by
    measuring how much text follows the figure. */
 .libre-reader-body .libre-figure--small {
-  width: min(30%, var(--libre-size-220));
+  width: min(28%, var(--libre-size-200));
 }
 .libre-reader-body .libre-figure--small figcaption {
   padding: var(--libre-space-7) var(--libre-space-10);
@@ -1076,7 +1091,7 @@
 }
 .libre-reader-body .libre-figure--seal {
   float: left;
-  width: min(30%, var(--libre-size-180));
+  width: min(26%, var(--libre-size-160));
   margin: var(--libre-space-4) var(--libre-space-20) var(--libre-space-12) var(--libre-space-0);
 }
 .libre-reader-body .libre-figure--seal figcaption {
@@ -1108,7 +1123,11 @@
   .libre-reader-body .libre-figure--float,
   .libre-reader-body .libre-figure--tall,
   .libre-reader-body .libre-figure--small,
-  .libre-reader-body .libre-figure--seal {
+  .libre-reader-body .libre-figure--seal,
+  /* Must out-specify the desktop alternating rule (which has an
+     :nth-of-type + :not) so figures still go full-width on phones. */
+  .libre-reader-body
+    .libre-figure:nth-of-type(even):not(.libre-figure--seal) {
     float: none;
     width: 100%;
     margin: var(--libre-space-16) var(--libre-space-0);

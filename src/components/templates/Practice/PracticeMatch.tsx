@@ -21,6 +21,7 @@ import type { PracticeItem } from "./types";
 import { gradeAttempt } from "./practiceStore";
 import { fireXpBurst } from "@/components/atoms/XpBurst/XpBurst";
 import { comboMultiplier, xpForCorrect } from "./practiceLadder";
+import { useT } from "@/i18n/i18n";
 import "./PracticeMatch.css";
 
 interface Tile {
@@ -64,6 +65,7 @@ function buildTiles(items: PracticeItem[], seed: number): Tile[] {
 }
 
 export default function PracticeMatch({ items, onExit }: Props) {
+  const t = useT();
   const startedAt = useRef<number>(Date.now());
   const seed = useRef<number>(Date.now());
   const itemById = useMemo(() => {
@@ -130,13 +132,10 @@ export default function PracticeMatch({ items, onExit }: Props) {
       <div className="libre-match libre-match--empty">
         <div className="libre-match__scroll">
           <div className="libre-match__inner">
-            <h2>Not enough quiz cards yet.</h2>
-            <p>
-              Match Pairs needs a few multiple-choice questions from courses
-              you've started. Finish a lesson or two and come back.
-            </p>
+            <h2>{t("practice.matchEmptyTitle")}</h2>
+            <p>{t("practice.matchEmptyBody")}</p>
             <button className="libre-match__exit" onClick={onExit}>
-              Back
+              {t("common.back")}
             </button>
           </div>
         </div>
@@ -157,13 +156,13 @@ export default function PracticeMatch({ items, onExit }: Props) {
               type="button"
               className="libre-match__back"
               onClick={onExit}
-              aria-label="Back to practice"
+              aria-label={t("practice.ariaBackToPractice")}
             >
               <Icon icon={arrowLeft} size="xs" color="currentColor" />
-              <span>Back</span>
+              <span>{t("common.back")}</span>
             </button>
             <div className="libre-match__progress">
-              Match Pairs · {matched.size}/{totalPairs}
+              {t("practice.matchProgress", { done: matched.size, total: totalPairs })}
             </div>
             <div className="libre-match__hud">
               {combo >= 2 && (
@@ -177,23 +176,30 @@ export default function PracticeMatch({ items, onExit }: Props) {
                   {combo}
                 </span>
               )}
-              <span className="libre-match__score">{score} XP</span>
+              <span className="libre-match__score">
+                {t("practice.xpCount", { xp: score })}
+              </span>
             </div>
           </header>
 
           {done ? (
             <div className="libre-match__done">
-              <div className="libre-match__done-big">{totalPairs} pairs</div>
+              <div className="libre-match__done-big">
+                {t("practice.pairsCount", { count: totalPairs })}
+              </div>
               <div className="libre-match__done-sub">
-                {score} XP · {accuracy}% clean ·{" "}
-                {Math.max(1, Math.round(minutes))} min
+                {t("practice.matchDoneSub", {
+                  xp: score,
+                  accuracy,
+                  minutes: Math.max(1, Math.round(minutes)),
+                })}
               </div>
               <button
                 type="button"
                 className="libre-match__exit"
                 onClick={onExit}
               >
-                Back to practice
+                {t("practice.backToPractice")}
               </button>
             </div>
           ) : (

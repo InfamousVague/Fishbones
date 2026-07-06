@@ -12,6 +12,7 @@
 // its own — the parent decides whether to gate the button.
 
 import { useId, useMemo, useState } from "react";
+import { useT } from "@/i18n/i18n";
 import "./PasswordField.css";
 
 export type PasswordStrength = 0 | 1 | 2 | 3 | 4;
@@ -20,12 +21,14 @@ export interface PasswordScore {
   /// 0 = empty, 1 = weak, 2 = fair, 3 = good, 4 = strong. Drives the
   /// segment fill count + the band color.
   score: PasswordStrength;
-  /// Short label shown next to the meter ("Weak" / "Strong" / etc.).
+  /// i18n KEY for the short label shown next to the meter
+  /// ("auth.pwWeak" / "auth.pwStrong" / etc.) — `scorePassword` is a
+  /// pure helper, so the rendering component resolves it with `t()`.
   /// Empty string when score is 0 so the meter renders blank for an
   /// empty input.
   label: string;
-  /// Optional one-line nudge ("longer or more variety helps") shown
-  /// below the meter. Omitted at score 4.
+  /// Optional i18n KEY for the one-line nudge shown below the meter.
+  /// Omitted at score 4. Resolved with `t()` like `label`.
   hint?: string;
   /// `true` when the input is shorter than the relay's accepted
   /// minimum and a signup attempt would 400 server-side. Parents can
@@ -69,8 +72,8 @@ export function scorePassword(value: string): PasswordScore {
   if (value.length < PASSWORD_MIN_LENGTH) {
     return {
       score: 1,
-      label: "Too short",
-      hint: `${PASSWORD_MIN_LENGTH}+ characters required`,
+      label: "auth.pwTooShort",
+      hint: "auth.pwMinHint",
       belowMinLength: true,
     };
   }
@@ -117,26 +120,26 @@ export function scorePassword(value: string): PasswordScore {
     case 1:
       return {
         score,
-        label: "Weak",
+        label: "auth.pwWeak",
         hint: isCommon
-          ? "common password — pick something less guessable"
+          ? "auth.pwHintCommon"
           : isLazy
-            ? "looks lazy — try a passphrase or random characters"
-            : "add length, mix cases, digits, symbols",
+            ? "auth.pwHintLazy"
+            : "auth.pwHintVariety",
         belowMinLength: false,
       };
     case 2:
       return {
         score,
-        label: "Fair",
-        hint: "longer or more variety helps",
+        label: "auth.pwFair",
+        hint: "auth.pwHintLonger",
         belowMinLength: false,
       };
     case 3:
-      return { score, label: "Good", hint: undefined, belowMinLength: false };
+      return { score, label: "auth.pwGood", hint: undefined, belowMinLength: false };
     case 4:
     default:
-      return { score: 4, label: "Strong", hint: undefined, belowMinLength: false };
+      return { score: 4, label: "auth.pwStrong", hint: undefined, belowMinLength: false };
   }
 }
 
@@ -201,8 +204,8 @@ function EyeClosed() {
 export default function PasswordField({
   value,
   onChange,
-  label = "Password",
-  helper = `At least ${PASSWORD_MIN_LENGTH} characters if creating a new account.`,
+  label,
+  helper,
   showStrength = true,
   autoComplete = "current-password",
   required = false,
@@ -211,9 +214,19 @@ export default function PasswordField({
   inputId,
   error,
 }: PasswordFieldProps) {
+  const t = useT();
   const [revealed, setRevealed] = useState(false);
   const generatedId = useId();
   const id = inputId ?? generatedId;
+
+  // Defaults resolved here (not in the parameter list) so they can go
+  // through `t()`. `helper` keeps its three-state contract: undefined
+  // → default copy, null → hidden, string → custom.
+  const resolvedLabel = label ?? t("auth.passwordLabel");
+  const resolvedHelper =
+    helper === undefined
+      ? t("auth.passwordDefaultHelper", { minLength: PASSWORD_MIN_LENGTH })
+      : helper;
 
   const score = useMemo(() => scorePassword(value), [value]);
   const hasError = !!error;
@@ -221,7 +234,7 @@ export default function PasswordField({
   return (
     <div className={`libre-pwfield${hasError ? " libre-pwfield--invalid" : ""}`}>
       <label className="libre-pwfield__label" htmlFor={id}>
-        {label}
+        {resolvedLabel}
       </label>
 
       <div className="libre-pwfield__row">
@@ -255,7 +268,7 @@ export default function PasswordField({
           className="libre-pwfield__toggle"
           onClick={() => setRevealed((v) => !v)}
           disabled={disabled}
-          aria-label={revealed ? "Hide password" : "Show password"}
+          aria-label={revealed ? t("auth.hidePassword") : t("auth.showPassword")}
           aria-pressed={revealed}
           tabIndex={value.length === 0 ? -1 : 0}
         >
@@ -278,7 +291,9 @@ export default function PasswordField({
             <span className="libre-pwfield__bar-seg" data-on={score.score >= 3 || undefined} />
             <span className="libre-pwfield__bar-seg" data-on={score.score >= 4 || undefined} />
           </div>
-          <span className="libre-pwfield__label-strength">{score.label}</span>
+          <span className="libre-pwfield__label-strength">
+            {score.label ? t(score.label) : ""}
+          </span>
         </div>
       )}
 
@@ -290,12 +305,14 @@ export default function PasswordField({
         <small id={`${id}-error`} className="libre-pwfield__error" aria-live="polite">
           {error}
         </small>
-      ) : helper !== null ? (
+      ) : resolvedHelper !== null ? (
         <small className="libre-pwfield__helper">
           {/* When there's an active hint from scorePassword, swap it
               in for the static helper — it's more actionable than
               the generic "8+ chars" copy. */}
-          {value.length > 0 && score.hint ? score.hint : helper}
+          {value.length > 0 && score.hint
+            ? t(score.hint, { minLength: PASSWORD_MIN_LENGTH })
+            : resolvedHelper}
         </small>
       ) : null}
     </div>

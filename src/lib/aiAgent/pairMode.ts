@@ -31,7 +31,8 @@ export const DEFAULT_PAIR_MODE: PairMode = "build-with-me";
 /// Presentation metadata for the mode picker. Ordered hands-off →
 /// hands-on so the control reads as a single "how involved do you
 /// want to be?" dial. `icon` names map to base icon exports the UI
-/// resolves.
+/// resolves. `label` / `blurb` are i18n KEYS (this is a pure module,
+/// so the consuming component renders them through `t()`).
 export const PAIR_MODES: ReadonlyArray<{
   value: PairMode;
   label: string;
@@ -40,20 +41,20 @@ export const PAIR_MODES: ReadonlyArray<{
 }> = [
   {
     value: "build-for-me",
-    label: "Build for me",
-    blurb: "Hands-off. The agent builds it and hands you a finished, working project.",
+    label: "sandbox.pairModeBuildForMe",
+    blurb: "sandbox.pairModeBuildForMeBlurb",
     icon: "wand-sparkles",
   },
   {
     value: "build-with-me",
-    label: "Build with me",
-    blurb: "The agent builds it AND narrates the why of each step, then maps it to lessons.",
+    label: "sandbox.pairModeBuildWithMe",
+    blurb: "sandbox.pairModeBuildWithMeBlurb",
     icon: "users",
   },
   {
     value: "socratic",
-    label: "Socratic",
-    blurb: "The agent pauses at the key decisions and asks you to choose before it codes them.",
+    label: "sandbox.pairModeSocratic",
+    blurb: "sandbox.pairModeSocraticBlurb",
     icon: "messages-square",
   },
 ];

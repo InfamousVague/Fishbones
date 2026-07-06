@@ -22,6 +22,7 @@
 
 import MarkdownIt from "markdown-it";
 import { highlightCode } from "@/lib/highlightCode";
+import type { TFunction } from "@/i18n/i18n";
 
 /// Collapse code blocks taller than this into a <details> so a long
 /// answer stays scannable (the "show code" dropdown).
@@ -39,6 +40,11 @@ export interface ChatRenderOptions {
   /// do we collapse them to a marker. In CHAT mode a `lang:path`
   /// fence is a normal code block to render.
   agentMode?: boolean;
+  /// Localizes the chrome injected into the rendered HTML (the code
+  /// shell's copy button). Plain module — no hooks here — so the
+  /// consuming component passes its `useT()` result in; when absent
+  /// the English fallbacks keep older call sites working.
+  t?: TFunction;
 }
 
 const md = new MarkdownIt({
@@ -82,7 +88,7 @@ export async function renderChatMarkdown(
   const cleaned = sanitizeAssistantText(source ?? "", opts);
   if (!cleaned) return "";
   const html = md.render(closeDanglingFence(cleaned));
-  return replaceChatCodePlaceholders(html);
+  return replaceChatCodePlaceholders(html, opts.t);
 }
 
 /// Strip the control plumbing models emit inline so it never reaches
@@ -155,7 +161,10 @@ function closeDanglingFence(text: string): string {
   return open === 1 ? `${text}\n\`\`\`` : text;
 }
 
-async function replaceChatCodePlaceholders(html: string): Promise<string> {
+async function replaceChatCodePlaceholders(
+  html: string,
+  t?: TFunction,
+): Promise<string> {
   const placeholderRe =
     /<pre class="libre-chat-code-pending" data-lang="([^"]*)" data-file="([^"]*)" data-src="([^"]*)"><\/pre>/g;
   // Interleave literal chunks with built shells directly (no
@@ -168,7 +177,9 @@ async function replaceChatCodePlaceholders(html: string): Promise<string> {
     lastIndex = match.index + match[0].length;
     const lang = decodeAttr(match[1]);
     const filename = decodeAttr(match[2]);
-    parts.push(buildCodeShell(decodeB64(match[3]), lang, filename, match[3]));
+    parts.push(
+      buildCodeShell(decodeB64(match[3]), lang, filename, match[3], t),
+    );
   }
   parts.push(html.slice(lastIndex));
   const resolved = await Promise.all(parts);
@@ -184,6 +195,7 @@ async function buildCodeShell(
   lang: string,
   filename: string,
   srcB64: string,
+  t?: TFunction,
 ): Promise<string> {
   const highlighted = await highlightCode(code, lang);
   const body =
@@ -191,7 +203,14 @@ async function buildCodeShell(
     `<pre class="shiki"><code>${escapeHtml(code)}</code></pre>`;
   const lineCount = code.replace(/\n+$/, "").split("\n").length;
   const label = escapeHtml(filename || (lang === "text" ? "code" : lang));
-  const copyBtn = `<button type="button" class="libre-chat-code-copy" data-copy="${srcB64}" aria-label="Copy code">Copy</button>`;
+  // Shared with TipDropdown's copy affordance: common.copy /
+  // common.copied / common.copyCode. `data-copied` carries the
+  // localized post-click label for the delegated click handler
+  // (useBubbleInteractions) to swap in.
+  const copyLabel = t ? t("common.copy") : "Copy";
+  const copiedLabel = t ? t("common.copied") : "Copied";
+  const copyAria = t ? t("common.copyCode") : "Copy code";
+  const copyBtn = `<button type="button" class="libre-chat-code-copy" data-copy="${srcB64}" data-copied="${escapeAttr(copiedLabel)}" aria-label="${escapeAttr(copyAria)}">${escapeHtml(copyLabel)}</button>`;
 
   if (lineCount > COLLAPSE_CODE_AFTER_LINES) {
     return [

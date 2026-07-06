@@ -13,6 +13,7 @@ import { chevronUp } from "@base/primitives/icon/icons/chevron-up";
 import { chevronDown } from "@base/primitives/icon/icons/chevron-down";
 import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import "@base/primitives/icon/icon.css";
+import { useT } from "@/i18n/i18n";
 import "./PracticeParsons.css";
 
 interface Props {
@@ -60,6 +61,7 @@ export default function PracticeParsons({
   result,
   onResult,
 }: Props) {
+  const t = useT();
   const [order, setOrder] = useState<number[]>(() =>
     shuffledOrder(lines.length, hashSeed(itemId)),
   );
@@ -86,7 +88,7 @@ export default function PracticeParsons({
   return (
     <div className="libre-parsons">
       <div className="libre-parsons__hint">
-        Put the lines back in the right order.
+        {t("practice.parsonsHint")}
       </div>
       <ol className="libre-parsons__list">
         {order.map((lineIdx, pos) => {
@@ -109,7 +111,7 @@ export default function PracticeParsons({
                     type="button"
                     onClick={() => move(pos, -1)}
                     disabled={pos === 0}
-                    aria-label="Move line up"
+                    aria-label={t("practice.ariaMoveLineUp")}
                   >
                     <Icon icon={chevronUp} size="xs" color="currentColor" />
                   </button>
@@ -117,7 +119,7 @@ export default function PracticeParsons({
                     type="button"
                     onClick={() => move(pos, 1)}
                     disabled={pos === order.length - 1}
-                    aria-label="Move line down"
+                    aria-label={t("practice.ariaMoveLineDown")}
                   >
                     <Icon icon={chevronDown} size="xs" color="currentColor" />
                   </button>
@@ -133,7 +135,7 @@ export default function PracticeParsons({
       </ol>
       {committed && result === "wrong" && (
         <div className="libre-parsons__solution">
-          <span className="libre-parsons__solution-label">Correct order</span>
+          <span className="libre-parsons__solution-label">{t("practice.correctOrder")}</span>
           <ol>
             {lines.map((l, i) => (
               <li key={i}>
@@ -149,7 +151,7 @@ export default function PracticeParsons({
           className="libre-parsons__check"
           onClick={check}
         >
-          Check order
+          {t("practice.checkOrder")}
         </button>
       )}
     </div>

@@ -27,6 +27,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useT } from "@/i18n/i18n";
 import { Icon } from "@base/primitives/icon";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { panelLeftClose } from "@base/primitives/icon/icons/panel-left-close";
@@ -158,6 +159,7 @@ interface Props {
 }
 
 export function TradeDock({ variant = "banner", onClose }: Props) {
+  const t = useT();
   const [tab, setTab] = useState<"rest" | "ws">("rest");
   const [liveMode, setLiveMode] = useState<boolean>(() => readLiveMode());
   const [env, setEnv] = useState<Record<string, string>>(() => readEnv());
@@ -261,7 +263,7 @@ export function TradeDock({ variant = "banner", onClose }: Props) {
           <span className="libre-trade-dock__title-icon" aria-hidden>
             <Icon icon={plug} size="sm" color="currentColor" />
           </span>
-          <span>API Tester</span>
+          <span>{t("tradeDock.apiTester")}</span>
           <span
             className={
               "libre-trade-dock__mode-pill" +
@@ -269,11 +271,11 @@ export function TradeDock({ variant = "banner", onClose }: Props) {
             }
             title={
               liveMode
-                ? "Live mode — requests hit the real HelloTrade staging API."
-                : "Mock mode — recognised endpoints return canned responses so this works offline."
+                ? t("tradeDock.liveModeTitle")
+                : t("tradeDock.mockModeTitle")
             }
           >
-            {liveMode ? "LIVE" : "MOCK"}
+            {liveMode ? t("tradeDock.live") : t("tradeDock.mock")}
           </span>
         </div>
         <div className="libre-trade-dock__tabs" role="tablist">
@@ -314,8 +316,8 @@ export function TradeDock({ variant = "banner", onClose }: Props) {
             onClick={() => applyLive(!liveMode)}
             title={
               liveMode
-                ? "Live mode — requests hit the real HelloTrade staging API. Click to switch to MOCK."
-                : "Mock mode — recognised endpoints return canned responses so this works offline. Click to switch to LIVE."
+                ? t("tradeDock.liveSwitchTitle")
+                : t("tradeDock.mockSwitchTitle")
             }
           >
             <span className="libre-trade-dock__live-thumb" aria-hidden>
@@ -332,11 +334,11 @@ export function TradeDock({ variant = "banner", onClose }: Props) {
             onClick={() => setEnvOpen((v) => !v)}
             title={
               envOpen
-                ? "Hide environment variables"
-                : "Edit environment variables ({{baseUrl}}, {{wsUrl}}, …)"
+                ? t("tradeDock.envToggleHide")
+                : t("tradeDock.envToggleShow")
             }
             aria-pressed={envOpen}
-            aria-label="Environment variables"
+            aria-label={t("tradeDock.envAria")}
           >
             <Icon icon={braces} size="xs" color="currentColor" />
           </button>
@@ -345,7 +347,7 @@ export function TradeDock({ variant = "banner", onClose }: Props) {
               type="button"
               className="libre-trade-dock__icon-btn"
               onClick={onClose}
-              title="Hide dock"
+              title={t("tradeDock.hideDock")}
             >
               <Icon icon={panelLeftClose} size="xs" color="currentColor" />
             </button>
@@ -390,8 +392,8 @@ export function TradeDock({ variant = "banner", onClose }: Props) {
           onMouseDown={onResizeStart}
           role="separator"
           aria-orientation="horizontal"
-          aria-label="Resize API tester"
-          title="Drag to resize"
+          aria-label={t("tradeDock.resizeAria")}
+          title={t("tradeDock.resizeTitle")}
         />
       )}
     </div>
@@ -409,13 +411,16 @@ function EnvPanel({
   onChange: (name: string, value: string) => void;
   defaults: Record<string, string>;
 }) {
+  const t = useT();
   const keys = Object.keys({ ...defaults, ...env });
   return (
     <div className="libre-trade-dock__env">
-      <span className="libre-trade-dock__env-hint">
-        Variables interpolate into URLs + bodies via{" "}
-        <code>{`{{name}}`}</code>.
-      </span>
+      <span
+        className="libre-trade-dock__env-hint"
+        // The string carries a <code> tag — same pattern as
+        // library.dropSub.
+        dangerouslySetInnerHTML={{ __html: t("tradeDock.envHint") }}
+      />
       <div className="libre-trade-dock__env-grid">
         {keys.map((k) => (
           <label key={k} className="libre-trade-dock__env-row">
@@ -442,6 +447,7 @@ function PresetsSidebar({
   activePresetId: string | null;
   onPick: (id: string) => void;
 }) {
+  const t = useT();
   // Group presets by category in the order they appear (keeps the
   // logical "market data → account → ws-market → ws-trading"
   // ordering from the presets file).
@@ -456,10 +462,13 @@ function PresetsSidebar({
   }, []);
 
   return (
-    <aside className="libre-trade-dock__sidebar" aria-label="Saved requests">
+    <aside
+      className="libre-trade-dock__sidebar"
+      aria-label={t("tradeDock.savedRequests")}
+    >
       {groups.map(([cat, items]) => (
         <section key={cat} className="libre-trade-dock__group">
-          <h4 className="libre-trade-dock__group-title">{cat}</h4>
+          <h4 className="libre-trade-dock__group-title">{t(cat)}</h4>
           <ul className="libre-trade-dock__preset-list">
             {items.map((p) => (
               <li key={p.id}>
@@ -470,7 +479,7 @@ function PresetsSidebar({
                     (activePresetId === p.id ? " is-active" : "")
                   }
                   onClick={() => onPick(p.id)}
-                  title={p.description}
+                  title={t(p.description)}
                 >
                   <span
                     className={
@@ -484,7 +493,7 @@ function PresetsSidebar({
                     {p.kind === "rest" ? p.method : "WS"}
                   </span>
                   <span className="libre-trade-dock__preset-label">
-                    {p.label}
+                    {t(p.label)}
                   </span>
                 </button>
               </li>
@@ -520,6 +529,7 @@ function RestPanel({
   env: Record<string, string>;
   liveMode: boolean;
 }) {
+  const t = useT();
   // Form state seeded from the preset; user edits are local.
   const [method, setMethod] = useState<PresetMethod>(
     preset?.method ?? "GET",
@@ -616,12 +626,11 @@ function RestPanel({
       setState({
         loading: false,
         status: 0,
-        statusText: "Mock not available",
+        statusText: t("tradeDock.mockNotAvailable"),
         durationMs: Math.round(performance.now() - startedAt),
         responseBody: JSON.stringify(
           {
-            note:
-              "Mock mode doesn't recognise this URL. Toggle Live mode to hit the network, or pick a preset from the sidebar.",
+            note: t("tradeDock.mockUnknownUrlNote"),
             url: resolvedUrl,
             method,
           },
@@ -654,7 +663,7 @@ function RestPanel({
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           spellCheck={false}
-          placeholder="https://… (use {{baseUrl}} from env)"
+          placeholder={t("tradeDock.urlPlaceholder")}
         />
         <button
           type="button"
@@ -663,7 +672,7 @@ function RestPanel({
           disabled={state.loading || !url.trim()}
         >
           <Icon icon={sendIcon} size="xs" color="currentColor" />
-          {state.loading ? "Sending…" : "Send"}
+          {state.loading ? t("tradeDock.sending") : t("tradeDock.send")}
         </button>
       </div>
 
@@ -674,7 +683,7 @@ function RestPanel({
       )}
 
       <details className="libre-trade-dock__section">
-        <summary>Headers</summary>
+        <summary>{t("tradeDock.headers")}</summary>
         <textarea
           className="libre-trade-dock__textarea"
           value={headers}
@@ -689,20 +698,20 @@ function RestPanel({
         className="libre-trade-dock__section"
         open={method !== "GET" && method !== "DELETE"}
       >
-        <summary>Body</summary>
+        <summary>{t("tradeDock.body")}</summary>
         <textarea
           className="libre-trade-dock__textarea libre-trade-dock__textarea--mono"
           value={body}
           onChange={(e) => setBody(e.target.value)}
           spellCheck={false}
-          placeholder="JSON payload…"
+          placeholder={t("tradeDock.bodyPlaceholder")}
           rows={8}
         />
       </details>
 
       <div className="libre-trade-dock__response">
         <div className="libre-trade-dock__response-head">
-          <span>Response</span>
+          <span>{t("tradeDock.response")}</span>
           {state.status !== undefined && (
             <span
               className={
@@ -738,7 +747,7 @@ function RestPanel({
           </pre>
         ) : (
           <div className="libre-trade-dock__response-empty">
-            Send a request to see the response here.
+            {t("tradeDock.responseEmpty")}
           </div>
         )}
       </div>
@@ -755,6 +764,17 @@ interface WsMessage {
   payload: string;
 }
 
+/// Connection-status words → i18n keys. The map holds keys (not
+/// strings) so the component resolves them through `t()`.
+const WS_STATUS_KEYS = {
+  idle: "tradeDock.wsStatusIdle",
+  connecting: "tradeDock.wsStatusConnecting",
+  open: "tradeDock.wsStatusOpen",
+  closing: "tradeDock.wsStatusClosing",
+  closed: "tradeDock.wsStatusClosed",
+  error: "tradeDock.wsStatusError",
+} as const;
+
 function WsPanel({
   preset,
   env,
@@ -764,6 +784,7 @@ function WsPanel({
   env: Record<string, string>;
   liveMode: boolean;
 }) {
+  const t = useT();
   const [wsUrl, setWsUrl] = useState(preset?.wsUrl ?? "");
   const [outDraft, setOutDraft] = useState(
     preset?.wsMessages?.[0] ?? "",
@@ -904,7 +925,7 @@ function WsPanel({
             className="libre-trade-dock__send libre-trade-dock__send--danger"
             onClick={disconnect}
           >
-            Disconnect
+            {t("tradeDock.disconnect")}
           </button>
         ) : (
           <button
@@ -914,7 +935,7 @@ function WsPanel({
             disabled={!wsUrl.trim()}
           >
             <Icon icon={plugZap} size="xs" color="currentColor" />
-            Connect
+            {t("tradeDock.connect")}
           </button>
         )}
       </div>
@@ -931,14 +952,14 @@ function WsPanel({
             "libre-trade-dock__ws-status libre-trade-dock__ws-status--" + status
           }
         >
-          {status}
+          {t(WS_STATUS_KEYS[status])}
         </span>
         {messages.length > 0 && (
           <button
             type="button"
             className="libre-trade-dock__icon-btn"
             onClick={() => setMessages([])}
-            title="Clear stream"
+            title={t("tradeDock.clearStream")}
           >
             <Icon icon={trash} size="xs" color="currentColor" />
           </button>
@@ -949,8 +970,8 @@ function WsPanel({
         {messages.length === 0 ? (
           <div className="libre-trade-dock__response-empty">
             {status === "open"
-              ? "Connected. Frames will appear here as they arrive."
-              : "Connect to see the message stream."}
+              ? t("tradeDock.wsConnectedEmpty")
+              : t("tradeDock.wsIdleEmpty")}
           </div>
         ) : (
           messages.map((m) => (
@@ -990,7 +1011,7 @@ function WsPanel({
           disabled={status !== "open" || !outDraft.trim()}
         >
           <Icon icon={playIcon} size="xs" color="currentColor" />
-          Send frame
+          {t("tradeDock.sendFrame")}
         </button>
       </div>
     </div>

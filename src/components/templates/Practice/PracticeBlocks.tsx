@@ -56,6 +56,7 @@ import {
   type RenderedLine,
   type RenderedToken,
 } from "@/components/organisms/Blocks/highlight";
+import { useT } from "@/i18n/i18n";
 import "./PracticeBlocks.css";
 
 interface Props {
@@ -95,6 +96,7 @@ export default function PracticeBlocks({
   result,
   onResult,
 }: Props) {
+  const t = useT();
   // Slot id → block id (or undefined if empty).
   const [placements, setPlacements] = useState<Placements>({});
   // Tap-to-place "armed" block id. Cleared on drag start.
@@ -377,7 +379,7 @@ export default function PracticeBlocks({
           )}
           {shuffledPool.every((b) => placedBlockIds.has(b.id)) && (
             <span className="libre-practice-blocks__pool-empty">
-              All blocks placed.
+              {t("practice.allBlocksPlaced")}
             </span>
           )}
         </PoolZone>
@@ -391,11 +393,11 @@ export default function PracticeBlocks({
           >
             {committed
               ? result === "correct"
-                ? "Correct"
-                : "Not quite"
+                ? t("practice.correct")
+                : t("practice.notQuite")
               : allPlaced
-                ? "Check"
-                : "Fill every slot"}
+                ? t("practice.check")
+                : t("practice.fillEverySlot")}
           </button>
         </div>
       </div>

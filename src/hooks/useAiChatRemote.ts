@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { aiHostUrl, readAiHost } from "@/lib/aiHost";
+import { useT } from "@/i18n/i18n";
 import { DEFAULT_MODEL_ID, isModelInstalled } from "@/lib/ai/models";
 import { resolveEffortParams, type AiAgentSettings } from "@/lib/aiAgent/settings";
 import type {
@@ -37,12 +38,13 @@ const PROBE_TIMEOUT_MS = 3000;
 
 /// Build the failure-shape InstallResult we return when the user
 /// hits an install / start / pull button on the mobile UI. The text
-/// reads as actionable guidance, not a backend error.
-function unsupportedInstallResult(action: string): InstallResult {
+/// (already translated by the caller) reads as actionable guidance,
+/// not a backend error.
+function unsupportedInstallResult(message: string): InstallResult {
   return {
     success: false,
     stdout: "",
-    stderr: `${action} isn't available from the phone — run it on the Mac that hosts Ollama, then re-probe via the chat panel's retry button.`,
+    stderr: message,
     duration_ms: 0,
   };
 }
@@ -59,6 +61,7 @@ export function useAiChatRemote(
   /// where the tray's session feature doesn't run.
   initialMessages?: ChatMessage[],
 ): UseAiChat {
+  const t = useT();
   const [messages, setMessages] = useState<ChatMessage[]>(
     () => initialMessages ?? [],
   );
@@ -82,7 +85,7 @@ export function useAiChatRemote(
       return;
     }
     const ctrl = new AbortController();
-    const t = window.setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
+    const timer = window.setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
     try {
       const r = await fetch(url, { signal: ctrl.signal });
       if (!r.ok) {
@@ -90,7 +93,7 @@ export function useAiChatRemote(
           reachable: false,
           models: [],
           hasDefaultModel: false,
-          error: `Ollama returned ${r.status}`,
+          error: t("settings.ollamaHttpError", { status: r.status }),
         });
         return;
       }
@@ -121,9 +124,9 @@ export function useAiChatRemote(
         error: msg,
       });
     } finally {
-      window.clearTimeout(t);
+      window.clearTimeout(timer);
     }
-  }, [model]);
+  }, [model, t]);
 
   useEffect(() => {
     void refreshProbe();
@@ -334,16 +337,31 @@ export function useAiChatRemote(
   const installStatus: InstallStatus | null = null;
   const setupBusy = false;
   const installOllama = useCallback(
-    async () => unsupportedInstallResult("Installing Ollama"),
-    [],
+    async () =>
+      unsupportedInstallResult(
+        t("mobile.installUnavailableOnPhone", {
+          action: t("mobile.actionInstallingOllama"),
+        }),
+      ),
+    [t],
   );
   const startOllama = useCallback(
-    async () => unsupportedInstallResult("Starting the Ollama daemon"),
-    [],
+    async () =>
+      unsupportedInstallResult(
+        t("mobile.installUnavailableOnPhone", {
+          action: t("mobile.actionStartingDaemon"),
+        }),
+      ),
+    [t],
   );
   const pullModel = useCallback(
-    async () => unsupportedInstallResult("Pulling a model"),
-    [],
+    async () =>
+      unsupportedInstallResult(
+        t("mobile.installUnavailableOnPhone", {
+          action: t("mobile.actionPullingModel"),
+        }),
+      ),
+    [t],
   );
 
   /// Hot-swap conversation log (parity with `useAiChatLocal`).

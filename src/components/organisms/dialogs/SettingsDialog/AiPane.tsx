@@ -135,8 +135,7 @@ export default function AiPane({
         </div>
       </label>
       <p className="libre-settings-note">
-        Stored at <code>&lt;app_data_dir&gt;/settings.json</code>. Never
-        leaves your machine except in requests to api.anthropic.com.
+        {t("settings.anthropicKeyStorageNote")}
       </p>
 
       <label className="libre-settings-field">
@@ -201,11 +200,7 @@ export default function AiPane({
         {t("settings.aiCoverSection")}
       </h3>
       <p className="libre-settings-blurb">
-        Optional. When set, a <strong>Generate artwork with AI</strong>{" "}
-        button appears in Course Settings → Appearance. Uses OpenAI's{" "}
-        <code>gpt-image-1</code> model (~$0.04 per cover) with a fixed
-        editorial style so every book in your library shares the same
-        visual language.
+        {t("settings.coverArtBlurb")}
       </p>
       <label className="libre-settings-field">
         <span className="libre-settings-label">{t("settings.openaiApiKey")}</span>
@@ -246,9 +241,7 @@ export default function AiPane({
         </div>
       </label>
       <p className="libre-settings-note">
-        Stored next to the Anthropic key in{" "}
-        <code>&lt;app_data_dir&gt;/settings.json</code>. Only used for
-        image requests to api.openai.com.
+        {t("settings.openaiKeyStorageNote")}
       </p>
 
       <AssistantHostField />
@@ -380,10 +373,7 @@ function AssistantHostField() {
         {t("settings.aiAssistantSection")}
       </h3>
       <p className="libre-settings-blurb">
-        The in-app chat tutor — a floating orb in the bottom-right
-        that opens a side panel with conversational help. Off by
-        default. Flip the toggle below to enable it; once on, the
-        orb appears and the rest of the configuration applies.
+        {t("settings.assistantBlurb")}
       </p>
       <label className="libre-settings-toggle">
         <input
@@ -408,12 +398,7 @@ function AssistantHostField() {
         {t("settings.assistantHostSection")}
       </h3>
       <p className="libre-settings-blurb">
-        Hostname or IP of the machine running Ollama. The phone +
-        web build talk straight to it over HTTP on port 11434. A
-        Tailscale tailnet hostname is the recommended setup —
-        encrypted, stable across LAN moves, no public exposure.
-        Desktop ignores this field and uses its own localhost
-        daemon via Tauri IPC.
+        {t("settings.assistantHostBlurb")}
       </p>
       <label className="libre-settings-field">
         <span className="libre-settings-label">{t("settings.hostnameIp")}</span>
@@ -467,8 +452,8 @@ function AssistantHostField() {
           disabled={!host.trim()}
           title={
             host.trim()
-              ? "Show a QR code containing this hostname for the phone to scan"
-              : "Enter a hostname first, then a QR can be generated"
+              ? t("settings.showQrTooltip")
+              : t("settings.showQrNeedsHostTooltip")
           }
         >
           <Icon icon={qrCode} size="xs" color="currentColor" />
@@ -480,8 +465,8 @@ function AssistantHostField() {
           onClick={() => setScanOpen(true)}
           title={
             isMobile
-              ? "Open the phone's camera to scan a QR from your Mac's Settings"
-              : "Open the camera to scan a QR (useful for testing on desktop)"
+              ? t("settings.scanQrTooltipMobile")
+              : t("settings.scanQrTooltipDesktop")
           }
         >
           <Icon icon={camera} size="xs" color="currentColor" />
@@ -490,11 +475,7 @@ function AssistantHostField() {
       </div>
 
       <p className="libre-settings-note">
-        On the host: run{" "}
-        <code>OLLAMA_HOST=0.0.0.0:11434 ollama serve</code> so the
-        daemon listens on the tailnet interface, not just localhost.
-        The default macOS Ollama install binds to 127.0.0.1 only —
-        the phone won't reach it without the env override.
+        {t("settings.ollamaHostNote")}
       </p>
 
       {qrOpen && (
@@ -512,14 +493,12 @@ function AssistantHostField() {
               {t("settings.pairYourPhone")}
             </div>
             <p className="libre-settings-qr-blurb">
-              On the phone: open <strong>Settings → AI &amp; API →
-              Assistant host</strong>, tap <strong>Scan QR from
-              Mac</strong>, then point the camera at this code.
+              {t("settings.pairQrInstructions")}
             </p>
             {qrDataUrl ? (
               <img
                 src={qrDataUrl}
-                alt={`QR code for ${host}`}
+                alt={t("settings.qrCodeAlt", { host })}
                 className="libre-settings-qr-img"
               />
             ) : (
@@ -542,7 +521,7 @@ function AssistantHostField() {
       {scanOpen && (
         <QrScanner
           title={t("settings.scanMacQr")}
-          hint="Open Settings → AI on your Mac, tap Show QR for phone, point this camera at it."
+          hint={t("settings.scanQrHint")}
           onResult={handleScanResult}
           onCancel={() => setScanOpen(false)}
         />

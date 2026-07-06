@@ -27,6 +27,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
 import { sparkles } from "@base/primitives/icon/icons/sparkles";
 import "@base/primitives/icon/icon.css";
+import { useT } from "@/i18n/i18n";
 import "./AskAiSelectionPopover.css";
 
 interface Props {
@@ -49,6 +50,7 @@ export default function AskAiSelectionPopover({
   lessonId,
   lessonTitle,
 }: Props) {
+  const t = useT();
   const [chip, setChip] = useState<{
     x: number;
     y: number;
@@ -132,12 +134,12 @@ export default function AskAiSelectionPopover({
         window.getSelection()?.removeAllRanges();
         setChip(null);
       }}
-      aria-label={`Ask AI about the selected text from ${lessonTitle}`}
+      aria-label={t("lesson.askAiSelectionAria", { lessonTitle })}
     >
       <span className="libre-ask-selection-chip-spark" aria-hidden>
         <Icon icon={sparkles} size="xs" color="currentColor" />
       </span>
-      Ask AI
+      {t("lesson.askAi")}
     </button>
   );
 }

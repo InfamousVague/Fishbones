@@ -21,9 +21,13 @@ export interface Diagnosis {
   /// "js-reference-error", …). Doubles as the struggle-tracking
   /// topic key in the memory layer.
   code: string;
-  /// One-line human summary of what went wrong.
+  /// One-line human summary of what went wrong. Canonical English
+  /// (it feeds the model's tool-result payload); UI surfaces render
+  /// the localized `sandbox.diagnosis.<code>.summary` instead.
   summary: string;
-  /// The targeted fix hint the model (and learner) reads.
+  /// The targeted fix hint the model (and learner) reads. English
+  /// for the model; UI surfaces render the localized
+  /// `sandbox.diagnosis.<code>.hint`.
   hint: string;
   /// Source location when the error format carries one.
   file?: string;

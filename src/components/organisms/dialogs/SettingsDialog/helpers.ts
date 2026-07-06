@@ -27,13 +27,16 @@ export function languageForCheckId(id: string): string | null {
 /// Google override an email password if both are linked, because in
 /// practice if the learner used SIWA at any point, that's the
 /// authoritative entry point they're likely to remember.
+///
+/// Returns an i18n KEY — the consuming component passes it through
+/// `t()` (this module stays hook-free so it can't localise itself).
 export function describeAuthProvider(user: {
   apple_linked: boolean;
   google_linked: boolean;
   has_password: boolean;
 }): string {
-  if (user.apple_linked) return "Signed in via Apple";
-  if (user.google_linked) return "Signed in via Google";
-  if (user.has_password) return "Signed in with email";
-  return "Signed in";
+  if (user.apple_linked) return "settings.signedInViaApple";
+  if (user.google_linked) return "settings.signedInViaGoogle";
+  if (user.has_password) return "settings.signedInWithEmail";
+  return "settings.signedIn";
 }

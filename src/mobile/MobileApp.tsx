@@ -74,6 +74,7 @@ import LibreLoader from "@/components/molecules/LibreLoader/LibreLoader";
 import SectionCompleteSummary from "@/components/organisms/Achievements/SectionCompleteSummary";
 import { EarlyReleaseBanner } from "@/components/molecules/banners/EarlyReleaseBanner/EarlyReleaseBanner";
 import { useSoundOnChange } from "@/hooks/useSoundOnChange";
+import { useT } from "@/i18n/i18n";
 import "./MobileApp.css";
 
 type View =
@@ -109,6 +110,7 @@ export default function MobileApp() {
     clearChapterCompletions,
   } = useProgress();
   const cloud = useLibreCloud();
+  const t = useT();
 
   // Early-access supporter flag for the signed-in learner's OWN
   // profile. `cloud.user` is the account object only when signed in
@@ -433,7 +435,7 @@ export default function MobileApp() {
         (typeof cloud.user === "object" && cloud.user?.email
           ? cloud.user.email.split("@")[0]
           : null) ||
-        "Libre learner";
+        t("common.libreLearner");
       const recipientEmail =
         typeof cloud.user === "object" && cloud.user?.email
           ? cloud.user.email
@@ -456,7 +458,7 @@ export default function MobileApp() {
         startedAt,
       }).then(() => notifyCertificatesChanged());
     }
-  }, [completed, coursesAll, cloud.user, history]);
+  }, [completed, coursesAll, cloud.user, history, t]);
 
   /// Mirror of `realtime.status`, readable from inside the applier
   /// callbacks below (which close over refs, not render values). Used
@@ -817,7 +819,10 @@ export default function MobileApp() {
       } catch (e) {
         console.error("[libre] mobile install failed:", e);
         alert(
-          `Couldn't install ${entry.title}: ${e instanceof Error ? e.message : String(e)}`,
+          t("library.installFailed", {
+            courseTitle: entry.title,
+            error: e instanceof Error ? e.message : String(e),
+          }),
         );
       } finally {
         setInstallingIds((prev) => {
@@ -827,7 +832,7 @@ export default function MobileApp() {
         });
       }
     },
-    [installingIds, refreshCourses, hydrateCourse, realtime],
+    [installingIds, refreshCourses, hydrateCourse, realtime, t],
   );
 
   const [view, setView] = useState<View>("library");
@@ -1196,7 +1201,7 @@ export default function MobileApp() {
     <div className="m-app">
       {!loaded && (
         <div className="m-app__boot">
-          <LibreLoader label="loading" />
+          <LibreLoader label={t("common.loading")} />
         </div>
       )}
 
@@ -1237,7 +1242,7 @@ export default function MobileApp() {
           <div className="m-paths">
             {/* Same segmented switch the Library/Discover panes render,
                 so Paths reads as the third pane of one surface. */}
-            <div className="m-lib__segmented" role="tablist" aria-label="Library, Discover or Paths">
+            <div className="m-lib__segmented" role="tablist" aria-label={t("library.panesAria")}>
               {(["library", "discover", "paths"] as const).map((p) => (
                 <button
                   key={p}
@@ -1250,7 +1255,7 @@ export default function MobileApp() {
                     setLibraryPane(p);
                   }}
                 >
-                  {p === "library" ? "My Library" : p === "discover" ? "Discover" : "Paths"}
+                  {p === "library" ? t("library.myLibrary") : p === "discover" ? t("nav.discover") : t("nav.paths")}
                 </button>
               ))}
             </div>
@@ -1542,8 +1547,12 @@ export default function MobileApp() {
       {practiceReminder.nudge && (
         <div className="m-app__nudge" role="status">
           <span className="m-app__nudge-text">
-            Time to practice — {practiceReminder.nudge.dueCount} review
-            {practiceReminder.nudge.dueCount === 1 ? "" : "s"} due
+            {t(
+              practiceReminder.nudge.dueCount === 1
+                ? "practice.nudgeReviewsDue"
+                : "practice.nudgeReviewsDuePlural",
+              { dueCount: practiceReminder.nudge.dueCount },
+            )}
           </span>
           <button
             type="button"
@@ -1554,15 +1563,15 @@ export default function MobileApp() {
               setView("practice");
             }}
           >
-            Practice
+            {t("nav.practice")}
           </button>
           <button
             type="button"
             className="m-app__nudge-later"
             onClick={() => practiceReminder.dismissNudge()}
-            aria-label="Dismiss"
+            aria-label={t("common.dismiss")}
           >
-            Later
+            {t("common.later")}
           </button>
         </div>
       )}
@@ -1583,9 +1592,14 @@ export default function MobileApp() {
             const heading =
               sectionSummary.kind === "book"
                 ? course.title
-                : chapter?.title ?? `Chapter ${sectionSummary.chapterIdx + 1}`;
+                : chapter?.title ??
+                  t("lesson.chapterNumber", {
+                    number: sectionSummary.chapterIdx + 1,
+                  });
             const subheading =
-              sectionSummary.kind === "book" ? "Book complete" : course.title;
+              sectionSummary.kind === "book"
+                ? t("achievements.bookComplete")
+                : course.title;
             return (
               <SectionCompleteSummary
                 kind={sectionSummary.kind}

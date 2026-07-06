@@ -62,6 +62,21 @@ export async function hashCourse(c: Course): Promise<string> {
 const _bundledCache = new Map<string, Course | null>();
 const _updateCache = new Map<string, UpdateStatus>();
 
+/// Error whose `message` is an i18n KEY (plus optional `params` for
+/// `{placeholder}` interpolation) instead of English copy. This is a
+/// pure lib module — it can't call the `useT` hook — so the string
+/// choice is deferred to the consuming component, which renders
+/// `t(err.message, err.params)`.
+export class CourseSyncError extends Error {
+  constructor(
+    key: string,
+    readonly params?: Record<string, string | number>,
+  ) {
+    super(key);
+    this.name = "CourseSyncError";
+  }
+}
+
 function updateCacheKey(installed: Course): string {
   // Combine id + the installed-side bundleSha so a course whose sha
   // just got backfilled returns a new key on the next mount and
@@ -273,11 +288,11 @@ export async function syncBundledToInstalled(
   clearUpdateCache(courseId);
   const bundled = await fetchBundledCourse(courseId);
   if (!bundled) {
-    throw new Error(
-      isDesktop
-        ? `No bundled archive for "${courseId}" in bundled-packs — nothing to apply.`
-        : `Couldn't fetch ${bundledCourseUrl(courseId)} — nothing to apply.`,
-    );
+    throw isDesktop
+      ? new CourseSyncError("library.noBundledArchive", { courseId })
+      : new CourseSyncError("library.bundledFetchFailed", {
+          url: bundledCourseUrl(courseId),
+        });
   }
   const bundledHash = await hashCourse(bundled);
   // Preserve the installed-side cover-extracted timestamp + id so
@@ -468,9 +483,7 @@ export async function promoteCourseToBundled(
   course: Course,
 ): Promise<string> {
   if (!isDesktop) {
-    throw new Error(
-      "Promote to bundled is desktop-only — the web build can't write to the repo.",
-    );
+    throw new CourseSyncError("library.promoteDesktopOnly");
   }
   // Lazy-import the Tauri invoke helper so the web build doesn't
   // pull `@tauri-apps/api/core` into its bundle.

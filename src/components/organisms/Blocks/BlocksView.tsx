@@ -60,6 +60,7 @@ import {
 import { runFiles, type RunResult } from "@/runtimes/index";
 import { isMobile } from "@/lib/platform";
 import { fireHaptic } from "@/lib/haptics";
+import { useT } from "@/i18n/i18n";
 import OutputPane from "@/components/organisms/Output/OutputPane";
 import Workbench from "@/components/organisms/Workbench/Workbench";
 import {
@@ -154,6 +155,7 @@ export default function BlocksView({
   exerciseMode,
   onExerciseModeChange,
 }: Props) {
+  const t = useT();
   const blocks = lesson.blocks;
   // Pure guard — if a lesson without blocks data hits this view, we
   // surface a clear in-place error rather than crashing. The desktop
@@ -162,7 +164,7 @@ export default function BlocksView({
   if (!blocks) {
     return (
       <div className="libre-blocks libre-blocks--error">
-        <p>This exercise hasn't been authored for blocks mode yet.</p>
+        <p>{t("lesson.blocksNotAuthored")}</p>
       </div>
     );
   }
@@ -193,6 +195,7 @@ function BlocksViewInner({
   exerciseMode,
   onExerciseModeChange,
 }: InnerProps) {
+  const t = useT();
   const persistKey = `fb:blocks:${storageKey ?? lesson.id}`;
   const [placements, setPlacements] = useState<Placements>(() => {
     // Persist the in-progress placements per lesson so the learner
@@ -302,10 +305,12 @@ function BlocksViewInner({
       // tap-target id keeps the announcement readable.
       const block = blocks.pool.find((b) => b.id === blockId);
       if (block) {
-        setLiveMessage(`Placed "${block.code}" in ${slotId} slot.`);
+        setLiveMessage(
+          t("lesson.blocksSrPlaced", { code: block.code, slot: slotId }),
+        );
       }
     },
-    [updatePlacements, blocks.pool],
+    [updatePlacements, blocks.pool, t],
   );
 
   // Lift the block currently in `slotId` back to the pool.
@@ -317,9 +322,9 @@ function BlocksViewInner({
         next[slotId] = undefined;
         return next;
       });
-      setLiveMessage(`Cleared the ${slotId} slot.`);
+      setLiveMessage(t("lesson.blocksSrCleared", { slot: slotId }));
     },
-    [updatePlacements],
+    [updatePlacements, t],
   );
 
   const reset = useCallback(() => {
@@ -480,9 +485,12 @@ function BlocksViewInner({
         onSolutionAccepted?.(files);
         setJustPassed(true);
         setLiveMessage(
-          `All ${blocks.slots.length} block${
-            blocks.slots.length === 1 ? "" : "s"
-          } placed correctly. Lesson complete.`,
+          t(
+            blocks.slots.length === 1
+              ? "lesson.blocksSrAllCorrect"
+              : "lesson.blocksSrAllCorrectPlural",
+            { count: blocks.slots.length },
+          ),
         );
         window.setTimeout(() => setJustPassed(false), 1600);
         if (!completedRef.current) {
@@ -529,21 +537,26 @@ function BlocksViewInner({
         // pass again can re-trigger the animation.
         setJustPassed(true);
         setLiveMessage(
-          `All ${r.tests?.length ?? 0} tests passed. Lesson complete.`,
+          t("lesson.blocksSrTestsPassed", { count: r.tests?.length ?? 0 }),
         );
         window.setTimeout(() => setJustPassed(false), 1600);
       } else {
-        const failed = r.tests?.filter((t) => !t.passed).length ?? 0;
+        const failed = r.tests?.filter((test) => !test.passed).length ?? 0;
         if (r.error) {
-          setLiveMessage(`Compile error: ${r.error.slice(0, 120)}`);
+          setLiveMessage(
+            t("lesson.blocksSrCompileError", { error: r.error.slice(0, 120) }),
+          );
         } else if (failed > 0) {
           setLiveMessage(
-            `${failed} of ${r.tests?.length ?? 0} test${
-              r.tests?.length === 1 ? "" : "s"
-            } failed. Adjust placements and verify again.`,
+            t(
+              r.tests?.length === 1
+                ? "lesson.blocksSrTestsFailed"
+                : "lesson.blocksSrTestsFailedPlural",
+              { failed, total: r.tests?.length ?? 0 },
+            ),
           );
         } else {
-          setLiveMessage("Run finished without test results.");
+          setLiveMessage(t("lesson.blocksSrNoResults"));
         }
       }
       if (passed && !completedRef.current) {
@@ -559,7 +572,7 @@ function BlocksViewInner({
     } finally {
       setRunning(false);
     }
-  }, [lesson, blocks, placements, allCorrect, onComplete, onSolutionAccepted]);
+  }, [lesson, blocks, placements, allCorrect, onComplete, onSolutionAccepted, t]);
 
   // ── Template + chip highlighting ─────────────────────────────
   // Run Shiki against the template once (with slot markers swapped
@@ -661,14 +674,14 @@ function BlocksViewInner({
             {exerciseMode && (
               <SegmentedControl
                 size="lg"
-                ariaLabel="Exercise mode"
+                ariaLabel={t("editor.ariaExerciseMode")}
                 value={exerciseMode}
                 onChange={(v) =>
                   onExerciseModeChange(v as "editor" | "blocks")
                 }
                 options={[
-                  { value: "editor", label: "Editor" },
-                  { value: "blocks", label: "Blocks" },
+                  { value: "editor", label: t("editor.modeEditor") },
+                  { value: "blocks", label: t("editor.modeBlocks") },
                 ]}
               />
             )}
@@ -683,7 +696,10 @@ function BlocksViewInner({
           <p className="libre-blocks__prompt">{blocks.prompt}</p>
         )}
 
-        <pre className="libre-blocks__template shiki" aria-label="Code template">
+        <pre
+          className="libre-blocks__template shiki"
+          aria-label={t("lesson.blocksCodeTemplate")}
+        >
           {renderedLines.map((line, lineIdx) => (
             <span key={lineIdx} className="libre-blocks__line">
               {line.map((tok, tokIdx) =>
@@ -725,7 +741,11 @@ function BlocksViewInner({
         </pre>
 
         <PoolZone>
-          <div className="libre-blocks__pool-row" role="list" aria-label="Block tray">
+          <div
+            className="libre-blocks__pool-row"
+            role="list"
+            aria-label={t("lesson.blocksTray")}
+          >
             {shuffledPool.map((b) =>
               placedBlockIds.has(b.id) ? null : (
                 <BlockChip
@@ -740,7 +760,9 @@ function BlocksViewInner({
               ),
             )}
             {shuffledPool.every((b) => placedBlockIds.has(b.id)) && (
-              <span className="libre-blocks__pool-empty">All blocks placed.</span>
+              <span className="libre-blocks__pool-empty">
+                {t("lesson.allBlocksPlaced")}
+              </span>
             )}
           </div>
         </PoolZone>
@@ -754,11 +776,11 @@ function BlocksViewInner({
             aria-disabled={!allPlaced || running}
             title={
               allPlaced
-                ? "Compile + run tests against your placements"
-                : "Place every block before verifying"
+                ? t("lesson.blocksVerifyReadyTitle")
+                : t("lesson.blocksVerifyBlockedTitle")
             }
           >
-            {running ? "Verifying…" : "Verify"}
+            {running ? t("lesson.blocksVerifying") : t("lesson.blocksVerify")}
           </button>
           <button
             type="button"
@@ -766,7 +788,7 @@ function BlocksViewInner({
             onClick={reset}
             disabled={running}
           >
-            Reset
+            {t("lesson.reset")}
           </button>
           {allPlaced && !result && (
             <span
@@ -779,8 +801,8 @@ function BlocksViewInner({
               aria-live="polite"
             >
               {allCorrect
-                ? "Looks right — hit Verify to confirm."
-                : "Ready when you are — Verify to check."}
+                ? t("lesson.blocksLooksRight")
+                : t("lesson.blocksReadyHint")}
             </span>
           )}
         </div>
@@ -903,6 +925,7 @@ function SlotZone({
   onTap,
   lessonTitle,
 }: SlotZoneProps) {
+  const t = useT();
   const { setNodeRef, isOver } = useDroppable({ id: DROP_SLOT_PREFIX + slotId });
   const filled = !!placedBlock;
   const correct = allowFeedback && filled && placedBlock!.id === expectedBlockId;
@@ -921,8 +944,10 @@ function SlotZone({
       tabIndex={0}
       aria-label={
         filled
-          ? `Filled slot. Block: ${placedBlock!.code}. Tap to remove.`
-          : `Empty slot${hint ? `, expecting ${hint}` : ""}. Tap to place the selected block.`
+          ? t("lesson.blocksSlotFilledAria", { code: placedBlock!.code })
+          : hint
+            ? t("lesson.blocksSlotEmptyHintAria", { hint })
+            : t("lesson.blocksSlotEmptyAria")
       }
       onClick={(e) => {
         e.stopPropagation();
@@ -943,7 +968,9 @@ function SlotZone({
           lessonTitle={lessonTitle}
         />
       ) : (
-        <span className="libre-blocks__slot-placeholder">{hint ?? "block"}</span>
+        <span className="libre-blocks__slot-placeholder">
+          {hint ?? t("lesson.blocksSlotPlaceholder")}
+        </span>
       )}
     </span>
   );
@@ -979,6 +1006,7 @@ function BlockChip({
   onTap,
   lessonTitle,
 }: BlockChipProps) {
+  const t = useT();
   const dragId = (source === "pool" ? DRAG_FROM_POOL : DRAG_FROM_SLOT) + block.id;
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: dragId,
@@ -1000,7 +1028,7 @@ function BlockChip({
         (isDragging ? " libre-blocks__chip--dragging" : "")
       }
       role="listitem"
-      aria-label={`Block: ${block.code}. Drag to a slot, or tap to select.`}
+      aria-label={t("lesson.blocksChipAria", { code: block.code })}
       // Native browser tooltip with the lesson title. Cheap UX hint
       // — fires on a brief hover hold, costs nothing on touch
       // devices (where it's just ignored). The screen-reader path

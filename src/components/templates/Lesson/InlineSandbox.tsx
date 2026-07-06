@@ -10,6 +10,7 @@ import { runCode, type RunResult } from "@/runtimes/index";
 import { useActiveTheme } from "@/theme/useActiveTheme";
 import { MONACO_THEME_BY_APP_THEME } from "@/theme/monaco-themes/index";
 import type { LanguageId } from "@/data/types";
+import { useT } from "@/i18n/i18n";
 import "./InlineSandbox.css";
 
 interface Props {
@@ -38,6 +39,7 @@ const VALID_LANGS: readonly LanguageId[] = [
 /// which is the right trade-off: the whole point is a scratch sandbox,
 /// not a workspace.
 export default function InlineSandbox({ language, initialCode }: Props) {
+  const t = useT();
   const [code, setCode] = useState<string>(initialCode);
   const [result, setResult] = useState<RunResult | null>(null);
   const [running, setRunning] = useState(false);
@@ -81,14 +83,14 @@ export default function InlineSandbox({ language, initialCode }: Props) {
     <div className="libre-inline-sandbox-root">
       <div className="libre-inline-sandbox-header">
         <span className="libre-inline-sandbox-lang">{safeLang}</span>
-        <span className="libre-inline-sandbox-label">Try it</span>
+        <span className="libre-inline-sandbox-label">{t("sandbox.tryIt")}</span>
         <div className="libre-inline-sandbox-actions">
           <button
             type="button"
             className="libre-inline-sandbox-btn"
             onClick={handleReset}
           >
-            reset
+            {t("sandbox.resetLower")}
           </button>
           <button
             type="button"
@@ -96,7 +98,7 @@ export default function InlineSandbox({ language, initialCode }: Props) {
             onClick={handleRun}
             disabled={running}
           >
-            {running ? "running…" : "run"}
+            {running ? t("sandbox.runningLower") : t("editor.run")}
           </button>
         </div>
       </div>
@@ -135,7 +137,11 @@ export default function InlineSandbox({ language, initialCode }: Props) {
       </div>
       {(result || running) && (
         <div className="libre-inline-sandbox-output">
-          {running && <div className="libre-inline-sandbox-out-hint">running…</div>}
+          {running && (
+            <div className="libre-inline-sandbox-out-hint">
+              {t("sandbox.runningLower")}
+            </div>
+          )}
           {result && (
             <>
               {result.error && (

@@ -31,6 +31,7 @@ import {
 } from "@/lib/ai/buildJournal";
 import type { ConceptWithLessons } from "@/lib/ai/concepts";
 import { loadProject, isSandboxFsUnavailable } from "@/lib/sandboxFs";
+import { useT, type TFunction } from "@/i18n/i18n";
 
 /// Loads the just-built project's files from disk and recomputes
 /// the journal whenever the build progresses. Pure data in, journal
@@ -167,14 +168,47 @@ function openLesson(courseId: string, lessonId: string) {
   );
 }
 
+/// Map a journal file's canonical-English `purpose` to its
+/// localized label. The engine keeps English (its tests +
+/// `readingRank` key off the values); the panel owns translation.
+function purposeLabel(t: TFunction, file: JournalFile): string {
+  switch (file.purpose) {
+    case "Styles":
+      return t("ai.fileRoleStyles");
+    case "Page shell":
+      return t("ai.fileRolePageShell");
+    case "Config":
+      return t("ai.fileRoleConfig");
+    case "Entry point":
+      return t("ai.fileRoleEntryPoint");
+    case "Component":
+      return t("ai.fileRoleComponent");
+    case "Logic module":
+      return t("ai.fileRoleLogicModule");
+    case "Tests":
+      return t("ai.fileRoleTests");
+    case "Source file":
+      return t("ai.fileRoleSourceFallback");
+    default:
+      // "{Language} source" — rebuild from the file's language.
+      return file.language
+        ? t("ai.fileRoleSource", {
+            language:
+              file.language[0].toUpperCase() + file.language.slice(1),
+          })
+        : file.purpose;
+  }
+}
+
 /// Difficulty dots (1–3). A tiny, language-neutral signal of how
 /// deep a concept is so the learner can triage what to study first.
 function DifficultyDots({ level }: { level: 1 | 2 | 3 }) {
+  const t = useT();
   return (
     <span
       className="libre-bj-diff"
-      aria-label={`difficulty ${level} of 3`}
-      title={`difficulty ${level}/3`}
+      aria-label={t("ai.bjDifficulty", { level })}
+      title={t("ai.bjDifficultyShort", { level })}
     >
       {[1, 2, 3].map((i) => (
         <span
@@ -189,6 +223,7 @@ function DifficultyDots({ level }: { level: 1 | 2 | 3 }) {
 }
 
 function FileRow({ file }: { file: JournalFile }) {
+  const t = useT();
   // Show at most three concept chips per file — enough to signal
   // "this file is where closures + iterators live" without turning
   // the row into a wall of tags.
@@ -198,13 +233,13 @@ function FileRow({ file }: { file: JournalFile }) {
     <div className="libre-bj-file">
       <div className="libre-bj-file-head">
         <code className="libre-bj-file-path">{file.path}</code>
-        <span className="libre-bj-file-purpose">{file.purpose}</span>
+        <span className="libre-bj-file-purpose">{purposeLabel(t, file)}</span>
       </div>
       {chips.length > 0 && (
         <div className="libre-bj-file-chips">
           {chips.map((c) => (
             <span key={c.id} className="libre-bj-chip">
-              {c.label}
+              {t(`practice.concepts.${c.id}.label`)}
             </span>
           ))}
           {extra > 0 && (
@@ -219,6 +254,7 @@ function FileRow({ file }: { file: JournalFile }) {
 }
 
 function ConceptRow({ entry }: { entry: ConceptWithLessons }) {
+  const t = useT();
   const { concept, learned, lessons } = entry;
   // Cap the lesson links — the first one or two are the strongest
   // matches from the retrieval scorer; more becomes noise.
@@ -230,16 +266,20 @@ function ConceptRow({ entry }: { entry: ConceptWithLessons }) {
       }
     >
       <div className="libre-bj-concept-head">
-        <span className="libre-bj-concept-label">{concept.label}</span>
+        <span className="libre-bj-concept-label">
+          {t(`practice.concepts.${concept.id}.label`)}
+        </span>
         {!learned && (
           <span className="libre-bj-new-tag">
             <Icon icon={sparkles} size="xs" color="currentColor" />
-            new to you
+            {t("ai.bjNewToYou")}
           </span>
         )}
         <DifficultyDots level={concept.difficulty} />
       </div>
-      <p className="libre-bj-concept-blurb">{concept.blurb}</p>
+      <p className="libre-bj-concept-blurb">
+        {t(`practice.concepts.${concept.id}.blurb`)}
+      </p>
       {links.length > 0 ? (
         <div className="libre-bj-concept-links">
           {links.map((l) => (
@@ -248,7 +288,10 @@ function ConceptRow({ entry }: { entry: ConceptWithLessons }) {
               type="button"
               className="libre-bj-learn"
               onClick={() => openLesson(l.courseId, l.lessonId)}
-              title={`Open “${l.lessonTitle}” in ${l.courseTitle}`}
+              title={t("ai.bjOpenLessonTitle", {
+                lesson: l.lessonTitle,
+                course: l.courseTitle,
+              })}
             >
               <Icon icon={bookOpenText} size="xs" color="currentColor" />
               <span className="libre-bj-learn-text">{l.lessonTitle}</span>
@@ -258,7 +301,7 @@ function ConceptRow({ entry }: { entry: ConceptWithLessons }) {
         </div>
       ) : (
         <div className="libre-bj-concept-nolesson">
-          No installed lesson covers this yet.
+          {t("ai.bjNoLesson")}
         </div>
       )}
     </div>
@@ -277,30 +320,39 @@ export function BuildJournalPanel({
   // Concepts are pre-sorted unlearned-first by
   // `analyzeConceptCoverage`; surface the new-to-you ones up top so
   // the learning path leads with what to study next.
+  const t = useT();
   const newCount = journal.newToYou.length;
   return (
-    <div className="libre-bj" role="region" aria-label="How this was built">
+    <div className="libre-bj" role="region" aria-label={t("ai.bjTitle")}>
       <div className="libre-bj-head">
         <Icon icon={graduationCap} size="sm" color="currentColor" />
-        <span className="libre-bj-title">How this was built</span>
+        <span className="libre-bj-title">{t("ai.bjTitle")}</span>
         <span className="libre-bj-meta">
-          {journal.files.length} file{journal.files.length === 1 ? "" : "s"} ·{" "}
-          {journal.concepts.length} concept
-          {journal.concepts.length === 1 ? "" : "s"}
-          {newCount > 0 ? ` · ${newCount} new` : ""}
+          {t(
+            journal.files.length === 1 ? "ai.bjMetaFiles" : "ai.bjMetaFilesPlural",
+            { files: journal.files.length },
+          )}{" "}
+          ·{" "}
+          {t(
+            journal.concepts.length === 1
+              ? "ai.bjMetaConcepts"
+              : "ai.bjMetaConceptsPlural",
+            { concepts: journal.concepts.length },
+          )}
+          {newCount > 0 ? ` · ${t("ai.bjMetaNew", { newCount })}` : ""}
         </span>
         <button
           type="button"
           className="libre-ai-panel-preview-close"
           onClick={onClose}
-          aria-label="Hide build journal"
+          aria-label={t("ai.bjHide")}
         >
           <Icon icon={xIcon} size="xs" color="currentColor" />
         </button>
       </div>
 
       <div className="libre-bj-body">
-        <div className="libre-bj-section-label">The files, and what each does</div>
+        <div className="libre-bj-section-label">{t("ai.bjFilesLabel")}</div>
         <div className="libre-bj-files">
           {journal.files.map((f) => (
             <FileRow key={f.path} file={f} />
@@ -308,11 +360,13 @@ export function BuildJournalPanel({
         </div>
 
         <div className="libre-bj-section-label">
-          What this build teaches
+          {t("ai.bjTeachesLabel")}
           {newCount > 0 && (
             <span className="libre-bj-section-hint">
-              — {newCount} {newCount === 1 ? "concept is" : "concepts are"} new
-              to you
+              {t(
+                newCount === 1 ? "ai.bjNewConcepts" : "ai.bjNewConceptsPlural",
+                { newCount },
+              )}
             </span>
           )}
         </div>

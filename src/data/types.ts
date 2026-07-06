@@ -184,6 +184,14 @@ export interface Course {
   translations?: import("./locales").TranslationOverlay<
     import("./locales").CourseTranslation
   >;
+  /// De-duplicated image store. Migrated courses hoist every unique
+  /// illustration out of the lesson bodies into this single map, keyed
+  /// by a content hash, so each image is stored ONCE instead of once
+  /// per language body. Lesson bodies reference entries as
+  /// `![alt](asset://<hash> "caption")`; the renderer resolves them via
+  /// the `courseImages` registry. Absent on un-migrated courses (which
+  /// still inline images as `data:` URIs, rendered as-is).
+  images?: Record<string, string>;
   /// Classification for the library / sidebar / profile views.
   /// All three packType variants share the same on-disk shape
   /// (chapters → lessons), so persistence + progress tracking +

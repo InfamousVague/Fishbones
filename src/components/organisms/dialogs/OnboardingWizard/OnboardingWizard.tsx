@@ -5,12 +5,10 @@
 /// Mirrors the `ThemePickerFirstLaunch` self-gating mount pattern and OWNS
 /// theme selection, so it supersedes the standalone first-launch theme picker
 /// (completing it stamps the legacy theme-picked latch via `markOnboarded()`).
-///
-/// Copy is plain English (like ThemePickerModal + MobileSettings) — the
-/// first-launch surfaces don't route through i18n.
 
 import { useEffect, useState, type CSSProperties } from "react";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
+import { useT } from "@/i18n/i18n";
 import {
   THEMES,
   applyTheme,
@@ -49,13 +47,15 @@ const STEP_COUNT = 6;
 const LEARN_OPTIONS: {
   pathId: string;
   label: string;
-  blurb: string;
+  /// i18n key for the one-line blurb — resolved with `t()` at render
+  /// time (labels are proper nouns, so they stay literal).
+  blurbKey: string;
   glyph: string;
 }[] = [
-  { pathId: "python", label: "Python", blurb: "Beginner-friendly, used everywhere", glyph: "🐍" },
-  { pathId: "javascript", label: "JavaScript", blurb: "The language of the web", glyph: "🟨" },
-  { pathId: "rust", label: "Rust", blurb: "Fast, safe systems programming", glyph: "🦀" },
-  { pathId: "go", label: "Go", blurb: "Simple, fast backend services", glyph: "🐹" },
+  { pathId: "python", label: "Python", blurbKey: "onboarding.learnBlurbPython", glyph: "🐍" },
+  { pathId: "javascript", label: "JavaScript", blurbKey: "onboarding.learnBlurbJavascript", glyph: "🟨" },
+  { pathId: "rust", label: "Rust", blurbKey: "onboarding.learnBlurbRust", glyph: "🦀" },
+  { pathId: "go", label: "Go", blurbKey: "onboarding.learnBlurbGo", glyph: "🐹" },
 ];
 
 /// Self-gating first-launch mount. Renders the wizard once for a genuinely new
@@ -91,6 +91,7 @@ interface Props {
 }
 
 function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
+  const t = useT();
   const [step, setStep] = useState(0);
   // Chosen guided path from the "what do you want to learn" step (null = they
   // skipped it). Opened on finish.
@@ -169,12 +170,10 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                 aria-hidden
               />
               <h2 id="libre-onb-title" className="libre-onb__title">
-                Welcome to Libre
+                {t("onboarding.welcomeTitle")}
               </h2>
               <p className="libre-onb__blurb">
-                Learn to code through real books and hands-on exercises — all on
-                your own machine. Let's set a few things up; it takes about 20
-                seconds and everything here is changeable later in Settings.
+                {t("onboarding.welcomeBlurb")}
               </p>
             </div>
           )}
@@ -182,11 +181,10 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
           {step === 1 && (
             <>
               <h2 id="libre-onb-title" className="libre-onb__title">
-                Choose your look
+                {t("onboarding.themeStepTitle")}
               </h2>
               <p className="libre-onb__blurb">
-                Every theme is painted from a vintage sci-fi cover. Tap one to
-                try it on — the whole app recolours live.
+                {t("onboarding.themeStepBlurb")}
               </p>
               <div className="libre-onb__theme-grid">
                 {THEMES.map((tm) => {
@@ -259,45 +257,40 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
           {step === 2 && (
             <>
               <h2 id="libre-onb-title" className="libre-onb__title">
-                Privacy
+                {t("onboarding.privacyTitle")}
               </h2>
               <p className="libre-onb__blurb">
-                Libre runs fully offline. Both of these are on by default — flip
-                either off and that data is never shared.
+                {t("onboarding.privacyBlurb")}
               </p>
               <div className="libre-onb__rows">
                 <div className="libre-onb__row">
                   <div className="libre-onb__row-text">
                     <span className="libre-onb__row-label">
-                      Anonymous usage analytics
+                      {t("onboarding.analyticsLabel")}
                     </span>
                     <span className="libre-onb__row-sub">
-                      Cookieless, no fingerprinting — just which features get
-                      used, so we can improve them. Never your code or lesson
-                      content.
+                      {t("onboarding.analyticsSub")}
                     </span>
                   </div>
                   <SettingsToggle
                     checked={analyticsOn}
                     onChange={setAnalyticsOn}
-                    label="Anonymous usage analytics"
+                    label={t("onboarding.analyticsLabel")}
                   />
                 </div>
                 <div className="libre-onb__row">
                   <div className="libre-onb__row-text">
                     <span className="libre-onb__row-label">
-                      Appear on leaderboards
+                      {t("onboarding.leaderboardLabel")}
                     </span>
                     <span className="libre-onb__row-sub">
-                      Share your XP, streak and lessons on the Friends + Global
-                      boards (only ever when you're signed in). Off means you
-                      still sync across devices — you just don't rank.
+                      {t("onboarding.leaderboardSub")}
                     </span>
                   </div>
                   <SettingsToggle
                     checked={leaderboardOn}
                     onChange={setLeaderboardOn}
-                    label="Appear on leaderboards"
+                    label={t("onboarding.leaderboardLabel")}
                   />
                 </div>
               </div>
@@ -307,23 +300,26 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
           {step === 3 && (
             <>
               <h2 id="libre-onb-title" className="libre-onb__title">
-                A couple of basics
+                {t("onboarding.basicsTitle")}
               </h2>
               <p className="libre-onb__blurb">
-                Pick your language and dial in a comfortable text size. There's
-                a lot more to tune later in Settings → Appearance.
+                {t("onboarding.basicsBlurb")}
               </p>
               <div className="libre-onb__rows">
                 <div className="libre-onb__field">
-                  <span className="libre-onb__row-label">Language</span>
+                  <span className="libre-onb__row-label">
+                    {t("onboarding.languageLabel")}
+                  </span>
                   <span className="libre-onb__row-sub">
-                    Translates Libre-authored courses and the whole interface.
+                    {t("onboarding.languageSub")}
                   </span>
                   <LanguageDropdown variant="field" />
                 </div>
                 <div className="libre-onb__field">
                   <div className="libre-onb__slider-head">
-                    <span className="libre-onb__row-label">Text size</span>
+                    <span className="libre-onb__row-label">
+                      {t("settings.scaleFont")}
+                    </span>
                     <span className="libre-onb__slider-val">
                       {Math.round(fontScale * 100)}%
                     </span>
@@ -334,7 +330,7 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                     max={SCALE_BOUNDS.font[1]}
                     step={0.05}
                     value={fontScale}
-                    aria-label="Text size"
+                    aria-label={t("settings.scaleFont")}
                     onChange={(e) =>
                       setScale("font", Number(e.target.value), setFontScale)
                     }
@@ -342,7 +338,9 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                 </div>
                 <div className="libre-onb__field">
                   <div className="libre-onb__slider-head">
-                    <span className="libre-onb__row-label">Density</span>
+                    <span className="libre-onb__row-label">
+                      {t("settings.scaleSpace")}
+                    </span>
                     <span className="libre-onb__slider-val">
                       {Math.round(spaceScale * 100)}%
                     </span>
@@ -353,7 +351,7 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                     max={SCALE_BOUNDS.space[1]}
                     step={0.05}
                     value={spaceScale}
-                    aria-label="Density"
+                    aria-label={t("settings.scaleSpace")}
                     onChange={(e) =>
                       setScale("space", Number(e.target.value), setSpaceScale)
                     }
@@ -366,12 +364,10 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
           {step === 4 && (
             <>
               <h2 id="libre-onb-title" className="libre-onb__title">
-                What do you want to learn?
+                {t("onboarding.learnStepTitle")}
               </h2>
               <p className="libre-onb__blurb">
-                Pick a language and we'll open its guided path — a structured
-                route from the basics to real projects. Not sure yet? Skip it
-                and browse everything in Discover.
+                {t("onboarding.learnStepBlurb")}
               </p>
               <div className="libre-onb__learn-grid">
                 {LEARN_OPTIONS.map((opt) => {
@@ -396,7 +392,7 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                           {opt.label}
                         </span>
                         <span className="libre-onb__learn-blurb">
-                          {opt.blurb}
+                          {t(opt.blurbKey)}
                         </span>
                       </span>
                     </button>
@@ -412,14 +408,16 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
                 🎉
               </div>
               <h2 id="libre-onb-title" className="libre-onb__title">
-                You're all set
+                {t("onboarding.doneTitle")}
               </h2>
               <p className="libre-onb__blurb">
                 {learnPathId
-                  ? `Your ${
-                      LEARN_OPTIONS.find((o) => o.pathId === learnPathId)?.label
-                    } path is ready — hit Start learning to jump straight in.`
-                  : `The ${current.label} theme is applied and ready. Open the Library and start your first book — everything here lives in Settings if you want to change it.`}
+                  ? t("onboarding.donePathReady", {
+                      path:
+                        LEARN_OPTIONS.find((o) => o.pathId === learnPathId)
+                          ?.label ?? "",
+                    })
+                  : t("onboarding.doneThemeReady", { theme: current.label })}
               </p>
             </div>
           )}
@@ -428,7 +426,7 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
         <footer className="libre-onb__foot">
           {step < last ? (
             <button type="button" className="libre-onb__skip" onClick={finish}>
-              Skip
+              {t("onboarding.skip")}
             </button>
           ) : (
             <span />
@@ -436,15 +434,15 @@ function OnboardingWizardModal({ onClose, onPickLearningPath }: Props) {
           <div className="libre-onb__nav">
             {step > 0 && (
               <button type="button" className="libre-onb__back" onClick={back}>
-                Back
+                {t("common.back")}
               </button>
             )}
             <button type="button" className="libre-onb__next" onClick={next}>
               {step === 0
-                ? "Get started"
+                ? t("onboarding.getStarted")
                 : step === last
-                  ? "Start learning"
-                  : "Next"}
+                  ? t("onboarding.startLearning")
+                  : t("common.next")}
             </button>
           </div>
         </footer>

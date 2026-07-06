@@ -29,6 +29,7 @@ import { pause as pauseIcon } from "@base/primitives/icon/icons/pause";
 import { loader } from "@base/primitives/icon/icons/loader";
 import { clock as clockIcon } from "@base/primitives/icon/icons/clock";
 import { useLessonAudio } from "@/hooks/useLessonAudio";
+import { useT } from "@/i18n/i18n";
 import "./TTSButton.css";
 
 interface Props {
@@ -63,6 +64,7 @@ export default function TTSButton({
   estimatedReadMinutes,
   className,
 }: Props) {
+  const t = useT();
   // Single narration source: the ElevenLabs MP3s served from the
   // CDN, looked up via `${TTS_CDN_BASE}/manifest.json`. Lessons not
   // in the manifest render the static "X min read" chip below — we
@@ -81,11 +83,13 @@ export default function TTSButton({
           className={`libre-tts-pill libre-tts-pill--static${
             className ? ` ${className}` : ""
           }`}
-          aria-label={`${estimatedReadMinutes} minute read`}
+          aria-label={t("lesson.minuteReadAria", {
+            minutes: estimatedReadMinutes,
+          })}
         >
           <Icon icon={clockIcon} size="xs" color="currentColor" />
           <span className="libre-tts-pill__text">
-            {estimatedReadMinutes} min read
+            {t("lesson.minRead", { minutes: estimatedReadMinutes })}
           </span>
         </span>
       );
@@ -109,15 +113,15 @@ export default function TTSButton({
   //   - idle, no metadata yet         → "X min read" fallback
   let label: string;
   if (audio.isLoading) {
-    label = "Loading";
+    label = t("common.loading");
   } else if (!idle && audio.remainingSec != null) {
-    label = `${fmtTime(audio.remainingSec)} left`;
+    label = t("lesson.timeLeft", { time: fmtTime(audio.remainingSec) });
   } else if (idle && audio.durationSec != null) {
     label = fmtTime(audio.durationSec);
   } else if (typeof estimatedReadMinutes === "number" && estimatedReadMinutes > 0) {
-    label = `${estimatedReadMinutes} min read`;
+    label = t("lesson.minRead", { minutes: estimatedReadMinutes });
   } else {
-    label = "Listen";
+    label = t("lesson.listen");
   }
 
   // Progress-ring SVG geometry. r = 13 with stroke-width 2 fits
@@ -129,12 +133,12 @@ export default function TTSButton({
   const offset = CIRC * (1 - audio.progress);
 
   const ariaLabel = audio.isPlaying
-    ? `Pause narration, ${fmtTime(audio.remainingSec)} left`
+    ? t("lesson.pauseNarrationAria", { time: fmtTime(audio.remainingSec) })
     : audio.isLoading
-      ? "Loading narration"
+      ? t("lesson.loadingNarrationAria")
       : idle
-        ? "Play narration"
-        : `Resume narration, ${fmtTime(audio.remainingSec)} left`;
+        ? t("lesson.playNarrationAria")
+        : t("lesson.resumeNarrationAria", { time: fmtTime(audio.remainingSec) });
 
   return (
     <button

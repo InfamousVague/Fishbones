@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@base/primitives/icon";
 import { useDismiss } from "@/hooks/useDismiss";
+import { useT } from "@/i18n/i18n";
 import { settings as settingsIcon } from "@base/primitives/icon/icons/settings";
 import { download as downloadIcon } from "@base/primitives/icon/icons/download";
 import { arrowDownToLine } from "@base/primitives/icon/icons/arrow-down-to-line";
@@ -43,6 +44,7 @@ export default function CourseContextMenu({
   onUpdate,
   onDelete,
 }: Props) {
+  const t = useT();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   /// Dismiss on outside click, Escape. Matches the sidebar's original
@@ -76,7 +78,7 @@ export default function CourseContextMenu({
           <span className="libre__context-menu-icon" aria-hidden>
             <Icon icon={settingsIcon} size="xs" color="currentColor" />
           </span>
-          Course settings…
+          {t("sidebar.ctxCourseSettings")}
         </button>
       )}
       {onExport && (
@@ -90,7 +92,7 @@ export default function CourseContextMenu({
           <span className="libre__context-menu-icon" aria-hidden>
             <Icon icon={downloadIcon} size="xs" color="currentColor" />
           </span>
-          Export course…
+          {t("sidebar.ctxExportCourse")}
         </button>
       )}
       {onUpdate && (
@@ -102,14 +104,16 @@ export default function CourseContextMenu({
           }}
           title={
             menu.hasUpdate
-              ? "Apply the available course update"
-              : "Re-extract the bundled archive over the installed copy"
+              ? t("library.applyUpdateTooltip")
+              : t("library.reinstallTooltip")
           }
         >
           <span className="libre__context-menu-icon" aria-hidden>
             <Icon icon={arrowDownToLine} size="xs" color="currentColor" />
           </span>
-          {menu.hasUpdate ? "Update available…" : "Reinstall course…"}
+          {menu.hasUpdate
+            ? t("library.updateAvailableMenu")
+            : t("library.reinstallCourse")}
         </button>
       )}
       {onDelete && (
@@ -125,7 +129,7 @@ export default function CourseContextMenu({
             <span className="libre__context-menu-icon" aria-hidden>
               <Icon icon={xIcon} size="xs" color="currentColor" />
             </span>
-            Delete course…
+            {t("sidebar.ctxDeleteCourse")}
           </button>
         </>
       )}

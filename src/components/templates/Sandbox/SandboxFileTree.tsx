@@ -288,7 +288,7 @@ export default function SandboxFileTree({
   return (
     <nav className="libre-sbft" aria-label={t("sandbox.ariaSandboxFiles")}>
       <header className="libre-sbft__head">
-        <span className="libre-sbft__eyebrow">Files</span>
+        <span className="libre-sbft__eyebrow">{t("sandbox.files")}</span>
         <div className="libre-sbft__head-actions">
           {onMutateFiles && (
             <>

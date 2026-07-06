@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { textToCourse } from "@/ingest/pdfParser";
 import { track } from "@/lib/track";
+import { useT } from "@/i18n/i18n";
 import type { Course, LanguageId } from "@/data/types";
 import type { StartIngestOpts } from "@/hooks/useIngestRun";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
@@ -79,6 +80,7 @@ export default function ImportDialog({
   onSavedCourse,
   preselectedPath,
 }: Props) {
+  const t = useT();
   const [step, setStep] = useState<"pick" | "meta">("pick");
   const [pdfPath, setPdfPath] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -276,7 +278,7 @@ export default function ImportDialog({
     <ModalBackdrop onDismiss={onDismiss}>
       <div className="libre-import-panel">
         <div className="libre-import-header">
-          <span className="libre-import-title">Import course from book</span>
+          <span className="libre-import-title">{t("import.bookTitle")}</span>
           <button className="libre-import-close" onClick={onDismiss}>×</button>
         </div>
 
@@ -284,13 +286,10 @@ export default function ImportDialog({
           {step === "pick" && (
             <>
               <p className="libre-import-blurb">
-                Pick a PDF or EPUB. We'll extract the text, detect the book's
-                title, author, and programming language, and — if you've got
-                an Anthropic key in Settings — let Claude structure it into
-                a real Codecademy-style course with exercises and quizzes.
+                {t("import.bookBlurb")}
               </p>
               <button className="libre-import-primary" onClick={pickFile}>
-                Choose book…
+                {t("import.chooseBook")}
               </button>
             </>
           )}
@@ -304,20 +303,20 @@ export default function ImportDialog({
               {detecting && (
                 <div className="libre-import-detecting">
                   <span className="libre-import-detecting-spinner" aria-hidden />
-                  Detecting book metadata…
+                  {t("import.detecting")}
                 </div>
               )}
               {detectionError && !detecting && (
                 <div className="libre-import-detecting libre-import-detecting--error">
-                  Couldn't auto-detect metadata — fill fields by hand.
+                  {t("import.detectFailed")}
                   {detectionError.includes("api_key") ||
                   detectionError.includes("401") ? (
-                    <> Check your Anthropic key in Settings.</>
+                    <> {t("import.checkKey")}</>
                   ) : null}
                 </div>
               )}
 
-              <Field label="Title">
+              <Field label={t("import.titleLabel")}>
                 <input
                   className="libre-import-input"
                   value={title}
@@ -325,10 +324,10 @@ export default function ImportDialog({
                     titleEditedRef.current = true;
                     setTitle(e.target.value);
                   }}
-                  placeholder="e.g. JavaScript: The Definitive Guide"
+                  placeholder={t("import.titlePlaceholder")}
                 />
               </Field>
-              <Field label="Author">
+              <Field label={t("import.authorLabel")}>
                 <input
                   className="libre-import-input"
                   value={author}
@@ -336,10 +335,14 @@ export default function ImportDialog({
                     authorEditedRef.current = true;
                     setAuthor(e.target.value);
                   }}
-                  placeholder={detecting ? "detecting…" : "optional"}
+                  placeholder={
+                    detecting
+                      ? t("import.detectingPlaceholder")
+                      : t("import.optionalPlaceholder")
+                  }
                 />
               </Field>
-              <Field label="Course id">
+              <Field label={t("import.courseIdLabel")}>
                 <input
                   className="libre-import-input"
                   value={courseId}
@@ -347,7 +350,7 @@ export default function ImportDialog({
                     courseIdEditedRef.current = true;
                     setCourseId(e.target.value);
                   }}
-                  placeholder="short slug"
+                  placeholder={t("import.slugPlaceholder")}
                 />
               </Field>
 
@@ -358,12 +361,9 @@ export default function ImportDialog({
                   onChange={(e) => setUseAi(e.target.checked)}
                 />
                 <div>
-                  <div>Use Claude to structure into lessons</div>
+                  <div>{t("import.useAiLabel")}</div>
                   <div className="libre-import-hint">
-                    Requires an Anthropic key in Settings. Runs in the background — a
-                    floating panel shows progress and each lesson saves to disk as
-                    it's generated, so you can keep using the app and never lose
-                    progress on a crash.
+                    {t("import.useAiHint")}
                   </div>
                 </div>
               </label>
@@ -374,14 +374,14 @@ export default function ImportDialog({
                   onClick={() => setStep("pick")}
                   disabled={running}
                 >
-                  Back
+                  {t("common.back")}
                 </button>
                 <button
                   className="libre-import-primary"
                   onClick={runImport}
                   disabled={!title || !courseId || running}
                 >
-                  {running ? "Extracting…" : "Import"}
+                  {running ? t("import.extracting") : t("import.import")}
                 </button>
               </div>
             </>

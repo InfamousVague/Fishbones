@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from "react";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
+import { useT } from "@/i18n/i18n";
 import {
   THEMES,
   applyTheme,
@@ -67,6 +68,7 @@ interface Props {
 }
 
 export default function ThemePickerModal({ onClose }: Props) {
+  const t = useT();
   const [selected, setSelected] = useState<ThemeName>(() => readActiveTheme());
 
   const pick = (id: ThemeName) => {
@@ -93,11 +95,10 @@ export default function ThemePickerModal({ onClose }: Props) {
             id="libre-theme-picker-title"
             className="libre-theme-picker__title"
           >
-            Choose your Libre
+            {t("settings.themePickerTitle")}
           </h2>
           <p className="libre-theme-picker__blurb">
-            Every look is painted from a vintage sci-fi cover — halftone splash
-            and all. Tap one to try it on; you can switch any time in Settings.
+            {t("settings.themePickerBlurb")}
           </p>
         </header>
 
@@ -181,7 +182,7 @@ export default function ThemePickerModal({ onClose }: Props) {
             className="libre-theme-picker__confirm"
             onClick={confirm}
           >
-            Continue with {current.label}
+            {t("settings.themePickerContinue", { theme: current.label })}
           </button>
         </footer>
       </div>

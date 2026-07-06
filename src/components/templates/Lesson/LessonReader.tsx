@@ -16,6 +16,7 @@ import { bookOpen } from "@base/primitives/icon/icons/book-open";
 import { x as xIcon } from "@base/primitives/icon/icons/x";
 import "@base/primitives/icon/icon.css";
 import { renderMarkdown } from "./markdown";
+import { resolveCourseAsset } from "@/data/courseImages";
 import { SkeletonText } from "@/components/atoms/Skeleton/Skeleton";
 import LessonPopover, { type PopoverContent } from "./LessonPopover";
 import AskAiSelectionPopover from "./AskAiSelectionPopover";
@@ -148,7 +149,7 @@ export default function LessonReader({
     // of minor casing / trailing-whitespace drift, not strict string
     // equality, because generator passes occasionally normalise titles.
     source = stripLeadingTitleHeading(source, lesson.title);
-    renderMarkdown(source, { enrichment }).then((rendered) => {
+    renderMarkdown(source, { enrichment, t }).then((rendered) => {
       if (!cancelled) {
         setHtml(rendered);
         setBodyReady(true);
@@ -157,7 +158,7 @@ export default function LessonReader({
     return () => {
       cancelled = true;
     };
-  }, [lesson.body, enrichment, demotedReason, lesson.title]);
+  }, [lesson.body, enrichment, demotedReason, lesson.title, t]);
 
   // --- Scroll progress tracking ---------------------------------------
 
@@ -232,6 +233,45 @@ export default function LessonReader({
       articleEl.innerHTML = html;
     }
   }, [articleEl, html]);
+
+  // De-duplicated image resolution + LAZY DECODE. Migrated courses leave
+  // images as `<img data-asset="hash">` (no src). We fill the src from
+  // the course image registry only when the image scrolls near the
+  // viewport, so opening a lesson doesn't decode all of its hero art at
+  // once. Un-migrated courses have no such imgs → this is a cheap no-op.
+  useEffect(() => {
+    if (!articleEl) return;
+    const pending = Array.from(
+      articleEl.querySelectorAll<HTMLImageElement>("img[data-asset]"),
+    ).filter((img) => !img.getAttribute("src"));
+    if (pending.length === 0) return;
+
+    const resolve = (img: HTMLImageElement) => {
+      const hash = img.getAttribute("data-asset");
+      const uri = hash ? resolveCourseAsset(courseId, hash) : undefined;
+      if (uri) img.src = uri;
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      pending.forEach(resolve);
+      return;
+    }
+    // Resolve a screenful+ ahead so images are ready before they're
+    // scrolled into view (no visible pop-in in normal reading).
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            resolve(e.target as HTMLImageElement);
+            obs.unobserve(e.target);
+          }
+        }
+      },
+      { root: scrollEl ?? null, rootMargin: "1200px 0px" },
+    );
+    pending.forEach((img) => io.observe(img));
+    return () => io.disconnect();
+  }, [articleEl, html, courseId, scrollEl]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -390,7 +430,7 @@ export default function LessonReader({
         // displays. Devs reading the console see the parse error.
         // eslint-disable-next-line no-console
         console.error("[device-action] bad config JSON:", err);
-        el.textContent = "(invalid device-action config)";
+        el.textContent = t("lesson.invalidDeviceActionConfig");
         continue;
       }
       el.innerHTML = "";
@@ -510,7 +550,7 @@ export default function LessonReader({
         }
       });
     };
-  }, [html, symbolMap, termMap, primaryLang, cancelHide, scheduleHide, lesson.title]);
+  }, [html, symbolMap, termMap, primaryLang, cancelHide, scheduleHide, lesson.title, t]);
 
   // Dismiss when the lesson changes so a stale popover doesn't flash
   // on the new lesson's prose while the hover state settles.

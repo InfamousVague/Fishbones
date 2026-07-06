@@ -4,6 +4,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import type { LanguageId } from "@/data/types";
 import type { StartIngestOpts } from "@/hooks/useIngestRun";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
+import { useT } from "@/i18n/i18n";
 import "./BulkImportDialog.css";
 
 const VALID_LANGUAGES: readonly LanguageId[] = [
@@ -62,6 +63,7 @@ interface Props {
 /// The queue runs unattended — one book at a time, failures don't halt
 /// the batch, status shown in the FloatingIngestPanel.
 export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
+  const t = useT();
   const [items, setItems] = useState<QueueItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   // Track which rows the user has hand-edited so background detection
@@ -223,16 +225,16 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
       <div className="libre-bulk-panel">
         <div className="libre-bulk-header">
           <div>
-            <div className="libre-bulk-kicker">Bulk import</div>
+            <div className="libre-bulk-kicker">{t("import.bulkKicker")}</div>
             <div className="libre-bulk-title">
-              Queue multiple books
+              {t("import.bulkTitle")}
             </div>
           </div>
           <button
             type="button"
             className="libre-bulk-close"
             onClick={onDismiss}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             ×
           </button>
@@ -242,30 +244,32 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
           {items.length === 0 ? (
             <div className="libre-bulk-empty">
               <p className="libre-bulk-empty-blurb">
-                Pick one or more PDFs or EPUBs. We'll auto-detect the title,
-                author, and programming language for each, then queue them
-                up for unattended processing. Failures in one book don't
-                halt the queue — perfect for leaving it running overnight.
+                {t("import.bulkEmptyBlurb")}
               </p>
               <button
                 type="button"
                 className="libre-bulk-primary"
                 onClick={pickFiles}
               >
-                Choose books…
+                {t("import.chooseBooks")}
               </button>
             </div>
           ) : (
             <>
               <div className="libre-bulk-summary">
-                {items.length} book{items.length === 1 ? "" : "s"}{" "}
+                {t(
+                  items.length === 1
+                    ? "import.bookCount"
+                    : "import.bookCountPlural",
+                  { count: items.length },
+                )}{" "}
                 {detecting ? (
                   <span className="libre-bulk-summary-hint">
-                    · detecting metadata…
+                    {t("import.detectingHint")}
                   </span>
                 ) : (
                   <span className="libre-bulk-summary-hint">
-                    · ready to queue
+                    {t("import.readyHint")}
                   </span>
                 )}
                 <button
@@ -273,7 +277,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
                   className="libre-bulk-add"
                   onClick={pickFiles}
                 >
-                  Add more…
+                  {t("import.addMore")}
                 </button>
               </div>
 
@@ -294,13 +298,13 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
                               className="libre-bulk-row-spinner"
                               aria-hidden
                             />
-                            detecting
+                            {t("import.statusDetecting")}
                           </>
                         )}
-                        {r.status === "ready" && "ready"}
+                        {r.status === "ready" && t("import.statusReady")}
                         {r.status === "error" && (
                           <span className="libre-bulk-row-errtag">
-                            detect failed
+                            {t("import.statusDetectFailed")}
                           </span>
                         )}
                       </span>
@@ -308,15 +312,15 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
                         type="button"
                         className="libre-bulk-row-remove"
                         onClick={() => removeItem(r.pdfPath)}
-                        title="Remove from queue"
-                        aria-label="Remove"
+                        title={t("import.removeFromQueue")}
+                        aria-label={t("import.removeFromQueue")}
                       >
                         ×
                       </button>
                     </div>
                     <div className="libre-bulk-row-grid">
                       <label className="libre-bulk-row-field">
-                        <span>Title</span>
+                        <span>{t("import.fieldTitle")}</span>
                         <input
                           className="libre-bulk-row-input"
                           value={r.title}
@@ -326,18 +330,18 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
                         />
                       </label>
                       <label className="libre-bulk-row-field">
-                        <span>Author</span>
+                        <span>{t("import.fieldAuthor")}</span>
                         <input
                           className="libre-bulk-row-input"
                           value={r.author}
-                          placeholder="optional"
+                          placeholder={t("import.optionalPlaceholder")}
                           onChange={(e) =>
                             updateField(r.pdfPath, "author", e.target.value)
                           }
                         />
                       </label>
                       <label className="libre-bulk-row-field libre-bulk-row-field--narrow">
-                        <span>Language</span>
+                        <span>{t("import.fieldLanguage")}</span>
                         <select
                           className="libre-bulk-row-input libre-bulk-row-langselect"
                           value={r.language}
@@ -368,8 +372,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
         {items.length > 0 && (
           <div className="libre-bulk-footer">
             <div className="libre-bulk-footer-hint">
-              Queue runs one book at a time. A failure is logged and the
-              next book starts automatically.
+              {t("import.queueHint")}
             </div>
             <div className="libre-bulk-footer-actions">
               <button
@@ -377,7 +380,7 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
                 className="libre-bulk-secondary"
                 onClick={onDismiss}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -387,7 +390,12 @@ export default function BulkImportDialog({ onDismiss, onStartQueue }: Props) {
               >
                 {detecting
                   ? `Start ${items.length} (detection running…)`
-                  : `Start ${items.length} book${items.length === 1 ? "" : "s"}`}
+                  : t(
+                      items.length === 1
+                        ? "import.startN"
+                        : "import.startNPlural",
+                      { count: items.length },
+                    )}
               </button>
             </div>
           </div>

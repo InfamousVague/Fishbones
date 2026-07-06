@@ -32,6 +32,7 @@ import {
 } from "@/lib/ai/models";
 import { isDesktop } from "@/lib/platform";
 import { probeInstalledModels, pullModel } from "@/lib/ai/ollamaInstall";
+import { useT } from "@/i18n/i18n";
 import "./ModelPicker.css";
 
 interface Props {
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export default function ModelPicker({ currentModel, onSelect }: Props) {
+  const t = useT();
   const [installed, setInstalled] = useState<string[]>([]);
   const [reachable, setReachable] = useState<boolean | null>(null);
   const [probeError, setProbeError] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
 
   const probe = useCallback(async () => {
     try {
-      const r = await probeInstalledModels(currentModel);
+      const r = await probeInstalledModels(currentModel, t);
       setReachable(r.reachable);
       setInstalled(r.models);
       setProbeError(r.error);
@@ -68,7 +70,7 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
       setReachable(false);
       setProbeError(e instanceof Error ? e.message : String(e));
     }
-  }, [currentModel]);
+  }, [currentModel, t]);
 
   useEffect(() => {
     void probe();
@@ -88,7 +90,7 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
       setPulling(id);
       setPullError(null);
       try {
-        const r = await pullModel(id);
+        const r = await pullModel(id, t);
         if (r.success) {
           await probe();
           // Auto-select the freshly-pulled model — UNLESS the user
@@ -103,7 +105,7 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
         setPulling(null);
       }
     },
-    [probe, onSelect],
+    [probe, onSelect, t],
   );
 
   // Custom (hand-pulled) models not in the registry — surface so
@@ -137,7 +139,7 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
   return (
     <div className="libre-model-picker">
       <div className="libre-model-picker-head">
-        <span className="libre-model-picker-title">Assistant model</span>
+        <span className="libre-model-picker-title">{t("ai.modelPickerTitle")}</span>
         {reachable === false && (
           <span
             className="libre-model-picker-offline"
@@ -145,15 +147,14 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
             aria-live="polite"
             title={probeError ?? ""}
           >
-            Ollama offline
+            {t("ai.ollamaOffline")}
           </span>
         )}
       </div>
       <p className="libre-model-picker-sub">
-        The local model that powers chat + agent.{" "}
         {canPull
-          ? "Installed models switch instantly; others download on demand."
-          : "Models installed on your Ollama host can be selected here."}
+          ? t("ai.modelPickerSubInstant")
+          : t("ai.modelPickerSubHost")}
       </p>
 
       <div className="libre-model-picker-list">
@@ -196,14 +197,16 @@ export default function ModelPicker({ currentModel, onSelect }: Props) {
               <span className="libre-model-row-main">
                 <span className="libre-model-row-label">{tag}</span>
                 <span className="libre-model-row-blurb">
-                  Custom model{tagInstalled ? " you pulled in Ollama." : " — not detected on the host."}
+                  {tagInstalled
+                    ? t("ai.customModelBlurb")
+                    : t("ai.customModelMissing")}
                 </span>
               </span>
               <span className="libre-model-row-action">
                 {tag === currentModel ? (
                   <Icon icon={check} size="sm" color="currentColor" />
                 ) : (
-                  <span className="libre-model-row-use">Use</span>
+                  <span className="libre-model-row-use">{t("ai.use")}</span>
                 )}
               </span>
             </div>
@@ -256,6 +259,7 @@ function ModelRow({
   onSelect: () => void;
   onPull: () => void;
 }) {
+  const t = useT();
   // The current model is selected but NOT confirmed installed (it
   // was deleted in Ollama, or the daemon is offline so we can't
   // verify). Don't show a triumphant check — warn + offer a re-pull.
@@ -288,7 +292,7 @@ function ModelRow({
           {meta.label}
           <span
             className={`libre-model-badge libre-model-badge--${meta.role}`}
-            title={meta.role === "code" ? "Code-specialist model" : "General-purpose model"}
+            title={meta.role === "code" ? t("ai.roleCode") : t("ai.roleGeneral")}
           >
             {meta.role === "code" ? "code" : "general"}
           </span>
@@ -296,8 +300,8 @@ function ModelRow({
             className={`libre-model-badge libre-model-badge--${meta.tools}`}
             title={
               meta.tools === "native"
-                ? "Native tool-calling — best for agent mode."
-                : "No native tools — agent mode uses Libre's recovery layers (less reliable on long builds). Great for chat."
+                ? t("ai.toolsNative")
+                : t("ai.toolsNone")
             }
           >
             {meta.tools === "native" ? "tools ✓" : "tools ~"}
@@ -305,9 +309,9 @@ function ModelRow({
           {selectedButMissing && (
             <span
               className="libre-model-badge libre-model-badge--warn"
-              title="Selected but not detected — re-pull or pick another."
+              title={t("ai.selectedMissing")}
             >
-              not installed
+              {t("ai.notInstalled")}
             </span>
           )}
         </span>
@@ -323,11 +327,11 @@ function ModelRow({
       </span>
       <span className="libre-model-row-action">
         {installed && selected ? (
-          <span className="libre-model-row-selected-mark" title="Selected">
+          <span className="libre-model-row-selected-mark" title={t("ai.selected")}>
             <Icon icon={check} size="sm" color="currentColor" />
           </span>
         ) : installed ? (
-          <span className="libre-model-row-use">Use</span>
+          <span className="libre-model-row-use">{t("ai.use")}</span>
         ) : pulling ? (
           <span
             className="libre-model-row-pulling"
@@ -351,8 +355,8 @@ function ModelRow({
             }}
             title={
               selectedButMissing
-                ? `Re-pull ${meta.label} (~${meta.sizeGb} GB)`
-                : `Download ${meta.label} (~${meta.sizeGb} GB)`
+                ? t("ai.rePullTitle", { label: meta.label, sizeGb: meta.sizeGb })
+                : t("ai.downloadTitle", { label: meta.label, sizeGb: meta.sizeGb })
             }
           >
             {selectedButMissing ? (
@@ -360,18 +364,18 @@ function ModelRow({
             ) : (
               <Icon icon={download} size="xs" color="currentColor" />
             )}
-            {selectedButMissing ? "Re-pull" : "Get"}
+            {selectedButMissing ? t("ai.rePull") : t("ai.get")}
           </button>
         ) : (
           <span
             className="libre-model-row-remote-hint"
             title={
               reachable === false
-                ? "Can't reach the Ollama host."
-                : "Install this on your Ollama host machine, then it'll appear here."
+                ? t("ai.hostUnreachable")
+                : t("ai.installOnHostHint")
             }
           >
-            not installed
+            {t("ai.notInstalled")}
           </span>
         )}
       </span>

@@ -18,6 +18,9 @@ export interface QuickActionCtx {
 
 export interface QuickAction {
   id: string;
+  /// i18n key for the chip label — the panel renders `t(label)`.
+  /// (Pure module, so the key lives here and the component owns
+  /// the translation call.)
   label: string;
   /// Whether to surface this action for the given context.
   show: (ctx: QuickActionCtx) => boolean;
@@ -35,7 +38,7 @@ function capError(e: string): string {
 export const QUICK_ACTIONS: readonly QuickAction[] = [
   {
     id: "fix-error",
-    label: "Fix the error",
+    label: "ai.qaFixError",
     show: (c) => !!c.lastError && c.lastError.trim().length > 0,
     prompt: (c) =>
       [
@@ -48,7 +51,7 @@ export const QUICK_ACTIONS: readonly QuickAction[] = [
   },
   {
     id: "explain",
-    label: "Explain my code",
+    label: "ai.qaExplainCode",
     show: (c) => !!c.projectName,
     prompt: (c) =>
       `Explain how my open project${
@@ -57,14 +60,14 @@ export const QUICK_ACTIONS: readonly QuickAction[] = [
   },
   {
     id: "comment",
-    label: "Add comments",
+    label: "ai.qaAddComments",
     show: (c) => !!c.openFile,
     prompt: (c) =>
       `Add clear, concise comments / docstrings to \`${c.openFile}\` in my open project, IN PLACE, without changing behaviour.`,
   },
   {
     id: "add-tests",
-    label: "Add tests",
+    label: "ai.qaAddTests",
     show: (c) => !!c.projectName,
     prompt: () =>
       "Add a small set of tests for my open project, write them into the project, and run them to confirm they pass.",

@@ -77,9 +77,10 @@ export interface RewindChoice {
   /// The concept the line embodies, with its teaching lessons +
   /// learned flag (so the reveal can deep-link "Learn this").
   concept: ConceptWithLessons;
-  /// A deterministic one-line cue the tray shows above the input.
-  /// The model MAY rewrite it with more flavour, but this always
-  /// works even when the model is terse.
+  /// A deterministic one-line cue for the challenge. English
+  /// fallback only — the tray renders the localized equivalent
+  /// (ai.etdRetryPrompt / ai.etdPredictPrompt, keyed off `reason`)
+  /// since this pure module can't call `t()`.
   prompt: string;
   /// Why this line was chosen — surfaced for transparency + tests.
   reason: "struggled-concept" | "new-concept";

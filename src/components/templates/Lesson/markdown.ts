@@ -9,6 +9,7 @@ import type {
   GlossaryEntry,
   SymbolEntry,
 } from "@/data/types";
+import type { TFunction } from "@/i18n/i18n";
 
 /// Markdown → HTML using markdown-it (CommonMark + GFM tables). Fenced code
 /// blocks are piped through Shiki for syntax highlighting.
@@ -74,8 +75,14 @@ const md = new MarkdownIt({
 // allows `img-src … data:`. All other URLs keep the default validation.
 const defaultValidateLink = md.validateLink.bind(md);
 md.validateLink = (url: string): boolean => {
-  if (/^data:image\/svg\+xml[;,]/i.test(url.trim())) return true;
-  return defaultValidateLink(url);
+  const u = url.trim();
+  if (/^data:image\/svg\+xml[;,]/i.test(u)) return true;
+  // De-duplicated courses reference their shared image store as
+  // `asset://<hash>`. markdown-it must not strip the URL; the figure
+  // post-processor rewrites it into a `data-asset` attribute and the
+  // reader resolves it to a data URI at paint time (lazy-decoded).
+  if (/^asset:\/\/[a-f0-9]+$/i.test(u)) return true;
+  return defaultValidateLink(u);
 };
 
 // Render code blocks with a data attribute + escaped raw so we can find them
@@ -170,6 +177,12 @@ export interface RenderOptions {
   /// code example invisible. Defaults to `true` (interactive) so the
   /// desktop reader and all other callers keep the sandbox behavior.
   interactiveSandboxes?: boolean;
+  /// Translate function from the consuming component's `useT()` — this
+  /// module is deliberately React-free, so the component passes its
+  /// hook-bound `t` in and the render weaves localized chrome strings
+  /// (callout labels, the Ask-Libre badge) into the HTML. Omitted →
+  /// English fallbacks, matching the pre-i18n output.
+  t?: TFunction;
 }
 
 export async function renderMarkdown(
@@ -179,7 +192,7 @@ export async function renderMarkdown(
   // Step 1 — GitHub-style callout pre-processing on the raw markdown.
   // markdown-it's blockquote tokenizer would otherwise eat the [!NOTE]
   // line and leave us without enough signal to restyle the output.
-  const withoutCallouts = transformCallouts(source);
+  const withoutCallouts = transformCallouts(source, opts.t);
 
   // Step 2 — let markdown-it render paragraphs, lists, tables, etc.
   // The env object threads render-time flags down to the token rules;
@@ -190,7 +203,7 @@ export async function renderMarkdown(
   });
 
   // Step 3 — Shiki-highlight fenced code blocks (async).
-  const afterHighlight = await replaceCodeFencePlaceholders(initial);
+  const afterHighlight = await replaceCodeFencePlaceholders(initial, opts.t);
 
   // Step 4 — restore callout blocks (markdown-it wrapped them in
   // blockquote elements we marked with a placeholder sentinel).
@@ -295,11 +308,22 @@ function wrapFiguresWithCaption(html: string): string {
     const root = doc.getElementById("__fig_root__");
     if (!root) return html;
     for (const img of Array.from(root.querySelectorAll("img"))) {
-      // Scope to raster art (the baked lesson illustrations). Inline SVG
-      // diagrams (e.g. the JS/TS course's 59 hand-authored schematics)
-      // are sized + placed deliberately and should stay as-is, not get
-      // wrapped in a photo-style card.
       const src = img.getAttribute("src") || "";
+      // De-duplicated image ref: hoist `asset://<hash>` off `src` onto a
+      // `data-asset` attribute so the browser never tries to fetch the
+      // bogus scheme. The reader resolves it to a real data URI at paint
+      // time, lazily. Applies to EVERY image (figure + inline) — do it
+      // before the figure-promotion filtering below.
+      const assetMatch = src.match(/^asset:\/\/([a-f0-9]+)$/i);
+      if (assetMatch) {
+        img.removeAttribute("src");
+        img.setAttribute("data-asset", assetMatch[1]);
+        img.setAttribute("loading", "lazy");
+      }
+      // Scope figure-promotion to raster art (the baked lesson
+      // illustrations). Inline SVG diagrams (e.g. the JS/TS course's 59
+      // hand-authored schematics) are sized + placed deliberately and
+      // should stay as-is, not get wrapped in a photo-style card.
       if (/^data:image\/svg|\.svg(\?|$)/i.test(src)) continue;
       const p = img.parentElement;
       // Only promote images that ARE the paragraph — no sibling prose,
@@ -461,7 +485,7 @@ function slugifyHeading(text: string): string {
 /// the styled callout HTML, which includes the ORIGINAL inner body run
 /// back through a mini markdown render so inline code / links / emphasis
 /// in the callout body still works.
-function transformCallouts(src: string): {
+function transformCallouts(src: string, t?: TFunction): {
   md: string;
   restore: (html: string) => string;
 } {
@@ -511,7 +535,7 @@ function transformCallouts(src: string): {
         (_m, n: string) => {
           const entry = stash[parseInt(n, 10)];
           if (!entry) return "";
-          return renderCalloutBlock(entry.kind, entry.bodyHtml);
+          return renderCalloutBlock(entry.kind, entry.bodyHtml, t);
         },
       );
     },
@@ -520,11 +544,21 @@ function transformCallouts(src: string): {
 
 type CalloutKind = "note" | "warning" | "tip" | "example";
 
+/// English fallbacks for callers that don't pass a translate function
+/// (renderMarkdown is also used from non-React contexts / older call
+/// sites); when `opts.t` is provided the keys below win.
 const CALLOUT_LABELS: Record<CalloutKind, string> = {
   note: "Note",
   warning: "Warning",
   tip: "Tip",
   example: "Example",
+};
+
+const CALLOUT_LABEL_KEYS: Record<CalloutKind, string> = {
+  note: "lesson.calloutNote",
+  warning: "lesson.calloutWarning",
+  tip: "lesson.calloutTip",
+  example: "lesson.calloutExample",
 };
 
 /// Pre-built SVG strings matching the Icon primitive's output, inlined so the
@@ -547,8 +581,12 @@ function wrapIconSvg(inner: string): string {
   );
 }
 
-function renderCalloutBlock(kind: CalloutKind, bodyHtml: string): string {
-  const label = CALLOUT_LABELS[kind];
+function renderCalloutBlock(
+  kind: CalloutKind,
+  bodyHtml: string,
+  t?: TFunction,
+): string {
+  const label = t ? t(CALLOUT_LABEL_KEYS[kind]) : CALLOUT_LABELS[kind];
   return (
     `<div class="libre-callout libre-callout--${kind}">` +
     `<div class="libre-callout-head">` +
@@ -562,7 +600,10 @@ function renderCalloutBlock(kind: CalloutKind, bodyHtml: string): string {
 
 // ---------- Fenced code blocks --------------------------------------------
 
-async function replaceCodeFencePlaceholders(html: string): Promise<string> {
+async function replaceCodeFencePlaceholders(
+  html: string,
+  t?: TFunction,
+): Promise<string> {
   // Filename attr is optional — the regex makes the whole `data-
   // libre-filename="…"` group optional with a `?`. Without that
   // optionality, fences without a `/// file:` header would skip the
@@ -583,7 +624,7 @@ async function replaceCodeFencePlaceholders(html: string): Promise<string> {
     const b64 = match[2];
     const filename = match[3] ? decodeAttr(match[3]) : undefined;
     const code = decodeB64(b64);
-    jobs.push(highlightCode(code, lang, filename));
+    jobs.push(highlightCode(code, lang, filename, t));
     chunks.push(`__LIBRE_CODE_${jobs.length - 1}__`);
   }
   chunks.push(html.slice(lastIndex));
@@ -600,6 +641,7 @@ async function highlightCode(
   code: string,
   lang: string,
   filename?: string,
+  t?: TFunction,
 ): Promise<string> {
   const trimmed = normalizeCodeBlock(code);
   // The "Ask Libre" badge dispatches a `libre:ask-ai` custom
@@ -610,7 +652,13 @@ async function highlightCode(
   const b64 = typeof btoa === "function"
     ? btoa(unescape(encodeURIComponent(trimmed)))
     : Buffer.from(trimmed, "utf-8").toString("base64");
-  const askBadge = `<button class="libre-code-block-ask" type="button" data-libre-ask-code="${escapeAttr(b64)}" data-libre-ask-lang="${escapeAttr(lang)}" title="Discuss this code with the local assistant" aria-label="Ask Libre about this code">?</button>`;
+  const askTitle = t
+    ? t("lesson.askLibreCodeTitle")
+    : "Discuss this code with the local assistant";
+  const askAria = t
+    ? t("lesson.askLibreCodeAria")
+    : "Ask Libre about this code";
+  const askBadge = `<button class="libre-code-block-ask" type="button" data-libre-ask-code="${escapeAttr(b64)}" data-libre-ask-lang="${escapeAttr(lang)}" title="${escapeAttr(askTitle)}" aria-label="${escapeAttr(askAria)}">?</button>`;
   // Filename strip — small chrome above the code that surfaces the
   // tutorial's `/// file: NAME` header without polluting the syntax-
   // highlighted body. We also tag the wrapper div with

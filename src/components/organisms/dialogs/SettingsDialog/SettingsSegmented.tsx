@@ -9,6 +9,8 @@
 /// screen readers describe it as "one of N" rather than as a row
 /// of unrelated buttons.
 
+import { useT } from "@/i18n/i18n";
+
 interface Option<T extends string> {
   value: T;
   label: string;
@@ -30,10 +32,11 @@ export default function SettingsSegmented<T extends string>({
   onChange,
   label,
 }: Props<T>) {
+  const t = useT();
   return (
     <div
       role="radiogroup"
-      aria-label={label ?? "Select an option"}
+      aria-label={label ?? t("common.selectAnOption")}
       className="libre-settings-segmented"
     >
       {options.map((opt) => {

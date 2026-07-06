@@ -23,6 +23,7 @@ import {
   type DocsIngestOptions,
 } from "@/ingest/ingestDocsSite";
 import type { LanguageId } from "@/data/types";
+import { useT } from "@/i18n/i18n";
 
 export type IngestStatus = "idle" | "running" | "success" | "error" | "aborted";
 
@@ -93,6 +94,40 @@ export function useIngestRun(opts: {
   const [run, setRun] = useState<IngestRunState>(INITIAL);
   const abortRef = useRef<AbortController | null>(null);
   const lastEventAtRef = useRef<number>(0);
+  const t = useT();
+
+  /// Plain pipeline modules (no React hooks allowed there) surface
+  /// progress / failure text as i18n key tokens — `ingest.someKey` or
+  /// `ingest.someKey|{"param":"value"}` — instead of English literals.
+  /// Every stage / event string funnels through this hook on its way
+  /// into state, so resolving here localizes the floating panel
+  /// without threading `t` into the pipeline. Non-token strings pass
+  /// through untouched; tokens may also sit embedded at the end of a
+  /// longer message (e.g. `fail attempt 2: ingest.…|{…}`).
+  const resolveIngestText = useCallback(
+    (raw: string): string => {
+      if (!raw.includes("ingest.")) return raw;
+      return raw.replace(
+        /ingest\.[A-Za-z][A-Za-z0-9]*(?:\|\{.*\})?/,
+        (token) => {
+          const sep = token.indexOf("|");
+          if (sep === -1) return t(token);
+          try {
+            return t(
+              token.slice(0, sep),
+              JSON.parse(token.slice(sep + 1)) as Record<
+                string,
+                string | number
+              >,
+            );
+          } catch {
+            return t(token.slice(0, sep));
+          }
+        },
+      );
+    },
+    [t],
+  );
 
   const onCourseSaved = opts.onCourseSaved;
 
@@ -109,7 +144,7 @@ export function useIngestRun(opts: {
         status: "running",
         bookId: args.bookId,
         title: args.title,
-        stage: "Starting…",
+        stage: t("ingest.stageStarting"),
         detail: "",
         events: [],
         stats: null,
@@ -127,7 +162,7 @@ export function useIngestRun(opts: {
           language: args.language,
           signal: controller.signal,
           onProgress: (stage, detail) => {
-            setRun((r) => ({ ...r, stage, detail: detail ?? "" }));
+            setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" }));
           },
           onEvent: (ev) => {
             lastEventAtRef.current = ev.timestamp;
@@ -135,7 +170,7 @@ export function useIngestRun(opts: {
               // Cap at 500 entries so long runs don't balloon memory.
               const next =
                 r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
-              next.push(ev);
+              next.push({ ...ev, message: resolveIngestText(ev.message) });
               return { ...r, events: next };
             });
             // The pipeline saves per-lesson; when any "save" event lands,
@@ -180,7 +215,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   const cancel = useCallback(() => {
@@ -214,8 +249,8 @@ export function useIngestRun(opts: {
       setRun({
         status: "running",
         bookId,
-        title: `${title} — regenerating exercises`,
-        stage: "Starting…",
+        title: t("ingest.regeneratingExercises", { title }),
+        stage: t("ingest.stageStarting"),
         detail: "",
         events: [],
         stats: null,
@@ -228,13 +263,13 @@ export function useIngestRun(opts: {
           bookId,
           signal: controller.signal,
           onProgress: (stage, detail) =>
-            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+            setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" })),
           onEvent: (ev) => {
             lastEventAtRef.current = ev.timestamp;
             setRun((r) => {
               const next =
                 r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
-              next.push(ev);
+              next.push({ ...ev, message: resolveIngestText(ev.message) });
               return { ...r, events: next };
             });
             if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
@@ -260,7 +295,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   /// Generate a brand-new challenge pack from scratch. Mirrors the
@@ -277,7 +312,7 @@ export function useIngestRun(opts: {
         status: "running",
         bookId: "",
         title,
-        stage: "Starting…",
+        stage: t("ingest.stageStarting"),
         detail: "",
         events: [],
         stats: null,
@@ -292,13 +327,13 @@ export function useIngestRun(opts: {
           model: args.model,
           signal: controller.signal,
           onProgress: (stage, detail) =>
-            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+            setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" })),
           onEvent: (ev) => {
             lastEventAtRef.current = ev.timestamp;
             setRun((r) => {
               const next =
                 r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
-              next.push(ev);
+              next.push({ ...ev, message: resolveIngestText(ev.message) });
               return { ...r, events: next };
             });
             if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
@@ -331,7 +366,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   /// Doc-site ingest. Crawls a documentation URL, groups pages into
@@ -361,7 +396,7 @@ export function useIngestRun(opts: {
         status: "running",
         bookId: args.bookId,
         title: args.title,
-        stage: "Starting crawl…",
+        stage: t("ingest.stageStartingCrawl"),
         detail: args.startUrl,
         events: [],
         stats: null,
@@ -374,13 +409,13 @@ export function useIngestRun(opts: {
           ...args,
           signal: controller.signal,
           onProgress: (stage, detail) =>
-            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+            setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" })),
           onEvent: (ev) => {
             lastEventAtRef.current = ev.timestamp;
             setRun((r) => {
               const next =
                 r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
-              next.push(ev);
+              next.push({ ...ev, message: resolveIngestText(ev.message) });
               return { ...r, events: next };
             });
             if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
@@ -406,7 +441,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   /// Enrichment pass for an existing course — populates `objectives` +
@@ -421,8 +456,8 @@ export function useIngestRun(opts: {
       setRun({
         status: "running",
         bookId,
-        title: `${title} — enriching lessons`,
-        stage: "Starting…",
+        title: t("ingest.enrichingLessons", { title }),
+        stage: t("ingest.stageStarting"),
         detail: "",
         events: [],
         stats: null,
@@ -435,13 +470,13 @@ export function useIngestRun(opts: {
           bookId,
           signal: controller.signal,
           onProgress: (stage, detail) =>
-            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+            setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" })),
           onEvent: (ev) => {
             lastEventAtRef.current = ev.timestamp;
             setRun((r) => {
               const next =
                 r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
-              next.push(ev);
+              next.push({ ...ev, message: resolveIngestText(ev.message) });
               return { ...r, events: next };
             });
             if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
@@ -467,7 +502,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   /// Bulk import — runs `start` on each item sequentially, one after the
@@ -494,7 +529,7 @@ export function useIngestRun(opts: {
         status: "running",
         bookId: items[0].bookId,
         title: `${items[0].title} (1/${total})`,
-        stage: "Starting…",
+        stage: t("ingest.stageStarting"),
         detail: "",
         events: [],
         stats: null,
@@ -523,7 +558,7 @@ export function useIngestRun(opts: {
             ...r,
             bookId: item.bookId,
             title: `${item.title} (${i + 1}/${total})`,
-            stage: "Starting…",
+            stage: t("ingest.stageStarting"),
             detail: "",
             events: [
               {
@@ -552,7 +587,7 @@ export function useIngestRun(opts: {
               language: item.language,
               signal: controller.signal,
               onProgress: (stage, detail) =>
-                setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+                setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" })),
               onEvent: (ev) => {
                 lastEventAtRef.current = ev.timestamp;
                 setRun((r) => {
@@ -560,7 +595,7 @@ export function useIngestRun(opts: {
                     r.events.length >= 500
                       ? r.events.slice(-499)
                       : r.events.slice();
-                  next.push(ev);
+                  next.push({ ...ev, message: resolveIngestText(ev.message) });
                   return { ...r, events: next };
                 });
                 if (ev.stage === "save" && ev.level === "info") {
@@ -585,7 +620,10 @@ export function useIngestRun(opts: {
                 timestamp: Date.now(),
                 level: "error",
                 stage: "meta",
-                message: `fail: ${item.title} — ${msg.slice(0, 200)}`,
+                message: t("ingest.queueItemFailed", {
+                  title: item.title,
+                  error: msg.slice(0, 200),
+                }),
               });
               return { ...r, events: next };
             });
@@ -597,7 +635,7 @@ export function useIngestRun(opts: {
           ...r,
           status: "success",
           finishedAt: Date.now(),
-          title: `Bulk import complete · ${succeeded} succeeded${failed > 0 ? ` · ${failed} failed` : ""}`,
+          title: t("ingest.bulkImportComplete", { succeeded, failed }),
           queue: { total, currentIndex: total, succeeded, failed },
         }));
       } catch (e) {
@@ -623,7 +661,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   /// Retry a single demoted lesson — drives the inline "Retry this
@@ -639,8 +677,8 @@ export function useIngestRun(opts: {
       setRun({
         status: "running",
         bookId,
-        title: `Retrying "${lessonTitle}"`,
-        stage: "Starting…",
+        title: t("ingest.retryingLesson", { lessonTitle }),
+        stage: t("ingest.stageStarting"),
         detail: "",
         events: [],
         stats: null,
@@ -654,13 +692,13 @@ export function useIngestRun(opts: {
           lessonId,
           signal: controller.signal,
           onProgress: (stage, detail) =>
-            setRun((r) => ({ ...r, stage, detail: detail ?? "" })),
+            setRun((r) => ({ ...r, stage: resolveIngestText(stage), detail: detail ?? "" })),
           onEvent: (ev) => {
             lastEventAtRef.current = ev.timestamp;
             setRun((r) => {
               const next =
                 r.events.length >= 500 ? r.events.slice(-499) : r.events.slice();
-              next.push(ev);
+              next.push({ ...ev, message: resolveIngestText(ev.message) });
               return { ...r, events: next };
             });
             if (ev.stage === "save" && ev.level === "info") onCourseSaved?.();
@@ -686,7 +724,7 @@ export function useIngestRun(opts: {
         abortRef.current = null;
       }
     },
-    [onCourseSaved],
+    [onCourseSaved, t, resolveIngestText],
   );
 
   return {

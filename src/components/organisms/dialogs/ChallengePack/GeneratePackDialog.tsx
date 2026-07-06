@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { LanguageId } from "@/data/types";
 import ModalBackdrop from "@/components/atoms/ModalBackdrop/ModalBackdrop";
+import { useT } from "@/i18n/i18n";
 import "./GeneratePackDialog.css";
 import RangeSlider from "@/components/atoms/RangeSlider/RangeSlider";
 
@@ -19,30 +20,32 @@ const AVG_TOKENS_PER_CHALLENGE = {
 /// USD. Kept as a literal table so updates are obvious. Haiku is the
 /// cheapest + fastest, Sonnet is the default, Opus is the highest-quality
 /// option — matches the user's "$50-150 ceiling on Opus" decision.
+/// `hint` holds an i18n key (module scope — no hooks here); the render
+/// resolves it through `t()`.
 const MODEL_PRICES: Record<ModelId, { inputPerM: number; outputPerM: number; label: string; hint: string }> = {
   "claude-haiku-4-8": {
     inputPerM: 0.8,
     outputPerM: 4,
     label: "Haiku 4.8",
-    hint: "Fastest, cheapest. Good for drafts.",
+    hint: "import.packModelHintHaiku",
   },
   "claude-sonnet-4-8": {
     inputPerM: 3,
     outputPerM: 15,
     label: "Sonnet 4.8",
-    hint: "Solid baseline. Recommended for bulk packs.",
+    hint: "import.packModelHintSonnet",
   },
   "claude-opus-4-8": {
     inputPerM: 15,
     outputPerM: 75,
     label: "Opus 4.8",
-    hint: "Highest quality. Tests are more robust.",
+    hint: "import.packModelHintOpus",
   },
   "claude-fable-5": {
     inputPerM: 10,
     outputPerM: 50,
     label: "Fable 5",
-    hint: "Most powerful. Tests are the most robust.",
+    hint: "import.packModelHintFable",
   },
 };
 
@@ -78,6 +81,7 @@ const MIN_COUNT = 20;
 const MAX_COUNT = 200;
 
 export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
+  const t = useT();
   const [language, setLanguage] = useState<LanguageId>("rust");
   const [count, setCount] = useState<number>(DEFAULT_COUNT);
   const [model, setModel] = useState<ModelId>("claude-opus-4-8");
@@ -101,16 +105,16 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
       >
         <div className="libre-genpack-header">
           <div>
-            <div className="libre-genpack-kicker">Challenge pack</div>
+            <div className="libre-genpack-kicker">{t("import.packKicker")}</div>
             <div className="libre-genpack-title" id="libre-genpack-title">
-              Generate new pack
+              {t("import.packTitle")}
             </div>
           </div>
           <button
             type="button"
             className="libre-genpack-close"
             onClick={onDismiss}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             ×
           </button>
@@ -118,7 +122,9 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
 
         <div className="libre-genpack-body">
           <section className="libre-genpack-section">
-            <label className="libre-genpack-section-label">Language</label>
+            <label className="libre-genpack-section-label">
+              {t("import.packLanguage")}
+            </label>
             <div className="libre-genpack-lang-row">
               {LANGUAGE_OPTIONS.map((opt) => (
                 <button
@@ -137,7 +143,7 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
 
           <section className="libre-genpack-section">
             <label className="libre-genpack-section-label">
-              Count
+              {t("import.packCount")}
               <span className="libre-genpack-section-value">{count}</span>
             </label>
             <RangeSlider
@@ -153,15 +159,14 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
               <span>{MAX_COUNT}</span>
             </div>
             <div className="libre-genpack-section-hint">
-              Split roughly 40% easy, 40% medium, 20% hard across topic
-              buckets (strings, arrays, iterators, concurrency, etc.).
-              Saves incrementally — you can cancel midway and keep what
-              has landed.
+              {t("import.packCountHint")}
             </div>
           </section>
 
           <section className="libre-genpack-section">
-            <label className="libre-genpack-section-label">Model</label>
+            <label className="libre-genpack-section-label">
+              {t("import.packModel")}
+            </label>
             <div className="libre-genpack-model-list">
               {(Object.keys(MODEL_PRICES) as ModelId[]).map((id) => (
                 <button
@@ -176,7 +181,7 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
                     {MODEL_PRICES[id].label}
                   </div>
                   <div className="libre-genpack-model-hint">
-                    {MODEL_PRICES[id].hint}
+                    {t(MODEL_PRICES[id].hint)}
                   </div>
                 </button>
               ))}
@@ -185,15 +190,17 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
 
           <section className="libre-genpack-estimate">
             <div className="libre-genpack-estimate-label">
-              Estimated cost
+              {t("import.packEstimatedCost")}
             </div>
             <div className="libre-genpack-estimate-value">
               ~${estimatedCostUsd.toFixed(2)}
             </div>
             <div className="libre-genpack-estimate-hint">
-              Back-of-envelope: {count} challenges ×{" "}
-              {AVG_TOKENS_PER_CHALLENGE.output / 1000}k output tokens ×{" "}
-              {MODEL_PRICES[model].label}. Actual usage will vary.
+              {t("import.packEstimateHint", {
+                count,
+                tokens: AVG_TOKENS_PER_CHALLENGE.output / 1000,
+                model: MODEL_PRICES[model].label,
+              })}
             </div>
           </section>
         </div>
@@ -204,14 +211,17 @@ export default function GeneratePackDialog({ onDismiss, onStart }: Props) {
             className="libre-genpack-btn"
             onClick={onDismiss}
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
             className="libre-genpack-btn libre-genpack-btn--primary"
             onClick={() => onStart({ language, count, model })}
           >
-            Generate {count} challenge{count === 1 ? "" : "s"}
+            {t(
+              count === 1 ? "import.generateN" : "import.generateNPlural",
+              { count },
+            )}
           </button>
         </div>
       </div>

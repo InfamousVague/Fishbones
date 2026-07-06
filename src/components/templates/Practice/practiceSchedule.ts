@@ -128,17 +128,28 @@ function clamp(n: number, lo: number, hi: number): number {
 
 /// Format a duration in ms as a short human label like "in 2 days"
 /// or "in 4 hours". Used by the session's post-grade card and the
-/// course-shelf "Next due" line.
-export function formatDueIn(ms: number): string {
-  if (ms <= 0) return "now";
+/// course-shelf "Next due" line. This is a plain module (no React),
+/// so it returns an i18n key + params for the consuming component
+/// to resolve via `t()`.
+export function formatDueIn(ms: number): {
+  key: string;
+  params?: Record<string, number>;
+} {
+  if (ms <= 0) return { key: "practice.dueNow" };
   if (ms < HOUR_MS) {
     const m = Math.max(1, Math.round(ms / (60 * 1000)));
-    return `in ${m} min`;
+    return { key: "practice.dueInMinutes", params: { minutes: m } };
   }
   if (ms < DAY_MS) {
     const h = Math.max(1, Math.round(ms / HOUR_MS));
-    return `in ${h} hour${h === 1 ? "" : "s"}`;
+    return {
+      key: h === 1 ? "practice.dueInHours" : "practice.dueInHoursPlural",
+      params: { hours: h },
+    };
   }
   const d = Math.max(1, Math.round(ms / DAY_MS));
-  return `in ${d} day${d === 1 ? "" : "s"}`;
+  return {
+    key: d === 1 ? "practice.dueInDays" : "practice.dueInDaysPlural",
+    params: { days: d },
+  };
 }

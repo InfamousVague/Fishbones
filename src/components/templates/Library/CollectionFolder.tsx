@@ -55,7 +55,11 @@ export default function CollectionFolder({
       className="libre-collection-folder"
       onClick={onOpen}
       onContextMenu={onContextMenu}
-      aria-label={`Open the ${title} collection — ${count} item${count === 1 ? "" : "s"}`}
+      aria-label={
+        count === 1
+          ? t("library.openCollectionAria", { title, count })
+          : t("library.openCollectionAriaPlural", { title, count })
+      }
       title={blurb}
     >
       <div className="libre-collection-folder-mosaic" aria-hidden>

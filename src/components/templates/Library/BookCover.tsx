@@ -19,6 +19,7 @@ import { useCourseCover } from "@/hooks/useCourseCover";
 import LibreLoader from "@/components/molecules/LibreLoader/LibreLoader";
 import Hologram from "@/components/atoms/Hologram/Hologram";
 import { languageMeta } from "@/lib/languages";
+import { useT } from "@/i18n/i18n";
 import "./BookCover.css";
 
 /// Deterministic "random" placement for the 100% clear stamp, seeded by
@@ -63,6 +64,16 @@ export function releaseStatusIcon(status: ReleaseStatus): string {
       return pencilLine;
   }
 }
+
+/// i18n key per editorial tier — the component passes the key to
+/// `t()` so the pill label localises (the enum value itself stays
+/// raw for CSS class names / sorting).
+const RELEASE_STATUS_LABEL_KEY: Record<ReleaseStatus, string> = {
+  VERIFIED: "library.releaseStatusVerified",
+  BETA: "library.releaseStatusBeta",
+  ALPHA: "library.releaseStatusAlpha",
+  UNREVIEWED: "library.releaseStatusUnreviewed",
+};
 
 interface Props {
   course: Course;
@@ -145,6 +156,7 @@ function BookCoverImpl({
   onInstall,
   style,
 }: Props) {
+  const t = useT();
   // Covers are prefetched in bulk when the library mounts (see
   // `prefetchCovers` in CourseLibrary). This hook reads from the
   // shared cache that prefetch populates — no extra IPC per card.
@@ -294,14 +306,14 @@ function BookCoverImpl({
       title={
         placeholder
           ? installing
-            ? `Installing ${course.title}…`
-            : `Tap to install ${course.title}`
+            ? t("library.installingCourseTitle", { title: course.title })
+            : t("library.tapToInstall", { title: course.title })
           : course.title
       }
       aria-label={
         placeholder
-          ? `Install ${course.title}`
-          : `Open ${course.title}`
+          ? t("library.installCourseAria", { title: course.title })
+          : t("library.openCourseAria", { title: course.title })
       }
       aria-busy={loading || installing || undefined}
       disabled={installing}
@@ -316,7 +328,7 @@ function BookCoverImpl({
             imageLoaded ? "libre-book-cover--loaded" : "libre-book-cover--loading"
           }`}
           src={coverUrl}
-          alt={`${course.title} cover`}
+          alt={t("library.coverAlt", { title: course.title })}
           loading="lazy"
           // `decoding="async"` lets the browser decode off the main
           // thread, so a 1MB JPEG doesn't block paint while it parses.
@@ -340,7 +352,7 @@ function BookCoverImpl({
           <div className="libre-book-fallback-title">{course.title}</div>
           {course.author && (
             <div className="libre-book-fallback-author">
-              by {course.author}
+              {t("library.authorPrefix", { author: course.author })}
             </div>
           )}
         </div>
@@ -382,7 +394,9 @@ function BookCoverImpl({
           (testing), rocket for PRE-RELEASE (launching). */}
       <span
         className={`libre-book-status libre-book-status--${releaseStatus.toLowerCase()}`}
-        title={`${releaseStatus} \u2014 editorial tier`}
+        title={t("library.editorialTierTitle", {
+          status: t(RELEASE_STATUS_LABEL_KEY[releaseStatus]),
+        })}
       >
         <Icon
           icon={releaseStatusIcon(releaseStatus)}
@@ -390,7 +404,9 @@ function BookCoverImpl({
           color="currentColor"
           className="libre-book-status-icon"
         />
-        <span className="libre-book-status-label">{releaseStatus}</span>
+        <span className="libre-book-status-label">
+          {t(RELEASE_STATUS_LABEL_KEY[releaseStatus])}
+        </span>
       </span>
 
       {/* Challenge-pack tag \u2014 sits below the release-status pill and
@@ -403,7 +419,7 @@ function BookCoverImpl({
       {isChallenges && (
         <span
           className="libre-book-kind libre-book-kind--challenges"
-          title="Challenge pack \u2014 exercises only, no readings"
+          title={t("library.challengePackTitle")}
         >
           <Icon
             icon={swords}
@@ -411,7 +427,7 @@ function BookCoverImpl({
             color="currentColor"
             className="libre-book-kind-icon"
           />
-          <span className="libre-book-kind-label">Challenges</span>
+          <span className="libre-book-kind-label">{t("library.challenges")}</span>
         </span>
       )}
 
@@ -428,7 +444,7 @@ function BookCoverImpl({
             ["--stamp-y" as string]: stamp.y,
             ["--stamp-rot" as string]: stamp.rot,
           }}
-          aria-label="100% cleared"
+          aria-label={t("library.fullyClearedAria")}
         >
           <Hologram
             surface="light"
@@ -477,7 +493,9 @@ function BookCoverImpl({
           ) : (
             <>
               <Icon icon={arrowDownToLine} size="sm" color="currentColor" />
-              <span className="libre-book-install-label">install</span>
+              <span className="libre-book-install-label">
+                {t("library.installLower")}
+              </span>
               {typeof course.archiveSize === "number" && (
                 <span className="libre-book-install-size">
                   {(course.archiveSize / 1024 / 1024).toFixed(1)} MB
@@ -504,10 +522,12 @@ function BookCoverImpl({
         <span
           className="libre-book-update libre-book-update--working"
           aria-busy="true"
-          aria-label={`Updating ${course.title}`}
+          aria-label={t("library.updatingCourseAria", { title: course.title })}
         >
           <Icon icon={loader} size="xs" color="currentColor" />
-          <span className="libre-book-update-label">updating…</span>
+          <span className="libre-book-update-label">
+            {t("library.updatingLower")}
+          </span>
         </span>
       )}
     </button>

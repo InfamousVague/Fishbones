@@ -33,6 +33,7 @@ import type { Completion } from "@/hooks/useProgress";
 import type { RealtimeSyncHandle } from "@/hooks/useRealtimeSync";
 import { isoToUnixSeconds, unixSecondsToIso } from "@/lib/timestamps";
 import { isLibraryMarkerRow } from "@/lib/librarySync";
+import { useT } from "@/i18n/i18n";
 import "./SyncDebugPanel.css";
 
 interface Props {
@@ -83,6 +84,7 @@ export default function SyncDebugPanel({
   // computation, and pull/push handlers are identical between
   // standalone and embedded modes.
   void embedded;
+  const t = useT();
   const [server, setServer] = useState<ServerSnapshot | null>(null);
   const [loadingSnapshot, setLoadingSnapshot] = useState(false);
   const [snapshotError, setSnapshotError] = useState<string | null>(null);
@@ -155,10 +157,14 @@ export default function SyncDebugPanel({
     setActionMsg(null);
     try {
       await realtime.resync();
-      setActionMsg("Pulled. Local should now match server.");
+      setActionMsg(t("settings.syncPulled"));
       await refreshSnapshot();
     } catch (e) {
-      setActionMsg(`Pull failed: ${e instanceof Error ? e.message : String(e)}`);
+      setActionMsg(
+        t("settings.syncPullFailed", {
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
     } finally {
       setPulling(false);
     }
@@ -166,7 +172,7 @@ export default function SyncDebugPanel({
 
   const onPushAll = async () => {
     if (history.length === 0) {
-      setActionMsg("Nothing local to push.");
+      setActionMsg(t("settings.syncNothingToPush"));
       return;
     }
     setPushing(true);
@@ -179,11 +185,20 @@ export default function SyncDebugPanel({
       }));
       await cloud.pushProgress(rows);
       setActionMsg(
-        `Pushed ${rows.length} completion${rows.length === 1 ? "" : "s"} to the server.`,
+        t(
+          rows.length === 1
+            ? "settings.syncPushed"
+            : "settings.syncPushedPlural",
+          { count: rows.length },
+        ),
       );
       await refreshSnapshot();
     } catch (e) {
-      setActionMsg(`Push failed: ${e instanceof Error ? e.message : String(e)}`);
+      setActionMsg(
+        t("settings.syncPushFailed", {
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
     } finally {
       setPushing(false);
     }
@@ -274,60 +289,63 @@ export default function SyncDebugPanel({
           gets rendered outside the combined Data & storage pane. */}
       {!embedded && (
         <div className="libre-sync-debug__head">
-          <h3 className="libre-settings-section">Sync</h3>
+          <h3 className="libre-settings-section">{t("settings.syncCard")}</h3>
           <p className="libre-settings-blurb">
-            Live status of the cross-device sync bus. Use the actions
-            below if your devices look out of sync.
+            {t("settings.syncBlurb")}
           </p>
         </div>
       )}
 
       {!cloud.signedIn ? (
         <div className="libre-sync-debug__signed-out">
-          Sign in above to see sync status.
+          {t("settings.syncSignedOut")}
         </div>
       ) : (
         <>
           <div className="libre-sync-debug__status">
             <div className="libre-sync-debug__status-row">
-              <span className="libre-sync-debug__label">Connection</span>
+              <span className="libre-sync-debug__label">
+                {t("settings.syncConnection")}
+              </span>
               <StatusBadge status={realtime.status} error={realtime.error} />
             </div>
             <div className="libre-sync-debug__status-row">
-              <span className="libre-sync-debug__label">Relay</span>
+              <span className="libre-sync-debug__label">
+                {t("settings.syncRelay")}
+              </span>
               <code className="libre-sync-debug__url">{cloud.relayUrl}</code>
             </div>
             <div className="libre-sync-debug__status-row">
-              <span className="libre-sync-debug__label">Pending push</span>
+              <span className="libre-sync-debug__label">
+                {t("settings.syncPendingPush")}
+              </span>
               <span className="libre-sync-debug__value">
-                {totalPending === 0 ? (
-                  "—"
-                ) : (
-                  <>
-                    {realtime.pendingPushCount.progress} progress ·{" "}
-                    {realtime.pendingPushCount.solutions} solutions ·{" "}
-                    {realtime.pendingPushCount.settings} settings
-                  </>
-                )}
+                {totalPending === 0
+                  ? "—"
+                  : t("settings.syncPendingCounts", {
+                      progress: realtime.pendingPushCount.progress,
+                      solutions: realtime.pendingPushCount.solutions,
+                      settings: realtime.pendingPushCount.settings,
+                    })}
               </span>
             </div>
           </div>
 
           <div className="libre-sync-debug__counts">
             <CountTile
-              label="On this device"
+              label={t("settings.syncOnDevice")}
               count={history.length}
               tone="local"
             />
             <CountTile
-              label="On the server"
+              label={t("settings.syncOnServer")}
               count={server === null ? null : serverReal.length}
               tone="server"
               loading={loadingSnapshot}
               error={snapshotError}
             />
             <CountTile
-              label="Diff"
+              label={t("settings.syncDiff")}
               count={
                 server === null ? null : localOnly.length + serverOnly.length
               }
@@ -345,15 +363,22 @@ export default function SyncDebugPanel({
 
           {inSync && server !== null && (
             <div className="libre-sync-debug__inline-ok">
-              In sync. {history.length} completion
-              {history.length === 1 ? "" : "s"}
-              {serverLibraryMarkers.length > 0 ? (
-                <>
-                  {" "}and {serverLibraryMarkers.length} library book
-                  {serverLibraryMarkers.length === 1 ? "" : "s"}
-                </>
-              ) : null}{" "}
-              match the server.
+              {serverLibraryMarkers.length > 0
+                ? t(
+                    serverLibraryMarkers.length === 1
+                      ? "settings.syncInSyncBooks"
+                      : "settings.syncInSyncBooksPlural",
+                    {
+                      completions: history.length,
+                      books: serverLibraryMarkers.length,
+                    },
+                  )
+                : t(
+                    history.length === 1
+                      ? "settings.syncInSync"
+                      : "settings.syncInSyncPlural",
+                    { completions: history.length },
+                  )}
             </div>
           )}
 
@@ -361,16 +386,20 @@ export default function SyncDebugPanel({
             <div className="libre-sync-debug__diff">
               {localOnly.length > 0 && (
                 <DiffSection
-                  title={`On device but not on server (${localOnly.length})`}
+                  title={t("settings.syncLocalOnlyTitle", {
+                    count: localOnly.length,
+                  })}
                   rows={localOnly.slice(0, 10).map((h) => ({
                     key: `${h.course_id}:${h.lesson_id}`,
                     label:
                       describeLesson?.(h.course_id, h.lesson_id) ??
                       `${h.course_id} · ${h.lesson_id}`,
-                    sub: `Local time ${shortDate(h.completed_at)}`,
+                    sub: t("settings.syncLocalTime", {
+                      date: shortDate(h.completed_at),
+                    }),
                   }))}
                   more={Math.max(0, localOnly.length - 10)}
-                  cta="Push all to server"
+                  cta={t("settings.syncPushAll")}
                   ctaTone="primary"
                   onCta={onPushAll}
                   ctaLoading={pushing}
@@ -378,16 +407,20 @@ export default function SyncDebugPanel({
               )}
               {serverOnly.length > 0 && (
                 <DiffSection
-                  title={`On server but not on device (${serverOnly.length})`}
+                  title={t("settings.syncServerOnlyTitle", {
+                    count: serverOnly.length,
+                  })}
                   rows={serverOnly.slice(0, 10).map((r) => ({
                     key: `${r.course_id}:${r.lesson_id}`,
                     label:
                       describeLesson?.(r.course_id, r.lesson_id) ??
                       `${r.course_id} · ${r.lesson_id}`,
-                    sub: `Server time ${r.completed_at.replace("T", " ").replace(/\..+$/, "")}`,
+                    sub: t("settings.syncServerTime", {
+                      date: r.completed_at.replace("T", " ").replace(/\..+$/, ""),
+                    }),
                   }))}
                   more={Math.max(0, serverOnly.length - 10)}
-                  cta="Pull from server"
+                  cta={t("settings.syncPullFromServer")}
                   ctaTone="primary"
                   onCta={onPull}
                   ctaLoading={pulling}
@@ -398,12 +431,7 @@ export default function SyncDebugPanel({
 
           {bigDrift.length > 0 && (
             <div className="libre-sync-debug__drift-note">
-              <strong>{bigDrift.length}</strong> row
-              {bigDrift.length === 1 ? "" : "s"} have completion times
-              that differ between device and server by more than 30 days.
-              Most likely the relay rewrote the timestamp on push;
-              completions themselves still match. Pulling from server
-              will adopt the relay's time as the source of truth.
+              {t("settings.syncDriftNote", { count: bigDrift.length })}
             </div>
           )}
 
@@ -415,7 +443,9 @@ export default function SyncDebugPanel({
               disabled={pulling}
             >
               <Icon icon={cloudDownload} size="xs" color="currentColor" />
-              {pulling ? "Pulling…" : "Pull from server"}
+              {pulling
+                ? t("settings.syncPulling")
+                : t("settings.syncPullFromServer")}
             </button>
             <button
               type="button"
@@ -424,7 +454,9 @@ export default function SyncDebugPanel({
               disabled={pushing || history.length === 0}
             >
               <Icon icon={cloudUpload} size="xs" color="currentColor" />
-              {pushing ? "Pushing…" : "Push all to server"}
+              {pushing
+                ? t("settings.syncPushing")
+                : t("settings.syncPushAll")}
             </button>
             <button
               type="button"
@@ -433,7 +465,9 @@ export default function SyncDebugPanel({
               disabled={loadingSnapshot}
             >
               <Icon icon={refreshCw} size="xs" color="currentColor" />
-              {loadingSnapshot ? "Checking…" : "Refresh diff"}
+              {loadingSnapshot
+                ? t("settings.syncChecking")
+                : t("settings.syncRefreshDiff")}
             </button>
           </div>
 
@@ -478,6 +512,7 @@ function FeatureStatusRow({
   server: ServerSnapshot;
   libraryCount: number;
 }) {
+  const t = useT();
   // Library is "live" if any markers came down. Zero markers but a
   // working progress endpoint reads as "no library published yet"
   // — desktop hasn't pushed any (e.g. the user only ever signs in
@@ -487,23 +522,32 @@ function FeatureStatusRow({
 
   return (
     <div className="libre-sync-debug__endpoints">
-      <FeaturePill name="Progress" status="ok" detail="live" />
       <FeaturePill
-        name="Library"
+        name={t("settings.syncPillProgress")}
+        status="ok"
+        detail={t("settings.syncPillLive")}
+      />
+      <FeaturePill
+        name={t("settings.syncPillLibrary")}
         status={libraryStatus}
         detail={
           libraryStatus === "ok"
-            ? `${libraryCount} book${libraryCount === 1 ? "" : "s"}`
-            : "no devices have published yet"
+            ? t(
+                libraryCount === 1
+                  ? "settings.syncPillBooks"
+                  : "settings.syncPillBooksPlural",
+                { count: libraryCount },
+              )
+            : t("settings.syncPillNoDevices")
         }
       />
       <FeaturePill
-        name="Solutions"
+        name={t("settings.syncPillSolutions")}
         status={server.solutionsStatus === "ok" ? "ok" : "muted"}
         detail={
           server.solutionsStatus === "ok"
-            ? "live"
-            : "server-side feature not deployed"
+            ? t("settings.syncPillLive")
+            : t("settings.syncPillNotDeployed")
         }
         title={server.solutionsError}
       />
@@ -544,14 +588,15 @@ function StatusBadge({
   status: RealtimeSyncHandle["status"];
   error: string | null;
 }) {
+  const t = useT();
   const label =
     status === "live"
-      ? "Live"
+      ? t("settings.syncStatusLive")
       : status === "syncing"
-        ? "Syncing…"
+        ? t("settings.syncStatusSyncing")
         : status === "error"
-          ? "Error"
-          : "Idle";
+          ? t("settings.syncStatusError")
+          : t("settings.syncStatusIdle");
   return (
     <span
       className={`libre-sync-debug__badge libre-sync-debug__badge--${status}`}
@@ -607,6 +652,7 @@ function DiffSection({
   onCta?: () => void;
   ctaLoading?: boolean;
 }) {
+  const t = useT();
   return (
     <div className="libre-sync-debug__diff-section">
       <div className="libre-sync-debug__diff-head">
@@ -634,7 +680,9 @@ function DiffSection({
         ))}
       </ul>
       {more > 0 && (
-        <span className="libre-sync-debug__diff-more">… and {more} more</span>
+        <span className="libre-sync-debug__diff-more">
+          {t("settings.syncAndMore", { more })}
+        </span>
       )}
     </div>
   );

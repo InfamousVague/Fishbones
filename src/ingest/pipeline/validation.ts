@@ -6,6 +6,40 @@ import { parseJson, slug, pad } from "./helpers";
 
 const MAX_RETRIES = 3;
 
+/// This module is plain TS (no React hooks), so user-facing strings are
+/// emitted as i18n key tokens — `ingest.someKey` or
+/// `ingest.someKey|{"param":"value"}` — which `useIngestRun` resolves
+/// through `t()` before they land in the floating panel.
+///
+/// Machine-facing consumers (the `retry_exercise` LLM prompt and the
+/// demoted-lesson body written into the course) must stay English
+/// regardless of UI locale — they're model input / course content, not
+/// chrome — so this table decodes a token back to its English text.
+const FAILURE_EN: Record<string, string> = {
+  "ingest.referenceSolutionFailed":
+    "Reference solution failed validation.{errText}{testText}",
+  "ingest.starterAlreadyPasses":
+    "Starter code already passes every test — there's nothing for the user to solve. Add TODOs to the starter.",
+};
+
+function failureToEnglish(failure: string): string {
+  const sep = failure.indexOf("|");
+  const key = sep === -1 ? failure : failure.slice(0, sep);
+  const template = FAILURE_EN[key];
+  if (!template) return failure;
+  let params: Record<string, unknown> = {};
+  if (sep !== -1) {
+    try {
+      params = JSON.parse(failure.slice(sep + 1)) as Record<string, unknown>;
+    } catch {
+      /* fall through with no params */
+    }
+  }
+  return template.replace(/\{(\w+)\}/g, (_, name: string) =>
+    name in params ? String(params[name]) : "",
+  );
+}
+
 export async function validateExerciseWithRetry(
   lesson: ExerciseLesson,
   ctx: {
@@ -32,7 +66,10 @@ export async function validateExerciseWithRetry(
     ctx.stats.validationAttempts += 1;
     ctx.pushStats();
     ctx.onProgress(
-      `Validating exercise (attempt ${attempt + 1}/${MAX_RETRIES + 1})`,
+      `ingest.validatingExercise|${JSON.stringify({
+        attempt: attempt + 1,
+        max: MAX_RETRIES + 1,
+      })}`,
       current.title,
     );
 
@@ -72,7 +109,7 @@ export async function validateExerciseWithRetry(
         lesson: ctx.stubId,
         message: `demoted to reading after ${MAX_RETRIES} failures`,
       });
-      return demoteToReading(current, failure);
+      return demoteToReading(current, failureToEnglish(failure));
     }
 
     // Ask the LLM to fix it. Parse BEFORE caching so a truncated or malformed
@@ -84,7 +121,7 @@ export async function validateExerciseWithRetry(
       "retry_exercise",
       {
         originalLesson: JSON.stringify(current),
-        failureReason: failure,
+        failureReason: failureToEnglish(failure),
       },
       `retry_exercise attempt ${attempt + 1}`,
       { stage: "retry", chapter: ctx.chapterIndex + 1, lesson: ctx.stubId },
@@ -97,7 +134,8 @@ export async function validateExerciseWithRetry(
 }
 
 /// Returns null if the exercise passes BOTH gates (solution passes every test,
-/// starter fails at least one). Otherwise returns a human-readable reason.
+/// starter fails at least one). Otherwise returns the failure reason as an
+/// i18n key token (see the module comment on FAILURE_EN).
 export async function validateOnce(lesson: ExerciseLesson): Promise<string | null> {
   // Non-JS/TS/Python exercises can't run in-browser for full validation yet.
   // Trust the LLM on those for now; Rust uses the Playground and Swift is
@@ -118,13 +156,13 @@ export async function validateOnce(lesson: ExerciseLesson): Promise<string | nul
     const testText = first
       ? ` [first failing test] "${first.name}": ${first.error ?? "(no message)"}`
       : "";
-    return `Reference solution failed validation.${errText}${testText}`;
+    return `ingest.referenceSolutionFailed|${JSON.stringify({ errText, testText })}`;
   }
 
   // Gate 2: starter must fail at least one test (otherwise the task is trivial).
   const startRes = await runCode(lesson.language, lesson.starter, lesson.tests);
   if (isPassing(startRes)) {
-    return "Starter code already passes every test — there's nothing for the user to solve. Add TODOs to the starter.";
+    return "ingest.starterAlreadyPasses";
   }
 
   return null;

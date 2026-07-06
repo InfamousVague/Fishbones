@@ -14,6 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useT } from "@/i18n/i18n";
 import "./XpBurst.css";
 
 export interface XpBurstDetail {
@@ -40,6 +41,7 @@ interface Burst {
 let nextId = 1;
 
 export default function XpBurst() {
+  const t = useT();
   const [bursts, setBursts] = useState<Burst[]>([]);
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function XpBurst() {
     <div className="libre-xp-burst-layer" aria-hidden>
       {bursts.map((b) => (
         <div key={b.id} className="libre-xp-burst">
-          +{b.xp} XP
+          {t("lesson.xpBurst", { xp: b.xp })}
         </div>
       ))}
     </div>,

@@ -395,7 +395,9 @@ export default function LessonView({
       if (!r) {
         const errResult: RunResult = {
           logs: [],
-          error: `No runtime for language "${effectiveLanguage}".`,
+          error: t("sandbox.noRuntimeForLanguage", {
+            language: effectiveLanguage,
+          }),
           durationMs: 0,
         };
         setResult(errResult);
@@ -409,7 +411,9 @@ export default function LessonView({
           phoneBus?.emit({
             type: "console",
             logs: [],
-            error: `No runtime for language "${effectiveLanguage}".`,
+            error: t("sandbox.noRuntimeForLanguage", {
+              language: effectiveLanguage,
+            }),
           });
         }
         return;
@@ -636,7 +640,6 @@ export default function LessonView({
     (!hasExercise && !isQuiz(lesson)) || hasTradeHarness;
 
   function handleNext() {
-    if (!neighbors.next) return;
     if (isReadingOnly && !isCompleted) {
       // Reading-only lessons have no Run gate — clicking Next IS the
       // completion. Fire `lesson.complete` here (first time only, via
@@ -650,6 +653,13 @@ export default function LessonView({
       });
       onComplete();
     }
+    // The LAST lesson of a course has no next neighbor. For a
+    // reading-only lesson the click above WAS the point ("mark read
+    // & finish") — completion has to fire before this bail-out, or
+    // a course ending in a reading could never be finished on
+    // desktop (stuck at N-1/N, no XP, no certificate). For every
+    // other kind the button is disabled here anyway.
+    if (!neighbors.next) return;
     // Page-turn foley on lesson navigation — the app is a book.
     playSound("page-turn", { volume: 0.3 });
     track.lessonNav("next");
@@ -747,8 +757,11 @@ export default function LessonView({
   useKeybinding("lesson.prev", handlePrev, {
     enabled: !!neighbors.prev,
   });
+  // Enabled on the final lesson too when it's an uncompleted
+  // reading — there the shortcut fires the "mark read & finish"
+  // completion instead of a navigation (mirrors the nav button).
   useKeybinding("lesson.next", handleNext, {
-    enabled: !!neighbors.next,
+    enabled: !!neighbors.next || (isReadingOnly && !isCompleted),
   });
 
   // The "mark read & next" variant is the moment we want to
@@ -757,8 +770,11 @@ export default function LessonView({
   // as the "you finished reading, claim the lesson" CTA. The
   // holographic foil treatment lives on the LessonNav side; we
   // just signal here that this nav slot is in CTA mode.
-  const isMarkReadCta =
-    isReadingOnly && !isCompleted && !!neighbors.next;
+  // No `neighbors.next` requirement: on the LAST lesson of a course
+  // the same slot becomes "mark read & finish" — the click completes
+  // without navigating. That final click is the ONLY desktop
+  // completion affordance a trailing reading lesson has.
+  const isMarkReadCta = isReadingOnly && !isCompleted;
   // Code-challenge / quiz lessons get the same celebration once
   // the learner has actually passed them: tests green (or quiz
   // answered) flips `isCompleted` → true, and the Next button
@@ -769,7 +785,13 @@ export default function LessonView({
   const isPostPassCta =
     !isReadingOnly && isCompleted && !!neighbors.next;
   const isNextCta = isMarkReadCta || isPostPassCta;
-  const nextLabel = isMarkReadCta ? "mark read & next" : "next";
+  // Undefined outside CTA mode so LessonNav falls back to its own
+  // localized "next".
+  const nextLabel = isMarkReadCta
+    ? neighbors.next
+      ? t("lessonNav.markReadNext")
+      : t("lessonNav.markReadFinish")
+    : undefined;
 
   const nav = (
     <LessonNav
