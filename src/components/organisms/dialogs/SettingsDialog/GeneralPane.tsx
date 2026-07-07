@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@base/primitives/icon";
+import { check as checkIcon } from "@base/primitives/icon/icons/check";
 import { rocket } from "@base/primitives/icon/icons/rocket";
 import { arrowDownToLine } from "@base/primitives/icon/icons/arrow-down-to-line";
 import { info } from "@base/primitives/icon/icons/info";
@@ -10,6 +11,7 @@ import SettingsRow from "./SettingsRow";
 import SettingsToggle from "./SettingsToggle";
 import LanguageSelect from "./LanguageSelect";
 import { useT } from "@/i18n/i18n";
+import { markUpdateStaged } from "@/lib/pendingUpdate";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { track } from "@/lib/track";
 import {
@@ -34,12 +36,14 @@ type UpdateState =
   | { kind: "checking" }
   | { kind: "uptodate"; checkedAt: number }
   | { kind: "available"; version: string; notes: string }
-  // We no longer download in-app. Clicking install relaunches straight
-  // into the pre-launch updater (usePrelaunchUpdate / the macOS splash),
-  // which is the SINGLE owner of the download + install on next boot.
-  // `restarting` is just the brief "app is relaunching" state before the
-  // process exits.
-  | { kind: "restarting" }
+  // Download + install happen IN-APP, with visible progress — the reliable
+  // path. The reboot-into-splash approach we briefly tried didn't always
+  // complete (the macOS multi-window boot-updater dance is finicky), leaving
+  // users unable to update. The original "downloads twice" problem is now
+  // solved precisely via the staged-update marker (see @/lib/pendingUpdate):
+  // the boot updater skips its re-check only when the swap actually applied.
+  | { kind: "downloading"; progress: number; total: number | null }
+  | { kind: "ready" }
   | { kind: "error"; message: string };
 
 function isTauri(): boolean {
@@ -134,39 +138,48 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
     void checkForUpdates();
   }, [autoCheckUpdates, state.kind, checkForUpdates]);
 
-  /// Install action. Deliberately does NOT download here — it relaunches
-  /// straight into the app's pre-launch update process (usePrelaunchUpdate
-  /// / the macOS splash window), which checks, downloads, installs, and
-  /// relaunches into the new version on the next boot.
-  ///
-  /// Why: downloading in-app here AND again in the pre-launch updater was
-  /// the double-download bug — the in-app install didn't always apply
-  /// before the reopened app re-checked (the macOS bundle-swap race), so
-  /// the boot updater re-downloaded the same bytes. Funnelling every
-  /// "install" through the single pre-launch download path removes the
-  /// duplication entirely and makes the flow: click → app relaunches →
-  /// splash downloads once → new version.
-  const rebootIntoUpdate = useCallback(async () => {
+  /// Download + install the update IN-APP, streaming progress. On finish the
+  /// bundle is staged and the user clicks "Restart now" (the `ready` state)
+  /// to relaunch into it. We record the target version via `markUpdateStaged`
+  /// so the next boot's pre-launch updater doesn't re-download it (see
+  /// @/lib/pendingUpdate) — that's what prevents the old double-download,
+  /// while keeping this reliable single-window download path.
+  const downloadAndInstall = useCallback(async () => {
     if (!isTauri()) return;
-    track.update("install");
-    setState({ kind: "restarting" });
+    track.update("download");
+    setState({ kind: "downloading", progress: 0, total: null });
     try {
-      // macOS-safe relaunch (see relaunch_for_update in lib.rs): fully
-      // exits and reopens the bundle, so the reopened app runs its
-      // pre-launch update check + single download. Falls back to the
-      // plugin relaunch on a dev binary / non-macOS.
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("relaunch_for_update");
-    } catch {
-      try {
-        const { relaunch } = await import("@tauri-apps/plugin-process");
-        await relaunch();
-      } catch (e) {
-        setState({
-          kind: "error",
-          message: e instanceof Error ? e.message : String(e),
-        });
+      const { check } = await import("@tauri-apps/plugin-updater");
+      const update = await check();
+      if (!update) {
+        setState({ kind: "uptodate", checkedAt: Date.now() });
+        return;
       }
+      let downloaded = 0;
+      let total: number | null = null;
+      await update.downloadAndInstall((event) => {
+        switch (event.event) {
+          case "Started":
+            total = event.data.contentLength ?? null;
+            setState({ kind: "downloading", progress: 0, total });
+            break;
+          case "Progress":
+            downloaded += event.data.chunkLength ?? 0;
+            setState({ kind: "downloading", progress: downloaded, total });
+            break;
+          case "Finished":
+            // Bundle staged. Mark it so the boot updater won't re-download
+            // the same version after the coming relaunch.
+            markUpdateStaged(update.version);
+            setState({ kind: "ready" });
+            break;
+        }
+      });
+    } catch (e) {
+      setState({
+        kind: "error",
+        message: e instanceof Error ? e.message : String(e),
+      });
     }
   }, []);
 
@@ -215,7 +228,7 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
               className="libre-settings-secondary"
               onClick={checkForUpdates}
               disabled={
-                state.kind === "checking" || state.kind === "restarting"
+                state.kind === "checking" || state.kind === "downloading"
               }
             >
               {state.kind === "checking" ? t("settings.checkingUpdates") : t("settings.checkForUpdates")}
@@ -238,7 +251,7 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
             </div>
             <button
               className="libre-settings-primary"
-              onClick={rebootIntoUpdate}
+              onClick={downloadAndInstall}
             >
               <Icon icon={arrowDownToLine} size="xs" color="currentColor" />
               {t("settings.downloadInstall")}
@@ -257,18 +270,67 @@ export default function GeneralPane({ autoCheckUpdates }: Props = {}) {
         </div>
       )}
 
-      {state.kind === "restarting" && (
+      {state.kind === "downloading" && (
         <div className="libre-settings-update">
           <div className="libre-settings-update-head">
             <Icon icon={arrowDownToLine} size="sm" color="currentColor" />
             <div>
               <div className="libre-settings-update-title">
-                {t("settings.updateRestartingTitle")}
+                {t("settings.downloadingUpdate")}
               </div>
               <div className="libre-settings-update-sub">
-                {t("settings.updateRestartingSub")}
+                {state.total
+                  ? t("settings.downloadedProgress", {
+                      progress: (state.progress / 1024 / 1024).toFixed(1),
+                      total: (state.total / 1024 / 1024).toFixed(1),
+                    })
+                  : t("settings.downloadedNoTotal", {
+                      progress: (state.progress / 1024 / 1024).toFixed(1),
+                    })}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {state.kind === "ready" && (
+        <div className="libre-settings-update">
+          <div className="libre-settings-update-head">
+            <Icon icon={checkIcon} size="sm" color="currentColor" />
+            <div>
+              <div className="libre-settings-update-title">
+                {t("settings.updateInstalledTitle")}
+              </div>
+              <div className="libre-settings-update-sub">
+                {t("settings.updateRestartHint")}
+              </div>
+            </div>
+            <button
+              className="libre-settings-primary"
+              onClick={async () => {
+                // The staged bundle applies on relaunch. macOS-safe path
+                // (relaunch_for_update in lib.rs) fully exits + reopens so
+                // the swap registers; falls back to the plugin relaunch.
+                track.update("install");
+                try {
+                  const { invoke } = await import("@tauri-apps/api/core");
+                  await invoke("relaunch_for_update");
+                } catch {
+                  try {
+                    const { relaunch } = await import(
+                      "@tauri-apps/plugin-process"
+                    );
+                    await relaunch();
+                  } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.error("[settings] relaunch failed:", e);
+                  }
+                }
+              }}
+              autoFocus
+            >
+              {t("settings.restartNow")}
+            </button>
           </div>
         </div>
       )}

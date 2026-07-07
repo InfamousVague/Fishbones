@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { isWeb, isMobile } from "@/lib/platform";
+import { consumeStagedUpdate, versionSatisfies } from "@/lib/pendingUpdate";
 
 // Pre-launch update fetcher — a port of GhostWire's UpdaterSplash flow, minus
 // the separate splash window (Libre is single-window). On desktop Tauri it
@@ -11,7 +12,7 @@ import { isWeb, isMobile } from "@/lib/platform";
 // On web / mobile it's a no-op: status stays null and `busy` releases, so the
 // normal boot loader ("loading Libre…") shows and the app reveals as usual.
 
-const CHECK_TIMEOUT_MS = 8_000; // a hung manifest must never trap the user
+const CHECK_TIMEOUT_MS = 15_000; // a hung manifest must never trap the user
 const STALL_TIMEOUT_MS = 90_000; // no download progress this long → give up
 const HOLD_CAP_MS = 2_500; // max we hold the boot reveal for the check itself
 
@@ -78,6 +79,27 @@ export function usePrelaunchUpdate(): PrelaunchUpdate {
           setStatus(null);
           setBusy(false);
           return;
+        }
+
+        // If the in-app Settings updater just staged a version and this boot
+        // is already running it (or newer), the swap applied — skip the
+        // redundant check so we don't re-download the same bytes. If we're
+        // still behind, the swap didn't take, so fall through and let the
+        // check download it (self-heals). See @/lib/pendingUpdate.
+        const staged = consumeStagedUpdate();
+        if (staged) {
+          try {
+            const { getVersion } = await import("@tauri-apps/api/app");
+            const current = await getVersion();
+            if (versionSatisfies(current, staged)) {
+              window.clearTimeout(hold);
+              setStatus(null);
+              setBusy(false);
+              return;
+            }
+          } catch {
+            /* couldn't read version — fall through to a normal check */
+          }
         }
 
         setStatus("Checking for updates…");

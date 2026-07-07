@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { isWeb, isMobile } from "@/lib/platform";
+import { consumeStagedUpdate, versionSatisfies } from "@/lib/pendingUpdate";
 import LoadingScreen from "@/components/molecules/LoadingScreen/LoadingScreen";
 
 // The small pre-launch splash window (macOS) — a port of GhostWire's
@@ -10,7 +11,7 @@ import LoadingScreen from "@/components/molecules/LoadingScreen/LoadingScreen";
 // window and closes itself. The main window also self-reveals as a fallback
 // (see main.tsx), so a failed/missing splash can never strand the app.
 
-const CHECK_TIMEOUT_MS = 8_000; // a hung manifest must never trap the user here
+const CHECK_TIMEOUT_MS = 15_000; // a hung manifest must never trap the user here
 const STALL_TIMEOUT_MS = 90_000; // no download progress this long → just launch
 const MAX_SPLASH_MS = 12_000; // hard ceiling: hand off by then no matter what
 
@@ -131,6 +132,25 @@ export default function UpdaterSplash() {
         return;
       }
       try {
+        // If the in-app Settings updater just staged a version and this boot
+        // already runs it (or newer), the swap applied — hand straight off
+        // instead of re-checking + re-downloading the same bytes. If we're
+        // still behind, the swap didn't take, so fall through to the check
+        // and download it (self-heals). See @/lib/pendingUpdate.
+        const staged = consumeStagedUpdate();
+        if (staged) {
+          try {
+            const { getVersion } = await import("@tauri-apps/api/app");
+            const current = await getVersion();
+            if (versionSatisfies(current, staged)) {
+              handOff();
+              return;
+            }
+          } catch {
+            /* couldn't read version — fall through to a normal check */
+          }
+        }
+
         setStatus("Checking for updates…");
         const { check } = await import("@tauri-apps/plugin-updater");
         const update = await withTimeout(check(), CHECK_TIMEOUT_MS, "update check");
